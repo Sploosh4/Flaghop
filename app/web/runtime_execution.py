@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import logging
 import queue
 import subprocess
 import threading
@@ -20,16 +21,16 @@ _PROCESS_CRASH_MIN_RUNTIME_SECONDS = 5.0
 
 class _TrackedProcessStub:
     def __init__(
-            self,
-            *,
-            name: str,
-            tab_title: str,
-            host_ip: str,
-            port: str,
-            protocol: str,
-            command: str,
-            start_time: str,
-            outputfile: str,
+        self,
+        *,
+        name: str,
+        tab_title: str,
+        host_ip: str,
+        port: str,
+        protocol: str,
+        command: str,
+        start_time: str,
+        outputfile: str,
     ):
         self.name = str(name)
         self.tabTitle = str(tab_title)
@@ -46,18 +47,18 @@ class _TrackedProcessStub:
 
 
 def run_command_with_tracking(
-        runtime,
-        *,
-        tool_name: str,
-        tab_title: str,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        command: str,
-        outputfile: str,
-        timeout: int,
-        job_id: int = 0,
-        return_metadata: bool = False,
+    runtime,
+    *,
+    tool_name: str,
+    tab_title: str,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    command: str,
+    outputfile: str,
+    timeout: int,
+    job_id: int = 0,
+    return_metadata: bool = False,
 ) -> Any:
     with runtime._lock:
         project = runtime._require_active_project()
@@ -87,13 +88,15 @@ def run_command_with_tracking(
         failed_result = (False, "error: failed to create process record", 0)
         if not return_metadata:
             return failed_result
-        return failed_result + ({
-            "started_at": start_time,
-            "finished_at": getTimestamp(True),
-            "stdout_ref": "",
-            "stderr_ref": "",
-            "artifact_refs": [],
-        },)
+        return failed_result + (
+            {
+                "started_at": start_time,
+                "finished_at": getTimestamp(True),
+                "stdout_ref": "",
+                "stderr_ref": "",
+                "artifact_refs": [],
+            },
+        )
 
     resolved_job_id = int(job_id or 0)
     if resolved_job_id > 0:
@@ -106,13 +109,15 @@ def run_command_with_tracking(
             cancelled_result = (False, "killed", int(process_id))
             if not return_metadata:
                 return cancelled_result
-            return cancelled_result + ({
-                "started_at": start_time,
-                "finished_at": getTimestamp(True),
-                "stdout_ref": f"process_output:{int(process_id)}",
-                "stderr_ref": "",
-                "artifact_refs": runtime._collect_command_artifacts(outputfile),
-            },)
+            return cancelled_result + (
+                {
+                    "started_at": start_time,
+                    "finished_at": getTimestamp(True),
+                    "stdout_ref": f"process_output:{int(process_id)}",
+                    "stderr_ref": "",
+                    "artifact_refs": runtime._collect_command_artifacts(outputfile),
+                },
+            )
     runtime._emit_ui_invalidation("processes", "overview", throttle_seconds=0.1)
 
     proc: Optional[subprocess.Popen] = None
@@ -122,7 +127,9 @@ def run_command_with_tracking(
     started_at = time.monotonic()
     timeout_policy = runtime._resolve_process_timeout_policy(tool_name, timeout)
     quiet_long_running = bool(timeout_policy.get("quiet_long_running", False))
-    inactivity_timeout_seconds = max(1, int(timeout_policy.get("inactivity_timeout_seconds", timeout) or timeout or 300))
+    inactivity_timeout_seconds = max(
+        1, int(timeout_policy.get("inactivity_timeout_seconds", timeout) or timeout or 300)
+    )
     hard_timeout_seconds = max(0, int(timeout_policy.get("hard_timeout_seconds", 0) or 0))
     progress_state = {
         "adapter": runtime._process_progress_adapter_for_command(str(tool_name), str(command)),
@@ -180,13 +187,15 @@ def run_command_with_tracking(
         result = (bool(executed), str(reason), int(process_identifier or 0))
         if not return_metadata:
             return result
-        return result + ({
-            "started_at": start_time,
-            "finished_at": getTimestamp(True),
-            "stdout_ref": f"process_output:{int(process_identifier)}" if int(process_identifier or 0) > 0 else "",
-            "stderr_ref": "",
-            "artifact_refs": runtime._collect_command_artifacts(outputfile),
-        },)
+        return result + (
+            {
+                "started_at": start_time,
+                "finished_at": getTimestamp(True),
+                "stdout_ref": f"process_output:{int(process_identifier)}" if int(process_identifier or 0) > 0 else "",
+                "stderr_ref": "",
+                "artifact_refs": runtime._collect_command_artifacts(outputfile),
+            },
+        )
 
     def _persist_special_output(output_text: str):
         normalized_tool = str(tool_name or "").strip().lower()
@@ -199,7 +208,9 @@ def run_command_with_tracking(
                 default_source=str(host_ip or ""),
             )
         except Exception:
-            pass
+            logging.getLogger(__name__).exception(
+                "Unable to persist credential capture output for process %s", process_id
+            )
 
     try:
         proc = subprocess.Popen(
@@ -263,7 +274,9 @@ def run_command_with_tracking(
                 try:
                     process_repo.storeProcessRunningElapsedTime(str(process_id), elapsed_seconds)
                 except Exception:
-                    pass
+                    logging.getLogger(__name__).warning(
+                        "Unable to update elapsed time for process %s", process_id, exc_info=True
+                    )
                 if progress_state.get("adapter") == "tshark":
                     runtime._update_process_progress(
                         process_repo,
@@ -384,7 +397,9 @@ def run_command_with_tracking(
                 estimated_remaining=None,
             )
         except Exception:
-            pass
+            logging.getLogger(__name__).warning(
+                "Unable to store final progress for process %s", process_id, exc_info=True
+            )
 
         process_repo.storeProcessOutput(str(process_id), combined_output)
         _persist_special_output(combined_output)
@@ -413,14 +428,18 @@ def write_process_output_partial(runtime, process_id: int, output_text: str):
         runtime._ensure_process_tables()
         session = project.database.session()
         try:
-            session.execute(text(
-                "INSERT INTO process_output (processId, output) "
-                "SELECT :process_id, '' "
-                "WHERE NOT EXISTS (SELECT 1 FROM process_output WHERE processId = :process_id)"
-            ), {"process_id": int(process_id)})
-            session.execute(text(
-                "UPDATE process_output SET output = :output WHERE processId = :process_id"
-            ), {"process_id": int(process_id), "output": str(output_text)})
+            session.execute(
+                text(
+                    "INSERT INTO process_output (processId, output) "
+                    "SELECT :process_id, '' "
+                    "WHERE NOT EXISTS (SELECT 1 FROM process_output WHERE processId = :process_id)"
+                ),
+                {"process_id": int(process_id)},
+            )
+            session.execute(
+                text("UPDATE process_output SET output = :output WHERE processId = :process_id"),
+                {"process_id": int(process_id), "output": str(output_text)},
+            )
             session.commit()
         except Exception:
             session.rollback()

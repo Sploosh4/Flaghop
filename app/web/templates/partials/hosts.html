@@ -1,0 +1,77 @@
+    <section class="panel" id="workspace-hosts-panel">
+        <div class="panel-header">
+            <h2>Hosts</h2>
+            <div class="panel-header-actions">
+                <label class="panel-inline-select">
+                    Category
+                    <select id="hosts-category-filter-select">
+                        <option value="">all categories</option>
+                    </select>
+                </label>
+                <p id="host-count">{{ snapshot.hosts | length }}</p>
+                <button
+                    id="hosts-reset-filter-button"
+                    class="icon-btn"
+                    type="button"
+                    title="Reset host filters (show only up hosts)"
+                    aria-label="Reset host filters (show only up hosts)"
+                >
+                    <i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i>
+                    <span class="sr-only">Reset host filters</span>
+                </button>
+                <div class="ribbon-menu panel-menu" data-ribbon-menu="hosts-panel">
+                    <button
+                        id="hosts-panel-menu-button"
+                        class="panel-menu-button"
+                        type="button"
+                        data-ribbon-menu-toggle="hosts-panel"
+                        aria-haspopup="menu"
+                        aria-expanded="false"
+                        title="Host options">
+                        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+                        <span class="sr-only">Host options</span>
+                    </button>
+                    <div id="hosts-panel-menu" class="ribbon-submenu panel-submenu" role="menu" aria-label="Host options">
+                        <div class="panel-submenu-group">
+                            <p class="panel-submenu-title">Filter</p>
+                            <button id="hosts-filter-show-all-button" class="ribbon-submenu-item" type="button" title="Show all hosts regardless of status">Show All</button>
+                            <button id="hosts-filter-hide-down-button" class="ribbon-submenu-item" type="button" title="Hide hosts with down status">Hide Down Hosts</button>
+                            <div class="panel-filter-dropdown panel-filter-dropdown-menu" id="hosts-service-filter-dropdown">
+                                <button
+                                    id="hosts-service-filter-button"
+                                    class="ribbon-submenu-item panel-filter-button"
+                                    type="button"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                >Services</button>
+                                <div id="hosts-service-filter-popover" class="panel-filter-popover" hidden>
+                                    <div class="panel-filter-popover-header">
+                                        <strong>Open services</strong>
+                                        <button id="hosts-service-filter-clear-button" type="button">Clear</button>
+                                    </div>
+                                    <div id="hosts-service-filter-list" class="panel-filter-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>IP</th>
+                    <th>Hostname</th>
+                    <th>Status</th>
+                    <th>OS</th>
+                    <th>Categories</th>
+                    <th>Open Ports</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="hosts-body"></tbody>
+            </table>
+        </div>
+    </section>

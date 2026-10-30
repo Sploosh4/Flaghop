@@ -14,13 +14,16 @@ Copyright (c) 2025 Shane William Scott
     If not, see <http://www.gnu.org/licenses/>.
 
 """
-from app.auxiliary import log
+
+from app.logging.legionLog import getAppLogger
+
+log = getAppLogger()
 from parsers.Parser import parseNmapReport
 
-if __name__ == '__main__':
-    parser = parseNmapReport('a-full.xml')
+if __name__ == "__main__":
+    parser = parseNmapReport("a-full.xml")
 
-    log.info('\nscan session:')
+    log.info("\nscan session:")
     session = parser.getSession()
     log.info("\tstart time:\t" + session.startTime)
     log.info("\tstop time:\t" + session.finish_time)
@@ -32,13 +35,13 @@ if __name__ == '__main__':
 
     for h in parser.getAllHosts():
 
-        log.info('host ' + h.ip + ' is ' + h.status)
+        log.info("host " + h.ip + " is " + h.status)
 
-        for port in h.getPorts('tcp', 'open'):
+        for port in h.getPorts("tcp", "open"):
             print(port)
             log.info("\t---------------------------------------------------")
             log.info("\tservice of tcp port " + port + ":")
-            s = h.getService('tcp', port)
+            s = h.getService("tcp", port)
 
             if s == None:
                 log.info("\t\tno service")

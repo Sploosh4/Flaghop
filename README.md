@@ -47,7 +47,7 @@ Legion is a local-first, operator-guided reconnaissance and penetration testing 
 
 It supports governed deterministic and AI-assisted orchestration, project-based persistence, explicit approval gates, shared target state, evidence graphing, and a desktop and local web workflow for Kali and Ubuntu operators. AI providers supported include OpenAI, Claude and LM Studio. It also supports any local server that implements the OpenAI API.
 
-The web interface is now the primary interface. Qt remains in-tree for compatibility, but the main product direction is the standalone desktop and local web workspace built on the same orchestration core.
+The standalone Qt WebEngine window and local web interface share one workspace. The old widget-based Qt UI, its controller and the unfinished PostgreSQL adapter have been removed; project storage uses SQLite.
 
 ## 🖥 Web Interface (Primary)
 
@@ -157,9 +157,13 @@ flowchart TD
 
 ## 🔌 Other Interfaces
 
-### Qt Compatibility
+### Desktop
 
-Qt is still in-tree for compatibility and migration purposes, but it is no longer the primary documented path.
+Install `requirements-desktop.txt` and launch `python legion.py` or `python -m app.desktop`. The window reuses the running local backend, or starts and owns a backend for that window when no service is running. `scripts/launch-desktop.sh` remains the installed systemd desktop entry point.
+
+### Container backend
+
+The root `Dockerfile` builds the current checkout for the local web backend. `docker/buildItLocal.sh` and `docker/runIt.sh` use that recipe and store container data under `.state/container`. The previous upstream-cloning/X11 recipes and outdated Debian packaging have been retired. Container images have not been built as part of this refactor.
 
 ## 🌉 Recommended Environments
 
@@ -277,3 +281,16 @@ Legion is licensed under the GNU General Public License v3.0. See
 - `ms08-067_check` used by `smbenum.sh` is credited to Bernardo Damele A.G.
 - Legion depends heavily on Nmap, Hydra, Python, Flask, PyQt, SQLAlchemy, Selenium, Chromium/Firefox, and many other tools and projects.
 - Special thanks to Dmitriy Dubson for continued contributions to the project.
+
+## Code organization
+
+- `app/web/runtime.py` owns the active project and worker lifecycle. Small, explicit facades in `runtime_domains/` bind the existing runtime API to its domain implementations; adapters remain where parameter translation is required.
+- `app/scheduler/observations/` separates shared parsing utilities from fingerprint, vulnerability, TLS, discovery, network, enrichment and screenshot parsers. `observation_parsers.py` dispatches to those parsers.
+- `app/scheduler/provider_support/` separates prompt construction, context, payload validation, logging, model discovery and provider HTTP clients. `providers.py` exposes the scheduler-facing API.
+- `app/scheduler/planning/` owns candidate scoring/filtering, target context, web follow-up and strategy helpers. `planner.py` retains the planning entry points.
+- `app/scheduler/graph_support/` owns storage, queries, annotations and entity-specific synchronization. Synchronization stages share one caller-owned transaction.
+- `app/configuration/` owns action defaults, migrations and command normalizers. `settings.py` retains configuration loading and the public settings API.
+- `app/web/static/js/workspace/` contains ES modules for workspace models, requests, commands, rendering and graph behavior. `legion.js` is the bootstrap; `workspace.js` is the presentation shell. Shared state is explicit rather than attached to `window`.
+- `app/web/templates/partials/` and `app/web/static/css/workspace/` separate panels, dialogs and feature styles while retaining control IDs and stylesheet order.
+
+The runtime facade remains a compatibility boundary: domain implementations still share workspace state and locks. Future changes should pass narrower collaborators into new domain code instead of adding responsibilities to that shared state.

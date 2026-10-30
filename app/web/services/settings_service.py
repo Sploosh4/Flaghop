@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from typing import Any, Dict
 
 from app.settings import AppSettings, Settings
@@ -23,6 +25,7 @@ def load_display_settings(runtime=None) -> Dict[str, Any]:
         try:
             settings = Settings(AppSettings())
         except Exception:
+            logging.getLogger(__name__).exception("Unable to load display settings; using defaults")
             settings = None
     colorful_ascii_background = as_bool(
         getattr(settings, "general_colorful_ascii_background", False) if settings is not None else False,
@@ -36,17 +39,16 @@ def load_display_settings(runtime=None) -> Dict[str, Any]:
 def _refresh_runtime_settings(runtime) -> None:
     if runtime is None:
         return
-    try:
-        runtime.settings_file = AppSettings()
-        runtime.settings = Settings(runtime.settings_file)
-    except Exception:
-        pass
+    # Construct both values before changing the live configuration.
+    settings_file = AppSettings()
+    settings = Settings(settings_file)
+    runtime.settings_file = settings_file
+    runtime.settings = settings
 
 
 class SettingsService:
     def __init__(self, runtime):
         self.runtime = runtime
-
 
     def get_display_settings(self) -> Dict[str, Any]:
         return load_display_settings(self.runtime)

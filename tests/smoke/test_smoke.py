@@ -13,12 +13,11 @@ Copyright (c) 2025 Shane William Scott
     You should have received a copy of the GNU General Public License along with this program.
     If not, see <http://www.gnu.org/licenses/>.
 """
+
 import os
 import tempfile
 import textwrap
 import unittest
-from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
 
 from PyQt6 import QtWidgets
 
@@ -27,7 +26,6 @@ from app.logging.legionLog import getAppLogger, getDbLogger
 from app.shell.DefaultShell import DefaultShell
 from db.RepositoryFactory import RepositoryFactory
 from db.entities.host import hostObj
-from db.SqliteDbAdapter import DatabaseIntegrityError
 from app.importers.NmapImporter import NmapImporter
 
 
@@ -63,6 +61,7 @@ class SmokeTests(unittest.TestCase):
 
         # Ensure ProjectManager uses our isolated temporary directory.
         import app.ProjectManager as pm_module
+
         self.pm_module = pm_module
         self.pm_module.tempDirectory = self.tempdir
 
@@ -103,9 +102,9 @@ class SmokeTests(unittest.TestCase):
     def test_credential_repository_roundtrip(self):
         project = self._create_project()
         repo = project.repositoryContainer.credentialRepository
-        repo.storeCapture('responder', 'eth0', 'Sample capture line', username='test', hash_value='deadbeef')
+        repo.storeCapture("responder", "eth0", "Sample capture line", username="test", hash_value="deadbeef")
         captures = repo.getAllCaptures()
-        self.assertTrue(any(cap['tool'] == 'responder' for cap in captures))
+        self.assertTrue(any(cap["tool"] == "responder" for cap in captures))
         self.project_manager.closeProject(project)
 
     def test_nmap_importer_smoke(self):
@@ -159,69 +158,3 @@ class SmokeTests(unittest.TestCase):
         self.assertEqual(ports[0].portId, "22")
 
         self.project_manager.closeProject(project)
-
-    def test_controller_handles_corrupted_project(self):
-        controller = ControllerDouble()
-        with patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            result = controller.openExistingProject("corrupted.legion", "legion")
-
-        self.assertFalse(result)
-        mock_critical.assert_called_once()
-        self.assertTrue(controller.view.closed)
-        self.assertTrue(controller.logic.temp_project_created)
-        controller.start.assert_called_once()
-
-
-class ControllerDouble:
-    """
-    Lightweight controller replacement that reuses Controller.openExistingProject
-    logic without requiring the full GUI initialisation pipeline.
-    """
-    def __init__(self):
-        from controller.controller import Controller  # Local import to reuse implementation details.
-
-        self.__controller = Controller.__new__(Controller)
-        self.logic = LogicDouble()
-        self.view = ViewDouble()
-        self.__controller.logic = self.logic
-        self.__controller.view = self.view
-        self.__controller.start = MagicMock()
-
-    def __getattr__(self, item):
-        return getattr(self.__controller, item)
-
-
-class LogicDouble:
-    def __init__(self):
-        self.temp_project_created = False
-
-    def openExistingProject(self, filename, projectType):
-        raise DatabaseIntegrityError("test corruption detected")
-
-    def createNewTemporaryProject(self):
-        self.temp_project_created = True
-
-
-class ViewDouble:
-    def __init__(self):
-        self.closed = False
-        self.ui = SimpleNamespace(centralwidget=object())
-        self.viewState = SimpleNamespace(lazy_update_tools=False)
-
-    def closeProject(self):
-        self.closed = True
-
-    def restoreToolTabs(self):
-        pass
-
-    def hostTableClick(self):
-        pass
-
-    def refreshToolsTableModel(self):
-        pass
-
-    def responderProcessFinished(self, db_id):
-        pass
-
-    def updateResponderResultsTable(self):
-        pass

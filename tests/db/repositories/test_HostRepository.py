@@ -15,12 +15,13 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import unittest
 from unittest.mock import MagicMock, patch
 
 from tests.db.helpers.db_helpers import mockExecuteRows, mockQueryWithFilterBy, mockFirstByReturnValue
 
-existsQuery = 'SELECT host.ip FROM hostObj AS host WHERE host.ip == :host OR host.hostname == :host'
+existsQuery = "SELECT host.ip FROM hostObj AS host WHERE host.ip == :host OR host.hostname == :host"
 
 
 def expectedGetHostsAndPortsQuery(with_filter: str = "") -> str:
@@ -29,7 +30,8 @@ def expectedGetHostsAndPortsQuery(with_filter: str = "") -> str:
         "services.product,services.version,services.extrainfo,services.fingerprint FROM portObj AS ports "
         "INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
         "LEFT OUTER JOIN serviceObj AS services ON services.id=ports.serviceId "
-            "WHERE services.name=:service_name")
+        "WHERE services.name=:service_name"
+    )
     query += with_filter
     return query
 
@@ -37,6 +39,7 @@ def expectedGetHostsAndPortsQuery(with_filter: str = "") -> str:
 class HostRepositoryTest(unittest.TestCase):
     def setUp(self) -> None:
         from db.repositories.HostRepository import HostRepository
+
         self.mockDbAdapter = MagicMock()
         self.mockDbSession = MagicMock()
         self.mockProcess = MagicMock()
@@ -45,25 +48,25 @@ class HostRepositoryTest(unittest.TestCase):
 
     def getHostsAndPortsTestCase(self, filters, service_name, expectedQuery):
         self.mockDbSession.execute.return_value = mockExecuteRows(
-            [('service_name1',), ('service_name2',)],
-            ['name'],
+            [("service_name1",), ("service_name2",)],
+            ["name"],
         )
         service_names = self.hostRepository.getHostsAndPortsByServiceName(service_name, filters)
 
         query, params = self.mockDbSession.execute.call_args.args
         self.assertEqual(expectedQuery, str(query))
         self.assertEqual({"service_name": service_name}, params)
-        self.assertEqual([{'name': 'service_name1'}, {'name': 'service_name2'}], service_names)
+        self.assertEqual([{"name": "service_name1"}, {"name": "service_name2"}], service_names)
 
     def test_exists_WhenProvidedAExistingHosts_ReturnsTrue(self):
-        self.mockDbSession.execute.return_value = mockExecuteRows([('some-ip',)], ['ip'])
+        self.mockDbSession.execute.return_value = mockExecuteRows([("some-ip",)], ["ip"])
         self.assertTrue(self.hostRepository.exists("some_host"))
         query, params = self.mockDbSession.execute.call_args.args
         self.assertEqual(existsQuery, str(query))
         self.assertEqual({"host": "some_host"}, params)
 
     def test_exists_WhenProvidedANonExistingHosts_ReturnsFalse(self):
-        self.mockDbSession.execute.return_value = mockExecuteRows([], ['ip'])
+        self.mockDbSession.execute.return_value = mockExecuteRows([], ["ip"])
 
         self.assertFalse(self.hostRepository.exists("some_host"))
         query, params = self.mockDbSession.execute.call_args.args
@@ -71,27 +74,32 @@ class HostRepositoryTest(unittest.TestCase):
         self.assertEqual({"host": "some_host"}, params)
 
     def test_getHosts_InvokedWithNoFilters_ReturnsHosts(self):
-        from app.auxiliary import Filters
-        self.mockDbSession.execute.return_value = mockExecuteRows([('host1',), ('host2',)], ['ip'])
+        from app.core.common import Filters
+
+        self.mockDbSession.execute.return_value = mockExecuteRows([("host1",), ("host2",)], ["ip"])
         expectedQuery = "SELECT * FROM hostObj AS hosts WHERE 1=1"
         filters: Filters = Filters()
-        filters.apply(up=True, down=True, checked=True, portopen=True, portfiltered=True, portclosed=True,
-                      tcp=True, udp=True)
+        filters.apply(
+            up=True, down=True, checked=True, portopen=True, portfiltered=True, portclosed=True, tcp=True, udp=True
+        )
         result = self.hostRepository.getHosts(filters)
-        self.assertEqual([{'ip': 'host1'}, {'ip': 'host2'}], result)
+        self.assertEqual([{"ip": "host1"}, {"ip": "host2"}], result)
         query = self.mockDbSession.execute.call_args.args[0]
         self.assertEqual(expectedQuery, str(query))
 
     def test_getHosts_InvokedWithAFewFilters_ReturnsFilteredHosts(self):
-        from app.auxiliary import Filters
-        self.mockDbSession.execute.return_value = mockExecuteRows([('host1',), ('host2',)], ['ip'])
-        expectedQuery = ("SELECT * FROM hostObj AS hosts WHERE 1=1"
-                         " AND hosts.status != 'down' AND hosts.checked != 'True'")
+        from app.core.common import Filters
+
+        self.mockDbSession.execute.return_value = mockExecuteRows([("host1",), ("host2",)], ["ip"])
+        expectedQuery = (
+            "SELECT * FROM hostObj AS hosts WHERE 1=1" " AND hosts.status != 'down' AND hosts.checked != 'True'"
+        )
         filters: Filters = Filters()
-        filters.apply(up=True, down=False, checked=False, portopen=True, portfiltered=True, portclosed=True,
-                      tcp=True, udp=True)
+        filters.apply(
+            up=True, down=False, checked=False, portopen=True, portfiltered=True, portclosed=True, tcp=True, udp=True
+        )
         result = self.hostRepository.getHosts(filters)
-        self.assertEqual([{'ip': 'host1'}, {'ip': 'host2'}], result)
+        self.assertEqual([{"ip": "host1"}, {"ip": "host2"}], result)
         query = self.mockDbSession.execute.call_args.args[0]
         self.assertEqual(expectedQuery, str(query))
 
@@ -105,25 +113,26 @@ class HostRepositoryTest(unittest.TestCase):
         self.assertEqual(actual_host_info, expected_host_info)
 
     def test_getHostsAndPorts_InvokedWithNoFilters_FetchesHostsAndPortsMatchingKeywords(self):
-        from app.auxiliary import Filters
+        from app.core.common import Filters
 
         filters: Filters = Filters()
-        filters.apply(up=True, down=True, checked=True, portopen=True, portfiltered=True, portclosed=True,
-                      tcp=True, udp=True)
+        filters.apply(
+            up=True, down=True, checked=True, portopen=True, portfiltered=True, portclosed=True, tcp=True, udp=True
+        )
         expectedQuery = expectedGetHostsAndPortsQuery()
-        self.getHostsAndPortsTestCase(filters=filters,
-                                      service_name="some_service_name", expectedQuery=expectedQuery)
+        self.getHostsAndPortsTestCase(filters=filters, service_name="some_service_name", expectedQuery=expectedQuery)
 
     def test_getHostsAndPorts_InvokedWithFewFilters_FetchesHostsAndPortsWithFiltersApplied(self):
-        from app.auxiliary import Filters
+        from app.core.common import Filters
 
         filters: Filters = Filters()
-        filters.apply(up=True, down=False, checked=True, portopen=True, portfiltered=True, portclosed=True,
-                      tcp=True, udp=False)
+        filters.apply(
+            up=True, down=False, checked=True, portopen=True, portfiltered=True, portclosed=True, tcp=True, udp=False
+        )
         expectedQuery = expectedGetHostsAndPortsQuery(
-            with_filter=" AND hosts.status != 'down' AND ports.protocol != 'udp'")
-        self.getHostsAndPortsTestCase(filters=filters,
-                                      service_name="some_service_name", expectedQuery=expectedQuery)
+            with_filter=" AND hosts.status != 'down' AND ports.protocol != 'udp'"
+        )
+        self.getHostsAndPortsTestCase(filters=filters, service_name="some_service_name", expectedQuery=expectedQuery)
 
     def test_deleteHost_InvokedWithAHostId_DeletesProcess(self):
         self.mockDbSession.query.return_value = mockQueryWithFilterBy(mockFirstByReturnValue(self.mockProcess))
@@ -133,17 +142,17 @@ class HostRepositoryTest(unittest.TestCase):
         self.mockDbSession.commit.assert_called_once()
 
     def test_toggleHostCheckStatus_WhenHostIsSetToTrue_TogglesToFalse(self):
-        self.mockProcess.checked = 'True'
+        self.mockProcess.checked = "True"
         self.mockDbSession.query.return_value = mockQueryWithFilterBy(mockFirstByReturnValue(self.mockProcess))
         self.hostRepository.toggleHostCheckStatus("some-ip-address")
-        self.assertEqual('False', self.mockProcess.checked)
+        self.assertEqual("False", self.mockProcess.checked)
         self.mockDbSession.add.assert_called_once_with(self.mockProcess)
         self.mockDbSession.commit.assert_called_once()
 
     def test_toggleHostCheckStatus_WhenHostIsSetToFalse_TogglesToTrue(self):
-        self.mockProcess.checked = 'False'
+        self.mockProcess.checked = "False"
         self.mockDbSession.query.return_value = mockQueryWithFilterBy(mockFirstByReturnValue(self.mockProcess))
         self.hostRepository.toggleHostCheckStatus("some-ip-address")
-        self.assertEqual('True', self.mockProcess.checked)
+        self.assertEqual("True", self.mockProcess.checked)
         self.mockDbSession.add.assert_called_once_with(self.mockProcess)
         self.mockDbSession.commit.assert_called_once()

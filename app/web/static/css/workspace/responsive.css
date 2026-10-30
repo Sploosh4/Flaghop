@@ -1,0 +1,192 @@
+@media (max-width: 1100px) {
+    .panel {
+        grid-column: span 12;
+    }
+
+    .scheduler-form {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+    }
+
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .graph-toolbar {
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+    }
+
+    .graph-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .graph-sidebar {
+        position: static;
+        max-height: none;
+    }
+
+    .graph-detail-panel.is-floating {
+        position: static;
+        width: 100%;
+        max-height: none;
+    }
+
+    .mode-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ribbon {
+        flex-direction: column;
+        --ribbon-menu-row-height: auto;
+        --ribbon-lower-row-height: auto;
+    }
+
+    .ribbon-column {
+        width: 100%;
+    }
+
+    .ribbon-lower-row {
+        min-block-size: 0;
+    }
+
+    .ribbon-group {
+        width: 100%;
+        justify-content: flex-start;
+        overflow: visible;
+    }
+
+    .ribbon-process-group {
+        min-width: 0;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .ribbon-summary-group {
+        grid-template-columns: repeat(3, minmax(92px, 1fr));
+        min-width: 0;
+        max-width: none;
+        flex: 1 1 auto;
+        min-block-size: 0;
+    }
+
+    .ribbon-menu-group,
+    .ribbon-project-group,
+    .ribbon-rationale-group {
+        min-block-size: 0;
+    }
+
+    .ribbon-project-group,
+    .ribbon-rationale-group {
+        max-width: none;
+        flex: 1 1 auto;
+    }
+
+    .ribbon-process-table-wrap {
+        max-height: 172px;
+    }
+}
+
+@media (max-width: 700px) {
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .scheduler-form {
+        grid-template-columns: 1fr;
+    }
+
+    .danger-group,
+    .scheduler-actions,
+    .project-report-headers-label {
+        grid-column: span 1;
+    }
+
+    .scheduler-settings-group {
+        grid-template-columns: 1fr;
+    }
+
+    .scheduler-group-note,
+    .scheduler-field-span-2 {
+        grid-column: span 1;
+    }
+
+    .graph-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .graph-action-bar {
+        flex-direction: column;
+    }
+
+    .graph-action-group {
+        width: 100%;
+    }
+
+    .graph-action-group label {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .graph-action-footer-left,
+    .graph-status-note {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .graph-footer-separator {
+        display: none;
+    }
+
+    .graph-canvas {
+        min-width: 0;
+        min-height: 520px;
+    }
+
+    .wizard-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .wizard-subgrid {
+        grid-template-columns: 1fr;
+    }
+
+    .legion-modal {
+        width: 100%;
+        max-height: 92vh;
+        padding: 0.8rem;
+    }
+
+    .output-modal {
+        width: 100%;
+        max-height: calc(100vh - 2rem);
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+
+    .ribbon-btn {
+        min-width: 88px;
+        min-height: 68px;
+    }
+
+    .ribbon-lower-row {
+        flex-direction: column;
+    }
+
+    .ribbon-summary-group {
+        grid-template-columns: repeat(2, minmax(88px, 1fr));
+        max-width: none;
+        flex: 1 1 auto;
+    }
+
+    .ribbon-process-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ribbon-process-actions {
+        justify-content: flex-start;
+    }
+}

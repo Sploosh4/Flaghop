@@ -1,17 +1,5 @@
-#!/bin/bash
-
-docker pull gvit/legion
-
-if [[ ! -z $1 ]]
-then
-    export DISPLAY=$1:0.0
-    XSOCK=/tmp/.X11-unix
-    XAUTH=/tmp/.docker.xauth
-    rm /tmp/.docker.xauth* -f
-    touch $XAUTH
-    xauth add $DISPLAY - `mcookie`
-    xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
-    docker run -ti -v $XSOCK -v $XAUTH -e XAUTHORITY=$XAUTH -e DISPLAY=$DISPLAY gvit/legion
-else
-    docker run -ti -e DISPLAY=$DISPLAY --net=host --security-opt=apparmor:unconfined --security-opt=label:disable gvit/legion
-fi
+#!/usr/bin/env bash
+set -euo pipefail
+legion_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+mkdir -p "$legion_root/.state/container"
+exec docker run --rm -p 127.0.0.1:5000:5000 -v "$legion_root/.state/container:/var/lib/legion" "$@" legion:local

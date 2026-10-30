@@ -81,31 +81,3 @@ class ScriptOutputQuery:
             offset=clamp_int(args.get("offset", 0), 0, 0, 10**9),
             max_chars=clamp_int(args.get("max_chars", 12000), 12000, 1, 50000),
         )
-
-
-@dataclass(frozen=True)
-class CveCreateRequest:
-    name: str
-    url: str
-    severity: str
-    source: str
-    product: str
-    version: str
-    exploit_id: int
-    exploit: str
-    exploit_url: str
-
-    @classmethod
-    def from_payload(cls, payload: Any) -> "CveCreateRequest":
-        source = payload if isinstance(payload, dict) else {}
-        return cls(
-            name=str(source.get("name", "") or "").strip(),
-            url=str(source.get("url", "") or ""),
-            severity=str(source.get("severity", "") or ""),
-            source=str(source.get("source", "") or ""),
-            product=str(source.get("product", "") or ""),
-            version=str(source.get("version", "") or ""),
-            exploit_id=clamp_int(source.get("exploit_id", 0), 0, 0, 10**9),
-            exploit=str(source.get("exploit", "") or ""),
-            exploit_url=str(source.get("exploit_url", "") or ""),
-        )

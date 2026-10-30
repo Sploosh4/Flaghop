@@ -1,0 +1,44 @@
+    <section class="panel" id="workspace-services-panel">
+        <div class="panel-header">
+            <h2>Services</h2>
+            <div class="panel-header-actions">
+                <label class="panel-inline-select">
+                    Category
+                    <select id="services-category-filter-select">
+                        <option value="">all categories</option>
+                    </select>
+                </label>
+                <p id="services-scope-label" class="panel-scope-label">all hosts</p>
+                <p id="service-count">{{ snapshot.services | length }}</p>
+                <button
+                    id="services-panel-toggle-button"
+                    class="panel-menu-button"
+                    type="button"
+                    title="Show Services"
+                    aria-label="Show Services"
+                    aria-expanded="false"
+                    aria-controls="services-panel-body"
+                >
+                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    <span class="sr-only">Toggle Services</span>
+                </button>
+            </div>
+        </div>
+        <div id="services-panel-body" class="table-wrap" hidden>
+            <table>
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>Service</th>
+                    <th>Port</th>
+                    <th>Hosts</th>
+                    <th>Ports</th>
+                    <th>Protocols</th>
+                    <th>Categories</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="services-body"></tbody>
+            </table>
+        </div>
+    </section>

@@ -1,0 +1,45 @@
+<div id="manual-scan-modal" class="legion-modal-overlay" aria-hidden="true">
+    <div class="legion-modal manual-scan-modal" role="dialog" aria-modal="true" aria-labelledby="manual-scan-modal-title">
+        <div class="panel-header modal-header">
+            <h2 id="manual-scan-modal-title">Manual Tool Run</h2>
+            <p>Scans > Manual Scan</p>
+            <button id="manual-scan-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="action-block">
+            <label id="workspace-tool-target-wrapper" hidden>
+                Target
+                <select id="workspace-tool-target-select"></select>
+            </label>
+            <p id="workspace-tool-context" class="meta-note"></p>
+            <label>
+                Target Host IP
+                <input id="workspace-tool-host-ip" type="text" placeholder="10.0.0.10">
+            </label>
+            <label>
+                Port
+                <input id="workspace-tool-port" type="text" placeholder="445">
+            </label>
+            <label>
+                Protocol
+                <select id="workspace-tool-protocol">
+                    <option value="tcp">tcp</option>
+                    <option value="udp">udp</option>
+                </select>
+            </label>
+            <label>
+                Tool
+                <select id="workspace-tool-select"></select>
+            </label>
+            <div id="workspace-tool-parameters-wrapper" hidden>
+                <h3>Tool Options</h3>
+                <div id="workspace-tool-parameters"></div>
+            </div>
+            <div class="scheduler-actions">
+                <button id="workspace-run-tool-button" type="button">Run Tool</button>
+                <button id="workspace-run-scheduler-button" type="button">Run Scheduler Now</button>
+            </div>
+        </div>
+    </div>
+</div>

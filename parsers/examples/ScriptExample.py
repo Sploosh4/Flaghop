@@ -15,16 +15,19 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import xml
 
-from app.auxiliary import log
+from app.logging.legionLog import getAppLogger
+
+log = getAppLogger()
 from parsers.Script import Script
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    dom = xml.dom.minidom.parse('a-full.xml')
+    dom = xml.dom.minidom.parse("a-full.xml")
 
-    for scriptNode in dom.getElementsByTagName('script'):
+    for scriptNode in dom.getElementsByTagName("script"):
         script = Script(scriptNode)
         log.info(script.scriptId)
         log.info(script.output)

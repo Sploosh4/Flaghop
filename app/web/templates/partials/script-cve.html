@@ -1,0 +1,35 @@
+<div id="script-cve-modal" class="legion-modal-overlay" aria-hidden="true">
+    <div class="legion-modal script-cve-modal" role="dialog" aria-modal="true" aria-labelledby="script-cve-modal-title">
+        <div class="panel-header modal-header">
+            <h2 id="script-cve-modal-title">Add Script</h2>
+            <p>Misc > Add Script</p>
+            <button id="script-cve-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="action-block">
+            <label>
+                Script ID
+                <input id="workspace-script-id" type="text" placeholder="smb-enum-users.nse">
+            </label>
+            <label>
+                Script Port
+                <input id="workspace-script-port" type="text" placeholder="445">
+            </label>
+            <label>
+                Script Protocol
+                <select id="workspace-script-protocol">
+                    <option value="tcp">tcp</option>
+                    <option value="udp">udp</option>
+                </select>
+            </label>
+            <label>
+                Script Output
+                <textarea id="workspace-script-output" rows="3"></textarea>
+            </label>
+            <div class="scheduler-actions">
+                <button id="workspace-add-script-button" type="button">Add Script</button>
+            </div>
+        </div>
+    </div>
+</div>

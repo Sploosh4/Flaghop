@@ -14,23 +14,26 @@ Copyright (c) 2025 Shane William Scott
     If not, see <http://www.gnu.org/licenses/>.
 
 """
+
 import sys
 import xml
 
-from app.auxiliary import log
+from app.logging.legionLog import getAppLogger
+
+log = getAppLogger()
 from parsers.Service import Service
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    dom = xml.dom.minidom.parse('i.xml')
+    dom = xml.dom.minidom.parse("i.xml")
 
-    service_nodes = dom.getElementsByTagName('service')
+    service_nodes = dom.getElementsByTagName("service")
     if len(service_nodes) == 0:
         sys.exit()
 
-    node = dom.getElementsByTagName('service')[0]
+    node = dom.getElementsByTagName("service")[0]
 
-    s = Service( node )
+    s = Service(node)
     log.info(s.name)
     log.info(s.product)
     log.info(s.version)

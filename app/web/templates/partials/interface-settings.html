@@ -1,0 +1,30 @@
+<div id="interface-settings-modal" class="legion-modal-overlay" aria-hidden="true">
+    <div class="legion-modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="interface-settings-modal-title">
+        <div class="panel-header modal-header">
+            <h2 id="interface-settings-modal-title">Interface Settings</h2>
+            <p id="interface-settings-status">Idle</p>
+            <button id="interface-settings-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <p class="meta-note">Live interface controls for the current workspace. Changes apply immediately.</p>
+        <label class="settings-inline-toggle">
+            <input id="interface-graph-workspace-enabled" type="checkbox">
+            <span>Enable graph workspace</span>
+        </label>
+        <p class="meta-note">Hide this when graph rendering is not useful for the current engagement size.</p>
+        <label class="settings-inline-toggle">
+            <input id="interface-colorful-ascii-background" type="checkbox">
+            <span>Enable colorful ASCII art background</span>
+        </label>
+        <p class="meta-note">The default background is solid black. The ASCII background is optional visual flair.</p>
+        <label class="settings-inline-toggle">
+            <input id="interface-credential-capture-panel-enabled" type="checkbox">
+            <span>Enable credential capture panel</span>
+        </label>
+        <p class="meta-note">Show the shared Responder and ntlmrelayx monitoring panel on the main screen.</p>
+        <div class="modal-actions">
+            <button id="interface-settings-save-button" type="button">Save Interface Settings</button>
+        </div>
+    </div>
+</div>

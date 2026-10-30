@@ -1,0 +1,13 @@
+.git
+.venv
+.runtime
+.tools
+.state
+.tmp
+.cache
+.artifacts
+.desktop-profile
+.storage-baseline.json
+lost+found
+__pycache__
+*.pyc

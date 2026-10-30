@@ -1,11 +1,17 @@
 import datetime
+import logging
 import itertools
 import threading
 from typing import Any, Callable, Dict, List, Optional
 
 
 class WebJobManager:
-    def __init__(self, max_jobs: int = 200, worker_count: int = 1, on_change: Optional[Callable[[Dict[str, Any], str], None]] = None):
+    def __init__(
+        self,
+        max_jobs: int = 200,
+        worker_count: int = 1,
+        on_change: Optional[Callable[[Dict[str, Any], str], None]] = None,
+    ):
         self.max_jobs = max(20, int(max_jobs))
         self.worker_count = max(1, int(worker_count))
         self._on_change = on_change if callable(on_change) else None
@@ -23,12 +29,12 @@ class WebJobManager:
         self.ensure_worker_count(self.worker_count)
 
     def start(
-            self,
-            job_type: str,
-            runner: Callable[[], Dict[str, Any]],
-            payload: Optional[Dict[str, Any]] = None,
-            queue_front: bool = False,
-            exclusive: bool = False,
+        self,
+        job_type: str,
+        runner: Callable[[], Dict[str, Any]],
+        payload: Optional[Dict[str, Any]] = None,
+        queue_front: bool = False,
+        exclusive: bool = False,
     ):
         job_id = next(self._counter)
         now = self._utc_now()
@@ -64,8 +70,12 @@ class WebJobManager:
         limit = max(1, min(int(limit), self.max_jobs))
         with self._lock:
             active_statuses = {"queued", "running"}
-            active_jobs = [job for job in self._jobs if str(job.get("status", "") or "").strip().lower() in active_statuses]
-            inactive_jobs = [job for job in self._jobs if str(job.get("status", "") or "").strip().lower() not in active_statuses]
+            active_jobs = [
+                job for job in self._jobs if str(job.get("status", "") or "").strip().lower() in active_statuses
+            ]
+            inactive_jobs = [
+                job for job in self._jobs if str(job.get("status", "") or "").strip().lower() not in active_statuses
+            ]
             selected = list(reversed(active_jobs)) + list(reversed(inactive_jobs[-limit:]))
             return [self._copy_job(item) for item in selected]
 
@@ -308,4 +318,4 @@ class WebJobManager:
         try:
             self._on_change(dict(job), str(event_name or "updated"))
         except Exception:
-            pass
+            logging.getLogger(__name__).exception("Job change callback failed for job %s", job.get("id"))

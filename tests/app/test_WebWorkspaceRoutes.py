@@ -11,22 +11,42 @@ class _WorkspaceRouteRuntime:
     def get_workspace_hosts(self, limit=None, include_down=False, service="", category=""):
         self.calls.append(("get_workspace_hosts", limit, bool(include_down), str(service), str(category)))
         rows = [
-            {"id": 11, "ip": "10.0.0.5", "hostname": "dc01", "status": "up", "os": "Windows", "open_ports": 2, "total_ports": 2, "services": ["kerberos", "smb"]},
-            {"id": 12, "ip": "10.0.0.7", "hostname": "web01", "status": "up", "os": "Linux", "open_ports": 1, "total_ports": 1, "services": ["http"]},
-            {"id": 13, "ip": "10.0.0.6", "hostname": "offline", "status": "down", "os": "Unknown", "open_ports": 0, "total_ports": 0, "services": ["ssh"]},
+            {
+                "id": 11,
+                "ip": "10.0.0.5",
+                "hostname": "dc01",
+                "status": "up",
+                "os": "Windows",
+                "open_ports": 2,
+                "total_ports": 2,
+                "services": ["kerberos", "smb"],
+            },
+            {
+                "id": 12,
+                "ip": "10.0.0.7",
+                "hostname": "web01",
+                "status": "up",
+                "os": "Linux",
+                "open_ports": 1,
+                "total_ports": 1,
+                "services": ["http"],
+            },
+            {
+                "id": 13,
+                "ip": "10.0.0.6",
+                "hostname": "offline",
+                "status": "down",
+                "os": "Unknown",
+                "open_ports": 0,
+                "total_ports": 0,
+                "services": ["ssh"],
+            },
         ]
         if not include_down:
             rows = [row for row in rows if row["status"] != "down"]
         if service:
-            service_filters = {
-                token.strip()
-                for token in str(service).split(",")
-                if token.strip()
-            }
-            rows = [
-                row for row in rows
-                if any(item in service_filters for item in list(row.get("services", [])))
-            ]
+            service_filters = {token.strip() for token in str(service).split(",") if token.strip()}
+            rows = [row for row in rows if any(item in service_filters for item in list(row.get("services", [])))]
         if category:
             rows = [row for row in rows if str(category) == "server"]
         if limit:
@@ -59,7 +79,7 @@ class _WorkspaceRouteRuntime:
         ]
         if service:
             rows = [row for row in rows if row["service"] == str(service)]
-        paged = rows[int(offset): int(offset) + int(limit)]
+        paged = rows[int(offset) : int(offset) + int(limit)]
         return {"tools": paged, "total": len(rows), "offset": int(offset), "limit": int(limit), "has_more": False}
 
     def get_workspace_tool_targets(self, host_id=0, service="", limit=300):
@@ -180,14 +200,6 @@ class _WorkspaceRouteRuntime:
         self.calls.append(("get_script_output", int(script_id), int(offset), int(max_chars)))
         return {"script_id": int(script_id), "output": "script output"}
 
-    def create_cve_entry(self, **kwargs):
-        self.calls.append(("create_cve_entry", dict(kwargs)))
-        return {"id": 601, "name": str(kwargs.get("name", ""))}
-
-    def delete_cve_entry(self, cve_id):
-        self.calls.append(("delete_cve_entry", int(cve_id)))
-        return {"deleted": True, "cve_id": int(cve_id)}
-
     def start_host_dig_deeper_job(self, host_id):
         self.calls.append(("start_host_dig_deeper_job", int(host_id)))
         return {"id": 701, "type": "scheduler-dig-deeper"}
@@ -197,15 +209,17 @@ class _WorkspaceRouteRuntime:
         return {"deleted": True, "host_id": int(host_id)}
 
     def start_tool_run_job(self, host_ip, port, protocol, tool_id, timeout=300, parameters=None):
-        self.calls.append((
-            "start_tool_run_job",
-            str(host_ip),
-            str(port),
-            str(protocol),
-            str(tool_id),
-            int(timeout),
-            dict(parameters or {}),
-        ))
+        self.calls.append(
+            (
+                "start_tool_run_job",
+                str(host_ip),
+                str(port),
+                str(protocol),
+                str(tool_id),
+                int(timeout),
+                dict(parameters or {}),
+            )
+        )
         return {"id": 702, "type": "tool-run"}
 
     def kill_process(self, process_id):
@@ -228,7 +242,7 @@ class _WorkspaceRouteRuntime:
         self.calls.append(("get_process_output", int(process_id), int(offset), int(max_chars)))
         text_value = "sample output"
         start = max(0, min(int(offset), len(text_value)))
-        chunk = text_value[start: start + int(max_chars)]
+        chunk = text_value[start : start + int(max_chars)]
         return {"process_id": int(process_id), "output": text_value, "output_chunk": chunk}
 
 

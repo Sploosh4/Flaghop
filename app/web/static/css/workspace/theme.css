@@ -1,0 +1,188 @@
+:root {
+    --bg-top: #0d0015;
+    --bg-mid: #1a0a2e;
+    --bg-bottom: #050010;
+    --panel: rgba(26, 10, 46, 0.82);
+    --panel-border: rgba(255, 255, 255, 0.12);
+    --text-main: #f8f7ff;
+    --text-muted: #9ca3af;
+    --accent: #c084fc;
+    --accent-soft: #9333ea;
+    --accent-hot: #8b1a3a;
+    --good: #6ce0c7;
+    --warning: #f5a623;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Space Grotesk", "Segoe UI", "Helvetica Neue", sans-serif;
+    color-scheme: dark;
+    background: #000;
+    color: var(--text-main);
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+body.opaque-ui {
+    --panel: #1a0a2e;
+    background: #000;
+}
+
+body.opaque-ui.colorful-background .logo-watermark {
+    opacity: 0.32;
+}
+
+body.colorful-background {
+    background:
+            radial-gradient(circle at 12% 14%, rgba(30, 58, 95, 0.34), transparent 28%),
+            radial-gradient(circle at 78% 18%, rgba(75, 0, 130, 0.34), transparent 34%),
+            radial-gradient(circle at 88% 28%, rgba(139, 26, 58, 0.26), transparent 26%),
+            linear-gradient(165deg, var(--bg-top) 0%, var(--bg-mid) 42%, var(--bg-bottom) 100%);
+}
+body.opaque-ui .panel,
+body.opaque-ui .ribbon-panel,
+body.opaque-ui .graph-canvas-panel,
+body.opaque-ui .graph-detail-panel,
+body.opaque-ui .legion-modal,
+body.opaque-ui .chip,
+body.opaque-ui .graph-canvas-scroll,
+body.opaque-ui .ribbon-submenu,
+body.opaque-ui .panel-submenu,
+body.opaque-ui .panel-submenu-group,
+body.opaque-ui .panel-submenu-item,
+body.opaque-ui .screenshot-modal-body,
+body.opaque-ui #screenshot-modal-image,
+body.opaque-ui .scheduler-form input,
+body.opaque-ui .scheduler-form select,
+body.opaque-ui .scheduler-form textarea,
+body.opaque-ui .action-block input,
+body.opaque-ui .action-block select,
+body.opaque-ui .action-block textarea,
+body.opaque-ui select,
+body.opaque-ui input,
+body.opaque-ui textarea {
+    backdrop-filter: none;
+}
+
+body.opaque-ui .panel,
+body.opaque-ui .ribbon-panel,
+body.opaque-ui .graph-canvas-panel,
+body.opaque-ui .graph-detail-panel,
+body.opaque-ui .legion-modal {
+    background: #160821;
+}
+body.opaque-ui .chip,
+body.opaque-ui .scheduler-form input,
+body.opaque-ui .scheduler-form select,
+body.opaque-ui .scheduler-form textarea,
+body.opaque-ui .action-block input,
+body.opaque-ui .action-block select,
+body.opaque-ui .action-block textarea,
+body.opaque-ui select,
+body.opaque-ui input,
+body.opaque-ui textarea,
+body.opaque-ui .screenshot-modal-body,
+body.opaque-ui #screenshot-modal-image {
+    background: #0d0717;
+}
+
+body.opaque-ui .ribbon-submenu,
+body.opaque-ui .panel-submenu,
+body.opaque-ui .graph-canvas-scroll {
+    background: #080510;
+}
+
+body.opaque-ui button,
+body.opaque-ui .ribbon-submenu-item {
+    background: linear-gradient(135deg, #34205e 0%, #5c2790 58%, #6e1639 100%);
+}
+
+.background-glow {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    display: none;
+    background:
+            radial-gradient(circle at 8% 12%, rgba(30, 58, 95, 0.24), transparent 34%),
+            radial-gradient(circle at 62% 18%, rgba(75, 0, 130, 0.2), transparent 36%),
+            radial-gradient(circle at 92% 22%, rgba(139, 26, 58, 0.18), transparent 24%);
+}
+
+body.colorful-background .background-glow {
+    display: block;
+}
+
+.logo-watermark {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    overflow: hidden;
+    padding: clamp(0.5rem, 1.2vw, 1.25rem);
+    opacity: 0.5;
+}
+
+.logo-watermark pre {
+    margin: 0;
+    white-space: pre;
+    line-height: 1;
+    letter-spacing: 0;
+    font-variant-ligatures: none;
+    font-family: "Consolas", "Menlo", "Monaco", monospace;
+    font-size: clamp(4px, 1.04vw, 20px);
+    color: rgba(174, 183, 240, 0.78);
+    text-shadow: 0 0 18px rgba(93, 103, 219, 0.28);
+    user-select: none;
+}
+
+.shell {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: clamp(0.9rem, 1.2vw, 1.4rem);
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.topbar-brand h1,
+.topbar h1 {
+    margin: 0;
+    font-size: clamp(2rem, 1.8vw, 2.4rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.eyebrow {
+    margin: 0;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+    font-size: 0.75rem;
+}
+
+.topbar-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}

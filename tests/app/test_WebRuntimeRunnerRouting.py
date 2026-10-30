@@ -127,19 +127,23 @@ class WebRuntimeRunnerRoutingTest(unittest.TestCase):
             )
         )
         runtime._hostname_for_ip = lambda _ip: "dc01.local"
-        runtime._build_command = MagicMock(return_value=("echo 10.0.0.5:445 > /tmp/legion-test-running/out", "/tmp/legion-test-running/out"))
-        runtime._run_command_with_tracking = MagicMock(return_value=(
-            True,
-            "completed",
-            21,
-            {
-                "started_at": "2026-03-17T00:00:00Z",
-                "finished_at": "2026-03-17T00:00:02Z",
-                "stdout_ref": "process_output:21",
-                "stderr_ref": "",
-                "artifact_refs": ["/tmp/legion-test-running/out"],
-            },
-        ))
+        runtime._build_command = MagicMock(
+            return_value=("echo 10.0.0.5:445 > /tmp/legion-test-running/out", "/tmp/legion-test-running/out")
+        )
+        runtime._run_command_with_tracking = MagicMock(
+            return_value=(
+                True,
+                "completed",
+                21,
+                {
+                    "started_at": "2026-03-17T00:00:00Z",
+                    "finished_at": "2026-03-17T00:00:02Z",
+                    "stdout_ref": "process_output:21",
+                    "stderr_ref": "",
+                    "artifact_refs": ["/tmp/legion-test-running/out"],
+                },
+            )
+        )
 
         decision = PlanStep.from_legacy_fields(
             tool_id="smb-enum-users.nse",
@@ -227,16 +231,16 @@ class WebRuntimeRunnerRoutingTest(unittest.TestCase):
         self.assertFalse(result["executed"])
         self.assertEqual("skipped: banner requires target port", result["reason"])
 
-    @patch("app.web.runtime.update_scheduler_decision_for_approval")
-    @patch("app.web.runtime.update_pending_approval")
-    @patch("app.web.runtime.get_pending_approval")
-    @patch("app.web.runtime.ensure_scheduler_approval_table")
+    @patch("app.web.runtime_domains.scheduler_execution.update_scheduler_decision_for_approval")
+    @patch("app.web.runtime_domains.scheduler_execution.update_pending_approval")
+    @patch("app.web.runtime_domains.scheduler_execution.get_pending_approval")
+    @patch("app.web.runtime_domains.scheduler_execution.ensure_scheduler_approval_table")
     def test_approve_scheduler_approval_keeps_manual_runner_as_operator_step(
-            self,
-            _mock_ensure,
-            mock_get_pending,
-            mock_update_pending,
-            mock_update_decision,
+        self,
+        _mock_ensure,
+        mock_get_pending,
+        mock_update_pending,
+        mock_update_decision,
     ):
         from app.web.runtime import WebRuntime
 
@@ -246,7 +250,12 @@ class WebRuntimeRunnerRoutingTest(unittest.TestCase):
         runtime.settings = SimpleNamespace(
             automatedAttacks=[],
             portActions=[
-                ["Prepare Responder capture workflow", "responder", "responder -I <interface> -w -F", "smb,ldap,kerberos"],
+                [
+                    "Prepare Responder capture workflow",
+                    "responder",
+                    "responder -I <interface> -w -F",
+                    "smb,ldap,kerberos",
+                ],
             ],
         )
         runtime._require_active_project = lambda: SimpleNamespace(database=database)
@@ -286,16 +295,16 @@ class WebRuntimeRunnerRoutingTest(unittest.TestCase):
             reason="approved for operator execution",
         )
 
-    @patch("app.web.runtime.update_scheduler_decision_for_approval")
-    @patch("app.web.runtime.update_pending_approval")
-    @patch("app.web.runtime.get_pending_approval")
-    @patch("app.web.runtime.ensure_scheduler_approval_table")
+    @patch("app.web.runtime_domains.scheduler_execution.update_scheduler_decision_for_approval")
+    @patch("app.web.runtime_domains.scheduler_execution.update_pending_approval")
+    @patch("app.web.runtime_domains.scheduler_execution.get_pending_approval")
+    @patch("app.web.runtime_domains.scheduler_execution.ensure_scheduler_approval_table")
     def test_approve_scheduler_approval_returns_existing_execution_job(
-            self,
-            _mock_ensure,
-            mock_get_pending,
-            mock_update_pending,
-            mock_update_decision,
+        self,
+        _mock_ensure,
+        mock_get_pending,
+        mock_update_pending,
+        mock_update_decision,
     ):
         from app.web.runtime import WebRuntime
 

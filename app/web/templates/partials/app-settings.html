@@ -1,0 +1,51 @@
+<div id="app-settings-modal" class="legion-modal-overlay" aria-hidden="true">
+    <div class="legion-modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+        <div class="panel-header modal-header">
+            <h2 id="settings-modal-title">Application Settings</h2>
+            <button id="settings-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="settings-tool-audit">
+            <div class="panel-header">
+                <h3>Tool Audit</h3>
+                <p id="settings-tool-audit-status">Idle</p>
+            </div>
+            <p class="meta-note">Curated install hints for the external tools Legion launches or depends on, including upstream fallbacks where Ubuntu lacks native packages.</p>
+            <div class="tool-install-controls">
+                <label>
+                    Install Platform
+                    <select id="settings-tool-install-platform">
+                        <option value="kali">Kali</option>
+                        <option value="ubuntu">Ubuntu</option>
+                    </select>
+                </label>
+                <p id="settings-tool-install-status" class="meta-note">Install plan not loaded yet.</p>
+            </div>
+            <div class="modal-actions">
+                <button id="settings-tool-audit-refresh-button" type="button">Refresh Tool Audit</button>
+                <button id="settings-tool-install-copy-button" type="button">Copy Install Script</button>
+                <button id="settings-tool-install-run-button" type="button">Install Missing</button>
+            </div>
+            <label class="tool-install-script-block">
+                Install Script Preview
+                <textarea id="settings-tool-install-script" rows="7" readonly></textarea>
+            </label>
+            <div class="table-wrap modal-table-wrap tool-audit-table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Tool</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Resolved</th>
+                        <th>Kali</th>
+                        <th>Ubuntu</th>
+                    </tr>
+                    </thead>
+                    <tbody id="settings-tool-audit-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

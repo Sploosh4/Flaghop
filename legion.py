@@ -16,6 +16,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import os
 import re
 import shutil
@@ -69,8 +70,14 @@ def is_virtualenv_runtime(prefix=None, base_prefix=None, real_prefix=None):
 
 def format_python_runtime_error(version_info=None, executable=None, prefix=None, base_prefix=None, real_prefix=None):
     major, minor, micro = _coerce_python_version_tuple(version_info)
-    resolved_executable = str(executable if executable is not None else getattr(sys, "executable", "python")).strip() or "python"
-    runtime_scope = "virtualenv" if is_virtualenv_runtime(prefix=prefix, base_prefix=base_prefix, real_prefix=real_prefix) else "system interpreter"
+    resolved_executable = (
+        str(executable if executable is not None else getattr(sys, "executable", "python")).strip() or "python"
+    )
+    runtime_scope = (
+        "virtualenv"
+        if is_virtualenv_runtime(prefix=prefix, base_prefix=base_prefix, real_prefix=real_prefix)
+        else "system interpreter"
+    )
     required_version = ".".join(str(part) for part in MIN_SUPPORTED_PYTHON)
     current_version = f"{major}.{minor}.{micro}"
     return (
@@ -83,7 +90,9 @@ def format_python_runtime_error(version_info=None, executable=None, prefix=None,
     )
 
 
-def ensure_supported_python_runtime(version_info=None, executable=None, prefix=None, base_prefix=None, real_prefix=None, stderr=None):
+def ensure_supported_python_runtime(
+    version_info=None, executable=None, prefix=None, base_prefix=None, real_prefix=None, stderr=None
+):
     if is_supported_python_runtime(version_info):
         return
     stream = stderr if stderr is not None else sys.stderr
@@ -114,6 +123,7 @@ def _distribution_version(distribution_name: str) -> str:
 def _module_origin(module_name: str) -> str:
     try:
         import importlib.util
+
         spec = importlib.util.find_spec(str(module_name or "").strip())
     except Exception:
         return ""
@@ -132,7 +142,9 @@ def _coerce_distribution_version_tuple(version_text: str):
 def has_known_flask_werkzeug_mismatch(flask_version: str = "", werkzeug_version: str = "") -> bool:
     if not str(flask_version or "").strip() or not str(werkzeug_version or "").strip():
         return False
-    return _coerce_distribution_version_tuple(flask_version) < (2, 3, 0) and _coerce_distribution_version_tuple(werkzeug_version) >= (3, 0, 0)
+    return _coerce_distribution_version_tuple(flask_version) < (2, 3, 0) and _coerce_distribution_version_tuple(
+        werkzeug_version
+    ) >= (3, 0, 0)
 
 
 def _find_local_venv_python() -> str:
@@ -144,14 +156,16 @@ def _find_local_venv_python() -> str:
 
 
 def format_web_dependency_environment_error(
-        *,
-        executable: Optional[str] = None,
-        flask_version: str = "",
-        flask_origin: str = "",
-        werkzeug_version: str = "",
-        werkzeug_origin: str = "",
+    *,
+    executable: Optional[str] = None,
+    flask_version: str = "",
+    flask_origin: str = "",
+    werkzeug_version: str = "",
+    werkzeug_origin: str = "",
 ) -> str:
-    resolved_executable = str(executable if executable is not None else getattr(sys, "executable", "python")).strip() or "python"
+    resolved_executable = (
+        str(executable if executable is not None else getattr(sys, "executable", "python")).strip() or "python"
+    )
     local_venv_python = _find_local_venv_python()
     lines = [
         "Legion detected an incompatible Flask/Werkzeug environment for web mode.",
@@ -161,36 +175,42 @@ def format_web_dependency_environment_error(
         "This usually means the system interpreter is mixing distro packages with pip-installed packages instead of using Legion's virtualenv.",
     ]
     if local_venv_python:
-        lines.extend([
-            "Use Legion's local virtualenv instead:",
-            f"  {local_venv_python} legion.py --web",
-            "or:",
-            f"  source {os.path.dirname(local_venv_python)}/activate",
-            "  python legion.py --web",
-        ])
+        lines.extend(
+            [
+                "Use Legion's local virtualenv instead:",
+                f"  {local_venv_python} legion.py --web",
+                "or:",
+                f"  source {os.path.dirname(local_venv_python)}/activate",
+                "  python legion.py --web",
+            ]
+        )
     else:
-        lines.extend([
-            "Create a clean Python 3.12 virtualenv and reinstall requirements:",
-            "  python3.12 -m venv venv",
-            "  source venv/bin/activate",
-            "  python -m pip install --upgrade pip",
-            "  python -m pip install -r requirements.txt",
-            "  python legion.py --web",
-        ])
+        lines.extend(
+            [
+                "Create a clean Python 3.12 virtualenv and reinstall requirements:",
+                "  python3.12 -m venv venv",
+                "  source venv/bin/activate",
+                "  python -m pip install --upgrade pip",
+                "  python -m pip install -r requirements.txt",
+                "  python legion.py --web",
+            ]
+        )
     return "\n".join(lines)
 
 
 def ensure_web_dependency_compatibility(
-        *,
-        executable: Optional[str] = None,
-        flask_version: Optional[str] = None,
-        flask_origin: Optional[str] = None,
-        werkzeug_version: Optional[str] = None,
-        werkzeug_origin: Optional[str] = None,
-        stderr=None,
+    *,
+    executable: Optional[str] = None,
+    flask_version: Optional[str] = None,
+    flask_origin: Optional[str] = None,
+    werkzeug_version: Optional[str] = None,
+    werkzeug_origin: Optional[str] = None,
+    stderr=None,
 ):
     resolved_flask_version = str(flask_version) if flask_version is not None else _distribution_version("Flask")
-    resolved_werkzeug_version = str(werkzeug_version) if werkzeug_version is not None else _distribution_version("Werkzeug")
+    resolved_werkzeug_version = (
+        str(werkzeug_version) if werkzeug_version is not None else _distribution_version("Werkzeug")
+    )
     resolved_flask_origin = str(flask_origin) if flask_origin is not None else _module_origin("flask")
     resolved_werkzeug_origin = str(werkzeug_origin) if werkzeug_origin is not None else _module_origin("werkzeug")
     if not has_known_flask_werkzeug_mismatch(resolved_flask_version, resolved_werkzeug_version):
@@ -208,7 +228,9 @@ def ensure_web_dependency_compatibility(
     )
     raise SystemExit(1)
 
+
 startupLog = None
+
 
 def doPathSetup():
     from app.paths import ensure_legion_home, get_legion_backup_dir, get_legion_conf_path
@@ -220,7 +242,7 @@ def doPathSetup():
         os.makedirs(backup_dir, exist_ok=True)
 
     if not os.path.exists(conf_path):
-        shutil.copy('./legion.conf', conf_path)
+        shutil.copy("./legion.conf", conf_path)
 
 
 def build_arg_parser():
@@ -277,24 +299,20 @@ def resolve_web_opaque_ui(args) -> bool:
         return False
     return True
 
+
 if __name__ == "__main__":
     ensure_supported_python_runtime()
     parser = build_arg_parser()
     args = parser.parse_args()
 
     from app.ApplicationInfo import getConsoleLogo
-    from app.ProjectManager import ProjectManager
-    from app.logging.legionLog import getStartupLogger, getDbLogger, getAppLogger
-    from app.shell.DefaultShell import DefaultShell
-    from app.tools.nmap.DefaultNmapExporter import DefaultNmapExporter
-    from db.RepositoryFactory import RepositoryFactory
-    from app.tools.ToolCoordinator import ToolCoordinator
-    from app.logic import Logic
+    from app.logging.legionLog import getStartupLogger
 
     startupLog = getStartupLogger()
 
     from colorama import init
     from termcolor import cprint
+
     init(strip=not sys.stdout.isatty())
     cprint(getConsoleLogo())
 
@@ -370,96 +388,6 @@ if __name__ == "__main__":
         web_app.run(host=web_bind_host, port=args.web_port, debug=False, use_reloader=False)
         sys.exit(0)
 
-    # --- GUI MODE ---
-    from ui.eventfilter import MyEventFilter
-    from ui.ViewState import ViewState
-    from ui.gui import *
-    from ui.gui import Ui_MainWindow
-    import qasync
-    import asyncio
+    from app.desktop import main
 
-    app = QApplication(sys.argv)
-    loop = qasync.QEventLoop(app)
-    asyncio.set_event_loop(loop)
-
-    MainWindow = QtWidgets.QMainWindow()
-    Screen = QGuiApplication.primaryScreen()
-    app.setWindowIcon(QIcon('./images/icons/Legion-N_128x128.svg'))
-    app.setStyleSheet("* { font-family: \"monospace\"; font-size: 10pt; }")
-
-    from ui.view import *
-    from controller.controller import *
-
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-
-    # Platform-independent privilege check
-    if hasattr(os, "geteuid"):
-        if os.geteuid() != 0:
-            startupLog.error("Legion must run as root for raw socket access. Please start legion using sudo.")
-            notice = QMessageBox()
-            notice.setIcon(QMessageBox.Icon.Critical)
-            notice.setText("Legion must run as root for raw socket access. Please start legion using sudo.")
-            notice.exec()
-            exit(1)
-    elif os.name == "nt":
-        # On Windows, warn but do not exit
-        startupLog.warning("Legion may require Administrator privileges for some features on Windows.")
-        notice = QMessageBox()
-        notice.setIcon(QMessageBox.Icon.Warning)
-        notice.setText("Legion may require Administrator privileges for some features on Windows.")
-        notice.exec()
-
-
-    shell = DefaultShell()
-    dbLog = getDbLogger()
-    appLogger = getAppLogger()
-    repositoryFactory = RepositoryFactory(dbLog)
-    projectManager = ProjectManager(shell, repositoryFactory, appLogger)
-    nmapExporter = DefaultNmapExporter(shell, appLogger)
-    toolCoordinator = ToolCoordinator(shell, nmapExporter)
-    logic = Logic(shell, projectManager, toolCoordinator)
-
-    startupLog.info("Creating temporary project at application start...")
-    logic.createNewTemporaryProject()
-
-    viewState = ViewState()
-    view = View(viewState, ui, MainWindow, shell, app, loop)  # View prep (gui)
-    controller = Controller(view, logic)  # Controller prep (communication between model and view)
-
-    myFilter = MyEventFilter(view, MainWindow)  # to capture events
-    app.installEventFilter(myFilter)
-
-    # Center the application in screen
-    screenCenter = Screen.availableGeometry().center()
-    MainWindow.move(screenCenter - MainWindow.rect().center())
-
-    import signal
-
-    def graceful_shutdown(*args):
-        startupLog.info("Graceful shutdown initiated.")
-        try:
-            # Attempt to stop QThreads (e.g., Screenshooter)
-            if hasattr(controller, "screenshooter") and controller.screenshooter.isRunning():
-                controller.screenshooter.quit()
-                controller.screenshooter.wait(3000)
-        except Exception as e:
-            startupLog.error(f"Error during QThread shutdown: {e}")
-        try:
-            loop.stop()
-        except Exception:
-            pass
-        try:
-            app.quit()
-        except Exception:
-            pass
-        sys.exit(0)
-
-    signal.signal(signal.SIGINT, graceful_shutdown)
-    signal.signal(signal.SIGTERM, graceful_shutdown)
-
-    startupLog.info("Legion started successfully.")
-    try:
-        sys.exit(loop.run_forever())
-    except KeyboardInterrupt:
-        graceful_shutdown()
+    sys.exit(main())

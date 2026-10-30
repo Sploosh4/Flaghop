@@ -1,0 +1,20 @@
+<div id="graph-note-modal" class="legion-modal-overlay" aria-hidden="true">
+    <div class="legion-modal graph-note-modal" role="dialog" aria-modal="true" aria-labelledby="graph-note-modal-title">
+        <div class="panel-header modal-header">
+            <h2 id="graph-note-modal-title">Add Note</h2>
+            <p id="graph-note-modal-meta">Add an operator note for the selected graph item.</p>
+            <button id="graph-note-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <p id="graph-note-modal-target" class="meta-note"></p>
+        <label>
+            Note
+            <textarea id="graph-note-input" rows="6" placeholder="Operator note, validation status, next step..."></textarea>
+        </label>
+        <div class="modal-actions">
+            <button id="graph-note-modal-cancel" type="button">Cancel</button>
+            <button id="graph-note-save-button" type="button">Save Note</button>
+        </div>
+    </div>
+</div>

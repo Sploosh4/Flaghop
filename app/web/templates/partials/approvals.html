@@ -1,0 +1,21 @@
+    <section class="panel panel-full" id="workspace-approvals-panel">
+        <div class="panel-header">
+            <h2>Dangerous Action Approvals</h2>
+            <p id="approval-count">{{ snapshot.scheduler_approvals | length }}</p>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Target</th>
+                    <th>Action</th>
+                    <th>Risk & Policy</th>
+                    <th>Planner</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="approvals-body"></tbody>
+            </table>
+        </div>
+    </section>

@@ -9,7 +9,6 @@ from app.web import runtime_workspace_mutation as web_runtime_workspace_mutation
 from app.web import runtime_workspace_host_detail as web_runtime_workspace_host_detail
 from app.web import runtime_workspace_read as web_runtime_workspace_read
 
-
 host_is_down = web_runtime_workspace_read.host_is_down
 summary = web_runtime_workspace_read.summary
 resolve_host = web_runtime_workspace_read.resolve_host
@@ -31,11 +30,11 @@ delete_host_workspace = web_runtime_workspace_mutation.delete_host_workspace
 create_script_entry = web_runtime_workspace_mutation.create_script_entry
 delete_script_entry = web_runtime_workspace_mutation.delete_script_entry
 get_script_output = web_runtime_workspace_mutation.get_script_output
-create_cve_entry = web_runtime_workspace_mutation.create_cve_entry
-delete_cve_entry = web_runtime_workspace_mutation.delete_cve_entry
 
 
-def build_workspace_host_row(runtime, host: Any, port_repo: Any, service_repo: Any, project: Any, **kwargs) -> Dict[str, Any]:
+def build_workspace_host_row(
+    runtime, host: Any, port_repo: Any, service_repo: Any, project: Any, **kwargs
+) -> Dict[str, Any]:
     return web_runtime_workspace_read.build_workspace_host_row(
         runtime,
         host,
@@ -57,11 +56,11 @@ def hosts(runtime, limit: Optional[int] = None, include_down: bool = False) -> L
 
 
 def get_workspace_hosts(
-        runtime,
-        limit: Optional[int] = None,
-        include_down: bool = False,
-        service: str = "",
-        category: str = "",
+    runtime,
+    limit: Optional[int] = None,
+    include_down: bool = False,
+    service: str = "",
+    category: str = "",
 ) -> List[Dict[str, Any]]:
     return web_runtime_workspace_read.get_workspace_hosts(
         runtime,
@@ -83,10 +82,10 @@ def get_target_state_view(runtime, host_id: int = 0, limit: int = 500) -> Dict[s
 
 
 def get_findings(
-        runtime,
-        host_id: int = 0,
-        limit_hosts: int = 500,
-        limit_findings: int = 1000,
+    runtime,
+    host_id: int = 0,
+    limit_hosts: int = 500,
+    limit_findings: int = 1000,
 ) -> Dict[str, Any]:
     return web_runtime_workspace_read.get_findings(
         runtime,
@@ -107,11 +106,11 @@ def get_host_workspace(runtime, host_id: int) -> Dict[str, Any]:
 
 
 def update_host_categories(
-        runtime,
-        host_id: int,
-        *,
-        manual_categories: Any = None,
-        override_auto: bool = False,
+    runtime,
+    host_id: int,
+    *,
+    manual_categories: Any = None,
+    override_auto: bool = False,
 ) -> Dict[str, Any]:
     return web_runtime_workspace_mutation.update_host_categories(
         runtime,

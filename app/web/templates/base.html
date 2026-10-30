@@ -74,7 +74,7 @@
 <script>window.LEGION_OPAQUE_UI_ENABLED = {{ "true" if legion_ui_opaque else "false" }};</script>
 <script>window.LEGION_COLORFUL_ASCII_BACKGROUND_ENABLED = {{ "true" if legion_colorful_ascii_background else "false" }};</script>
 <script>window.LEGION_CONSOLE_LOGO_ART = {{ console_logo_art | tojson }};</script>
-<script src="{{ url_for('static', filename='js/legion.js') }}" defer></script>
-<script src="{{ url_for('static', filename='js/workspace.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='js/legion.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/workspace.js') }}"></script>
 </body>
 </html>

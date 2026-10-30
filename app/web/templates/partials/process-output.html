@@ -1,0 +1,43 @@
+<div id="process-output-modal" class="legion-modal-overlay" aria-hidden="true">
+    <div class="legion-modal output-modal" role="dialog" aria-modal="true" aria-labelledby="process-output-modal-title">
+        <div class="panel-header modal-header">
+            <h2 id="process-output-modal-title">Process Output</h2>
+            <p id="process-output-meta">No process selected</p>
+            <button id="process-output-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="modal-actions modal-toolbar-actions">
+            <button id="process-output-refresh-button" class="icon-btn" type="button" title="Refresh" aria-label="Refresh">
+                <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+            </button>
+            <button id="process-output-copy-button" class="icon-btn" type="button" title="Copy to Clipboard" aria-label="Copy to Clipboard">
+                <i class="fa-regular fa-copy" aria-hidden="true"></i>
+            </button>
+            <button id="process-output-download-button" class="icon-btn" type="button" title="Download .txt" aria-label="Download .txt">
+                <i class="fa-solid fa-download" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="process-command-block">
+            <div class="process-command-header">
+                <span>Command</span>
+                <button id="process-output-command-copy" type="button" title="Copy command" aria-label="Copy command">
+                    <i class="fa-regular fa-copy" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div id="process-output-command" class="process-command-text"></div>
+        </div>
+        <div class="process-command-block">
+            <div class="process-command-header">
+                <span>Progress</span>
+            </div>
+            <div id="process-output-progress" class="process-command-text">No structured progress reported</div>
+        </div>
+        <div class="process-command-block process-output-block">
+            <div class="process-command-header">
+                <span>Output</span>
+            </div>
+            <div id="process-output-text" class="ansi-output-view" role="textbox" aria-readonly="true"></div>
+        </div>
+    </div>
+</div>

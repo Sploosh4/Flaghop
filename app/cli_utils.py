@@ -16,14 +16,13 @@ Copyright (c) 2025 Shane William Scott
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
 
-import os
 import sys
-import subprocess
 from typing import Iterable, List
 from urllib.parse import urlparse
 
 from app.hostsfile import normalize_hostname_alias
 from db.entities.host import hostObj
+
 
 def _normalize_import_target(raw_target: str) -> str:
     candidate = str(raw_target or "").strip()
@@ -54,10 +53,7 @@ def import_targets(session, hostRepository, targets: Iterable[str]) -> List[str]
         try:
             db_host = hostRepository.getHostInformation(target)
         except Exception as repo_exc:
-            print(
-                f"Warning: unable to check existing host '{target}': {repo_exc}",
-                file=sys.stderr
-            )
+            print(f"Warning: unable to check existing host '{target}': {repo_exc}", file=sys.stderr)
             continue
         if db_host:
             continue
@@ -70,16 +66,16 @@ def import_targets(session, hostRepository, targets: Iterable[str]) -> List[str]
         hid = hostObj(
             ip=target,
             ipv4=target,
-            ipv6='',
-            macaddr='',
-            status='',
+            ipv6="",
+            macaddr="",
+            status="",
             hostname=target,
-            vendor='',
-            uptime='',
-            lastboot='',
-            distance='',
-            state='',
-            count='',
+            vendor="",
+            uptime="",
+            lastboot="",
+            distance="",
+            state="",
+            count="",
         )
         try:
             session.add(hid)
@@ -87,10 +83,7 @@ def import_targets(session, hostRepository, targets: Iterable[str]) -> List[str]
             added_targets.append(target)
         except Exception as db_exc:
             session.rollback()
-            print(
-                f"Error importing target '{target}': {db_exc}",
-                file=sys.stderr
-            )
+            print(f"Error importing target '{target}': {db_exc}", file=sys.stderr)
     return added_targets
 
 
@@ -112,73 +105,25 @@ def import_targets_from_textfile(session, hostRepository, filename):
         return 0
     return len(import_targets(session, hostRepository, raw_targets))
 
+
 def is_wsl():
     try:
-        with open('/proc/version', 'r') as f:
-            return 'Microsoft' in f.read()
+        with open("/proc/version", "r") as f:
+            return "Microsoft" in f.read()
     except Exception:
         return False
+
 
 def to_windows_path(path):
     try:
         import subprocess
-        return subprocess.check_output(['wslpath', '-w', path]).decode().strip()
+
+        return subprocess.check_output(["wslpath", "-w", path]).decode().strip()
     except Exception:
         # Fallback: naive conversion for /mnt/c/...
-        if path.startswith('/mnt/'):
+        if path.startswith("/mnt/"):
             drive = path[5]
             rest = path[6:]
-            rest_win = rest.replace('/', '\\')
+            rest_win = rest.replace("/", "\\")
             return f"{drive.upper()}:\\{rest_win}"
         return path
-
-def run_nmap_scan(targets, output_prefix, discovery=True, staged=False, nmap_path="nmap"):
-    """
-    Run nmap scan on the given targets.
-    - targets: string of targets (space/comma separated)
-    - output_prefix: path prefix for nmap output files
-    - discovery: if True, enable host discovery; if False, use -Pn
-    - staged: if True, run a staged scan (simple implementation: run a basic scan, then a service scan)
-    Returns the path to the main nmap XML output.
-    """
-    # Convert output_prefix to Windows path if running under WSL and using nmap.exe
-    def convert_if_needed(prefix):
-        if is_wsl() and nmap_path.lower().endswith('.exe'):
-            return to_windows_path(prefix)
-        return prefix
-
-    if staged:
-        # Example staged: first a fast scan, then a service scan
-        # Stage 1: host discovery
-        output_prefix1 = output_prefix + "_stage1"
-        output_prefix1_conv = convert_if_needed(output_prefix1)
-        cmd1 = [nmap_path, "-sn"] + targets.split() + ["-oA", output_prefix1_conv]
-        try:
-            subprocess.run(cmd1, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except subprocess.CalledProcessError as e:
-            print(f"Error running nmap stage 1: {e}", file=sys.stderr)
-            return None
-        # Stage 2: service/version scan on discovered hosts (for demo, just rerun on all)
-        output_prefix2 = output_prefix + "_stage2"
-        output_prefix2_conv = convert_if_needed(output_prefix2)
-        cmd2 = [nmap_path, "-sV", "-O"] + targets.split() + ["-oA", output_prefix2_conv]
-        if not discovery:
-            cmd2.insert(1, "-Pn")
-        try:
-            subprocess.run(cmd2, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except subprocess.CalledProcessError as e:
-            print(f"Error running nmap stage 2: {e}", file=sys.stderr)
-            return None
-        return output_prefix + "_stage2.xml"
-    else:
-        output_prefix_conv = convert_if_needed(output_prefix)
-        cmd = [nmap_path]
-        if not discovery:
-            cmd.append("-Pn")
-        cmd += ["-T4", "-sV", "-O"] + targets.split() + ["-oA", output_prefix_conv]
-        try:
-            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except subprocess.CalledProcessError as e:
-            print(f"Error running nmap: {e}", file=sys.stderr)
-            return None
-        return output_prefix + ".xml"

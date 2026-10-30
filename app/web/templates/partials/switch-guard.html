@@ -1,0 +1,17 @@
+<div id="workspace-switch-guard-modal" class="legion-modal-overlay" aria-hidden="true">
+    <div class="legion-modal compact-modal" role="dialog" aria-modal="true" aria-labelledby="workspace-switch-guard-title">
+        <div class="panel-header modal-header">
+            <h2 id="workspace-switch-guard-title">Active Work In Progress</h2>
+            <p id="workspace-switch-guard-status">Stop running jobs and processes before switching workspaces.</p>
+            <button id="workspace-switch-guard-close" class="modal-close-btn" type="button" aria-label="Close dialog">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <p id="workspace-switch-guard-summary" class="meta-note">No active work detected.</p>
+        <pre id="workspace-switch-guard-details" class="modal-log-block"></pre>
+        <div class="modal-actions">
+            <button id="workspace-switch-guard-stop-button" type="button">Stop Active Work And Continue</button>
+            <button id="workspace-switch-guard-cancel-button" type="button">Cancel</button>
+        </div>
+    </div>
+</div>

@@ -5,38 +5,10 @@ import os
 from typing import Any, Dict, Optional
 
 from app.scheduler.reporting import (
-    build_host_report,
     build_project_report,
     render_project_report_markdown as render_scheduler_project_report_markdown,
 )
-from app.web.runtime_ai_reports import (
-    get_host_ai_report as get_host_ai_report,
-    get_project_ai_report,
-    render_project_ai_report_markdown,
-)
-
-
-def get_host_report(runtime, host_id: int) -> Dict[str, Any]:
-    with runtime._lock:
-        project = runtime._require_active_project()
-        host = runtime._resolve_host(int(host_id))
-        if host is None:
-            raise KeyError(f"Unknown host id: {host_id}")
-        engagement_policy = runtime._load_engagement_policy_locked(persist_if_missing=True)
-        host_row = {
-            "id": int(getattr(host, "id", 0) or 0),
-            "ip": str(getattr(host, "ip", "") or ""),
-            "hostname": str(getattr(host, "hostname", "") or ""),
-            "status": str(getattr(host, "status", "") or ""),
-            "os": str(getattr(host, "osMatch", "") or ""),
-        }
-        project_meta = dict(runtime._project_metadata())
-    return build_host_report(
-        project.database,
-        host_row=host_row,
-        engagement_policy=engagement_policy,
-        project_metadata=project_meta,
-    )
+from app.web.runtime_ai_reports import get_project_ai_report, render_project_ai_report_markdown
 
 
 def get_project_report(runtime) -> Dict[str, Any]:
@@ -78,9 +50,7 @@ def push_project_report_common(
         for key, value in overrides.items():
             if key == "headers" and isinstance(value, dict):
                 merged_delivery["headers"] = {
-                    str(k or "").strip(): str(v or "")
-                    for k, v in value.items()
-                    if str(k or "").strip()
+                    str(k or "").strip(): str(v or "") for k, v in value.items() if str(k or "").strip()
                 }
             elif key == "mtls" and isinstance(value, dict):
                 next_mtls = dict(merged_delivery.get("mtls", {}))

@@ -1,3 +1,9 @@
+import { setActionStatus } from "./workspace/dom.js";
+import { graphWorkspaceEnabled } from "./workspace/graph_common.js";
+import { graphRenderWorkspace } from "./workspace/graph_render.js";
+import { postJson } from "./workspace/http.js";
+import { renderProject, setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/workspace_view.js";
+
 /* Presentation shell. Existing Legion controls and handlers remain the source of actions. */
 (() => {
     "use strict";

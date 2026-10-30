@@ -130,12 +130,18 @@ class DummySchedulerConfig:
             updates["integrations"] = integrations
         elif "goal_profile" in updates:
             policy = dict(self.state.get("engagement_policy", {}))
-            policy["preset"] = "external_pentest" if str(updates.get("goal_profile", "")).strip().lower() == "external_pentest" else "internal_recon"
+            policy["preset"] = (
+                "external_pentest"
+                if str(updates.get("goal_profile", "")).strip().lower() == "external_pentest"
+                else "internal_recon"
+            )
             updates["engagement_policy"] = policy
         self.state.update(updates)
         if isinstance(self.state.get("engagement_policy"), dict):
             preset = str(self.state["engagement_policy"].get("preset", "") or "").strip().lower()
-            self.state["goal_profile"] = "external_pentest" if preset in {"external_recon", "external_pentest"} else "internal_asset_discovery"
+            self.state["goal_profile"] = (
+                "external_pentest" if preset in {"external_recon", "external_pentest"} else "internal_asset_discovery"
+            )
         return self.state
 
     def approve_family(self, family_id, metadata):
@@ -185,16 +191,81 @@ class DummyRuntime:
             }
         ]
         self.workspace_hosts = [
-            {"id": 11, "ip": "10.0.0.5", "hostname": "dc01.local", "status": "up", "os": "windows", "open_ports": 2, "total_ports": 2, "services": ["kerberos", "smb"], "categories": ["Windows", "Server"]},
-            {"id": 12, "ip": "10.0.0.6", "hostname": "filesrv.local", "status": "down", "os": "windows", "open_ports": 0, "total_ports": 1, "services": [], "categories": ["Windows", "Storage"]},
-            {"id": 13, "ip": "10.0.0.7", "hostname": "web01.local", "status": "up", "os": "linux", "open_ports": 4, "total_ports": 5, "services": ["http", "https", "ssh"], "categories": ["Linux", "Server"]},
+            {
+                "id": 11,
+                "ip": "10.0.0.5",
+                "hostname": "dc01.local",
+                "status": "up",
+                "os": "windows",
+                "open_ports": 2,
+                "total_ports": 2,
+                "services": ["kerberos", "smb"],
+                "categories": ["Windows", "Server"],
+            },
+            {
+                "id": 12,
+                "ip": "10.0.0.6",
+                "hostname": "filesrv.local",
+                "status": "down",
+                "os": "windows",
+                "open_ports": 0,
+                "total_ports": 1,
+                "services": [],
+                "categories": ["Windows", "Storage"],
+            },
+            {
+                "id": 13,
+                "ip": "10.0.0.7",
+                "hostname": "web01.local",
+                "status": "up",
+                "os": "linux",
+                "open_ports": 4,
+                "total_ports": 5,
+                "services": ["http", "https", "ssh"],
+                "categories": ["Linux", "Server"],
+            },
         ]
         self.workspace_services = [
-            {"service": "http", "ports": ["80"], "host_count": 1, "port_count": 1, "protocols": ["tcp"], "categories": ["Linux", "Server"]},
-            {"service": "https", "ports": ["443"], "host_count": 1, "port_count": 1, "protocols": ["tcp"], "categories": ["Linux", "Server"]},
-            {"service": "kerberos", "ports": ["88"], "host_count": 1, "port_count": 1, "protocols": ["tcp"], "categories": ["Windows", "Server"]},
-            {"service": "smb", "ports": ["445"], "host_count": 1, "port_count": 1, "protocols": ["tcp"], "categories": ["Windows", "Server"]},
-            {"service": "ssh", "ports": ["22"], "host_count": 1, "port_count": 1, "protocols": ["tcp"], "categories": ["Linux", "Server"]},
+            {
+                "service": "http",
+                "ports": ["80"],
+                "host_count": 1,
+                "port_count": 1,
+                "protocols": ["tcp"],
+                "categories": ["Linux", "Server"],
+            },
+            {
+                "service": "https",
+                "ports": ["443"],
+                "host_count": 1,
+                "port_count": 1,
+                "protocols": ["tcp"],
+                "categories": ["Linux", "Server"],
+            },
+            {
+                "service": "kerberos",
+                "ports": ["88"],
+                "host_count": 1,
+                "port_count": 1,
+                "protocols": ["tcp"],
+                "categories": ["Windows", "Server"],
+            },
+            {
+                "service": "smb",
+                "ports": ["445"],
+                "host_count": 1,
+                "port_count": 1,
+                "protocols": ["tcp"],
+                "categories": ["Windows", "Server"],
+            },
+            {
+                "service": "ssh",
+                "ports": ["22"],
+                "host_count": 1,
+                "port_count": 1,
+                "protocols": ["tcp"],
+                "categories": ["Linux", "Server"],
+            },
         ]
         self.tool_install_requests = []
         self.workspace_tools = [
@@ -231,16 +302,24 @@ class DummyRuntime:
                     "protocol": "tcp",
                     "state": "open",
                     "service": {"id": 1, "name": "smb", "product": "samba", "version": "4.x", "extrainfo": ""},
-                    "scripts": [{
-                        "id": 100,
-                        "script_id": "nmap",
-                        "output": "Starting Nmap 7.80\nNmap scan report for dc01.local\nHost is up.\n| smb-security-mode:\n|   message_signing: disabled\n|_  challenge_response: supported\nNmap done: 1 IP address",
-                        "display_output": "| smb-security-mode: |   message_signing: disabled |_  challenge_response: supported",
-                    }],
+                    "scripts": [
+                        {
+                            "id": 100,
+                            "script_id": "nmap",
+                            "output": "Starting Nmap 7.80\nNmap scan report for dc01.local\nHost is up.\n| smb-security-mode:\n|   message_signing: disabled\n|_  challenge_response: supported\nNmap done: 1 IP address",
+                            "display_output": "| smb-security-mode: |   message_signing: disabled |_  challenge_response: supported",
+                        }
+                    ],
                 }
             ],
             "cves": [{"id": 50, "name": "CVE-2025-0001", "severity": "high", "product": "samba", "url": ""}],
-            "screenshots": [{"filename": "10.0.0.5-445-screenshot.png", "port": "445", "url": "/api/screenshots/10.0.0.5-445-screenshot.png"}],
+            "screenshots": [
+                {
+                    "filename": "10.0.0.5-445-screenshot.png",
+                    "port": "445",
+                    "url": "/api/screenshots/10.0.0.5-445-screenshot.png",
+                }
+            ],
             "ai_analysis": {
                 "provider": "openai",
                 "goal_profile": "internal_asset_discovery",
@@ -252,9 +331,25 @@ class DummyRuntime:
                     "os": "windows",
                     "os_confidence": 92,
                 },
-                "technologies": [{"name": "samba", "version": "4.x", "cpe": "cpe:/a:samba:samba:4", "evidence": "nmap service"}],
-                "findings": [{"title": "SMB signing not required", "severity": "high", "cvss": 7.5, "cve": "", "evidence": "smb-security-mode"}],
-                "manual_tests": [{"why": "validate relay path", "command": "ntlmrelayx.py -tf targets.txt", "scope_note": "requires approval"}],
+                "technologies": [
+                    {"name": "samba", "version": "4.x", "cpe": "cpe:/a:samba:samba:4", "evidence": "nmap service"}
+                ],
+                "findings": [
+                    {
+                        "title": "SMB signing not required",
+                        "severity": "high",
+                        "cvss": 7.5,
+                        "cve": "",
+                        "evidence": "smb-security-mode",
+                    }
+                ],
+                "manual_tests": [
+                    {
+                        "why": "validate relay path",
+                        "command": "ntlmrelayx.py -tf targets.txt",
+                        "scope_note": "requires approval",
+                    }
+                ],
             },
             "target_state": {
                 "last_mode": "deterministic",
@@ -534,10 +629,14 @@ class DummyRuntime:
                 "source_ref": "unit:test",
             }
         ]
-        self.graph_text_path = tempfile.NamedTemporaryFile(prefix="legion-graph-artifact-", suffix=".txt", delete=False).name
+        self.graph_text_path = tempfile.NamedTemporaryFile(
+            prefix="legion-graph-artifact-", suffix=".txt", delete=False
+        ).name
         with open(self.graph_text_path, "w", encoding="utf-8") as handle:
             handle.write("Artifact preview line 1\nArtifact preview line 2\n")
-        self.graph_image_path = tempfile.NamedTemporaryFile(prefix="legion-graph-shot-", suffix=".png", delete=False).name
+        self.graph_image_path = tempfile.NamedTemporaryFile(
+            prefix="legion-graph-shot-", suffix=".png", delete=False
+        ).name
         with open(self.graph_image_path, "wb") as handle:
             handle.write(
                 b"\x89PNG\r\n\x1a\n"
@@ -672,10 +771,12 @@ class DummyRuntime:
         with zipfile.ZipFile(temp.name, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             archive.writestr(
                 "legion-session-test/manifest.json",
-                json.dumps({
-                    "credential_capture_count": self.credential_capture_state["capture_count"],
-                    "credential_unique_hash_count": self.credential_capture_state["unique_hash_count"],
-                }),
+                json.dumps(
+                    {
+                        "credential_capture_count": self.credential_capture_state["capture_count"],
+                        "credential_unique_hash_count": self.credential_capture_state["unique_hash_count"],
+                    }
+                ),
             )
             archive.writestr(
                 "legion-session-test/credentials.json",
@@ -718,15 +819,15 @@ class DummyRuntime:
         }
 
     def start_nmap_scan_job(
-            self,
-            targets,
-            discovery=True,
-            staged=False,
-            run_actions=False,
-            nmap_path="nmap",
-            nmap_args="",
-            scan_mode="legacy",
-            scan_options=None,
+        self,
+        targets,
+        discovery=True,
+        staged=False,
+        run_actions=False,
+        nmap_path="nmap",
+        nmap_args="",
+        scan_mode="legacy",
+        scan_options=None,
     ):
         if not targets:
             raise ValueError("At least one target is required")
@@ -988,7 +1089,9 @@ class DummyRuntime:
         return {
             "stopped": running,
             "tool": normalized,
-            "process_id": 601 if normalized == "responder" and running else 602 if normalized == "ntlmrelayx" and running else 0,
+            "process_id": (
+                601 if normalized == "responder" and running else 602 if normalized == "ntlmrelayx" and running else 0
+            ),
         }
 
     def get_credential_capture_log_payload(self, tool_id):
@@ -1073,12 +1176,14 @@ class DummyRuntime:
             "integrations": {
                 "grayhatwarfare": {
                     "api_key": "",
-                    "api_key_configured": bool(self.scheduler_config.state["integrations"]["grayhatwarfare"]["api_key"]),
+                    "api_key_configured": bool(
+                        self.scheduler_config.state["integrations"]["grayhatwarfare"]["api_key"]
+                    ),
                 },
                 "shodan": {
                     "api_key": "",
                     "api_key_configured": bool(self.scheduler_config.state["integrations"]["shodan"]["api_key"]),
-                }
+                },
             },
             "feature_flags": self.scheduler_config.state["feature_flags"],
             "ai_feedback": self.scheduler_config.state["ai_feedback"],
@@ -1094,7 +1199,11 @@ class DummyRuntime:
     def set_engagement_policy(self, updates):
         policy = dict(self.scheduler_config.state["engagement_policy"])
         policy.update(dict(updates or {}))
-        policy["legacy_goal_profile"] = "external_pentest" if policy.get("preset") in {"external_recon", "external_pentest"} else "internal_asset_discovery"
+        policy["legacy_goal_profile"] = (
+            "external_pentest"
+            if policy.get("preset") in {"external_recon", "external_pentest"}
+            else "internal_asset_discovery"
+        )
         self.scheduler_config.state["engagement_policy"] = policy
         self.scheduler_config.state["goal_profile"] = policy["legacy_goal_profile"]
         return dict(policy)
@@ -1117,27 +1226,29 @@ class DummyRuntime:
         ][:limit]
 
     def get_scheduler_rationale_feed(self, limit=12):
-        return list(self.scheduler_rationale_feed)[:max(1, int(limit or 1))]
+        return list(self.scheduler_rationale_feed)[: max(1, int(limit or 1))]
 
     def get_workspace_hosts(self, limit=None, include_down=False, service="", category=""):
         rows = list(self.workspace_hosts)
         if not include_down:
             rows = [row for row in rows if str(row.get("status", "")).strip().lower() != "down"]
-        service_filters = {
-            token.strip().lower()
-            for token in str(service or "").split(",")
-            if token.strip()
-        }
+        service_filters = {token.strip().lower() for token in str(service or "").split(",") if token.strip()}
         if service_filters:
             rows = [
-                row for row in rows
-                if any(str(item or "").strip().lower() in service_filters for item in list(row.get("services", []) or []))
+                row
+                for row in rows
+                if any(
+                    str(item or "").strip().lower() in service_filters for item in list(row.get("services", []) or [])
+                )
             ]
         category_filter = str(category or "").strip().lower()
         if category_filter:
             rows = [
-                row for row in rows
-                if any(str(item or "").strip().lower() == category_filter for item in list(row.get("categories", []) or []))
+                row
+                for row in rows
+                if any(
+                    str(item or "").strip().lower() == category_filter for item in list(row.get("categories", []) or [])
+                )
             ]
         if limit is None:
             return rows
@@ -1166,7 +1277,8 @@ class DummyRuntime:
         if not category_filter:
             return self.workspace_services[:limit]
         return [
-            row for row in self.workspace_services[:limit]
+            row
+            for row in self.workspace_services[:limit]
             if any(str(item or "").strip().lower() == category_filter for item in list(row.get("categories", []) or []))
         ]
 
@@ -1179,21 +1291,21 @@ class DummyRuntime:
         rows = list(self.workspace_tools)
         if normalized_service:
             rows = [
-                row for row in rows
-                if normalized_service in {
-                    str(item or "").strip().lower()
-                    for item in list(row.get("service_scope", []) or [])
-                }
+                row
+                for row in rows
+                if normalized_service
+                in {str(item or "").strip().lower() for item in list(row.get("service_scope", []) or [])}
             ]
         if normalized_port:
             rows = [
-                row for row in rows
+                row
+                for row in rows
                 if not row.get("target_ports")
                 or normalized_port in {str(item or "").strip() for item in list(row.get("target_ports", []) or [])}
             ]
         safe_limit = max(1, min(int(limit or 300), 500))
         safe_offset = max(0, int(offset or 0))
-        page = rows[safe_offset:safe_offset + safe_limit]
+        page = rows[safe_offset : safe_offset + safe_limit]
         next_offset = safe_offset + len(page)
         has_more = next_offset < len(rows)
         return {
@@ -1291,16 +1403,16 @@ class DummyRuntime:
         }
 
     def get_scheduler_plan_preview(
-            self,
-            *,
-            host_id=0,
-            host_ip="",
-            service="",
-            port="",
-            protocol="tcp",
-            mode="compare",
-            limit_targets=20,
-            limit_actions=6,
+        self,
+        *,
+        host_id=0,
+        host_ip="",
+        service="",
+        port="",
+        protocol="tcp",
+        mode="compare",
+        limit_targets=20,
+        limit_actions=6,
     ):
         _ = host_id, host_ip, service, port, protocol, limit_targets, limit_actions
         return {
@@ -1376,56 +1488,6 @@ class DummyRuntime:
             "target_state": dict(self.workspace_host_detail.get("target_state", {})),
         }
 
-
-    def get_host_report(self, host_id):
-        if int(host_id) != 11:
-            raise KeyError(host_id)
-        return {
-            "generated_at": "2026-02-18T12:05:00+00:00",
-            "report_version": 2,
-            "report_kind": "host",
-            "project": dict(self.project),
-            "host": dict(self.workspace_host_detail["host"]),
-            "scope_and_policy": {"engagement_policy": dict(self.scheduler_config.state["engagement_policy"])},
-            "summary_of_discovered_assets": {
-                "service_count": 1,
-                "url_count": 0,
-                "technology_count": 1,
-                "finding_count": 1,
-                "credential_count": 0,
-                "identity_count": 0,
-                "session_count": 0,
-                "screenshot_count": 1,
-                "artifact_count": 1,
-            },
-            "validated_findings": {
-                "count": 1,
-                "items": [{"title": "SMB signing not required", "evidence": "smb-security-mode"}],
-            },
-            "attack_paths": [{"summary": "SMB signing not required --validated_by--> evidence"}],
-            "credentials_and_sessions": {"credentials": [], "identities": [], "sessions": []},
-            "evidence_references": [{"ref": "smb-security-mode", "kind": "graph_evidence"}],
-            "recommended_next_steps": {
-                "next_phase": "targeted_checks",
-                "manual_tests": [{"why": "validate relay path", "command": "ntlmrelayx.py -tf targets.txt"}],
-                "coverage_gaps": [{"gap_id": "missing_smb_signing_checks", "description": "missing signing validation"}],
-                "pending_approvals": [],
-            },
-            "skipped_or_blocked_actions": [{"label": "SMB Bruteforce", "policy_reason": "requires approval"}],
-            "methodology_coverage": {
-                "last_mode": "deterministic",
-                "next_phase": "targeted_checks",
-                "attempted_action_count": 1,
-                "strategy_packs_seen": ["internal_network"],
-                "runner_usage": {"local": 1},
-            },
-            "observed_facts": [{"label": "samba", "summary": "service banner"}],
-            "inferred_relationships": [],
-            "ai_suggestions": [{"label": "validate relay path", "summary": "ntlmrelayx.py -tf targets.txt"}],
-            "operator_conclusions": [{"label": "Note #1", "summary": "host note"}],
-        }
-
-
     def get_project_ai_report(self):
         return {
             "generated_at": "2026-02-18T12:03:00+00:00",
@@ -1487,7 +1549,9 @@ class DummyRuntime:
             "recommended_next_steps": {
                 "next_phases": ["targeted_checks"],
                 "manual_tests": [{"why": "validate relay path", "command": "ntlmrelayx.py -tf targets.txt"}],
-                "coverage_gaps": [{"gap_id": "missing_smb_signing_checks", "description": "missing signing validation"}],
+                "coverage_gaps": [
+                    {"gap_id": "missing_smb_signing_checks", "description": "missing signing validation"}
+                ],
                 "pending_approvals": [],
             },
             "skipped_or_blocked_actions": [{"label": "SMB Bruteforce", "policy_reason": "requires approval"}],
@@ -1505,11 +1569,7 @@ class DummyRuntime:
 
     def render_project_report_markdown(self, report):
         project = report.get("project", {}) if isinstance(report, dict) else {}
-        return (
-            "# Legion Project Report\n\n"
-            f"- Project: {project.get('name', '')}\n"
-            "## Scope and Policy\n"
-        )
+        return "# Legion Project Report\n\n" f"- Project: {project.get('name', '')}\n" "## Scope and Policy\n"
 
     def push_project_ai_report(self, overrides=None):
         delivery = dict(self.scheduler_config.state.get("project_report_delivery", {}))
@@ -1526,7 +1586,7 @@ class DummyRuntime:
             "method": str(delivery.get("method", "POST")),
             "format": str(delivery.get("format", "json")),
             "status_code": 200,
-            "response_body_excerpt": "{\"ok\":true}",
+            "response_body_excerpt": '{"ok":true}',
         }
 
     def push_project_report(self, overrides=None):
@@ -1543,21 +1603,11 @@ class DummyRuntime:
     def create_script_entry(self, host_id, port, protocol, script_id, output):
         if int(host_id) != 11:
             raise KeyError(host_id)
-        self.workspace_host_detail["ports"][0]["scripts"].append(
-            {"id": 101, "script_id": script_id, "output": output}
-        )
+        self.workspace_host_detail["ports"][0]["scripts"].append({"id": 101, "script_id": script_id, "output": output})
         return {"id": 101, "script_id": script_id, "port_id": 1}
 
     def delete_script_entry(self, script_db_id):
         return {"deleted": True, "id": int(script_db_id)}
-
-    def create_cve_entry(self, host_id, name, **_kwargs):
-        if int(host_id) != 11:
-            raise KeyError(host_id)
-        return {"id": 88, "name": name, "host_id": int(host_id), "created": True}
-
-    def delete_cve_entry(self, cve_id):
-        return {"deleted": True, "id": int(cve_id)}
 
     def get_process_output(self, process_id, offset=0, max_chars=12000):
         _ = max_chars
@@ -1620,11 +1670,7 @@ class DummyRuntime:
             rows = [item for item in rows if str(item.get("tool_id", "")) == str(tool_id)]
         if not include_output:
             rows = [
-                {
-                    key: value
-                    for key, value in item.items()
-                    if key not in {"stdout_excerpt", "stderr_excerpt"}
-                }
+                {key: value for key, value in item.items() if key not in {"stdout_excerpt", "stderr_excerpt"}}
                 for item in rows
             ]
         return rows[:limit]
@@ -1675,11 +1721,11 @@ class DummyRuntime:
             }
         if provider == "openai":
             openai_cfg = (
-                merged.get("providers", {}).get("openai", {})
-                if isinstance(merged.get("providers", {}), dict)
-                else {}
+                merged.get("providers", {}).get("openai", {}) if isinstance(merged.get("providers", {}), dict) else {}
             )
-            structured_enabled = bool(openai_cfg.get("structured_outputs", False)) if isinstance(openai_cfg, dict) else False
+            structured_enabled = (
+                bool(openai_cfg.get("structured_outputs", False)) if isinstance(openai_cfg, dict) else False
+            )
             return {
                 "ok": True,
                 "provider": "openai",
@@ -1704,9 +1750,9 @@ class DummyRuntime:
                 "endpoint": "https://api.openai.com/v1/chat/completions",
                 "api_style": "openai_compatible",
                 "request_headers": {"Authorization": "Bearer ***redacted***"},
-                "request_body": "{\"model\":\"gpt-5-mini\"}",
+                "request_body": '{"model":"gpt-5-mini"}',
                 "response_status": 200,
-                "response_body": "{\"choices\":[]}",
+                "response_body": '{"choices":[]}',
                 "error": "",
                 "prompt_metadata": {
                     "prompt_version": "scheduler-ranking-v2",
@@ -1717,16 +1763,22 @@ class DummyRuntime:
                     "structured_output_fallback": True,
                 },
             }
-        ][:max(1, int(limit or 1))]
+        ][: max(1, int(limit or 1))]
 
     def get_evidence_graph(self, filters=None):
         filters = dict(filters or {})
         nodes = list(self.graph_snapshot.get("nodes", []))
         edges = list(self.graph_snapshot.get("edges", []))
 
-        node_types = {str(item).strip().lower() for item in list(filters.get("node_types", []) or []) if str(item).strip()}
-        edge_types = {str(item).strip().lower() for item in list(filters.get("edge_types", []) or []) if str(item).strip()}
-        source_kinds = {str(item).strip().lower() for item in list(filters.get("source_kinds", []) or []) if str(item).strip()}
+        node_types = {
+            str(item).strip().lower() for item in list(filters.get("node_types", []) or []) if str(item).strip()
+        }
+        edge_types = {
+            str(item).strip().lower() for item in list(filters.get("edge_types", []) or []) if str(item).strip()
+        }
+        source_kinds = {
+            str(item).strip().lower() for item in list(filters.get("source_kinds", []) or []) if str(item).strip()
+        }
         min_confidence = float(filters.get("min_confidence", 0.0) or 0.0)
         search = str(filters.get("search", "") or "").strip().lower()
         include_ai = bool(filters.get("include_ai_suggested", True))
@@ -1767,8 +1819,7 @@ class DummyRuntime:
                 if str(item.get("status", "") or "").strip().lower() == "down"
             }
             nodes = [
-                item for item in nodes
-                if int(item.get("properties", {}).get("host_id", 0) or 0) not in down_host_ids
+                item for item in nodes if int(item.get("properties", {}).get("host_id", 0) or 0) not in down_host_ids
             ]
 
         if not include_ai:
@@ -1782,19 +1833,15 @@ class DummyRuntime:
             nodes = [item for item in nodes if float(item.get("confidence", 0.0) or 0.0) >= min_confidence]
         if search:
             nodes = [
-                item for item in nodes
-                if search in str(item.get("label", "")).lower() or search in json.dumps(item.get("properties", {}), sort_keys=True).lower()
+                item
+                for item in nodes
+                if search in str(item.get("label", "")).lower()
+                or search in json.dumps(item.get("properties", {}), sort_keys=True).lower()
             ]
         if host_id > 0:
-            nodes = [
-                item for item in nodes
-                if int(item.get("properties", {}).get("host_id", 0) or 0) == host_id
-            ]
+            nodes = [item for item in nodes if int(item.get("properties", {}).get("host_id", 0) or 0) == host_id]
         if host_scope_ids is not None:
-            nodes = [
-                item for item in nodes
-                if int(item.get("properties", {}).get("host_id", 0) or 0) in host_scope_ids
-            ]
+            nodes = [item for item in nodes if int(item.get("properties", {}).get("host_id", 0) or 0) in host_scope_ids]
         node_ids = {item.get("node_id") for item in nodes}
         filtered_edges = []
         for item in edges:
@@ -1831,7 +1878,6 @@ class DummyRuntime:
             "host_id": host_id,
         }
 
-
     def get_evidence_graph_layouts(self):
         return list(self.graph_layouts)
 
@@ -1855,14 +1901,14 @@ class DummyRuntime:
         return rows
 
     def save_evidence_graph_annotation(
-            self,
-            *,
-            target_kind,
-            target_ref,
-            body,
-            created_by="operator",
-            source_ref="",
-            annotation_id="",
+        self,
+        *,
+        target_kind,
+        target_ref,
+        body,
+        created_by="operator",
+        source_ref="",
+        annotation_id="",
     ):
         item = {
             "annotation_id": annotation_id or "annotation-2",
@@ -1992,10 +2038,13 @@ class WebAppTest(unittest.TestCase):
         self.assertIn("supported_platforms", body)
 
     def test_tool_audit_install_route_queues_job(self):
-        response = self.client.post("/api/settings/tool-audit/install", json={
-            "platform": "ubuntu",
-            "scope": "missing",
-        })
+        response = self.client.post(
+            "/api/settings/tool-audit/install",
+            json={
+                "platform": "ubuntu",
+                "scope": "missing",
+            },
+        )
         self.assertEqual(202, response.status_code)
         body = response.get_json()
         self.assertEqual("accepted", body.get("status"))
@@ -2110,17 +2159,22 @@ class WebAppTest(unittest.TestCase):
         self.assertLess(body.index('id="graph-layout-select"'), body.index('id="graph-focus-depth-select"'))
         self.assertLess(body.index('id="graph-refresh-button"'), body.index('id="graph-resize-handle"'))
         self.assertLess(body.index('id="graph-resize-handle"'), body.index('id="graph-workspace-status"'))
-        self.assertLess(body.index("<h2>Graph Workspace</h2>"), body.index('<h2>Hosts</h2>'))
-        self.assertLess(body.index('<h2>Hosts</h2>'), body.index('<h2>Services</h2>'))
-        self.assertLess(body.index('<h2>Services</h2>'), body.index('<h2>Host Detail</h2>'))
+        self.assertLess(body.index("<h2>Graph Workspace</h2>"), body.index("<h2>Hosts</h2>"))
+        self.assertLess(body.index("<h2>Hosts</h2>"), body.index("<h2>Services</h2>"))
+        self.assertLess(body.index("<h2>Services</h2>"), body.index("<h2>Host Detail</h2>"))
 
     def test_scheduler_secret_fields_disable_password_manager_autofill(self):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
         body = response.get_data(as_text=True)
         self.assertIn('id="scheduler-form" class="scheduler-form" autocomplete="off"', body)
-        self.assertIn('id="provider-openai-apikey" type="password" name="openai_api_key" autocomplete="new-password"', body)
-        self.assertIn('id="scheduler-integration-shodan-apikey" type="password" name="shodan_api_key" autocomplete="new-password"', body)
+        self.assertIn(
+            'id="provider-openai-apikey" type="password" name="openai_api_key" autocomplete="new-password"', body
+        )
+        self.assertIn(
+            'id="scheduler-integration-shodan-apikey" type="password" name="shodan_api_key" autocomplete="new-password"',
+            body,
+        )
 
     def test_index_renders_all_interfaces_chip_when_configured(self):
         self.app.config["LEGION_WEB_BIND_HOST"] = "0.0.0.0"
@@ -2139,17 +2193,21 @@ class WebAppTest(unittest.TestCase):
         self.assertIn("window.LEGION_OPAQUE_UI_ENABLED = true", body)
 
     def test_index_hides_graph_workspace_when_rollout_flag_is_disabled(self):
-        self.runtime.scheduler_config.update_preferences({
-            "feature_flags": {
-                "graph_workspace": False,
+        self.runtime.scheduler_config.update_preferences(
+            {
+                "feature_flags": {
+                    "graph_workspace": False,
+                }
             }
-        })
+        )
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
         body = response.get_data(as_text=True)
         self.assertIn('id="graph-workspace-panel"', body)
         self.assertIn('data-graph-enabled="false"', body)
-        self.assertIn('id="graph-workspace-panel" class="panel panel-full graph-panel" data-graph-enabled="false" hidden', body)
+        self.assertIn(
+            'id="graph-workspace-panel" class="panel panel-full graph-panel" data-graph-enabled="false" hidden', body
+        )
 
     def test_index_renders_graph_workspace_interface_toggle(self):
         response = self.client.get("/")
@@ -2183,7 +2241,6 @@ class WebAppTest(unittest.TestCase):
         self.assertIn('id="engagement-custom-scope-label"', body)
         self.assertIn('id="engagement-custom-intent-label"', body)
         self.assertIn('value="internal_quick_recon"', body)
-
 
     def test_index_renders_nmap_scan_engagement_step(self):
         response = self.client.get("/")
@@ -2236,7 +2293,7 @@ class WebAppTest(unittest.TestCase):
         self.assertIn('id="ribbon-device-category-settings-button"', body)
         self.assertIn('id="device-category-settings-modal"', body)
         self.assertIn('id="device-category-rules-body"', body)
-        self.assertIn('>device category<', body)
+        self.assertIn(">device category<", body)
 
     def test_index_renders_hosts_panel_menu(self):
         response = self.client.get("/")
@@ -2307,7 +2364,6 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual(202, response.status_code)
         self.assertEqual("accepted", response.json.get("status"))
         self.assertEqual("project-restore-zip", response.json["job"]["type"])
-
 
     def test_workspace_hosts_endpoint_service_filter(self):
         response = self.client.get("/api/workspace/hosts?service=http")
@@ -2464,7 +2520,7 @@ class WebAppTest(unittest.TestCase):
                     },
                     "shodan": {
                         "api_key": "test-shodan-key",
-                    }
+                    },
                 },
             },
         )
@@ -2624,7 +2680,11 @@ class WebAppTest(unittest.TestCase):
 
         save_layout = self.client.post(
             "/api/graph/layouts",
-            json={"view_id": "attack_surface", "name": "focused", "layout": {"positions": {"graph-node-host": {"x": 20, "y": 40}}}},
+            json={
+                "view_id": "attack_surface",
+                "name": "focused",
+                "layout": {"positions": {"graph-node-host": {"x": 20, "y": 40}}},
+            },
         )
         self.assertEqual(200, save_layout.status_code)
         self.assertEqual("ok", save_layout.json["status"])
@@ -2636,7 +2696,12 @@ class WebAppTest(unittest.TestCase):
 
         save_annotation = self.client.post(
             "/api/graph/annotations",
-            json={"target_kind": "node", "target_ref": "graph-node-tech", "body": "Track this tech", "created_by": "tester"},
+            json={
+                "target_kind": "node",
+                "target_ref": "graph-node-tech",
+                "body": "Track this tech",
+                "created_by": "tester",
+            },
         )
         self.assertEqual(200, save_annotation.status_code)
         self.assertEqual("ok", save_annotation.json["status"])
@@ -2669,16 +2734,18 @@ class WebAppTest(unittest.TestCase):
         self.assertTrue(hide_xml.json["meta"]["filters"]["hide_nmap_xml_artifacts"])
 
     def test_graph_api_mirrors_hosts_filter_for_down_hosts(self):
-        self.runtime.graph_snapshot["nodes"].append({
-            "node_id": "graph-node-down-host",
-            "type": "host",
-            "label": "10.0.0.6",
-            "confidence": 95.0,
-            "source_kind": "observed",
-            "source_ref": "host:10.0.0.6",
-            "properties": {"host_id": 12, "ip": "10.0.0.6"},
-            "evidence_refs": ["host:10.0.0.6"],
-        })
+        self.runtime.graph_snapshot["nodes"].append(
+            {
+                "node_id": "graph-node-down-host",
+                "type": "host",
+                "label": "10.0.0.6",
+                "confidence": 95.0,
+                "source_kind": "observed",
+                "source_ref": "host:10.0.0.6",
+                "properties": {"host_id": 12, "ip": "10.0.0.6"},
+                "evidence_refs": ["host:10.0.0.6"],
+            }
+        )
 
         hidden = self.client.get("/api/graph?filter=hide_down")
         self.assertEqual(200, hidden.status_code)
@@ -2693,37 +2760,43 @@ class WebAppTest(unittest.TestCase):
         self.assertFalse(shown.json["meta"]["filters"]["hide_down_hosts"])
 
     def test_graph_api_mirrors_host_service_and_category_filters(self):
-        self.runtime.graph_snapshot["nodes"].append({
-            "node_id": "graph-node-web-host",
-            "type": "host",
-            "label": "10.0.0.7",
-            "confidence": 95.0,
-            "source_kind": "observed",
-            "source_ref": "host:10.0.0.7",
-            "properties": {"host_id": 13, "ip": "10.0.0.7"},
-            "evidence_refs": ["host:10.0.0.7"],
-        })
-        self.runtime.graph_snapshot["nodes"].append({
-            "node_id": "graph-node-web-tech",
-            "type": "technology",
-            "label": "nginx",
-            "confidence": 88.0,
-            "source_kind": "observed",
-            "source_ref": "host:13:technology:nginx",
-            "properties": {"host_id": 13, "name": "nginx"},
-            "evidence_refs": ["service banner"],
-        })
-        self.runtime.graph_snapshot["edges"].append({
-            "edge_id": "graph-edge-web-tech",
-            "type": "fingerprinted_as",
-            "from_node_id": "graph-node-web-host",
-            "to_node_id": "graph-node-web-tech",
-            "confidence": 88.0,
-            "source_kind": "observed",
-            "source_ref": "host:13:technology:nginx",
-            "properties": {},
-            "evidence_refs": ["service banner"],
-        })
+        self.runtime.graph_snapshot["nodes"].append(
+            {
+                "node_id": "graph-node-web-host",
+                "type": "host",
+                "label": "10.0.0.7",
+                "confidence": 95.0,
+                "source_kind": "observed",
+                "source_ref": "host:10.0.0.7",
+                "properties": {"host_id": 13, "ip": "10.0.0.7"},
+                "evidence_refs": ["host:10.0.0.7"],
+            }
+        )
+        self.runtime.graph_snapshot["nodes"].append(
+            {
+                "node_id": "graph-node-web-tech",
+                "type": "technology",
+                "label": "nginx",
+                "confidence": 88.0,
+                "source_kind": "observed",
+                "source_ref": "host:13:technology:nginx",
+                "properties": {"host_id": 13, "name": "nginx"},
+                "evidence_refs": ["service banner"],
+            }
+        )
+        self.runtime.graph_snapshot["edges"].append(
+            {
+                "edge_id": "graph-edge-web-tech",
+                "type": "fingerprinted_as",
+                "from_node_id": "graph-node-web-host",
+                "to_node_id": "graph-node-web-tech",
+                "confidence": 88.0,
+                "source_kind": "observed",
+                "source_ref": "host:13:technology:nginx",
+                "properties": {},
+                "evidence_refs": ["service banner"],
+            }
+        )
 
         response = self.client.get("/api/graph?service=http&category=Linux&filter=hide_down")
         self.assertEqual(200, response.status_code)
@@ -3018,11 +3091,15 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual(200, listing.status_code)
         self.assertEqual(1, len(listing.json["approvals"]))
 
-        approve = self.client.post("/api/scheduler/approvals/77/approve", json={"approve_family": True, "family_action": "allowed"})
+        approve = self.client.post(
+            "/api/scheduler/approvals/77/approve", json={"approve_family": True, "family_action": "allowed"}
+        )
         self.assertIn(approve.status_code, {200, 202})
         self.assertEqual("ok", approve.json["status"])
 
-        reject = self.client.post("/api/scheduler/approvals/77/reject", json={"reason": "no", "family_action": "suppressed"})
+        reject = self.client.post(
+            "/api/scheduler/approvals/77/reject", json={"reason": "no", "family_action": "suppressed"}
+        )
         self.assertEqual(200, reject.status_code)
         self.assertEqual("ok", reject.json["status"])
 

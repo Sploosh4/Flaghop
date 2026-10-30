@@ -1,0 +1,38 @@
+<div id="host-selection-modal" class="legion-modal-overlay" aria-hidden="true">
+    <div class="legion-modal host-selection-modal" role="dialog" aria-modal="true" aria-labelledby="host-selection-modal-title">
+        <div class="panel-header modal-header">
+            <h2 id="host-selection-modal-title">Host Selection</h2>
+            <p>Misc > Host Selection</p>
+            <button id="host-selection-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="action-block">
+            <label>
+                Host
+                <select id="workspace-host-select"></select>
+            </label>
+            <div class="scheduler-actions">
+                <button id="workspace-refresh-button" type="button">Refresh Workspace Data</button>
+            </div>
+            <label>
+                Host Note
+                <textarea id="workspace-note" rows="5" placeholder="Host notes..."></textarea>
+            </label>
+            <div class="scheduler-actions">
+                <button id="workspace-save-note-button" type="button">Save Note</button>
+            </div>
+            <label>
+                Device Categories
+                <input id="workspace-host-categories" type="text" placeholder="Windows, Server">
+            </label>
+            <label class="checkbox">
+                <input id="workspace-host-categories-override" type="checkbox">
+                Replace automatic classification for this host
+            </label>
+            <div class="scheduler-actions">
+                <button id="workspace-save-categories-button" type="button">Save Categories</button>
+            </div>
+        </div>
+    </div>
+</div>

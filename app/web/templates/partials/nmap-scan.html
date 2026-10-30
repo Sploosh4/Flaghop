@@ -1,0 +1,297 @@
+<div id="nmap-scan-modal" class="legion-modal-overlay" aria-hidden="true">
+    <div class="legion-modal scan-modal" role="dialog" aria-modal="true" aria-labelledby="nmap-scan-modal-title">
+        <div class="panel-header modal-header">
+            <h2 id="nmap-scan-modal-title">Run Scan</h2>
+            <p>Scans > Add Scan</p>
+            <button id="nmap-scan-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div id="nmap-scan-block" class="action-block">
+            <div id="nmap-wizard" class="nmap-wizard">
+                <div class="wizard-steps">
+                    <button id="nmap-wizard-indicator-1" type="button" class="wizard-step is-active" data-wizard-goto="1">1. Engagement</button>
+                    <button id="nmap-wizard-indicator-2" type="button" class="wizard-step" data-wizard-goto="2">2. Mode</button>
+                    <button id="nmap-wizard-indicator-3" type="button" class="wizard-step" data-wizard-goto="3">3. Targets</button>
+                    <button id="nmap-wizard-indicator-4" type="button" class="wizard-step" data-wizard-goto="4">4. Options</button>
+                </div>
+
+                <section id="nmap-wizard-step-1" class="wizard-page is-active" data-wizard-step="1">
+                    <label>
+                        Engagement Preset
+                        <select id="nmap-engagement-preset-select">
+                            <option value="external_recon">external_recon</option>
+                            <option value="external_pentest">external_pentest</option>
+                            <option value="internal_quick_recon">internal_quick_recon</option>
+                            <option value="internal_recon">internal_recon</option>
+                            <option value="internal_pentest">internal_pentest</option>
+                            <option value="custom">custom</option>
+                        </select>
+                    </label>
+                    <p id="nmap-engagement-preset-summary" class="meta-note scheduler-group-note">Select the engagement preset for this scan. The scan defaults and post-scan scheduler follow-up will use it.</p>
+                    <div id="nmap-engagement-derived-policy" class="scheduler-policy-summary" aria-live="polite">
+                        <span class="scheduler-policy-chip">Scope: <strong id="nmap-engagement-derived-scope">internal</strong></span>
+                        <span class="scheduler-policy-chip">Intent: <strong id="nmap-engagement-derived-intent">recon</strong></span>
+                    </div>
+                    <p id="nmap-engagement-custom-note" class="meta-note scheduler-group-note" hidden>Custom uses the current policy values from Scheduler Settings for this scan.</p>
+                </section>
+
+                <section id="nmap-wizard-step-2" class="wizard-page" data-wizard-step="2">
+                    <div class="mode-grid">
+                        <label class="mode-card">
+                            <input type="radio" name="nmap-scan-mode" value="rfc1918_discovery">
+                            <strong>RFC1918 Discovery</strong>
+                            <span>Internal network discovery-first scanning.</span>
+                        </label>
+                        <label class="mode-card">
+                            <input type="radio" name="nmap-scan-mode" value="easy" checked>
+                            <strong>Easy Mode</strong>
+                            <span>Balanced scan for quick service visibility.</span>
+                        </label>
+                        <label class="mode-card">
+                            <input type="radio" name="nmap-scan-mode" value="hard">
+                            <strong>Hard Mode</strong>
+                            <span>Deeper and slower enumeration.</span>
+                        </label>
+                        <label id="nmap-mode-card-passive" class="mode-card" hidden>
+                            <input type="radio" name="nmap-scan-mode" value="passive_capture">
+                            <strong>Passive Capture</strong>
+                            <span>Capture local discovery traffic with Tshark, then queue bounded Easy scans for discovered internal networks.</span>
+                        </label>
+                    </div>
+                </section>
+
+                <section id="nmap-wizard-step-3" class="wizard-page" data-wizard-step="3">
+                    <div id="nmap-standard-target-controls">
+                        <label>
+                            Targets (hosts, subnets, ranges; space or comma separated)
+                            <textarea id="nmap-targets" rows="3" placeholder="192.168.1.10 192.168.1.0/24"></textarea>
+                        </label>
+                    </div>
+                    <div id="nmap-rfc-target-controls" hidden>
+                        <p class="meta-note scheduler-group-note">RFC1918 mode scans the selected private subnet families directly. Free-form targets are not used in this mode.</p>
+                        <div class="wizard-subgrid">
+                            <label class="checkbox">
+                                <input id="nmap-rfc-10" type="checkbox" checked>
+                                10.0.0.0/8
+                            </label>
+                            <label class="checkbox">
+                                <input id="nmap-rfc-172" type="checkbox" checked>
+                                172.16.0.0/12
+                            </label>
+                            <label class="checkbox">
+                                <input id="nmap-rfc-192" type="checkbox" checked>
+                                192.168.0.0/16
+                            </label>
+                        </div>
+                    </div>
+                    <div id="nmap-passive-target-controls" hidden>
+                        <p class="meta-note scheduler-group-note">Passive Capture listens on a single local interface for ARP, broadcast, multicast, Bonjour/mDNS, NetBIOS, SSDP, DHCP, and similar discovery traffic. After the capture window ends, Legion will queue Easy scans for the internal networks it identifies.</p>
+                        <label>
+                            Capture Interface
+                            <select id="passive-capture-interface">
+                                <option value="">Loading interfaces...</option>
+                            </select>
+                        </label>
+                        <p id="passive-capture-interface-note" class="meta-note scheduler-group-note"></p>
+                    </div>
+                </section>
+
+                <section id="nmap-wizard-step-4" class="wizard-page" data-wizard-step="4">
+                    <div id="nmap-options-rfc1918_discovery" class="mode-options is-active" data-mode-options="rfc1918_discovery">
+                        <h4>RFC1918 Discovery Options</h4>
+                        <label class="checkbox">
+                            <input id="nmap-rfc-discovery" type="checkbox" checked>
+                            Use host discovery probes
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-rfc-host-discovery-only" type="checkbox" checked>
+                            Host discovery only (`-sn`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-rfc-arp-ping" type="checkbox">
+                            Prefer ARP discovery (`-PR`) where applicable
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-rfc-skip-dns" type="checkbox" checked>
+                            Skip reverse DNS lookups (`-n`)
+                        </label>
+                        <label>
+                            Timing Template
+                            <select id="nmap-rfc-timing">
+                                <option value="T2">T2</option>
+                                <option value="T3" selected>T3</option>
+                                <option value="T4">T4</option>
+                            </select>
+                        </label>
+                        <label>
+                            TCP Port Profile (used if discovery-only is disabled)
+                            <select id="nmap-rfc-profile">
+                                <option value="quick" selected>Quick low-hanging fruit</option>
+                                <option value="comprehensive">More comprehensive common services</option>
+                            </select>
+                        </label>
+                        <label>
+                            Concurrent chunk scans
+                            <select id="nmap-rfc-chunk-concurrency">
+                                <option value="1" selected>1 chunk scan at a time</option>
+                                <option value="2">2 chunk scans at a time</option>
+                                <option value="3">3 chunk scans at a time</option>
+                                <option value="4">4 chunk scans at a time</option>
+                            </select>
+                        </label>
+                        <p id="nmap-rfc-profile-note" class="meta-note scheduler-group-note">Quick uses a curated low-hanging-fruit TCP list. RFC sweeps run in /24 chunks, up to 2 subnets per Nmap run, 1 chunk scan at a time by default. Disable discovery-only to apply the selected profile to responsive hosts.</p>
+                        <label class="checkbox">
+                            <input id="nmap-rfc-service-detection" type="checkbox">
+                            Enable service detection (`-sV`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-rfc-default-scripts" type="checkbox">
+                            Run default scripts (`-sC`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-rfc-os-detection" type="checkbox">
+                            Enable OS detection (`-O`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-rfc-force-pn" type="checkbox">
+                            Treat hosts as online (`-Pn`)
+                        </label>
+                    </div>
+
+                    <div id="nmap-options-easy" class="mode-options" data-mode-options="easy">
+                        <h4>Easy Mode Options</h4>
+                        <p id="nmap-easy-preset-note" class="meta-note scheduler-group-note" hidden></p>
+                        <label class="checkbox">
+                            <input id="nmap-easy-discovery" type="checkbox" checked>
+                            Use host discovery probes
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-easy-skip-dns" type="checkbox" checked>
+                            Skip reverse DNS lookups (`-n`)
+                        </label>
+                        <label>
+                            Timing Template
+                            <select id="nmap-easy-timing">
+                                <option value="T2">T2</option>
+                                <option value="T3" selected>T3</option>
+                                <option value="T4">T4</option>
+                            </select>
+                        </label>
+                        <label id="nmap-easy-top-ports-label">
+                            Top Ports
+                            <input id="nmap-easy-top-ports" type="number" min="1" max="65535" value="1000">
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-easy-service-detection" type="checkbox" checked>
+                            Enable service detection (`-sV`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-easy-default-scripts" type="checkbox" checked>
+                            Run default scripts (`-sC`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-easy-os-detection" type="checkbox">
+                            Enable OS detection (`-O`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-easy-force-pn" type="checkbox">
+                            Treat hosts as online (`-Pn`)
+                        </label>
+                    </div>
+
+                    <div id="nmap-options-hard" class="mode-options" data-mode-options="hard">
+                        <h4>Hard Mode Options</h4>
+                        <label class="checkbox">
+                            <input id="nmap-hard-discovery" type="checkbox">
+                            Use host discovery probes
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-hard-skip-dns" type="checkbox" checked>
+                            Skip reverse DNS lookups (`-n`)
+                        </label>
+                        <label>
+                            Timing Template
+                            <select id="nmap-hard-timing">
+                                <option value="T2">T2</option>
+                                <option value="T3">T3</option>
+                                <option value="T4" selected>T4</option>
+                            </select>
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-hard-full-ports" type="checkbox" checked>
+                            Scan full TCP port range (`-p-`)
+                        </label>
+                        <label>
+                            Top Ports (used if full-range is disabled)
+                            <input id="nmap-hard-top-ports" type="number" min="1" max="65535" value="1000">
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-hard-aggressive" type="checkbox">
+                            Aggressive profile (`-A`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-hard-service-detection" type="checkbox" checked>
+                            Enable service detection (`-sV`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-hard-default-scripts" type="checkbox" checked>
+                            Run default scripts (`-sC`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-hard-os-detection" type="checkbox" checked>
+                            Enable OS detection (`-O`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-hard-force-pn" type="checkbox">
+                            Treat hosts as online (`-Pn`)
+                        </label>
+                        <label class="checkbox">
+                            <input id="nmap-hard-vuln-scripts" type="checkbox">
+                            Run vulnerability script set (`--script vuln`)
+                        </label>
+                    </div>
+
+                    <div id="nmap-options-passive_capture" class="mode-options" data-mode-options="passive_capture">
+                        <h4>Passive Capture Options</h4>
+                        <label>
+                            Capture Duration
+                            <select id="passive-capture-duration">
+                                <option value="5">5 minutes</option>
+                                <option value="15" selected>15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">60 minutes</option>
+                                <option value="75">75 minutes</option>
+                                <option value="90">90 minutes</option>
+                                <option value="105">105 minutes</option>
+                                <option value="120">120 minutes</option>
+                            </select>
+                        </label>
+                        <p class="meta-note scheduler-group-note">This mode uses `tshark` for passive capture. It does not run Nmap until the capture window finishes and candidate internal networks have been inferred.</p>
+                    </div>
+
+                    <div class="nmap-final-controls">
+                        <label id="nmap-args-label">
+                            Extra Nmap Arguments
+                            <input id="nmap-args" type="text" placeholder="-p- --reason">
+                        </label>
+                        <label id="nmap-run-actions-label" class="checkbox">
+                            <input id="nmap-run-actions" type="checkbox" checked>
+                            Run scripted actions after scan
+                        </label>
+                        <div class="scheduler-actions">
+                            <button id="nmap-scan-button" type="button" disabled>Start Nmap Scan Job</button>
+                        </div>
+                        <p class="meta-note" id="nmap-command-preview"></p>
+                    </div>
+                </section>
+
+                <div class="wizard-nav">
+                    <button id="nmap-wizard-back" type="button">Back</button>
+                    <button id="nmap-wizard-next" type="button">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

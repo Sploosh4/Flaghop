@@ -14,15 +14,18 @@ Copyright (c) 2025 Shane William Scott
     If not, see <http://www.gnu.org/licenses/>.
 
 """
+
 import xml
 
-from app.auxiliary import log
+from app.logging.legionLog import getAppLogger
+
+log = getAppLogger()
 from parsers.OS import OS
 
-if __name__ == '__main__':
-    dom = xml.dom.minidom.parse('test.xml')
-    osclass = dom.getElementsByTagName('osclass')[0]
-    osmatch = dom.getElementsByTagName('osmatch')[0]
+if __name__ == "__main__":
+    dom = xml.dom.minidom.parse("test.xml")
+    osclass = dom.getElementsByTagName("osclass")[0]
+    osmatch = dom.getElementsByTagName("osmatch")[0]
 
     os = OS(osclass)
     log.info(os.name)

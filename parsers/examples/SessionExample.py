@@ -14,27 +14,35 @@ Copyright (c) 2025 Shane William Scott
     If not, see <http://www.gnu.org/licenses/>.
 
 """
+
 import xml
 
-from app.auxiliary import log
+from app.logging.legionLog import getAppLogger
+
+log = getAppLogger()
 from parsers.Session import Session
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    dom = xml.dom.minidom.parse('i.xml')
-    dom.getElementsByTagName('finished')[0].getAttribute('timestr')
+    dom = xml.dom.minidom.parse("i.xml")
+    dom.getElementsByTagName("finished")[0].getAttribute("timestr")
 
-    MySession = { 'finish_time': dom.getElementsByTagName('finished')[0].getAttribute('timestr'),
-                  'nmapVersion' : '4.79', 'scanArgs' : '-sS -sV -A -T4',
-                  'startTime' : dom.getElementsByTagName('nmaprun')[0].getAttribute('startstr'),
-                  'totalHosts' : '1', 'upHosts' : '1', 'downHosts' : '0' }
+    MySession = {
+        "finish_time": dom.getElementsByTagName("finished")[0].getAttribute("timestr"),
+        "nmapVersion": "4.79",
+        "scanArgs": "-sS -sV -A -T4",
+        "startTime": dom.getElementsByTagName("nmaprun")[0].getAttribute("startstr"),
+        "totalHosts": "1",
+        "upHosts": "1",
+        "downHosts": "0",
+    }
 
-    s = Session( MySession )
+    s = Session(MySession)
 
-    log.info('startTime:' + s.startTime)
-    log.info('finish_time:' + s.finish_time)
-    log.info('nmapVersion:' + s.nmapVersion)
-    log.info('nmap_args:' + s.scanArgs)
-    log.info('total hosts:' + s.totalHosts)
-    log.info('up hosts:' + s.upHosts)
-    log.info('down hosts:' + s.downHosts)
+    log.info("startTime:" + s.startTime)
+    log.info("finish_time:" + s.finish_time)
+    log.info("nmapVersion:" + s.nmapVersion)
+    log.info("nmap_args:" + s.scanArgs)
+    log.info("total hosts:" + s.totalHosts)
+    log.info("up hosts:" + s.upHosts)
+    log.info("down hosts:" + s.downHosts)

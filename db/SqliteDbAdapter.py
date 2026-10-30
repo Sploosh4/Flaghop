@@ -18,8 +18,6 @@ Copyright (c) 2025 Shane William Scott
 import sqlite3
 import threading
 from pathlib import Path
-import time
-from random import randint
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -37,6 +35,7 @@ from db.entities.service import serviceObj
 from db.entities.nmapSession import nmapSessionObj
 from db.entities.l1script import l1ScriptObj
 from db.entities.credentialCapture import credentialCapture
+
 # Add any other entity classes as needed
 
 
@@ -47,12 +46,13 @@ class DatabaseIntegrityError(Exception):
 class Database:
     def __init__(self, dbfilename):
         from db.database import Base
+
         self.log = getDbLogger()
         self.base = Base
         try:
             self.establishSqliteConnection(dbfilename)
         except Exception as e:
-            self.log.error('Could not create SQLite database. Please try again.')
+            self.log.error("Could not create SQLite database. Please try again.")
             self.log.info(e)
             raise
 
@@ -62,15 +62,14 @@ class Database:
         except DatabaseIntegrityError:
             raise
         except Exception:
-            self.log.error('Could not open SQLite database file. Is the file corrupted?')
+            self.log.error("Could not open SQLite database file. Is the file corrupted?")
             raise
 
     def establishSqliteConnection(self, dbFileName: str):
         self.name = dbFileName
         self.dbsemaphore = threading.Semaphore(1)  # to control concurrent write access to db
         self.engine = create_engine(
-            'sqlite:///{dbFileName}'.format(dbFileName=dbFileName),
-            connect_args={'check_same_thread': False}
+            "sqlite:///{dbFileName}".format(dbFileName=dbFileName), connect_args={"check_same_thread": False}
         )
         self.session = scoped_session(sessionmaker(bind=self.engine))
         self.session.configure(bind=self.engine, autoflush=False)
@@ -90,28 +89,22 @@ class Database:
         self.log.info(f"Established SQLite connection on file '{dbFileName}'")
 
     def commit(self):
-        self.dbsemaphore.acquire()
-        self.log.debug("DB lock acquired")
-        try:
+        """Commit once, release the write lock and propagate transaction failures.
+
+        A failed transaction must be rolled back before the caller can retry the
+        operation. Retrying only commit after rollback could silently lose its writes.
+        """
+        with self.dbsemaphore:
             session = self.session()
-            rnd = float(randint(1, 99)) / 1000.00
-            self.log.debug("Waiting {0}s before commit...".format(str(rnd)))
-            time.sleep(rnd)
-            session.commit()
-        except Exception as e:
-            self.log.error("DB Commit issue")
-            self.log.error(str(e))
             try:
-                rnd = float(randint(1, 99)) / 100.00
-                time.sleep(rnd)
-                self.log.debug("Waiting {0}s before commit...".format(str(rnd)))
                 session.commit()
-            except Exception as e:
-                self.log.error("DB Commit issue on retry")
-                self.log.error(str(e))
-                pass
-        self.dbsemaphore.release()
-        self.log.debug("DB lock released")
+            except Exception:
+                self.log.exception("Database commit failed; rolling back transaction")
+                try:
+                    session.rollback()
+                except Exception:
+                    self.log.exception("Database rollback also failed")
+                raise
 
     def dispose(self):
         """Dispose of engine/session resources."""
@@ -140,7 +133,7 @@ class Database:
         if not results:
             raise DatabaseIntegrityError("SQLite integrity check returned no results.")
 
-        errors = [row[0] for row in results if isinstance(row, (list, tuple)) and row and row[0].lower() != 'ok']
+        errors = [row[0] for row in results if isinstance(row, (list, tuple)) and row and row[0].lower() != "ok"]
         if errors:
             raise DatabaseIntegrityError("SQLite integrity check reported issues: " + "; ".join(errors))
         return True
@@ -169,8 +162,9 @@ class Database:
             return str(destination_path)
 
         try:
-            with sqlite3.connect(f"file:{self.name}?mode=ro", uri=True) as src, \
-                    sqlite3.connect(str(destination_path)) as dst:
+            with sqlite3.connect(f"file:{self.name}?mode=ro", uri=True) as src, sqlite3.connect(
+                str(destination_path)
+            ) as dst:
                 src.backup(dst)
         except sqlite3.DatabaseError as exc:
             raise DatabaseIntegrityError(f"SQLite backup failed: {exc}") from exc
