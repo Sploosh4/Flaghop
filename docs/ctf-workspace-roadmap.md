@@ -35,7 +35,7 @@ The aim is to keep reconnaissance, the network map, suggested actions, incoming 
 
 ## Existing foundation and remaining work
 
-The current development branches already contain persistent SQLite workspaces, host/service inventory, an evidence graph, tool execution, approval handling, background jobs and execution history. Workspace identity and activity panels have been migrated to React/TypeScript, with their API routes served by FastAPI. Other views still use the compatibility layer; see [the migration notes](../MIGRATION.md).
+The current app already contains persistent SQLite workspaces, host/service inventory, an evidence graph, tool execution, approval handling, background jobs and execution history. Workspace identity and activity panels have been migrated to React/TypeScript, with their API routes served by FastAPI. Other views still use the compatibility layer; see [the migration notes](../MIGRATION.md).
 
 The evidence graph is a useful foundation, but it does not establish that the proposed laptop-centred network topology workflow is complete. A discovered host, a reachable service and a confirmed network hop are different observations.
 
