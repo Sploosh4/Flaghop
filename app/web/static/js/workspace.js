@@ -168,6 +168,10 @@
     }
 
     function setupWorkspaceActions() {
+        const project = document.querySelector(".workspace-project");
+        const projectShell = document.createElement("div");
+        projectShell.className = "workspace-project-shell";
+        project.before(projectShell); projectShell.appendChild(project);
         const oldTitle = byId("breadcrumb-project");
         const title = document.createElement("button");
         title.id = oldTitle.id; title.type = "button"; title.textContent = oldTitle.textContent;
@@ -183,13 +187,20 @@
         let editing = null;
         const finish = () => {
             editing = null; editor.hidden = true; editor.disabled = false; title.hidden = false;
+            project.classList.remove("is-renaming");
             error.textContent = ""; editor.removeAttribute("aria-invalid");
         };
-        const begin = () => {
+        const begin = (location = "title") => {
             closeMenu();
             if (editing?.saving) return;
-            editing = {path: byId("project-name").textContent.trim(), name: title.textContent};
-            editor.value = editing.name; title.hidden = true; editor.hidden = false;
+            editing = {path: byId("project-name").textContent.trim(), name: title.textContent, location};
+            const sidebar = location === "sidebar";
+            editor.classList.toggle("workspace-rename-sidebar", sidebar);
+            error.classList.toggle("workspace-rename-sidebar-error", sidebar);
+            project.classList.toggle("is-renaming", sidebar);
+            if (sidebar) projectShell.append(editor, error);
+            else {title.after(editor); editor.after(error);}
+            editor.value = editing.name; title.hidden = !sidebar; editor.hidden = false;
             error.textContent = ""; editor.removeAttribute("aria-invalid");
             editor.focus(); editor.select();
         };
@@ -212,13 +223,15 @@
                 error.textContent = failure.message; editor.setAttribute("aria-invalid", "true"); editor.focus();
             }
         };
-        title.addEventListener("click", begin);
+        title.addEventListener("click", () => begin("title"));
         editor.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {event.preventDefault(); save();}
-            if (event.key === "Escape" && !editing?.saving) {event.preventDefault(); finish(); title.focus();}
+            if (event.key === "Escape" && !editing?.saving) {
+                event.preventDefault(); const anchor = editing?.location === "sidebar" ? project : title;
+                finish(); anchor.focus();
+            }
         });
         editor.addEventListener("blur", () => {if (editing && !editing.saving) save();});
-        const project = document.querySelector(".workspace-project");
         const menu = document.createElement("div");
         menu.id = "workspace-context-menu"; menu.className = "workspace-context-menu";
         menu.setAttribute("role", "menu"); menu.setAttribute("aria-label", "Workspace actions"); menu.hidden = true;
@@ -229,7 +242,7 @@
             if (restoreFocus) project.focus();
         }
         const options = [
-            ["Rename workspace…", begin],
+            ["Rename workspace…", () => begin("sidebar")],
             ["Save workspace", () => proxy("ribbon-workspace-save-action-button")],
             ["Save workspace as…", () => proxy("ribbon-workspace-save-as-action-button")],
             ["Export workspace ZIP", () => proxy("ribbon-workspace-download-action-button")],
