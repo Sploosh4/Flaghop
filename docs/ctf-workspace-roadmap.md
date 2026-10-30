@@ -1,8 +1,8 @@
 # Planned CTF workspace
 
-This is the intended direction for the Sploosh4 Legion fork. It records the owner's plans and separates them from recommendations that still need a decision. Publishing this roadmap does not implement these features or settle the open questions.
+The plan for Sploosh4's Legion fork. Checked items are working; unchecked items are still to build. Suggestions and open questions are listed below.
 
-The aim is to bring reconnaissance, device mapping, commands, Metasploit, file analysis and website testing into one application.
+Legion should let you map devices, run commands, use Metasploit and inspect files and websites in the same app.
 
 ## Roadmap
 
@@ -14,57 +14,57 @@ The aim is to bring reconnaissance, device mapping, commands, Metasploit, file a
 - [ ] File browser and text editor.
 - [ ] A unified workflow for website targets and web tools.
 
-## Confirmed direction
+## What to build
 
 ### Initial reconnaissance and a visible map
 
-- Initial reconnaissance should automatically discover and map information about the selected targets.
-- The map should include the user's laptop and show relationships to discovered devices and between devices where appropriate. An observed router or firewall can appear between the laptop and a target.
-- Different relationship types should use different link colours. The exact colours and relationship categories still need to be defined; include a legend.
-- Use the approved device illustrations supplied for this fork. The artwork is illustrative: having a router, server or NGFW image does not establish that a discovered device has that identity or capability.
+- Run initial reconnaissance automatically and add discoveries about the selected targets to the map.
+- Show the user's laptop, discovered devices and the links between them. Include an intermediate router or firewall when it has been observed.
+- Use different link colours for different connections, with a legend. The categories and colours are still undecided.
+- Use the approved device illustrations. Choose an image from the evidence about the device; the artwork alone doesn't establish its identity or NGFW capabilities.
 
 ### Actions on the right
 
-- A panel on the right should fill with suggested actions based on scan results.
-- Integrate Metasploit actions into this panel and the same command/job workflow.
-- The panel should also surface deciphered content, discovered files and suspected password hashes that can be queued for cracking.
-- Each action should include a tactic and technique where applicable, essential context and a **Run** button. The full card contents will be decided later.
-- The user should be able to press Run on several actions. Each should visibly enter a queued or running state and remain visible while it is in progress.
-- Actions should leave the active list only after completion. The treatment of failed, cancelled and completed work still needs a decision.
+- Show suggested actions from scan results in a panel on the right.
+- Run Metasploit actions through the same panel and job controls.
+- Show deciphered content, found files and suspected password hashes that can be queued for cracking.
+- Give each action a **Run** button, the tactic and technique where applicable, and enough context to choose it. The full card contents are still undecided.
+- Let the user run several actions. Show which are queued or running, and keep them visible until they finish.
+- Only remove actions from the active list after completion. Decide where completed, failed and cancelled work goes.
 
 ### Incoming files, decoding and hashes
 
-- The same panel should notify the user when new files arrive.
-- File notifications should show detected hashes, encodings or ciphers where recognised, and always provide **Open**, including when nothing is recognised.
-- Supported decoding and deciphering should be attempted automatically. This is a goal for supported inputs, not a promise to decrypt arbitrary encryption or correctly recognise every candidate.
-- Suspected password hashes should produce queued actions for the user to review and run.
-- A file's own integrity checksum must be distinguished from a suspected password hash found inside it.
+- Notify the user in the same panel when files arrive.
+- Show recognised hashes, encodings or ciphers. Always offer **Open**, even when nothing is recognised.
+- Try supported decoders and ciphers automatically. Some inputs will remain encrypted or unrecognised, and detection can be wrong.
+- Queue suspected password hashes for the user to review and run.
+- Keep a file's integrity checksum separate from suspected password hashes found inside it.
 
 ### Filesystem and text editor
 
 - Include a file browser and text editor in the workspace.
-- Decide later whether the browser covers local workspace files, remote files through active sessions, or both, and how editing relates to original evidence.
+- Decide whether to browse local files, remote files through active sessions, or both, and how edits relate to original evidence.
 
 ### Website targets
 
-- Extend the shared workflow to website targets and web tools, keeping commands, actions, results and evidence together.
-- The first website tools and their integration depth still need to be chosen.
+- Add website targets and web tools to the same views, with commands, results and evidence kept together.
+- Choose which website tools to support first and how much to integrate them.
 
-## Existing foundation and remaining work
+## What works now
 
 The current app already contains persistent SQLite workspaces, host/service inventory, an evidence graph, tool execution, approval handling, background jobs and execution history. Workspace identity and activity panels have been migrated to React/TypeScript, with their API routes served by FastAPI. Other views still use the compatibility layer; see [the migration notes](../MIGRATION.md).
 
 Web-tool commands and some Metasploit command mappings already exist. The unified website workflow and deeper Metasploit integration described here remain planned work.
 
-The evidence graph is a useful foundation, but it does not establish that the proposed laptop-centred network topology workflow is complete. A discovered host, a reachable service and a confirmed network hop are different observations.
+The evidence graph exists; the planned map of network paths from the laptop is still to build. A discovered host, a reachable service and a confirmed network hop are different observations.
 
 A separate local file-watching prototype combines Watchdog, base64dump and Ciphey. It preserves originals, records source hashes and candidate locations, saves derived files and reports failures or partial processing. It is not integrated into Legion, and there is no working Legion importer for its proposed export. Archive/PDF extraction and general cipher detection are not implemented in that prototype.
 
-The device image set has been selected and handed over. Importing it into the shipped map assets and mapping supported classifications to the images remains implementation work.
+The device images have been selected. They still need to be added to Legion and matched to supported device classifications.
 
-## Recommendations awaiting decisions
+## Suggestions
 
-These are suggestions, not settled product requirements.
+These still need a decision.
 
 | Area | Suggested behaviour |
 | --- | --- |
@@ -77,7 +77,7 @@ These are suggestions, not settled product requirements.
 | Analysis limits | Bound automatic processing, report unsupported or partial analysis, and present accepted plaintext as a candidate until verified. |
 | Recovery and storage | Preserve useful state across restarts, report interrupted jobs, avoid silently rerunning them, and agree a retention policy for accumulated files. |
 
-## Questions to answer next
+## Open questions
 
 1. Does the file browser initially cover workspace files only, or remote machines as well?
 2. Should selecting a map node filter the action panel to that device, with a separate whole-workspace view?
@@ -89,13 +89,13 @@ These are suggestions, not settled product requirements.
 8. Should the editor cover notes, scripts and other text files, and how should saving or running a script work?
 9. Which Metasploit actions and website tools should be integrated first, and what results should their cards show?
 
-## Suggested delivery order
+## Build order (proposed)
 
-1. Agree the remaining workflow decisions and define what a useful first reconnaissance result looks like.
-2. Build the map and right-hand action panel around existing scans, jobs and evidence.
+1. Settle the open choices and define a useful first reconnaissance result.
+2. Build the map and action panel using the existing scans, jobs and evidence.
 3. Add file notifications and a basic file browser/editor.
-4. Integrate Metasploit, bounded file analysis, derived results and user-run hash jobs into the shared panel.
-5. Extend the workflow to website targets and selected web tools.
-6. Test the complete workflow in representative CTF exercises and improve it from observed friction.
+4. Add Metasploit, file analysis with processing limits, derived results and user-run hash jobs to the panel.
+5. Add website targets and the selected web tools.
+6. Try it in representative CTF exercises and fix what gets in the way.
 
-No dates or completion promises are attached to these phases. A useful evaluation should measure time to a useful lead, irrelevant suggestions, evidence traceability and recovery after an interruption. The intended benefit is less repeated work and less switching between tools; it has not yet been demonstrated for this planned workflow.
+There are no delivery dates yet. Test how long it takes to find a useful lead, how many suggestions are irrelevant, whether results can be traced to their evidence, and what survives an interruption. The goal is less repeated work and less switching between tools; that benefit still needs to be tested.
