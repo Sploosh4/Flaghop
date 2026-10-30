@@ -68,7 +68,7 @@
         });
         const raw = byId("project-name")?.textContent?.trim() || "";
         const temporary = byId("project-kind")?.textContent?.trim() === "temporary";
-        const name = temporary ? "Untitled workspace" : raw.split(/[\\/]/).pop().replace(/\.legion$/, "") || "Workspace";
+        const name = byId("project-name")?.dataset.displayName || (temporary ? "Untitled workspace" : raw.split(/[\\/]/).pop().replace(/\.legion$/, "") || "Workspace");
         syncText("sidebar-project-name", name);
         syncText("breadcrumb-project", name);
         syncText("sidebar-project-kind", temporary ? "Temporary · save to keep your work" : "Saved project");
@@ -167,6 +167,130 @@
         renderSearch(); byId("workspace-search-input").focus();
     }
 
+    function setupWorkspaceActions() {
+        const oldTitle = byId("breadcrumb-project");
+        const title = document.createElement("button");
+        title.id = oldTitle.id; title.type = "button"; title.textContent = oldTitle.textContent;
+        title.title = "Rename workspace"; title.setAttribute("aria-label", "Rename workspace");
+        oldTitle.replaceWith(title);
+        const editor = document.createElement("input");
+        editor.id = "workspace-rename-input"; editor.type = "text"; editor.maxLength = 120;
+        editor.setAttribute("aria-label", "Workspace name"); editor.hidden = true;
+        title.after(editor);
+        const error = document.createElement("span");
+        error.className = "workspace-rename-error"; error.setAttribute("role", "alert");
+        editor.after(error);
+        let editing = null;
+        const finish = () => {
+            editing = null; editor.hidden = true; editor.disabled = false; title.hidden = false;
+            error.textContent = ""; editor.removeAttribute("aria-invalid");
+        };
+        const begin = () => {
+            closeMenu();
+            if (editing?.saving) return;
+            editing = {path: byId("project-name").textContent.trim(), name: title.textContent};
+            editor.value = editing.name; title.hidden = true; editor.hidden = false;
+            error.textContent = ""; editor.removeAttribute("aria-invalid");
+            editor.focus(); editor.select();
+        };
+        const save = async () => {
+            if (!editing || editing.saving) return;
+            const name = editor.value.trim();
+            if (name === editing.name) {finish(); return;}
+            if (!name) {
+                error.textContent = "Enter a workspace name."; editor.setAttribute("aria-invalid", "true");
+                editor.focus(); return;
+            }
+            editing.saving = true; editor.disabled = true;
+            try {
+                const response = await postJson("/api/project/rename", {name, expected_path: editing.path});
+                if (byId("project-name").textContent.trim() === editing.path) renderProject(response.project);
+                finish(); refreshMirrors();
+                setActionStatus("Workspace renamed");
+            } catch (failure) {
+                editing.saving = false; editor.disabled = false;
+                error.textContent = failure.message; editor.setAttribute("aria-invalid", "true"); editor.focus();
+            }
+        };
+        title.addEventListener("click", begin);
+        editor.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {event.preventDefault(); save();}
+            if (event.key === "Escape" && !editing?.saving) {event.preventDefault(); finish(); title.focus();}
+        });
+        editor.addEventListener("blur", () => {if (editing && !editing.saving) save();});
+        const project = document.querySelector(".workspace-project");
+        const menu = document.createElement("div");
+        menu.id = "workspace-context-menu"; menu.className = "workspace-context-menu";
+        menu.setAttribute("role", "menu"); menu.setAttribute("aria-label", "Workspace actions"); menu.hidden = true;
+        document.body.appendChild(menu);
+        project.setAttribute("aria-haspopup", "menu"); project.setAttribute("aria-expanded", "false");
+        function closeMenu(restoreFocus = false) {
+            menu.hidden = true; project.setAttribute("aria-expanded", "false");
+            if (restoreFocus) project.focus();
+        }
+        const options = [
+            ["Rename workspace…", begin],
+            ["Save workspace", () => proxy("ribbon-workspace-save-action-button")],
+            ["Save workspace as…", () => proxy("ribbon-workspace-save-as-action-button")],
+            ["Export workspace ZIP", () => proxy("ribbon-workspace-download-action-button")],
+            ["Workspace details", () => {if (byId("workspace-context").hidden) byId("workspace-context-toggle").click();}],
+        ];
+        options.forEach(([label, action]) => {
+            const button = document.createElement("button"); button.type = "button"; button.textContent = label;
+            button.setAttribute("role", "menuitem");
+            button.addEventListener("click", () => {closeMenu(); action();}); menu.appendChild(button);
+        });
+        function openMenu(x, y) {
+            menu.hidden = false; project.setAttribute("aria-expanded", "true");
+            menu.style.left = `${Math.max(8, Math.min(x, innerWidth - menu.offsetWidth - 8))}px`;
+            menu.style.top = `${Math.max(8, Math.min(y, innerHeight - menu.offsetHeight - 8))}px`;
+            menu.querySelector("button").focus();
+        }
+        project.addEventListener("contextmenu", (event) => {event.preventDefault(); openMenu(event.clientX, event.clientY);});
+        project.addEventListener("keydown", (event) => {
+            if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
+                event.preventDefault(); const rect = project.getBoundingClientRect(); openMenu(rect.left, rect.bottom);
+            }
+        });
+        menu.addEventListener("keydown", (event) => {
+            const buttons = [...menu.querySelectorAll("button")]; const index = buttons.indexOf(document.activeElement);
+            if (event.key === "Escape") {event.preventDefault(); closeMenu(true);}
+            if (event.key === "Tab") closeMenu();
+            if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+                event.preventDefault();
+                const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
+                buttons[next].focus();
+            }
+        });
+        document.addEventListener("pointerdown", (event) => {if (!menu.contains(event.target)) closeMenu();});
+        window.addEventListener("resize", () => closeMenu());
+        window.addEventListener("blur", () => closeMenu());
+    }
+
+    function setupGraphZoom() {
+        const panel = document.querySelector(".graph-canvas-panel");
+        const controls = document.createElement("div"); controls.className = "workspace-graph-zoom";
+        controls.setAttribute("role", "group"); controls.setAttribute("aria-label", "Graph zoom");
+        const slider = byId("graph-zoom-slider");
+        const change = (value) => {slider.value = String(value); slider.dispatchEvent(new Event("input", {bubbles: true}));};
+        [["−", "Zoom graph out", () => change(Number(slider.value) - 10)],
+         ["100%", "Reset graph zoom", () => change(100)],
+         ["+", "Zoom graph in", () => change(Number(slider.value) + 10)]].forEach(([label, description, action], index) => {
+            const button = document.createElement("button"); button.type = "button"; button.textContent = label;
+            button.setAttribute("aria-label", description); button.title = description;
+            if (index === 1) button.id = "workspace-graph-zoom-value";
+            button.addEventListener("click", action); controls.appendChild(button);
+        });
+        const sync = () => {
+            controls.hidden = byId("graph-workspace-canvas").hidden;
+            byId("workspace-graph-zoom-value").textContent = `${slider.value}%`;
+            controls.firstElementChild.disabled = Number(slider.value) <= Number(slider.min);
+            controls.lastElementChild.disabled = Number(slider.value) >= Number(slider.max);
+        };
+        panel.appendChild(controls); slider.addEventListener("input", sync); sync();
+        new MutationObserver(sync).observe(byId("graph-workspace-canvas"), {attributes: true, attributeFilter: ["hidden"]});
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
         // A running backend can still serve its cached upstream template. Normalize
         // its duplicate graph shell ID without interrupting any background jobs.
@@ -179,6 +303,7 @@
         byId("workspace-commandbar").appendChild(ribbon.querySelector(".ribbon-summary-group"));
         const context = byId("workspace-context");
         context.appendChild(ribbon.querySelector(".ribbon-project-group"));
+        setupWorkspaceActions(); setupGraphZoom();
         const rationale = ribbon.querySelector(".ribbon-rationale-group");
         const processes = ribbon.querySelector(".ribbon-process-group");
         const overview = createSlot("overview", "overview-view");
@@ -257,7 +382,7 @@
         // Observe data-bearing controls only, rather than the mirrors themselves.
         const observer = new MutationObserver(queueMirrors);
         ["project-name", "project-kind", "stat-hosts", "stat-open-ports", "stat-services", "stat-running", "approval-count", "action-status", "host-detail-name"].forEach((id) => {
-            const node = byId(id); if (node) observer.observe(node, {childList: true, characterData: true, subtree: true});
+            const node = byId(id); if (node) observer.observe(node, {childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ["data-display-name"]});
         });
         ["graph-workspace-panel", "credential-capture-panel"].forEach((id) => observer.observe(byId(id), {attributes: true, attributeFilter: ["hidden", "data-graph-enabled"]}));
         selectView(stored("view", "overview"), false);

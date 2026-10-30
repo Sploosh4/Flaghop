@@ -517,6 +517,9 @@ class WebRuntime:
     def get_project_details(self) -> Dict[str, Any]:
         return web_runtime_projects.get_project_details(self)
 
+    def rename_project(self, name: str, expected_path: str = "") -> Dict[str, Any]:
+        return web_runtime_projects.rename_project(self, name, expected_path)
+
     def get_tool_audit(self) -> Dict[str, Any]:
         return web_runtime_settings.get_tool_audit(self)
 

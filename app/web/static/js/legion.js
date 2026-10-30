@@ -28,7 +28,7 @@ const graphWorkspaceState = {
     viewId: "attack_surface",
     groupBy: "finding",
     renderMode: "auto",
-    zoomPercent: 70,
+    zoomPercent: 100,
     detailMode: "floating",
     filtersExpanded: false,
     data: {
@@ -1333,6 +1333,8 @@ function setStartupWizardStatus(text, isError = false) {
 
 function renderProject(project) {
     setText("project-name", project.name || "");
+    const projectName = document.getElementById("project-name");
+    if (projectName) projectName.dataset.displayName = project.display_name || "";
     setText("project-kind", project.is_temporary ? "temporary" : "saved");
     setText("project-output-folder", project.output_folder || "");
     setText("project-running-folder", project.running_folder || "");
@@ -6671,7 +6673,7 @@ function graphUpdateZoomLabel() {
         GRAPH_WORKSPACE_ZOOM_MIN_PERCENT,
         Math.min(
             GRAPH_WORKSPACE_ZOOM_MAX_PERCENT,
-            parseInt(getValue("graph-zoom-slider"), 10) || graphWorkspaceState.zoomPercent || 70,
+            parseInt(getValue("graph-zoom-slider"), 10) || graphWorkspaceState.zoomPercent || 100,
         ),
     );
     graphWorkspaceState.zoomPercent = value;
@@ -8194,7 +8196,7 @@ function graphNodeMatchesSelectedHost(node) {
 function graphCurrentZoomPercent() {
     return Math.max(
         GRAPH_WORKSPACE_ZOOM_MIN_PERCENT,
-        Math.min(GRAPH_WORKSPACE_ZOOM_MAX_PERCENT, Number(graphWorkspaceState.zoomPercent || 70)),
+        Math.min(GRAPH_WORKSPACE_ZOOM_MAX_PERCENT, Number(graphWorkspaceState.zoomPercent || 100)),
     );
 }
 
@@ -8241,6 +8243,22 @@ function graphClampViewportCenter(centerX, centerY, boundsWidth, boundsHeight, v
     return {x: nextCenterX, y: nextCenterY};
 }
 
+function graphVisibleContentBounds(fallbackWidth, fallbackHeight) {
+    const filtered = graphWorkspaceState.filtered;
+    const boxes = (filtered.groups || []).map(group => ({x: group.x, y: group.y, width: group.width, height: group.height}));
+    Object.values(filtered.positions || {}).forEach(point => boxes.push({
+        x: point.x, y: point.y, width: GRAPH_NODE_SIZE.width, height: GRAPH_NODE_SIZE.height,
+    }));
+    const valid = boxes.filter(box => Object.values(box).every(Number.isFinite));
+    if (!valid.length) return {x: 0, y: 0, width: fallbackWidth, height: fallbackHeight};
+    const x = Math.min(...valid.map(box => box.x)) - 36;
+    const y = Math.min(...valid.map(box => box.y)) - 36;
+    return {x, y,
+        width: Math.max(...valid.map(box => box.x + box.width)) - x + 36,
+        height: Math.max(...valid.map(box => box.y + box.height)) - y + 36,
+    };
+}
+
 function graphUpdateViewport(boundsWidth, boundsHeight) {
     const svg = document.getElementById("graph-workspace-canvas");
     const scrollNode = getGraphCanvasScrollNode();
@@ -8250,21 +8268,27 @@ function graphUpdateViewport(boundsWidth, boundsHeight) {
     }
     const containerWidth = Math.max(1, Number(scrollNode.clientWidth || scrollNode.getBoundingClientRect().width || 1));
     const containerHeight = Math.max(1, Number(scrollNode.clientHeight || scrollNode.getBoundingClientRect().height || 1));
-    const base = graphComputeViewportBase(boundsWidth, boundsHeight, containerWidth, containerHeight);
+    const bounds = graphVisibleContentBounds(boundsWidth, boundsHeight);
+    const base = graphComputeViewportBase(bounds.width, bounds.height, containerWidth, containerHeight);
+    // Fit the visible geometry, rather than the layout's 1200x760 minimum canvas.
+    // Limit enlargement of sparse graphs so a few nodes remain readable cards.
+    const minimumScale = Math.max(1, containerWidth / (base.width * 1.25), containerHeight / (base.height * 1.25));
+    base.width *= minimumScale; base.height *= minimumScale;
     const zoomScale = graphCurrentZoomPercent() / 100;
     const viewWidth = Math.max(1, base.width / zoomScale);
     const viewHeight = Math.max(1, base.height / zoomScale);
     const current = graphWorkspaceState.viewport || {};
-    const defaultCenterX = Math.max(1, Number(boundsWidth || 1)) / 2;
-    const defaultCenterY = Math.max(1, Number(boundsHeight || 1)) / 2;
+    const defaultCenterX = bounds.x + bounds.width / 2;
+    const defaultCenterY = bounds.y + bounds.height / 2;
     const clampedCenter = graphClampViewportCenter(
-        Number.isFinite(Number(current.centerX)) ? Number(current.centerX) : defaultCenterX,
-        Number.isFinite(Number(current.centerY)) ? Number(current.centerY) : defaultCenterY,
-        boundsWidth,
-        boundsHeight,
+        (Number.isFinite(Number(current.centerX)) ? Number(current.centerX) : defaultCenterX) - bounds.x,
+        (Number.isFinite(Number(current.centerY)) ? Number(current.centerY) : defaultCenterY) - bounds.y,
+        bounds.width,
+        bounds.height,
         viewWidth,
         viewHeight,
     );
+    clampedCenter.x += bounds.x; clampedCenter.y += bounds.y;
     const viewX = clampedCenter.x - (viewWidth / 2);
     const viewY = clampedCenter.y - (viewHeight / 2);
     graphWorkspaceState.viewport = {
@@ -8274,8 +8298,10 @@ function graphUpdateViewport(boundsWidth, boundsHeight) {
         height: viewHeight,
         centerX: clampedCenter.x,
         centerY: clampedCenter.y,
-        boundsWidth: Math.max(1, Number(boundsWidth || 1)),
-        boundsHeight: Math.max(1, Number(boundsHeight || 1)),
+        boundsWidth: bounds.width,
+        boundsHeight: bounds.height,
+        boundsX: bounds.x,
+        boundsY: bounds.y,
         containerWidth,
         containerHeight,
     };
@@ -9909,13 +9935,14 @@ function graphHandlePointerMove(event) {
         const unitsPerPixelX = Number(viewport.width || 1) / Math.max(1, rect.width);
         const unitsPerPixelY = Number(viewport.height || 1) / Math.max(1, rect.height);
         const nextCenter = graphClampViewportCenter(
-            Number(graphWorkspaceState.drag.startCenterX || viewport.centerX || 0) - (deltaX * unitsPerPixelX),
-            Number(graphWorkspaceState.drag.startCenterY || viewport.centerY || 0) - (deltaY * unitsPerPixelY),
+            Number(graphWorkspaceState.drag.startCenterX || viewport.centerX || 0) - (deltaX * unitsPerPixelX) - (viewport.boundsX || 0),
+            Number(graphWorkspaceState.drag.startCenterY || viewport.centerY || 0) - (deltaY * unitsPerPixelY) - (viewport.boundsY || 0),
             viewport.boundsWidth,
             viewport.boundsHeight,
             viewport.width,
             viewport.height,
         );
+        nextCenter.x += viewport.boundsX || 0; nextCenter.y += viewport.boundsY || 0;
         const viewX = nextCenter.x - (Number(viewport.width || 1) / 2);
         const viewY = nextCenter.y - (Number(viewport.height || 1) / 2);
         graphWorkspaceState.viewport = {

@@ -46,6 +46,7 @@ def project_metadata(runtime) -> Dict[str, Any]:
     interval_seconds = runtime._get_autosave_interval_seconds()
     return {
         "name": str(getattr(props, "projectName", "")),
+        "display_name": project_display_name(project),
         "output_folder": str(getattr(props, "outputFolder", "")),
         "running_folder": str(getattr(props, "runningFolder", "")),
         "is_temporary": bool(getattr(props, "isTemporary", False)),
@@ -57,6 +58,42 @@ def project_metadata(runtime) -> Dict[str, Any]:
             "last_job_id": runtime._autosave_last_job_id,
         },
     }
+
+
+def project_display_name(project) -> str:
+    with project.database.engine.connect() as connection:
+        exists = connection.exec_driver_sql(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='legion_workspace_metadata'"
+        ).scalar()
+        if not exists:
+            return ""
+        name = connection.exec_driver_sql(
+            "SELECT value FROM legion_workspace_metadata WHERE key='display_name'"
+        ).scalar()
+        return name if isinstance(name, str) else ""
+
+
+def rename_project(runtime, name: str, expected_path: str = "") -> Dict[str, Any]:
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 120:
+        raise ValueError("Workspace name must contain 1 to 120 characters.")
+    name = name.strip()
+    if any(ord(char) < 32 or ord(char) == 127 for char in name):
+        raise ValueError("Workspace name cannot contain control characters.")
+    with runtime._lock:
+        project = require_active_project(runtime)
+        if expected_path and expected_path != project.properties.projectName:
+            raise RuntimeError("The active workspace changed. Rename the current workspace instead.")
+        with project.database.engine.begin() as connection:
+            connection.exec_driver_sql(
+                "CREATE TABLE IF NOT EXISTS legion_workspace_metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+            )
+            connection.exec_driver_sql(
+                "INSERT INTO legion_workspace_metadata (key, value) VALUES ('display_name', ?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value", (name,),
+            )
+        details = get_project_details(runtime)
+    runtime._emit_ui_invalidation("overview")
+    return details
 
 
 def get_project_details(runtime) -> Dict[str, Any]:

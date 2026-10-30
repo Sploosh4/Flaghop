@@ -29,6 +29,18 @@ def project_list():
         return json_error(str(exc), 500)
 
 
+@projects_bp.post("/api/project/rename")
+def project_rename():
+    try:
+        return jsonify(_project_service().rename_project(request.get_json(silent=True)))
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    except RuntimeError as exc:
+        return json_error(str(exc), 409)
+    except Exception as exc:
+        return json_error(str(exc), 500)
+
+
 @projects_bp.post("/api/project/new-temp")
 def project_new_temp():
     service = _project_service()

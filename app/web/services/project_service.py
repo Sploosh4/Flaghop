@@ -13,6 +13,15 @@ class ProjectService:
     def get_details(self) -> Dict[str, Any]:
         return self.runtime.get_project_details()
 
+    def rename_project(self, payload: Any) -> Dict[str, Any]:
+        source = payload if isinstance(payload, dict) else {}
+        name = source.get("name")
+        expected_path = source.get("expected_path", "")
+        if not isinstance(name, str) or not isinstance(expected_path, str):
+            raise ValueError("A workspace name is required.")
+        project = self.runtime.rename_project(name, expected_path=expected_path)
+        return ProjectOkResponse.from_project(project).to_dict()
+
     def list_projects(self, args) -> Dict[str, Any]:
         query = ProjectListQuery.from_args(args)
         return ProjectListResponse.from_projects(self.runtime.list_projects(limit=query.limit)).to_dict()
