@@ -9162,8 +9162,8 @@ function graphRenderWorkspace({preserveDetail = false} = {}) {
             width: group.width,
             height: group.height,
             rx: 18,
-            fill: opaqueUiEnabled() ? "#14172d" : "rgba(14, 18, 38, 0.55)",
-            stroke: "rgba(147, 159, 229, 0.16)",
+            fill: opaqueUiEnabled() ? "#131313" : "rgba(19, 19, 19, 0.75)",
+            stroke: "rgba(160, 160, 160, 0.16)",
             "data-graph-group-key": group.key || "",
         }));
         if (showGroupLabels) {
@@ -9564,7 +9564,7 @@ function graphBuildExportSvgString() {
     background.setAttribute("y", "0");
     background.setAttribute("width", String(width));
     background.setAttribute("height", String(height));
-    background.setAttribute("fill", "#090014");
+    background.setAttribute("fill", "#080808");
     clone.insertBefore(background, clone.firstChild);
 
     const styleNode = document.createElementNS("http://www.w3.org/2000/svg", "style");
@@ -9610,7 +9610,7 @@ async function graphExportPngAction() {
         if (!context) {
             throw new Error("Canvas export is unavailable.");
         }
-        context.fillStyle = "#090014";
+        context.fillStyle = "#080808";
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.setTransform(scale, 0, 0, scale, 0, 0);
         context.drawImage(image, 0, 0);

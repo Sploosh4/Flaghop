@@ -1,5 +1,25 @@
 # LEGION
 
+## T3-inspired desktop fork
+
+This public fork of [Hackman238/legion](https://github.com/Hackman238/legion) adds a near-black workspace, searchable navigation (`Ctrl K`), resizable host/detail panes, compact original menus, and a bottom status bar. Hosts, services, graph/matrix views, jobs, scheduler rationale, credentials/relay, approvals, settings, dialogs and exports retain their upstream controls and handlers. The optional native Qt WebEngine window uses this same interface and local backend without a browser tab. This fork is not affiliated with T3 Code.
+
+For an already provisioned Ubuntu checkout, install the optional dependencies into its local `.venv`, then run `scripts/install-desktop.sh`. Search Applications for **Legion**, or run `legion`. `Ctrl R` reloads the window and `Ctrl +` / `Ctrl -` adjust zoom. The backend continues running when the window closes. Use `journalctl --user -u legion.service` for backend logs. Installation replaces this user's Legion launcher and Legion user services.
+
+```sh
+UV_CACHE_DIR="$PWD/.cache/uv" .tools/uv pip install --python .venv/bin/python -r requirements-desktop.txt
+scripts/install-desktop.sh
+legion
+```
+
+This checkout requires a dedicated capped filesystem mounted at the project root **before installing dependencies or running the installer**. The original local installation uses a persistent ext4 loop volume backed by an exactly **2,000,000,000-byte** image; filesystem overhead reduces usable capacity. Provision that volume/quota separately on a fresh machine, preserving existing data. The installer verifies the mount and storage budget; it does not create a quota or format disks. `.project-storage.json` alone is not a hard quota.
+
+Keep dedicated Python environments, tools, caches, test output, desktop profiles and runtime data within the mounted root. Use `.cache` for reproducible caches, `.artifacts/disposable` for disposable test output, and `.state` for protected evidence/configuration. The five-second storage watcher cleans designated caches and disposable artifacts at 90% usage or below 100 MB free; the filesystem itself prevents overflow. Source, Git history, environments and evidence are preserved. If protected files fill the volume, new writes fail until space is deliberately reclaimed. Saved projects and exports selected outside this root are outside its quota.
+
+The reusable storage-only Codex skill is in [`skills/project-storage-cap`](skills/project-storage-cap/SKILL.md). To install it elsewhere, copy that directory into your Codex skills directory. Run its `scripts/storage_guard.py --root "$PWD" --check` before and after large operations. The local `.storage-baseline.json` records the initial installation before application edits/tests and is excluded from Git.
+
+Upstream documentation follows. Existing licensing and attribution remain in place.
+
 [![Known Vulnerabilities](https://snyk.io/test/github/Hackman238/legion/badge.svg?targetFile=requirements.txt)](https://snyk.io/test/github/Hackman238/legion?targetFile=requirements.txt)
 [![Maintainability](https://api.codeclimate.com/v1/badges/c2055fddab6b95642b6e/maintainability)](https://codeclimate.com/github/Hackman238/legion/maintainability)
 

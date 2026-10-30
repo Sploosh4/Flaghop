@@ -138,3 +138,12 @@ LEGION_AI_PROMPT_IMPROVEMENT_PLAN.md
 .tmp/
 .codex/
 .codex
+
+# Dedicated local runtime, desktop profile and test/tooling storage
+.runtime/
+.tools/
+.state/
+.desktop-profile/
+.artifacts/
+.storage-baseline.json
+lost+found/

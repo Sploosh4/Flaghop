@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Legion{% endblock %}
 {% block content %}
-<main class="grid">
+<main class="grid" id="workspace-views">
     {% set credential_capture = snapshot.get('credential_capture', {}) %}
     <div class="state-cache" aria-hidden="true">
         <input id="project-open-path" type="text">
@@ -427,7 +427,7 @@
         <div id="graph-workspace-disabled-state" hidden>
             <p class="meta-note">Graph workspace is disabled in Interface Settings.</p>
         </div>
-        <div id="graph-workspace-shell">
+        <div id="graph-panel-layout">
         <div id="graph-filters-panel" class="graph-filters-panel" hidden>
             <div class="graph-toolbar">
                 <label>
@@ -737,7 +737,7 @@
         </div>
         </div>
     </section>
-    <section class="panel">
+    <section class="panel" id="workspace-hosts-panel">
         <div class="panel-header">
             <h2>Hosts</h2>
             <div class="panel-header-actions">
@@ -820,7 +820,7 @@
         </div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="workspace-services-panel">
         <div class="panel-header">
             <h2>Services</h2>
             <div class="panel-header-actions">
@@ -865,7 +865,7 @@
         </div>
     </section>
 
-    <section class="panel panel-full">
+    <section class="panel panel-full" id="workspace-host-detail-panel">
         <div class="panel-header">
             <h2>Host Detail</h2>
             <p id="host-detail-name"></p>
@@ -986,7 +986,7 @@
         <div id="host-detail-screenshots" class="screenshot-list"></div>
     </section>
 
-    <section class="panel panel-full">
+    <section class="panel panel-full" id="workspace-approvals-panel">
         <div class="panel-header">
             <h2>Dangerous Action Approvals</h2>
             <p id="approval-count">{{ snapshot.scheduler_approvals | length }}</p>

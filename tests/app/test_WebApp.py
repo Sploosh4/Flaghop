@@ -2038,8 +2038,8 @@ class WebAppTest(unittest.TestCase):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
         body = response.get_data(as_text=True)
-        self.assertIn('<body class="opaque-ui">', body)
-        self.assertIn("<h1>LEGION</h1>", body)
+        self.assertIn('<body class="workspace-ui opaque-ui">', body)
+        self.assertIn('aria-label="Workspace navigation"', body)
         self.assertIn("v0.7.0", body)
         self.assertIn("Localhost only", body)
         self.assertNotIn("Web Console", body)
@@ -2169,7 +2169,7 @@ class WebAppTest(unittest.TestCase):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
         body = response.get_data(as_text=True)
-        self.assertIn('<body class="opaque-ui">', body)
+        self.assertIn('<body class="workspace-ui opaque-ui">', body)
         self.assertIn("window.LEGION_OPAQUE_UI_ENABLED = true", body)
 
     def test_index_hides_graph_workspace_when_rollout_flag_is_disabled(self):

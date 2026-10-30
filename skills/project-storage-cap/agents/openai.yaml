@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project storage cap"
+  short_description: "Keep project files and tools within a disk budget"
+  default_prompt: "Use $project-storage-cap to check and enforce this project's storage budget before working."
