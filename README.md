@@ -1,5 +1,11 @@
 # LEGION
 
+## Planned CTF workspace for this fork
+
+The intended direction for this fork is one workspace with automatic initial reconnaissance, a visible device map including the user's laptop, and a right-hand panel of scan-driven actions with individual **Run** buttons. Relationship types will use different link colours. Several actions can be queued together and stay visible while running. The panel will also surface incoming files with **Open**, automatic attempts to decode supported content, and suspected password hashes queued for the user to action. A file browser and text editor are planned alongside this workflow.
+
+These are planned features, not a claim that the complete workflow is already available. See the [CTF workspace roadmap](docs/ctf-workspace-roadmap.md) for confirmed direction, the development-branch foundation, recommendations and unanswered questions. Upstream documentation and attribution follow below.
+
 [![Known Vulnerabilities](https://snyk.io/test/github/Hackman238/legion/badge.svg?targetFile=requirements.txt)](https://snyk.io/test/github/Hackman238/legion?targetFile=requirements.txt)
 [![Maintainability](https://api.codeclimate.com/v1/badges/c2055fddab6b95642b6e/maintainability)](https://codeclimate.com/github/Hackman238/legion/maintainability)
 
