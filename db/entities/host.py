@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship
 
@@ -25,7 +26,7 @@ from db.entities.port import portObj
 
 
 class hostObj(Base):
-    __tablename__ = 'hostObj'
+    __tablename__ = "hostObj"
     # State
     state = Column(String)
     count = Column(String)
@@ -66,26 +67,26 @@ class hostObj(Base):
     cves = relationship(cve)
 
     def __init__(self, **kwargs):
-        self.checked = kwargs.get('checked') or 'False'
-        self.osMatch = kwargs.get('osMatch') or 'unknown'
-        self.osAccuracy = kwargs.get('osAccuracy') or 'NaN'
-        self.ip = kwargs.get('ip') or 'unknown'
-        self.ipv4 = kwargs.get('ipv4') or 'unknown'
-        self.ipv6 = kwargs.get('ipv6') or 'unknown'
-        self.macaddr = kwargs.get('macaddr') or 'unknown'
-        self.status = kwargs.get('status') or 'unknown'
-        self.hostname = kwargs.get('hostname') or 'unknown'
-        self.hostId = kwargs.get('hostname') or 'unknown'
-        self.vendor = kwargs.get('vendor') or 'unknown'
-        self.uptime = kwargs.get('uptime') or 'unknown'
-        self.lastboot = kwargs.get('lastboot') or 'unknown'
-        self.distance = kwargs.get('distance') or 'unknown'
-        self.state = kwargs.get('state') or 'unknown'
-        self.count = kwargs.get('count') or 'unknown'
-        self.city = kwargs.get('city') or 'unknown'
-        self.countryCode = kwargs.get('countryCode') or 'unknown'
-        self.postalCode = kwargs.get('postalCode') or 'unknown'
-        self.longitude = kwargs.get('longitude') or 'unknown'
-        self.latitude = kwargs.get('latitude') or 'unknown'
-        self.isp = kwargs.get('isp') or 'unknown'
-        self.asn = kwargs.get('asn') or 'unknown'
+        self.checked = kwargs.get("checked") or "False"
+        self.osMatch = kwargs.get("osMatch") or "unknown"
+        self.osAccuracy = kwargs.get("osAccuracy") or "NaN"
+        self.ip = kwargs.get("ip") or "unknown"
+        self.ipv4 = kwargs.get("ipv4") or "unknown"
+        self.ipv6 = kwargs.get("ipv6") or "unknown"
+        self.macaddr = kwargs.get("macaddr") or "unknown"
+        self.status = kwargs.get("status") or "unknown"
+        self.hostname = kwargs.get("hostname") or "unknown"
+        self.hostId = kwargs.get("hostname") or "unknown"
+        self.vendor = kwargs.get("vendor") or "unknown"
+        self.uptime = kwargs.get("uptime") or "unknown"
+        self.lastboot = kwargs.get("lastboot") or "unknown"
+        self.distance = kwargs.get("distance") or "unknown"
+        self.state = kwargs.get("state") or "unknown"
+        self.count = kwargs.get("count") or "unknown"
+        self.city = kwargs.get("city") or "unknown"
+        self.countryCode = kwargs.get("countryCode") or "unknown"
+        self.postalCode = kwargs.get("postalCode") or "unknown"
+        self.longitude = kwargs.get("longitude") or "unknown"
+        self.latitude = kwargs.get("latitude") or "unknown"
+        self.isp = kwargs.get("isp") or "unknown"
+        self.asn = kwargs.get("asn") or "unknown"

@@ -1,11 +1,20 @@
-/** Workspace tool settings. */
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let applySchedulerPreferences;
+export function connectToolSettings(callbacks) {
+    for (const name of ["applySchedulerPreferences"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing tool_settings callback: ${name}`);
+    }
+    ({ applySchedulerPreferences } = callbacks);
+}
+
 import { closeRibbonMenus } from "./dialogs.js";
 import { escapeHtml, getValue, setChecked, setValue, setWorkspaceStatus } from "./dom.js";
 import { graphLoadSnapshot } from "./graph_data.js";
 import { graphDismissSelection } from "./graph_detail.js";
 import { fetchJson, postJson } from "./http.js";
-import { applySchedulerPreferences } from "./scheduler_preferences.js";
 import { credentialCaptureState, graphWorkspaceState, toolAuditState } from "./state.js";
+/** Workspace tool settings. */
 
 export function setToolAuditStatus(text, isError = false) {
     const node = document.getElementById("settings-tool-audit-status");

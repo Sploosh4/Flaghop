@@ -34,16 +34,18 @@ def coverage_gaps_from_summary(coverage: Any) -> List[Dict[str, Any]]:
         token = str(gap_id or "").strip().lower()
         if not token:
             continue
-        rows.append({
-            "gap_id": token,
-            "description": token.replace("_", " "),
-            "recommended_tool_ids": list(recommended[:16]),
-            "analysis_mode": str(coverage.get("analysis_mode", "") or "").strip().lower(),
-            "stage": str(coverage.get("stage", "") or "").strip().lower(),
-            "host_cve_count": int(coverage.get("host_cve_count", 0) or 0),
-            "source_kind": "inferred",
-            "observed": False,
-        })
+        rows.append(
+            {
+                "gap_id": token,
+                "description": token.replace("_", " "),
+                "recommended_tool_ids": list(recommended[:16]),
+                "analysis_mode": str(coverage.get("analysis_mode", "") or "").strip().lower(),
+                "stage": str(coverage.get("stage", "") or "").strip().lower(),
+                "host_cve_count": int(coverage.get("host_cve_count", 0) or 0),
+                "source_kind": "inferred",
+                "observed": False,
+            }
+        )
     return rows
 
 
@@ -84,13 +86,13 @@ def target_attempt_matches(item: Dict[str, Any], port: str, protocol: str) -> bo
 
 
 def existing_attempt_summary_for_target(
-        runtime,
-        host_id: int,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        *,
-        get_target_state_fn=get_target_state,
+    runtime,
+    host_id: int,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    *,
+    get_target_state_fn=get_target_state,
 ) -> Dict[str, set]:
     attempted = {
         "tool_ids": set(),
@@ -106,20 +108,23 @@ def existing_attempt_summary_for_target(
         runtime._ensure_scheduler_table()
         session = project.database.session()
         try:
-            scripts_result = session.execute(text(
-                "SELECT COALESCE(s.scriptId, '') AS script_id "
-                "FROM l1ScriptObj AS s "
-                "LEFT JOIN portObj AS p ON p.id = s.portId "
-                "WHERE s.hostId = :host_id "
-                "AND s.portId IS NOT NULL "
-                "AND COALESCE(p.portId, '') = :port "
-                "AND LOWER(COALESCE(p.protocol, '')) = LOWER(:protocol) "
-                "ORDER BY s.id DESC LIMIT 100"
-            ), {
-                "host_id": int(host_id or 0),
-                "port": str(port or ""),
-                "protocol": str(protocol or "tcp"),
-            })
+            scripts_result = session.execute(
+                text(
+                    "SELECT COALESCE(s.scriptId, '') AS script_id "
+                    "FROM l1ScriptObj AS s "
+                    "LEFT JOIN portObj AS p ON p.id = s.portId "
+                    "WHERE s.hostId = :host_id "
+                    "AND s.portId IS NOT NULL "
+                    "AND COALESCE(p.portId, '') = :port "
+                    "AND LOWER(COALESCE(p.protocol, '')) = LOWER(:protocol) "
+                    "ORDER BY s.id DESC LIMIT 100"
+                ),
+                {
+                    "host_id": int(host_id or 0),
+                    "port": str(port or ""),
+                    "protocol": str(protocol or "tcp"),
+                },
+            )
             for row in scripts_result.fetchall():
                 tool = str(row[0] or "").strip().lower()
                 if tool:
@@ -130,10 +135,7 @@ def existing_attempt_summary_for_target(
                 if not isinstance(item, dict):
                     continue
                 tool = str(item.get("tool_id", "") or "").strip().lower()
-                if not (
-                        target_attempt_matches(item, port, protocol)
-                        or runtime._is_host_scoped_scheduler_tool(tool)
-                ):
+                if not (target_attempt_matches(item, port, protocol) or runtime._is_host_scoped_scheduler_tool(tool)):
                     continue
                 family_id = str(item.get("family_id", "") or "").strip().lower()
                 command_signature = str(item.get("command_signature", "") or "").strip().lower()
@@ -144,19 +146,22 @@ def existing_attempt_summary_for_target(
                 if command_signature:
                     attempted["command_signatures"].add(command_signature)
 
-            process_result = session.execute(text(
-                "SELECT COALESCE(p.name, '') AS tool_id, "
-                "COALESCE(p.command, '') AS command_text "
-                "FROM process AS p "
-                "WHERE COALESCE(p.hostIp, '') = :host_ip "
-                "AND COALESCE(p.port, '') = :port "
-                "AND LOWER(COALESCE(p.protocol, '')) = LOWER(:protocol) "
-                "ORDER BY p.id DESC LIMIT 160"
-            ), {
-                "host_ip": str(host_ip or ""),
-                "port": str(port or ""),
-                "protocol": str(protocol or "tcp"),
-            })
+            process_result = session.execute(
+                text(
+                    "SELECT COALESCE(p.name, '') AS tool_id, "
+                    "COALESCE(p.command, '') AS command_text "
+                    "FROM process AS p "
+                    "WHERE COALESCE(p.hostIp, '') = :host_ip "
+                    "AND COALESCE(p.port, '') = :port "
+                    "AND LOWER(COALESCE(p.protocol, '')) = LOWER(:protocol) "
+                    "ORDER BY p.id DESC LIMIT 160"
+                ),
+                {
+                    "host_ip": str(host_ip or ""),
+                    "port": str(port or ""),
+                    "protocol": str(protocol or "tcp"),
+                },
+            )
             for row in process_result.fetchall():
                 tool = str(row[0] or "").strip().lower()
                 command_text = str(row[1] or "")
@@ -167,15 +172,18 @@ def existing_attempt_summary_for_target(
                     attempted["command_signatures"].add(str(command_signature).strip().lower())
 
             if str(host_ip or "").strip():
-                host_process_result = session.execute(text(
-                    "SELECT COALESCE(p.name, '') AS tool_id, "
-                    "COALESCE(p.command, '') AS command_text "
-                    "FROM process AS p "
-                    "WHERE COALESCE(p.hostIp, '') = :host_ip "
-                    "ORDER BY p.id DESC LIMIT 200"
-                ), {
-                    "host_ip": str(host_ip or ""),
-                })
+                host_process_result = session.execute(
+                    text(
+                        "SELECT COALESCE(p.name, '') AS tool_id, "
+                        "COALESCE(p.command, '') AS command_text "
+                        "FROM process AS p "
+                        "WHERE COALESCE(p.hostIp, '') = :host_ip "
+                        "ORDER BY p.id DESC LIMIT 200"
+                    ),
+                    {
+                        "host_ip": str(host_ip or ""),
+                    },
+                )
                 for row in host_process_result.fetchall():
                     tool = str(row[0] or "").strip().lower()
                     if not runtime._is_host_scoped_scheduler_tool(tool):
@@ -185,21 +193,24 @@ def existing_attempt_summary_for_target(
                     if command_signature:
                         attempted["command_signatures"].add(str(command_signature).strip().lower())
 
-            approval_result = session.execute(text(
-                "SELECT COALESCE(tool_id, '') AS tool_id, "
-                "COALESCE(command_template, '') AS command_template, "
-                "COALESCE(command_family_id, '') AS command_family_id "
-                "FROM scheduler_pending_approval "
-                "WHERE COALESCE(host_ip, '') = :host_ip "
-                "AND COALESCE(port, '') = :port "
-                "AND LOWER(COALESCE(protocol, '')) = LOWER(:protocol) "
-                "AND LOWER(COALESCE(status, '')) IN ('pending', 'approved', 'running', 'executed') "
-                "ORDER BY id DESC LIMIT 100"
-            ), {
-                "host_ip": str(host_ip or ""),
-                "port": str(port or ""),
-                "protocol": str(protocol or "tcp"),
-            })
+            approval_result = session.execute(
+                text(
+                    "SELECT COALESCE(tool_id, '') AS tool_id, "
+                    "COALESCE(command_template, '') AS command_template, "
+                    "COALESCE(command_family_id, '') AS command_family_id "
+                    "FROM scheduler_pending_approval "
+                    "WHERE COALESCE(host_ip, '') = :host_ip "
+                    "AND COALESCE(port, '') = :port "
+                    "AND LOWER(COALESCE(protocol, '')) = LOWER(:protocol) "
+                    "AND LOWER(COALESCE(status, '')) IN ('pending', 'approved', 'running', 'executed') "
+                    "ORDER BY id DESC LIMIT 100"
+                ),
+                {
+                    "host_ip": str(host_ip or ""),
+                    "port": str(port or ""),
+                    "protocol": str(protocol or "tcp"),
+                },
+            )
             for row in approval_result.fetchall():
                 tool = str(row[0] or "").strip().lower()
                 command_template = str(row[1] or "")
@@ -213,17 +224,20 @@ def existing_attempt_summary_for_target(
                     attempted["command_signatures"].add(str(command_signature).strip().lower())
 
             if str(host_ip or "").strip():
-                host_approval_result = session.execute(text(
-                    "SELECT COALESCE(tool_id, '') AS tool_id, "
-                    "COALESCE(command_template, '') AS command_template, "
-                    "COALESCE(command_family_id, '') AS command_family_id "
-                    "FROM scheduler_pending_approval "
-                    "WHERE COALESCE(host_ip, '') = :host_ip "
-                    "AND LOWER(COALESCE(status, '')) IN ('pending', 'approved', 'running', 'executed') "
-                    "ORDER BY id DESC LIMIT 120"
-                ), {
-                    "host_ip": str(host_ip or ""),
-                })
+                host_approval_result = session.execute(
+                    text(
+                        "SELECT COALESCE(tool_id, '') AS tool_id, "
+                        "COALESCE(command_template, '') AS command_template, "
+                        "COALESCE(command_family_id, '') AS command_family_id "
+                        "FROM scheduler_pending_approval "
+                        "WHERE COALESCE(host_ip, '') = :host_ip "
+                        "AND LOWER(COALESCE(status, '')) IN ('pending', 'approved', 'running', 'executed') "
+                        "ORDER BY id DESC LIMIT 120"
+                    ),
+                    {
+                        "host_ip": str(host_ip or ""),
+                    },
+                )
                 for row in host_approval_result.fetchall():
                     tool = str(row[0] or "").strip().lower()
                     if not runtime._is_host_scoped_scheduler_tool(tool):
@@ -242,13 +256,13 @@ def existing_attempt_summary_for_target(
 
 
 def existing_tool_attempts_for_target(
-        runtime,
-        host_id: int,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        *,
-        get_target_state_fn=get_target_state,
+    runtime,
+    host_id: int,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    *,
+    get_target_state_fn=get_target_state,
 ) -> set:
     summary = existing_attempt_summary_for_target(
         runtime,
@@ -262,32 +276,32 @@ def existing_tool_attempts_for_target(
 
 
 def persist_shared_target_state(
-        runtime,
-        *,
-        host_id: int,
-        host_ip: str,
-        port: str = "",
-        protocol: str = "tcp",
-        service_name: str = "",
-        scheduler_mode: str = "",
-        goal_profile: str = "",
-        engagement_preset: str = "",
-        provider: str = "",
-        hostname: str = "",
-        hostname_confidence: float = 0.0,
-        os_match: str = "",
-        os_confidence: float = 0.0,
-        next_phase: str = "",
-        technologies: Optional[List[Dict[str, Any]]] = None,
-        findings: Optional[List[Dict[str, Any]]] = None,
-        manual_tests: Optional[List[Dict[str, Any]]] = None,
-        service_inventory: Optional[List[Dict[str, Any]]] = None,
-        urls: Optional[List[Dict[str, Any]]] = None,
-        coverage: Optional[Dict[str, Any]] = None,
-        attempted_action: Optional[Dict[str, Any]] = None,
-        artifact_refs: Optional[List[str]] = None,
-        screenshots: Optional[List[Dict[str, Any]]] = None,
-        raw: Optional[Dict[str, Any]] = None,
+    runtime,
+    *,
+    host_id: int,
+    host_ip: str,
+    port: str = "",
+    protocol: str = "tcp",
+    service_name: str = "",
+    scheduler_mode: str = "",
+    goal_profile: str = "",
+    engagement_preset: str = "",
+    provider: str = "",
+    hostname: str = "",
+    hostname_confidence: float = 0.0,
+    os_match: str = "",
+    os_confidence: float = 0.0,
+    next_phase: str = "",
+    technologies: Optional[List[Dict[str, Any]]] = None,
+    findings: Optional[List[Dict[str, Any]]] = None,
+    manual_tests: Optional[List[Dict[str, Any]]] = None,
+    service_inventory: Optional[List[Dict[str, Any]]] = None,
+    urls: Optional[List[Dict[str, Any]]] = None,
+    coverage: Optional[Dict[str, Any]] = None,
+    attempted_action: Optional[Dict[str, Any]] = None,
+    artifact_refs: Optional[List[str]] = None,
+    screenshots: Optional[List[Dict[str, Any]]] = None,
+    raw: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     if int(host_id or 0) <= 0:
         return {}
@@ -438,25 +452,4 @@ def load_host_ai_analysis(runtime, project, host_id: int, host_ip: str) -> Dict[
     }
 
 
-def scan_history_targets(record: Dict[str, Any]) -> List[str]:
-    if isinstance(record.get("targets"), list):
-        values = [str(item or "").strip() for item in list(record.get("targets", [])) if str(item or "").strip()]
-        if values:
-            return values
-    raw_targets = str(record.get("targets_json", "") or "").strip()
-    if raw_targets:
-        try:
-            parsed = json.loads(raw_targets)
-        except Exception:
-            parsed = []
-        if isinstance(parsed, list):
-            values = [str(item or "").strip() for item in parsed if str(item or "").strip()]
-            if values:
-                return values
-    fallback: List[str] = []
-    for source in (record.get("scope_summary", ""), record.get("target_summary", "")):
-        for token in re.findall(r"[A-Za-z0-9./:-]+", str(source or "")):
-            cleaned = str(token or "").strip(",:")
-            if cleaned and cleaned not in fallback:
-                fallback.append(cleaned)
-    return fallback
+from app.scheduler.scan_targets import scan_history_targets as scan_history_targets

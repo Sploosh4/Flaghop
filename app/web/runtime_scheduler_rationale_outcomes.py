@@ -22,10 +22,10 @@ def scheduler_event_timestamp_epoch(runtime_or_cls, value: Any) -> float:
 
 
 def index_scheduler_rows_by_target_tool(
-        runtime_or_cls,
-        rows: List[Dict[str, Any]],
-        *,
-        timestamp_field: str,
+    runtime_or_cls,
+    rows: List[Dict[str, Any]],
+    *,
+    timestamp_field: str,
 ) -> Dict[Tuple[str, str, str, str], List[Dict[str, Any]]]:
     index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]] = defaultdict(list)
     for raw_row in list(rows or []):
@@ -67,15 +67,15 @@ def nearest_scheduler_row(rows: List[Dict[str, Any]], event_ts: float) -> Option
 
 
 def match_rationale_outcomes(
-        runtime_or_cls,
-        decision_index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]],
-        execution_index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]],
-        *,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        tool_ids: List[str],
-        event_ts: float,
+    runtime_or_cls,
+    decision_index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]],
+    execution_index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]],
+    *,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    tool_ids: List[str],
+    event_ts: float,
 ) -> Tuple[str, List[int]]:
     _ = runtime_or_cls
     outcome_tokens: List[str] = []

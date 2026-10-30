@@ -2,7 +2,8 @@ import { setActionStatus } from "./workspace/dom.js";
 import { graphWorkspaceEnabled } from "./workspace/graph_common.js";
 import { graphRenderWorkspace } from "./workspace/graph_render.js";
 import { postJson } from "./workspace/http.js";
-import { renderProject, setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/workspace_view.js";
+import { renderProject } from "./workspace/project_view.js";
+import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/workspace_view.js";
 
 /* Presentation shell. Existing Legion controls and handlers remain the source of actions. */
 (() => {
@@ -230,6 +231,12 @@ import { renderProject, setGraphPanelCollapsed, setServicesPanelCollapsed } from
             }
         };
         title.addEventListener("click", () => begin("title"));
+        const sidebarName = byId("sidebar-project-name");
+        sidebarName.title = "Double-click to rename workspace";
+        sidebarName.addEventListener("dblclick", (event) => {
+            event.preventDefault(); event.stopPropagation();
+            begin("sidebar");
+        });
         editor.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {event.preventDefault(); save();}
             if (event.key === "Escape" && !editing?.saving) {

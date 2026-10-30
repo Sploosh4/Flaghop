@@ -20,9 +20,11 @@ from app.shell.Shell import Shell
 
 
 def nmapFileExists(shell: Shell, fileName: str) -> bool:
-    return shell.directoryOrFileExists(f"{fileName}.xml") and \
-           shell.directoryOrFileExists(f"{fileName}.nmap") and \
-           shell.directoryOrFileExists(f"{fileName}.gnmap") and \
-           shell.isFile(f"{fileName}.xml") and \
-           shell.isFile(f"{fileName}.nmap") and \
-           shell.isFile(f"{fileName}.gnmap")
+    return (
+        shell.directoryOrFileExists(f"{fileName}.xml")
+        and shell.directoryOrFileExists(f"{fileName}.nmap")
+        and shell.directoryOrFileExists(f"{fileName}.gnmap")
+        and shell.isFile(f"{fileName}.xml")
+        and shell.isFile(f"{fileName}.nmap")
+        and shell.isFile(f"{fileName}.gnmap")
+    )

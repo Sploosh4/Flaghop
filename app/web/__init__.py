@@ -41,11 +41,17 @@ def create_app(runtime: "WebRuntime") -> Flask:
     app.config["LEGION_WEB_BIND_LABEL"] = "Localhost only"
     app.config["LEGION_UI_OPAQUE"] = True
     app.config["LEGION_COLORFUL_ASCII_BACKGROUND"] = False
+    from app.web.http_utils import disable_api_cache
+
+    app.after_request(disable_api_cache)
     app.extensions["legion_runtime"] = runtime
 
     @app.context_processor
     def inject_legion_runtime_flags():
+        from app.scan_presets import SCAN_PRESETS
+
         return {
+            "legion_scan_presets": SCAN_PRESETS,
             "legion_web_bind_host": app.config.get("LEGION_WEB_BIND_HOST", "127.0.0.1"),
             "legion_web_bind_label": app.config.get("LEGION_WEB_BIND_LABEL", "Localhost only"),
             "legion_ui_opaque": bool(app.config.get("LEGION_UI_OPAQUE", False)),

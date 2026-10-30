@@ -12,7 +12,6 @@ from urllib.request import Request, urlopen
 
 from app.hostsfile import registrable_root_domain
 
-
 API_BASE_URL = "https://buckets.grayhatwarfare.com/api/v2"
 BUCKET_TYPES = "aws,azure,gcp,dos,ali"
 
@@ -142,19 +141,70 @@ def run_grayhatwarfare_probe(domain: str, api_key: str, *, limit: int = 25, time
         "buckets": list(buckets_payload.get("buckets", []) or []),
         "files": list(files_payload.get("files", []) or []),
         "meta": {
-            "bucket_results": int(((buckets_payload.get("meta", {}) if isinstance(buckets_payload.get("meta", {}), dict) else {}).get("results", 0)) or 0),
-            "file_results": int(((files_payload.get("meta", {}) if isinstance(files_payload.get("meta", {}), dict) else {}).get("results", 0)) or 0),
-            "bucket_notice": str(((buckets_payload.get("meta", {}) if isinstance(buckets_payload.get("meta", {}), dict) else {}).get("notice", "")) or ""),
-            "file_notice": str(((files_payload.get("meta", {}) if isinstance(files_payload.get("meta", {}), dict) else {}).get("notice", "")) or ""),
-            "file_regex_notice": str(((files_payload.get("meta", {}) if isinstance(files_payload.get("meta", {}), dict) else {}).get("regexNotice", "")) or ""),
-            "file_fallback_keyword_query": str(((files_payload.get("meta", {}) if isinstance(files_payload.get("meta", {}), dict) else {}).get("fallbackKeywordQuery", "")) or ""),
-            "file_fallback_reason": str(((files_payload.get("meta", {}) if isinstance(files_payload.get("meta", {}), dict) else {}).get("fallbackReason", "")) or ""),
+            "bucket_results": int(
+                (
+                    (buckets_payload.get("meta", {}) if isinstance(buckets_payload.get("meta", {}), dict) else {}).get(
+                        "results", 0
+                    )
+                )
+                or 0
+            ),
+            "file_results": int(
+                (
+                    (files_payload.get("meta", {}) if isinstance(files_payload.get("meta", {}), dict) else {}).get(
+                        "results", 0
+                    )
+                )
+                or 0
+            ),
+            "bucket_notice": str(
+                (
+                    (buckets_payload.get("meta", {}) if isinstance(buckets_payload.get("meta", {}), dict) else {}).get(
+                        "notice", ""
+                    )
+                )
+                or ""
+            ),
+            "file_notice": str(
+                (
+                    (files_payload.get("meta", {}) if isinstance(files_payload.get("meta", {}), dict) else {}).get(
+                        "notice", ""
+                    )
+                )
+                or ""
+            ),
+            "file_regex_notice": str(
+                (
+                    (files_payload.get("meta", {}) if isinstance(files_payload.get("meta", {}), dict) else {}).get(
+                        "regexNotice", ""
+                    )
+                )
+                or ""
+            ),
+            "file_fallback_keyword_query": str(
+                (
+                    (files_payload.get("meta", {}) if isinstance(files_payload.get("meta", {}), dict) else {}).get(
+                        "fallbackKeywordQuery", ""
+                    )
+                )
+                or ""
+            ),
+            "file_fallback_reason": str(
+                (
+                    (files_payload.get("meta", {}) if isinstance(files_payload.get("meta", {}), dict) else {}).get(
+                        "fallbackReason", ""
+                    )
+                )
+                or ""
+            ),
         },
     }
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Search Grayhat Warfare for public buckets/files related to a root domain.")
+    parser = argparse.ArgumentParser(
+        description="Search Grayhat Warfare for public buckets/files related to a root domain."
+    )
     parser.add_argument("--domain", required=True, help="Input hostname or domain.")
     parser.add_argument("--api-key", required=True, help="Grayhat Warfare API key.")
     parser.add_argument("--output", required=True, help="Output JSON file path.")

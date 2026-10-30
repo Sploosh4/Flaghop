@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from app.core.serialization import decode_json as _from_json
 from typing import Any, Dict, List
 from app.device_categories import slugify_device_category
 from app.url_normalization import normalize_discovered_url
@@ -21,16 +22,6 @@ def _as_json(value: Any, fallback: Any) -> str:
         return json.dumps(value if value is not None else fallback, ensure_ascii=False)
     except Exception:
         return json.dumps(fallback, ensure_ascii=False)
-
-
-def _from_json(value: Any, fallback: Any):
-    raw = str(value or "").strip()
-    if not raw:
-        return fallback
-    try:
-        return json.loads(raw)
-    except Exception:
-        return fallback
 
 
 def _safe_float(value: Any, default: float = 0.0, minimum: float = 0.0, maximum: float = 100.0) -> float:

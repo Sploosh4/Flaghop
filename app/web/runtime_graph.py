@@ -103,7 +103,9 @@ def get_graph_snapshot_locked(runtime) -> Dict[str, Any]:
     return query_evidence_graph(project.database, limit_nodes=5000, limit_edges=10000)
 
 
-def _graph_inline_evidence_text(runtime, project, node: Dict[str, Any], props: Dict[str, Any], *, max_chars: int = 12000) -> str:
+def _graph_inline_evidence_text(
+    runtime, project, node: Dict[str, Any], props: Dict[str, Any], *, max_chars: int = 12000
+) -> str:
     lines: List[str] = []
     seen = set()
 
@@ -124,7 +126,11 @@ def _graph_inline_evidence_text(runtime, project, node: Dict[str, Any], props: D
         cleaned = str(token or "").strip()
         if not cleaned:
             continue
-        if cleaned.startswith("process_output:") or cleaned.startswith("/api/screenshots/") or runtime._is_project_artifact_path(project, cleaned):
+        if (
+            cleaned.startswith("process_output:")
+            or cleaned.startswith("/api/screenshots/")
+            or runtime._is_project_artifact_path(project, cleaned)
+        ):
             continue
         _remember(cleaned)
     inline_text = "\n".join(lines).strip()
@@ -132,19 +138,23 @@ def _graph_inline_evidence_text(runtime, project, node: Dict[str, Any], props: D
     return inline_text[:safe_max_chars] if safe_max_chars > 0 else ""
 
 
-def _resolve_graph_content_entry_locked(runtime, project, node: Dict[str, Any], *, max_chars: int = 12000) -> Dict[str, Any]:
+def _resolve_graph_content_entry_locked(
+    runtime, project, node: Dict[str, Any], *, max_chars: int = 12000
+) -> Dict[str, Any]:
     node_id = str(node.get("node_id", "") or "")
     node_type = str(node.get("type", "") or "").strip().lower()
     props = node.get("properties", {}) if isinstance(node.get("properties", {}), dict) else {}
     evidence_refs = [
-        str(item or "").strip()
-        for item in list(node.get("evidence_refs", []) or [])
-        if str(item or "").strip()
+        str(item or "").strip() for item in list(node.get("evidence_refs", []) or []) if str(item or "").strip()
     ]
     ref = str(props.get("artifact_ref", "") or props.get("ref", "") or "").strip()
     if not ref:
         for candidate in evidence_refs:
-            if candidate.startswith("process_output:") or candidate.startswith("/api/screenshots/") or runtime._is_project_artifact_path(project, candidate):
+            if (
+                candidate.startswith("process_output:")
+                or candidate.startswith("/api/screenshots/")
+                or runtime._is_project_artifact_path(project, candidate)
+            ):
                 ref = candidate
                 break
     label = str(node.get("label", "") or os.path.basename(ref) or node_id)
@@ -155,7 +165,11 @@ def _resolve_graph_content_entry_locked(runtime, project, node: Dict[str, Any], 
             resolved_ref = runtime.get_screenshot_file(os.path.basename(ref))
         except Exception:
             resolved_ref = ref
-    elif node_type == "screenshot" and filename.lower().endswith(".png") and not runtime._is_project_artifact_path(project, ref):
+    elif (
+        node_type == "screenshot"
+        and filename.lower().endswith(".png")
+        and not runtime._is_project_artifact_path(project, ref)
+    ):
         try:
             resolved_ref = runtime.get_screenshot_file(filename)
         except Exception:
@@ -288,7 +302,8 @@ def get_graph_content(runtime, node_id: str, *, download: bool = False, max_char
         snapshot = get_graph_snapshot_locked(runtime)
         node = next(
             (
-                item for item in list(snapshot.get("nodes", []) or [])
+                item
+                for item in list(snapshot.get("nodes", []) or [])
                 if isinstance(item, dict) and str(item.get("node_id", "") or "") == str(node_id or "").strip()
             ),
             None,
@@ -315,8 +330,11 @@ def get_graph_content(runtime, node_id: str, *, download: bool = False, max_char
                 "kind": str(entry.get("kind", "") or "binary"),
                 "path": resolved_path,
                 "filename": str(entry.get("filename", "") or os.path.basename(resolved_path) or f"{node_id}.bin"),
-                "mimetype": mimetypes.guess_type(resolved_path)[0] or (
-                    "text/plain; charset=utf-8" if str(entry.get("kind", "") or "") == "text" else "application/octet-stream"
+                "mimetype": mimetypes.guess_type(resolved_path)[0]
+                or (
+                    "text/plain; charset=utf-8"
+                    if str(entry.get("kind", "") or "") == "text"
+                    else "application/octet-stream"
                 ),
                 "download": bool(download),
             }

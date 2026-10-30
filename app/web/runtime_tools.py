@@ -69,13 +69,13 @@ def runner_type_for_approval_item(runtime, item: Optional[Dict[str, Any]]) -> st
 
 
 def build_command(
-        runtime,
-        template: str,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        tool_id: str,
-        service_name: str = "",
+    runtime,
+    template: str,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    tool_id: str,
+    service_name: str = "",
 ):
     project = runtime._require_active_project()
     running_folder = project.properties.runningFolder
@@ -134,13 +134,13 @@ def build_command(
 
 
 def start_tool_run_job(
-        runtime,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        tool_id: str,
-        timeout: int = 300,
-        parameters: Optional[Dict[str, Any]] = None,
+    runtime,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    tool_id: str,
+    timeout: int = 300,
+    parameters: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     resolved_host_ip = str(host_ip or "").strip()
     resolved_port = str(port or "").strip()
@@ -149,11 +149,7 @@ def start_tool_run_job(
     if not resolved_host_ip or not resolved_port or not resolved_tool_id:
         raise ValueError("host_ip, port and tool_id are required.")
     pipette = find_pipette(resolved_tool_id)
-    resolved_parameters = (
-        pipette.validate_parameter_values(parameters)
-        if pipette is not None
-        else {}
-    )
+    resolved_parameters = pipette.validate_parameter_values(parameters) if pipette is not None else {}
 
     payload = {
         "host_ip": resolved_host_ip,
@@ -182,14 +178,14 @@ def start_tool_run_job(
 
 
 def run_manual_tool(
-        runtime,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        tool_id: str,
-        timeout: int,
-        parameters: Optional[Dict[str, Any]] = None,
-        job_id: int = 0,
+    runtime,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    tool_id: str,
+    timeout: int,
+    parameters: Optional[Dict[str, Any]] = None,
+    job_id: int = 0,
 ):
     with runtime._lock:
         runtime._require_active_project()

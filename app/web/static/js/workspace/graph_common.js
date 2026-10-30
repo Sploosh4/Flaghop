@@ -1,9 +1,17 @@
-/** Workspace graph common. */
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let graphRenderWorkspace, graphSyncDetailPresentation;
+export function connectGraphCommon(callbacks) {
+    for (const name of ["graphRenderWorkspace", "graphSyncDetailPresentation"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing graph_common callback: ${name}`);
+    }
+    ({ graphRenderWorkspace, graphSyncDetailPresentation } = callbacks);
+}
+
 import { getValue, setText } from "./dom.js";
-import { graphSyncDetailPresentation } from "./graph_detail.js";
-import { graphRenderWorkspace } from "./graph_render.js";
-import { graphFindEntity } from "./graph_viewport.js";
+import { graphFindEntity } from "./graph_selection.js";
 import { GRAPH_NODE_COLORS, GRAPH_SOURCE_KIND_STYLES, GRAPH_VIEW_PRESETS, GRAPH_WORKSPACE_DEFAULT_HEIGHT, GRAPH_WORKSPACE_HEIGHT_STORAGE_KEY, GRAPH_WORKSPACE_MAX_HEIGHT, GRAPH_WORKSPACE_MIN_HEIGHT, GRAPH_WORKSPACE_ZOOM_MAX_PERCENT, GRAPH_WORKSPACE_ZOOM_MIN_PERCENT, graphWorkspaceState, workspaceState } from "./state.js";
+/** Workspace graph common. */
 
 export function graphWorkspaceEnabled() {
     const panel = document.getElementById("graph-workspace-panel");

@@ -54,13 +54,16 @@ def load_target_state_cache(project: Any, host_ids: List[int]) -> Dict[int, Dict
     session = database.session()
     try:
         for offset in range(0, len(normalized_ids), 500):
-            chunk = normalized_ids[offset:offset + 500]
+            chunk = normalized_ids[offset : offset + 500]
             params = {f"id_{index}": host_id for index, host_id in enumerate(chunk)}
             placeholders = ", ".join(f":id_{index}" for index in range(len(chunk)))
-            result = session.execute(text(
-                "SELECT host_id, hostname, os_match, technologies_json, findings_json, service_inventory_json, raw_json "
-                f"FROM scheduler_target_state WHERE host_id IN ({placeholders})"
-            ), params)
+            result = session.execute(
+                text(
+                    "SELECT host_id, hostname, os_match, technologies_json, findings_json, service_inventory_json, raw_json "
+                    f"FROM scheduler_target_state WHERE host_id IN ({placeholders})"
+                ),
+                params,
+            )
             keys = list(result.keys())
             for row in result.fetchall():
                 payload = dict(zip(keys, row))

@@ -15,7 +15,7 @@ def list_processes(runtime, limit: int = 75) -> List[Dict[str, Any]]:
 
     runtime._ensure_process_tables()
     process_repo = project.repositoryContainer.processRepository
-    rows = process_repo.getProcesses({}, showProcesses='True', sort='desc', ncol='id')
+    rows = process_repo.getProcesses({}, showProcesses="True", sort="desc", ncol="id")
     trimmed = rows[:limit]
     results = []
 
@@ -38,38 +38,40 @@ def list_processes(runtime, limit: int = 75) -> List[Dict[str, Any]]:
         progress_source = row.get("progressSource", "")
         progress_updated_at = row.get("progressUpdatedAt", "")
 
-        results.append({
-            "id": row.get("id", ""),
-            "name": row.get("name", ""),
-            "hostIp": row.get("hostIp", ""),
-            "port": row.get("port", ""),
-            "protocol": row.get("protocol", ""),
-            "status": status,
-            "startTime": row.get("startTime", ""),
-            "elapsed": elapsed_value,
-            "percent": percent_value,
-            "estimatedRemaining": estimated_remaining,
-            "progressMessage": progress_message,
-            "progressSource": progress_source,
-            "progressUpdatedAt": progress_updated_at,
-            "progress": web_runtime_process_parsing.build_process_progress_payload(
-                status=status,
-                percent=percent_value,
-                estimated_remaining=estimated_remaining,
-                elapsed=elapsed_value,
-                progress_message=progress_message,
-                progress_source=progress_source,
-                progress_updated_at=progress_updated_at,
-            ),
-        })
+        results.append(
+            {
+                "id": row.get("id", ""),
+                "name": row.get("name", ""),
+                "hostIp": row.get("hostIp", ""),
+                "port": row.get("port", ""),
+                "protocol": row.get("protocol", ""),
+                "status": status,
+                "startTime": row.get("startTime", ""),
+                "elapsed": elapsed_value,
+                "percent": percent_value,
+                "estimatedRemaining": estimated_remaining,
+                "progressMessage": progress_message,
+                "progressSource": progress_source,
+                "progressUpdatedAt": progress_updated_at,
+                "progress": web_runtime_process_parsing.build_process_progress_payload(
+                    status=status,
+                    percent=percent_value,
+                    estimated_remaining=estimated_remaining,
+                    elapsed=elapsed_value,
+                    progress_message=progress_message,
+                    progress_source=progress_source,
+                    progress_updated_at=progress_updated_at,
+                ),
+            }
+        )
     return results
 
 
 def process_history_records(
-        project,
-        limit: Optional[int] = None,
-        *,
-        redact_command=None,
+    project,
+    limit: Optional[int] = None,
+    *,
+    redact_command=None,
 ) -> List[Dict[str, Any]]:
     if not project:
         return []
@@ -152,9 +154,9 @@ def normalize_process_timestamp_to_utc(value: Any, *, prefer_utc_naive: bool = F
 
 
 def process_timestamp_utc_candidates(
-        value: Any,
-        *,
-        prefer_utc_naive: bool = False,
+    value: Any,
+    *,
+    prefer_utc_naive: bool = False,
 ) -> List[tuple]:
     text_value = str(value or "").strip()
     if not text_value:

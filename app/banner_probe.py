@@ -43,7 +43,9 @@ def main(argv: list[str] | None = None) -> int:
     args = list(argv if argv is not None else sys.argv[1:])
     host = str(os.environ.get("LEGION_BANNER_TARGET") or (args[0] if args else "")).strip()
     port_text = str(os.environ.get("LEGION_BANNER_PORT") or (args[1] if len(args) > 1 else "")).strip()
-    protocol = str(os.environ.get("LEGION_BANNER_PROTOCOL") or (args[2] if len(args) > 2 else "tcp")).strip().lower() or "tcp"
+    protocol = (
+        str(os.environ.get("LEGION_BANNER_PROTOCOL") or (args[2] if len(args) > 2 else "tcp")).strip().lower() or "tcp"
+    )
 
     if not host or not port_text:
         sys.stderr.write("banner probe requires target host and port\n")

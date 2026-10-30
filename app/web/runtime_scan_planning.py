@@ -23,10 +23,10 @@ from app.web.runtime_scan_targets import (
 
 
 def apply_engagement_scan_profile(
-        runtime_cls,
-        scan_options: Dict[str, Any],
-        *,
-        engagement_policy: Optional[Dict[str, Any]] = None,
+    runtime_cls,
+    scan_options: Dict[str, Any],
+    *,
+    engagement_policy: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     options = dict(scan_options or {})
     preset = str((engagement_policy or {}).get("preset", "") or "").strip().lower()
@@ -37,16 +37,16 @@ def apply_engagement_scan_profile(
 
 
 def build_nmap_scan_plan(
-        runtime,
-        *,
-        targets: List[str],
-        discovery: bool,
-        staged: bool,
-        nmap_path: str,
-        nmap_args: str,
-        output_prefix: str,
-        scan_mode: str = "legacy",
-        scan_options: Optional[Dict[str, Any]] = None,
+    runtime,
+    *,
+    targets: List[str],
+    discovery: bool,
+    staged: bool,
+    nmap_path: str,
+    nmap_args: str,
+    output_prefix: str,
+    scan_mode: str = "legacy",
+    scan_options: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     resolved_path = str(nmap_path or "nmap").strip() or "nmap"
     raw_args = str(nmap_args or "").strip()
@@ -60,22 +60,29 @@ def build_nmap_scan_plan(
 
     if selected_mode == "rfc1918_discovery":
         rfc_profile = str(selected_options.get("scan_profile", "quick") or "quick").strip().lower()
-        default_ports = runtime.RFC1918_COMPREHENSIVE_TCP_PORTS if rfc_profile == "comprehensive" else runtime.INTERNAL_QUICK_RECON_TCP_PORTS
-        options = normalize_scan_options(selected_options, {
-            "discovery": True,
-            "host_discovery_only": True,
-            "skip_dns": True,
-            "arp_ping": False,
-            "force_pn": False,
-            "timing": "T3",
-            "top_ports": 0,
-            "explicit_ports": default_ports,
-            "scan_profile": rfc_profile,
-            "chunk_concurrency": 1,
-            "service_detection": False,
-            "default_scripts": False,
-            "os_detection": False,
-        })
+        default_ports = (
+            runtime.RFC1918_COMPREHENSIVE_TCP_PORTS
+            if rfc_profile == "comprehensive"
+            else runtime.INTERNAL_QUICK_RECON_TCP_PORTS
+        )
+        options = normalize_scan_options(
+            selected_options,
+            {
+                "discovery": True,
+                "host_discovery_only": True,
+                "skip_dns": True,
+                "arp_ping": False,
+                "force_pn": False,
+                "timing": "T3",
+                "top_ports": 0,
+                "explicit_ports": default_ports,
+                "scan_profile": rfc_profile,
+                "chunk_concurrency": 1,
+                "service_detection": False,
+                "default_scripts": False,
+                "os_detection": False,
+            },
+        )
         options["chunk_concurrency"] = normalize_rfc_chunk_concurrency(
             runtime.__class__,
             options.get("chunk_concurrency", 1),
@@ -96,19 +103,22 @@ def build_nmap_scan_plan(
         )
 
     if selected_mode == "easy":
-        options = normalize_scan_options(selected_options, {
-            "discovery": True,
-            "skip_dns": True,
-            "force_pn": False,
-            "timing": "T3",
-            "top_ports": 1000,
-            "service_detection": True,
-            "default_scripts": True,
-            "os_detection": False,
-            "aggressive": False,
-            "full_ports": False,
-            "vuln_scripts": False,
-        })
+        options = normalize_scan_options(
+            selected_options,
+            {
+                "discovery": True,
+                "skip_dns": True,
+                "force_pn": False,
+                "timing": "T3",
+                "top_ports": 1000,
+                "service_detection": True,
+                "default_scripts": True,
+                "os_detection": False,
+                "aggressive": False,
+                "full_ports": False,
+                "vuln_scripts": False,
+            },
+        )
         return build_single_scan_plan(
             runtime,
             targets=targets,
@@ -120,19 +130,22 @@ def build_nmap_scan_plan(
         )
 
     if selected_mode == "hard":
-        options = normalize_scan_options(selected_options, {
-            "discovery": False,
-            "skip_dns": True,
-            "force_pn": False,
-            "timing": "T4",
-            "top_ports": 1000,
-            "service_detection": True,
-            "default_scripts": True,
-            "os_detection": True,
-            "aggressive": False,
-            "full_ports": True,
-            "vuln_scripts": False,
-        })
+        options = normalize_scan_options(
+            selected_options,
+            {
+                "discovery": False,
+                "skip_dns": True,
+                "force_pn": False,
+                "timing": "T4",
+                "top_ports": 1000,
+                "service_detection": True,
+                "default_scripts": True,
+                "os_detection": True,
+                "aggressive": False,
+                "full_ports": True,
+                "vuln_scripts": False,
+            },
+        )
         return build_single_scan_plan(
             runtime,
             targets=targets,
@@ -187,26 +200,28 @@ def build_nmap_scan_plan(
     tokens.extend(append_nmap_stats_every(extra_args, interval="15s"))
     tokens.extend(targets)
     tokens.extend(["-oA", output_cmd_prefix])
-    stages = [{
-        "tool_name": "nmap-scan",
-        "tab_title": "Nmap Scan",
-        "output_prefix": output_prefix,
-        "xml_path": f"{output_prefix}.xml",
-        "command": join_shell_tokens(tokens),
-        "timeout": 5400,
-    }]
+    stages = [
+        {
+            "tool_name": "nmap-scan",
+            "tab_title": "Nmap Scan",
+            "output_prefix": output_prefix,
+            "xml_path": f"{output_prefix}.xml",
+            "command": join_shell_tokens(tokens),
+            "timeout": 5400,
+        }
+    ]
     return {"xml_path": f"{output_prefix}.xml", "stages": stages}
 
 
 def build_single_scan_plan(
-        runtime,
-        *,
-        targets: List[str],
-        nmap_path: str,
-        output_prefix: str,
-        mode: str,
-        options: Dict[str, Any],
-        extra_args: List[str],
+    runtime,
+    *,
+    targets: List[str],
+    nmap_path: str,
+    output_prefix: str,
+    mode: str,
+    options: Dict[str, Any],
+    extra_args: List[str],
 ) -> Dict[str, Any]:
     _ = runtime
     output_cmd_prefix = nmap_output_prefix_for_command(output_prefix, nmap_path)
@@ -272,14 +287,16 @@ def build_single_scan_plan(
 
     return {
         "xml_path": f"{output_prefix}.xml",
-        "stages": [{
-            "tool_name": f"nmap-{mode}",
-            "tab_title": tab_title,
-            "output_prefix": output_prefix,
-            "xml_path": f"{output_prefix}.xml",
-            "command": join_shell_tokens(tokens),
-            "timeout": 7200 if mode == "hard" else 5400,
-        }],
+        "stages": [
+            {
+                "tool_name": f"nmap-{mode}",
+                "tab_title": tab_title,
+                "output_prefix": output_prefix,
+                "xml_path": f"{output_prefix}.xml",
+                "command": join_shell_tokens(tokens),
+                "timeout": 7200 if mode == "hard" else 5400,
+            }
+        ],
     }
 
 
@@ -356,4 +373,3 @@ def join_shell_tokens(tokens: List[str]) -> str:
     if hasattr(shlex, "join"):
         return shlex.join(rendered)
     return " ".join(shlex.quote(token) for token in rendered)
-

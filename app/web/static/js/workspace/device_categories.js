@@ -1,9 +1,18 @@
-/** Workspace device categories. */
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let applySchedulerPreferences;
+export function connectDeviceCategories(callbacks) {
+    for (const name of ["applySchedulerPreferences"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing device_categories callback: ${name}`);
+    }
+    ({ applySchedulerPreferences } = callbacks);
+}
+
 import { renderCategoryChipList } from "./host_filters.js";
 import { postJson } from "./http.js";
-import { applySchedulerPreferences } from "./scheduler_preferences.js";
 import { workspaceState } from "./state.js";
 import { parseCommaSeparatedList } from "./workspace_data.js";
+/** Workspace device categories. */
 
 export function setDeviceCategorySettingsStatus(text, isError = false) {
     const node = document.getElementById("device-category-save-status");

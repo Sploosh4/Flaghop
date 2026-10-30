@@ -14,14 +14,6 @@ def _screenshot_service() -> ScreenshotService:
     return ScreenshotService(runtime_from_app())
 
 
-@screenshots_bp.after_request
-def _disable_cache(response):
-    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
 @screenshots_bp.get("/api/screenshots/<path:filename>")
 def workspace_screenshot(filename):
     service = _screenshot_service()

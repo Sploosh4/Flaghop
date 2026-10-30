@@ -59,14 +59,14 @@ def normalize_progress_source_label(value: Any) -> str:
 
 
 def build_process_progress_payload(
-        *,
-        status: Any = "",
-        percent: Any = "",
-        estimated_remaining: Any = None,
-        elapsed: Any = 0,
-        progress_message: Any = "",
-        progress_source: Any = "",
-        progress_updated_at: Any = "",
+    *,
+    status: Any = "",
+    percent: Any = "",
+    estimated_remaining: Any = None,
+    elapsed: Any = 0,
+    progress_message: Any = "",
+    progress_source: Any = "",
+    progress_updated_at: Any = "",
 ) -> Dict[str, Any]:
     percent_numeric = coerce_float(percent)
     percent_display = f"{percent_numeric:.1f}%" if percent_numeric is not None else ""
@@ -159,8 +159,8 @@ def extract_nmap_progress_message(text: str) -> str:
 
 
 def extract_nuclei_progress_from_text(
-        text: str,
-        runtime_seconds: float,
+    text: str,
+    runtime_seconds: float,
 ) -> Tuple[Optional[float], Optional[int], str]:
     cleaned = _ANSI_ESCAPE_RE.sub("", str(text or ""))
     if not cleaned:
@@ -211,8 +211,8 @@ def extract_nuclei_progress_from_text(
 
 
 def extract_tshark_passive_progress(
-        command: str,
-        runtime_seconds: float,
+    command: str,
+    runtime_seconds: float,
 ) -> Tuple[Optional[float], Optional[int], str]:
     duration_match = _TSHARK_DURATION_RE.search(str(command or ""))
     if not duration_match:
@@ -234,15 +234,15 @@ def extract_tshark_passive_progress(
 
 
 def update_process_progress(
-        runtime,
-        process_repo,
-        *,
-        process_id: int,
-        tool_name: str,
-        command: str,
-        text_chunk: str,
-        runtime_seconds: float,
-        state: Dict[str, Any],
+    runtime,
+    process_repo,
+    *,
+    process_id: int,
+    tool_name: str,
+    command: str,
+    text_chunk: str,
+    runtime_seconds: float,
+    state: Dict[str, Any],
 ):
     adapter = str(state.get("adapter", "") or "").strip().lower()
     if not adapter:
@@ -260,7 +260,10 @@ def update_process_progress(
         message = extract_nmap_progress_message(raw_chunk)
         clear_remaining_on_partial = bool(
             (_NMAP_PROGRESS_PERCENT_RE.search(raw_chunk) or _NMAP_PROGRESS_PERCENT_ATTR_RE.search(raw_chunk))
-            and not (_NMAP_PROGRESS_REMAINING_PAREN_RE.search(raw_chunk) or _NMAP_PROGRESS_REMAINING_ATTR_RE.search(raw_chunk))
+            and not (
+                _NMAP_PROGRESS_REMAINING_PAREN_RE.search(raw_chunk)
+                or _NMAP_PROGRESS_REMAINING_ATTR_RE.search(raw_chunk)
+            )
         )
     elif adapter == "nuclei":
         percent, remaining, message = extract_nuclei_progress_from_text(
@@ -333,12 +336,12 @@ def update_process_progress(
 
 
 def update_nmap_process_progress(
-        runtime,
-        process_repo,
-        *,
-        process_id: int,
-        text_chunk: str,
-        state: Dict[str, Any],
+    runtime,
+    process_repo,
+    *,
+    process_id: int,
+    text_chunk: str,
+    state: Dict[str, Any],
 ):
     percent, remaining = extract_nmap_progress_from_text(text_chunk)
     if percent is None and remaining is None:

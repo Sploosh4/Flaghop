@@ -18,17 +18,20 @@ Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@
 
 import re
 
+
 def validateNmapInput(text):
     """Validate nmap input entered in Add Hosts dialog."""
-    if re.search(r'[^a-zA-Z0-9:.\/\-\s]', text) is not None:
+    if re.search(r"[^a-zA-Z0-9:.\/\-\s]", text) is not None:
         return False
     return True
 
+
 def validateCommandFormat(text):
     """Used by settings dialog to validate commands."""
-    if text != '' and text != ' ':
+    if text != "" and text != " ":
         return True
     return False
+
 
 def validateNumeric(text):
     """Only allows numbers."""
@@ -36,20 +39,23 @@ def validateNumeric(text):
         return True
     return False
 
+
 def validateString(text):
     """Only allows alphanumeric characters, '_' and '-'."""
-    if text != '' and re.search(r"[^A-Za-z0-9_-]+", text) is None:
+    if text != "" and re.search(r"[^A-Za-z0-9_-]+", text) is None:
         return True
     return False
+
 
 def validateStringWithSpace(text):
     """Only allows alphanumeric characters, '_', '-' and space."""
-    if text != '' and re.search(r"[^A-Za-z0-9_() -]+", text) is None:
+    if text != "" and re.search(r"[^A-Za-z0-9_() -]+", text) is None:
         return True
     return False
 
+
 def validateNmapPorts(text):
     """Only allows alphanumeric characters and the following: ./-'"*,:[any kind of space]"""
-    if re.search(r'[^a-zA-Z0-9\.\/\-\'\"\*\,\:\s]', text) is not None:
+    if re.search(r"[^a-zA-Z0-9\.\/\-\'\"\*\,\:\s]", text) is not None:
         return False
     return True

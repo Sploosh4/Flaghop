@@ -4,7 +4,6 @@ import threading
 import unittest
 from types import SimpleNamespace
 
-
 for _name in ("Mapping", "MutableMapping", "Sequence"):
     if not hasattr(collections, _name):
         setattr(collections, _name, getattr(collections.abc, _name))
@@ -41,9 +40,7 @@ class WebRuntimeRetryProcessTest(unittest.TestCase):
             activeProject=SimpleNamespace(
                 properties=SimpleNamespace(runningFolder="/tmp/legion-running"),
                 repositoryContainer=SimpleNamespace(
-                    processRepository=_DummyRetryProcessRepo(
-                        "nmap -Pn -sV 203.0.113.55 -p 443"
-                    )
+                    processRepository=_DummyRetryProcessRepo("nmap -Pn -sV 203.0.113.55 -p 443")
                 ),
             )
         )
@@ -72,9 +69,15 @@ class WebRuntimeRetryProcessTest(unittest.TestCase):
         runtime = WebRuntime.__new__(WebRuntime)
         runtime._lock = threading.RLock()
         runtime._ensure_process_tables = lambda: None
-        runtime.settings = SimpleNamespace(portActions=[
-            ("Run ffuf", "ffuf", "(command -v ffuf >/dev/null 2>&1 && ffuf -u [WEB_URL]/FUZZ -w /tmp/words.txt -s -of json -o [OUTPUT].json) || echo ffuf not found"),
-        ])
+        runtime.settings = SimpleNamespace(
+            portActions=[
+                (
+                    "Run ffuf",
+                    "ffuf",
+                    "(command -v ffuf >/dev/null 2>&1 && ffuf -u [WEB_URL]/FUZZ -w /tmp/words.txt -s -of json -o [OUTPUT].json) || echo ffuf not found",
+                ),
+            ]
+        )
         runtime.logic = SimpleNamespace(
             activeProject=SimpleNamespace(
                 properties=SimpleNamespace(runningFolder="/tmp/legion-running"),

@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import unittest
 from os.path import dirname, join
 from typing import Optional
@@ -49,23 +50,23 @@ class ParserTest(unittest.TestCase):
         allServiceFingerprints: [str] = list(map(lambda port: port.getService().fingerprint, allPorts))
         allServiceProducts: [str] = list(map(lambda port: port.getService().product, allPorts))
         allServiceExtraInfos: [str] = list(map(lambda port: port.getService().extrainfo, allPorts))
-        self.assertEqual(['domain', 'http', 'netbios-ssn', 'https', 'msft'], allServiceNames)
-        self.assertEqual(['0.0', '0.0', '0.0', '1.0', '0.0'], allServiceVersions)
-        self.assertEqual(['p1', 'p2', 'p3', 'p4', 'p5'], allServiceFingerprints)
-        self.assertEqual(['table', 'table', 'table', 'table', 'table'], allServiceProducts)
-        self.assertEqual(['exinfo', 'exinfo', 'exinfo', 'exinfo', 'exinfo'], allServiceExtraInfos)
+        self.assertEqual(["domain", "http", "netbios-ssn", "https", "msft"], allServiceNames)
+        self.assertEqual(["0.0", "0.0", "0.0", "1.0", "0.0"], allServiceVersions)
+        self.assertEqual(["p1", "p2", "p3", "p4", "p5"], allServiceFingerprints)
+        self.assertEqual(["table", "table", "table", "table", "table"], allServiceProducts)
+        self.assertEqual(["exinfo", "exinfo", "exinfo", "exinfo", "exinfo"], allServiceExtraInfos)
 
     def test_parser_givenAValidXmlWithIpAddresses_ReturnsAllIpAddresses(self):
         parser = givenAnXmlFile("nmap-fixtures/valid-nmap-report.xml")
-        self.assertEqual(['192.168.1.1'], parser.getAllIps())
+        self.assertEqual(["192.168.1.1"], parser.getAllIps())
 
     def test_parser_givenAValidXmlWithIpAddressesAndFilterByStatus_ReturnsAllIpAddresses(self):
         parser = givenAnXmlFile("nmap-fixtures/valid-nmap-report.xml")
-        self.assertEqual(['192.168.1.1'], parser.getAllIps('up'))
+        self.assertEqual(["192.168.1.1"], parser.getAllIps("up"))
 
     def test_parser_givenAValidXmlWithIpAddressesAndFilterByStatusWithNoResults_ReturnsAnEmptyList(self):
         parser = givenAnXmlFile("nmap-fixtures/valid-nmap-report.xml")
-        self.assertEqual([], parser.getAllIps('down'))
+        self.assertEqual([], parser.getAllIps("down"))
 
     def test_parser_givenAValidXmlWithHosts_ReturnsHostByIpAddress(self):
         parser = givenAnXmlFile("nmap-fixtures/valid-nmap-report.xml")
@@ -82,9 +83,9 @@ class ParserTest(unittest.TestCase):
         allPortIds: [str] = list(map(lambda port: port.portId, ports))
         allPortProtocols: [str] = list(map(lambda port: port.protocol, ports))
         allPortStates: [str] = list(map(lambda port: port.state, ports))
-        self.assertEqual(['53', '80', '139', '443', '445'], allPortIds)
-        self.assertEqual(['tcp', 'tcp', 'tcp', 'tcp', 'tcp'], allPortProtocols)
-        self.assertEqual(['open', 'open', 'open', 'open', 'open'], allPortStates)
+        self.assertEqual(["53", "80", "139", "443", "445"], allPortIds)
+        self.assertEqual(["tcp", "tcp", "tcp", "tcp", "tcp"], allPortProtocols)
+        self.assertEqual(["open", "open", "open", "open", "open"], allPortStates)
 
         self.assertEqual(1, len(host.getOs()))
         operatingSystem: OS = host.getOs()[0]

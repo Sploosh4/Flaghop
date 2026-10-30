@@ -6,11 +6,11 @@ from app.importers.NmapImporter import NmapImporter
 
 
 def import_nmap_xml_into_project(
-        project,
-        xml_path: str,
-        output: str = "",
-        update_progress_observable=None,
-        host_repository=None,
+    project,
+    xml_path: str,
+    output: str = "",
+    update_progress_observable=None,
+    host_repository=None,
 ):
     repo = host_repository or project.repositoryContainer.hostRepository
     importer = NmapImporter(update_progress_observable, repo)

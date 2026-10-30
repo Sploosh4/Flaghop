@@ -15,13 +15,14 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import Column, String, ForeignKey, Integer
 
 from db.database import Base
 
 
 class appObj(Base):
-    __tablename__ = 'appObj'
+    __tablename__ = "appObj"
     name = Column(String)
     id = Column(Integer, primary_key=True)
     product = Column(String)
@@ -29,9 +30,9 @@ class appObj(Base):
     extrainfo = Column(String)
     fingerprint = Column(String)
     cpe = Column(String)
-    serviceId = Column(String, ForeignKey('serviceObj.id'))
+    serviceId = Column(String, ForeignKey("serviceObj.id"))
 
-    def __init__(self, name='', product='', version='', extrainfo='', fingerprint='', cpe=''):
+    def __init__(self, name="", product="", version="", extrainfo="", fingerprint="", cpe=""):
         self.name = name
         self.product = product
         self.version = version

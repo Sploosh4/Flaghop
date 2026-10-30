@@ -12,14 +12,6 @@ def _tool_service() -> ToolService:
     return ToolService(runtime_from_app())
 
 
-@tools_bp.after_request
-def _disable_cache(response):
-    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
 @tools_bp.get("/api/workspace/tools")
 def workspace_tools():
     service = _tool_service()

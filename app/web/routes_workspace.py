@@ -12,14 +12,6 @@ def _workspace_service() -> WorkspaceService:
     return WorkspaceService(runtime_from_app())
 
 
-@workspace_bp.after_request
-def _disable_cache(response):
-    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
 @workspace_bp.get("/api/workspace/hosts")
 def workspace_hosts():
     service = _workspace_service()

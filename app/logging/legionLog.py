@@ -31,31 +31,35 @@ cachedStartupLogger = None
 cachedDbLogger = None
 
 cache_path = os.path.expanduser("~/.cache/legion/log")
-log_path = os.path.join(cache_path, 'legion.log')
+log_path = os.path.join(cache_path, "legion.log")
 if not os.path.isfile(log_path):
     if not os.path.isdir(cache_path):
         os.makedirs(cache_path)
 
+
 def getStartupLogger() -> Logger:
     global cachedStartupLogger
-    logger = getOrCreateCachedLogger("legion-startup",
-            os.path.expanduser("~/.cache/legion/log/legion-startup.log"), True, cachedStartupLogger)
+    logger = getOrCreateCachedLogger(
+        "legion-startup", os.path.expanduser("~/.cache/legion/log/legion-startup.log"), True, cachedStartupLogger
+    )
     cachedStartupLogger = logger
     return logger
 
 
 def getAppLogger() -> Logger:
     global cachedAppLogger
-    logger = getOrCreateCachedLogger("legion",
-            os.path.expanduser("~/.cache/legion/log/legion.log"), True, cachedAppLogger)
+    logger = getOrCreateCachedLogger(
+        "legion", os.path.expanduser("~/.cache/legion/log/legion.log"), True, cachedAppLogger
+    )
     cachedAppLogger = logger
     return logger
 
 
 def getDbLogger() -> Logger:
     global cachedDbLogger
-    logger = getOrCreateCachedLogger("legion-db",
-            os.path.expanduser("~/.cache/legion/log/legion-db.log"), False, cachedDbLogger)
+    logger = getOrCreateCachedLogger(
+        "legion-db", os.path.expanduser("~/.cache/legion/log/legion-db.log"), False, cachedDbLogger
+    )
     cachedDbLogger = logger
     return logger
 
@@ -68,11 +72,12 @@ def getOrCreateCachedLogger(logName: str, logPath: str, console: bool, cachedLog
 
     import sys
     from rich.console import Console
+
     logging.basicConfig(
         level="INFO",
         format="%(message)s",
         datefmt="[%X]",
-        handlers=[RichHandler(rich_tracebacks=True, console=Console(file=sys.stderr))]
+        handlers=[RichHandler(rich_tracebacks=True, console=Console(file=sys.stderr))],
     )
 
     log = logging.getLogger("rich")

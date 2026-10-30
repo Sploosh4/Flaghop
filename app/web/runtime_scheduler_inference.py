@@ -4,7 +4,6 @@ from app.web import runtime_scheduler_host_inference as web_runtime_scheduler_ho
 from app.web import runtime_scheduler_inference_helpers as web_runtime_scheduler_inference_helpers
 from app.web import runtime_scheduler_observation_inference as web_runtime_scheduler_observation_inference
 
-
 CPE22_TOKEN_RE = web_runtime_scheduler_inference_helpers.CPE22_TOKEN_RE
 CPE23_TOKEN_RE = web_runtime_scheduler_inference_helpers.CPE23_TOKEN_RE
 CVE_TOKEN_RE = web_runtime_scheduler_inference_helpers.CVE_TOKEN_RE

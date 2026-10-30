@@ -5,94 +5,57 @@ from typing import Any, Dict, List, Optional, Tuple
 
 
 def run_scheduler_targets(
-        runtime,
-        *,
-        settings,
-        targets,
-        engagement_policy,
-        options,
-        should_cancel,
-        existing_attempts,
-        build_context,
-        on_ai_analysis,
-        reflect_progress,
-        on_reflection_analysis,
-        handle_blocked,
-        handle_approval,
-        execute_batch,
-        on_execution_result,
+    runtime,
+    *,
+    settings,
+    targets,
+    engagement_policy,
+    options,
+    should_cancel,
+    existing_attempts,
+    build_context,
+    on_ai_analysis,
+    reflect_progress,
+    on_reflection_analysis,
+    handle_blocked,
+    handle_approval,
+    execute_batch,
+    on_execution_result,
 ) -> Dict[str, Any]:
     target_list = list(targets or [])
     host_concurrency = max(1, min(int(getattr(options, "host_concurrency", 1) or 1), 8))
+    service = getattr(runtime, "__dict__", {}).get("scheduler")
+    run = service.run if service is not None else runtime.scheduler_orchestrator.run_targets
+    request = {
+        "settings": settings,
+        "engagement_policy": engagement_policy,
+        "options": options,
+        "should_cancel": should_cancel,
+        "existing_attempts": existing_attempts,
+        "build_context": build_context,
+        "on_ai_analysis": on_ai_analysis,
+        "reflect_progress": reflect_progress,
+        "on_reflection_analysis": on_reflection_analysis,
+        "handle_blocked": handle_blocked,
+        "handle_approval": handle_approval,
+        "execute_batch": execute_batch,
+        "on_execution_result": on_execution_result,
+    }
     if bool(getattr(options, "dig_deeper", False)) or host_concurrency <= 1 or len(target_list) <= 1:
-        return runtime.scheduler_orchestrator.run_targets(
-            settings=settings,
-            targets=target_list,
-            engagement_policy=engagement_policy,
-            options=options,
-            should_cancel=should_cancel,
-            existing_attempts=existing_attempts,
-            build_context=build_context,
-            on_ai_analysis=on_ai_analysis,
-            reflect_progress=reflect_progress,
-            on_reflection_analysis=on_reflection_analysis,
-            handle_blocked=handle_blocked,
-            handle_approval=handle_approval,
-            execute_batch=execute_batch,
-            on_execution_result=on_execution_result,
-        )
-
+        return run(targets=target_list, **request)
     target_groups = group_scheduler_targets_by_host(target_list)
     if len(target_groups) <= 1:
-        return runtime.scheduler_orchestrator.run_targets(
-            settings=settings,
-            targets=target_list,
-            engagement_policy=engagement_policy,
-            options=options,
-            should_cancel=should_cancel,
-            existing_attempts=existing_attempts,
-            build_context=build_context,
-            on_ai_analysis=on_ai_analysis,
-            reflect_progress=reflect_progress,
-            on_reflection_analysis=on_reflection_analysis,
-            handle_blocked=handle_blocked,
-            handle_approval=handle_approval,
-            execute_batch=execute_batch,
-            on_execution_result=on_execution_result,
-        )
+        return run(targets=target_list, **request)
 
     summaries: List[Dict[str, Any]] = []
     with ThreadPoolExecutor(
-            max_workers=min(host_concurrency, len(target_groups)),
-            thread_name_prefix="legion-scheduler-hosts",
+        max_workers=min(host_concurrency, len(target_groups)), thread_name_prefix="legion-scheduler-hosts"
     ) as pool:
-        future_map = {
-            pool.submit(
-                runtime.scheduler_orchestrator.run_targets,
-                settings=settings,
-                targets=group,
-                engagement_policy=engagement_policy,
-                options=options,
-                should_cancel=should_cancel,
-                existing_attempts=existing_attempts,
-                build_context=build_context,
-                on_ai_analysis=on_ai_analysis,
-                reflect_progress=reflect_progress,
-                on_reflection_analysis=on_reflection_analysis,
-                handle_blocked=handle_blocked,
-                handle_approval=handle_approval,
-                execute_batch=execute_batch,
-                on_execution_result=on_execution_result,
-            ): group
-            for group in target_groups
-        }
-        for future in as_completed(future_map):
+        futures = [pool.submit(run, targets=group, **request) for group in target_groups]
+        for future in as_completed(futures):
             summaries.append(future.result())
-
     return merge_scheduler_run_summaries(
-        summaries,
-        target_count=len(target_list),
-        dig_deeper=bool(getattr(options, "dig_deeper", False)),
+        summaries, target_count=len(target_list), dig_deeper=bool(getattr(options, "dig_deeper", False))
     )
 
 
@@ -121,10 +84,10 @@ def group_scheduler_targets_by_host(targets) -> List[List[Any]]:
 
 
 def merge_scheduler_run_summaries(
-        summaries: Optional[List[Dict[str, Any]]] = None,
-        *,
-        target_count: int = 0,
-        dig_deeper: bool = False,
+    summaries: Optional[List[Dict[str, Any]]] = None,
+    *,
+    target_count: int = 0,
+    dig_deeper: bool = False,
 ) -> Dict[str, Any]:
     merged = {
         "considered": 0,

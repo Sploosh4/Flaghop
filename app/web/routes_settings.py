@@ -12,14 +12,6 @@ def _settings_service() -> SettingsService:
     return SettingsService(runtime_from_app())
 
 
-@settings_bp.after_request
-def _disable_cache(response):
-    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
 @settings_bp.get("/api/settings/display")
 def settings_display_get():
     service = _settings_service()
@@ -34,9 +26,7 @@ def settings_display_save():
     service = _settings_service()
     try:
         payload = service.save_display_settings(request.get_json(silent=True) or {})
-        current_app.config["LEGION_COLORFUL_ASCII_BACKGROUND"] = bool(
-            payload.get("colorful_ascii_background", False)
-        )
+        current_app.config["LEGION_COLORFUL_ASCII_BACKGROUND"] = bool(payload.get("colorful_ascii_background", False))
         return jsonify(payload)
     except ValueError as exc:
         return json_error(str(exc), 400)

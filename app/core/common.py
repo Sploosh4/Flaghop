@@ -148,4 +148,3 @@ class Filters:
         log.info("Keyword search:")
         for keyword in self.keywords:
             log.info(keyword)
-

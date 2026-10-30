@@ -26,7 +26,6 @@ from app.web.runtime_screenshot_targets import (
     port_sort_key,
 )
 
-
 start_host_screenshot_refresh_job = web_runtime_screenshot_jobs.start_host_screenshot_refresh_job
 start_graph_screenshot_refresh_job = web_runtime_screenshot_jobs.start_graph_screenshot_refresh_job
 run_host_screenshot_refresh = web_runtime_screenshot_jobs.run_host_screenshot_refresh
@@ -34,12 +33,12 @@ run_graph_screenshot_refresh = web_runtime_screenshot_jobs.run_graph_screenshot_
 
 
 def take_screenshot(
-        runtime,
-        host_ip: str,
-        port: str,
-        service_name: str = "",
-        return_artifacts: bool = False,
-        browser_settings: Optional[Dict[str, Any]] = None,
+    runtime,
+    host_ip: str,
+    port: str,
+    service_name: str = "",
+    return_artifacts: bool = False,
+    browser_settings: Optional[Dict[str, Any]] = None,
 ) -> Any:
     normalized_service = str(service_name or "").strip().rstrip("?").lower()
     if is_rdp_service(normalized_service) or is_vnc_service(normalized_service):
@@ -62,13 +61,17 @@ def take_screenshot(
     target_host = choose_preferred_screenshot_host(runtime._hostname_for_ip(host_ip), host_ip)
     host_port = f"{target_host}:{port}"
     prefer_https = bool(isHttps(target_host, port))
-    url_candidates = [
-        f"https://{host_port}",
-        f"http://{host_port}",
-    ] if prefer_https else [
-        f"http://{host_port}",
-        f"https://{host_port}",
-    ]
+    url_candidates = (
+        [
+            f"https://{host_port}",
+            f"http://{host_port}",
+        ]
+        if prefer_https
+        else [
+            f"http://{host_port}",
+            f"https://{host_port}",
+        ]
+    )
 
     capture = None
     failure_capture = None
@@ -147,13 +150,13 @@ def take_screenshot(
 
 
 def take_remote_service_screenshot(
-        runtime,
-        *,
-        host_ip: str,
-        port: str,
-        service_name: str,
-        return_artifacts: bool = False,
-        browser_settings: Optional[Dict[str, Any]] = None,
+    runtime,
+    *,
+    host_ip: str,
+    port: str,
+    service_name: str,
+    return_artifacts: bool = False,
+    browser_settings: Optional[Dict[str, Any]] = None,
 ) -> Any:
     with runtime._lock:
         project = runtime._require_active_project()
@@ -202,11 +205,13 @@ def take_remote_service_screenshot(
                 env=build_tool_execution_env(),
             )
             output = runtime._truncate_scheduler_text(result.stdout or "", 260)
-            attempts.append({
-                "command": " ".join(command),
-                "returncode": int(result.returncode),
-                "output": output,
-            })
+            attempts.append(
+                {
+                    "command": " ".join(command),
+                    "returncode": int(result.returncode),
+                    "output": output,
+                }
+            )
             if result.returncode == 0 and os.path.isfile(dst_path) and os.path.getsize(dst_path) > 0:
                 metadata_path = write_screenshot_metadata(
                     dst_path,
@@ -230,17 +235,21 @@ def take_remote_service_screenshot(
                     return True, "completed", artifact_refs
                 return True, "completed"
         except FileNotFoundError:
-            attempts.append({
-                "command": " ".join(command),
-                "returncode": 127,
-                "output": "command not found",
-            })
+            attempts.append(
+                {
+                    "command": " ".join(command),
+                    "returncode": 127,
+                    "output": "command not found",
+                }
+            )
         except Exception as exc:
-            attempts.append({
-                "command": " ".join(command),
-                "returncode": 1,
-                "output": runtime._truncate_scheduler_text(str(exc), 260),
-            })
+            attempts.append(
+                {
+                    "command": " ".join(command),
+                    "returncode": 1,
+                    "output": runtime._truncate_scheduler_text(str(exc), 260),
+                }
+            )
 
     detail_parts = []
     for item in attempts[:3]:

@@ -1,29 +1,16 @@
-/** Workspace workspace view. */
 import { renderApprovals, renderDecisionRationaleFeed, renderDecisions, renderJobs } from "./activity.js";
 import { closeHostRemoveModalAction } from "./dialogs.js";
-import { getValue, makeCell, setText, setValue, setWorkspaceStatus } from "./dom.js";
+import { makeCell, setText, setValue, setWorkspaceStatus } from "./dom.js";
 import { graphRenderLayoutOptions, graphUpdateHostFilterOptions } from "./graph_common.js";
 import { graphRenderWorkspace } from "./graph_render.js";
 import { buildHostActionButton, buildLaunchToolButton } from "./host_actions.js";
 import { makeCategoryCell, normalizeServiceFilterList, selectedHostServiceFilters, setHostServiceFilterAction, setServicesHostFilterAction, syncCategoryFilterOptions, syncHostFilterControls, syncHostServiceFilterOptions } from "./host_filters.js";
+import { setServicesHostScope } from "./host_scope.js";
 import { closeProcessOutputModal, closeScreenshotModal, closeScriptOutputModal, renderProcesses, renderSummary } from "./process_output.js";
 import { graphWorkspaceState, workspaceState } from "./state.js";
 import { openManualToolPicker, populateManualToolSelect } from "./tools.js";
 import { loadHostDetail, loadWorkspaceServices } from "./workspace_data.js";
-
-export function renderProject(project) {
-    setText("project-name", project.name || "");
-    const projectName = document.getElementById("project-name");
-    if (projectName) projectName.dataset.displayName = project.display_name || "";
-    setText("project-kind", project.is_temporary ? "temporary" : "saved");
-    setText("project-output-folder", project.output_folder || "");
-    setText("project-running-folder", project.running_folder || "");
-
-    const currentSavePath = getValue("project-save-path").trim();
-    if (!currentSavePath && project.name) {
-        setValue("project-save-path", project.name);
-    }
-}
+/** Workspace workspace view. */
 
 
 export function clearHostDetailView({resetForms = true} = {}) {
@@ -150,29 +137,6 @@ export function renderHostSelector(hosts) {
 }
 
 
-export function workspaceHostLabel(hostId) {
-    const normalizedHostId = parseInt(hostId, 10);
-    if (!Number.isFinite(normalizedHostId) || normalizedHostId <= 0) {
-        return "";
-    }
-    const host = (workspaceState.hosts || []).find((item) => String(item?.id || "") === String(normalizedHostId));
-    if (!host) {
-        return "";
-    }
-    return String(host.hostname || host.ip || `host ${host.id || normalizedHostId}`).trim();
-}
-
-
-export function setServicesHostScope(hostId, hostLabel = "") {
-    const normalizedHostId = parseInt(hostId, 10);
-    const nextHostId = Number.isFinite(normalizedHostId) && normalizedHostId > 0 ? normalizedHostId : 0;
-    const nextLabel = nextHostId ? String(hostLabel || workspaceHostLabel(nextHostId) || `host ${nextHostId}`).trim() : "";
-    const previousHostId = parseInt(workspaceState.servicesHostFilterId, 10);
-    const previousLabel = String(workspaceState.servicesHostFilterLabel || "").trim();
-    workspaceState.servicesHostFilterId = nextHostId;
-    workspaceState.servicesHostFilterLabel = nextLabel;
-    return String(previousHostId || 0) !== String(nextHostId || 0) || previousLabel !== nextLabel;
-}
 
 
 export function renderHostSelectionState({syncGraph = false, preserveGraphDetail = true} = {}) {

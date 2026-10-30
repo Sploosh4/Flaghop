@@ -15,13 +15,14 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import String, Column, Integer, ForeignKey
 
 from db.database import Base
 
 
 class cve(Base):
-    __tablename__ = 'cve'
+    __tablename__ = "cve"
     name = Column(String)
     id = Column(Integer, primary_key=True)
     url = Column(String)
@@ -32,11 +33,12 @@ class cve(Base):
     exploitId = Column(Integer)
     exploit = Column(String)
     exploitUrl = Column(String)
-    serviceId = Column(String, ForeignKey('serviceObj.id'))
-    hostId = Column(String, ForeignKey('hostObj.id'))
+    serviceId = Column(String, ForeignKey("serviceObj.id"))
+    hostId = Column(String, ForeignKey("hostObj.id"))
 
-    def __init__(self, name, url, product, hostId, severity='', source='', version='', exploitId=0, exploit='',
-                 exploitUrl=''):
+    def __init__(
+        self, name, url, product, hostId, severity="", source="", version="", exploitId=0, exploit="", exploitUrl=""
+    ):
         self.url = url
         self.name = name
         self.product = product

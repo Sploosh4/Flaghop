@@ -13,7 +13,6 @@ from sqlalchemy import text
 
 from tests.timezone import local_timezone
 
-
 for _name in ("Mapping", "MutableMapping", "Sequence", "Callable"):
     if not hasattr(collections, _name):
         setattr(collections, _name, getattr(collections.abc, _name))
@@ -56,8 +55,12 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             self.assertEqual("legacy-single-legion-zip", restored["restored"]["manifest_format"])
             self.assertTrue(str(restored_project.properties.projectName or "").endswith("AllendalePD.legion"))
             self.assertTrue(os.path.isdir(restored_project.properties.outputFolder))
-            self.assertTrue(os.path.isfile(os.path.join(restored_project.properties.outputFolder, "legion-usernames.txt")))
-            self.assertTrue(os.path.isfile(os.path.join(restored_project.properties.outputFolder, "legion-passwords.txt")))
+            self.assertTrue(
+                os.path.isfile(os.path.join(restored_project.properties.outputFolder, "legion-usernames.txt"))
+            )
+            self.assertTrue(
+                os.path.isfile(os.path.join(restored_project.properties.outputFolder, "legion-passwords.txt"))
+            )
             self.assertTrue(os.path.isdir(os.path.join(restored_project.properties.outputFolder, "screenshots")))
 
             snapshot = runtime.get_snapshot()
@@ -144,14 +147,16 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
                 host_id,
                 {
                     "host_ip": "10.0.0.5",
-                    "screenshots": [{
-                        "artifact_ref": f"/api/screenshots/{screenshot_name}",
-                        "filename": screenshot_name,
-                        "port": "443",
-                        "protocol": "tcp",
-                        "source_kind": "observed",
-                        "observed": True,
-                    }],
+                    "screenshots": [
+                        {
+                            "artifact_ref": f"/api/screenshots/{screenshot_name}",
+                            "filename": screenshot_name,
+                            "port": "443",
+                            "protocol": "tcp",
+                            "source_kind": "observed",
+                            "observed": True,
+                        }
+                    ],
                 },
                 merge=False,
             )
@@ -159,39 +164,43 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             runtime._ensure_process_tables()
             process_session = project.database.session()
             try:
-                process_result = process_session.execute(text(
-                    "INSERT INTO process ("
-                    "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
-                    "estimatedRemaining, elapsed, outputfile, status, closed, percent"
-                    ") VALUES ("
-                    ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
-                    ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent"
-                    ")"
-                ), {
-                    "pid": "1234",
-                    "display": "artifact process",
-                    "name": "artifact-process",
-                    "tabTitle": "Artifact Process",
-                    "hostIp": "10.0.0.5",
-                    "port": "443",
-                    "protocol": "tcp",
-                    "command": f"cat {artifact_path}",
-                    "startTime": "2026-03-17T00:00:00Z",
-                    "endTime": "2026-03-17T00:00:05Z",
-                    "estimatedRemaining": 0,
-                    "elapsed": 5,
-                    "outputfile": artifact_path,
-                    "status": "Finished",
-                    "closed": "False",
-                    "percent": "100.0",
-                })
+                process_result = process_session.execute(
+                    text(
+                        "INSERT INTO process ("
+                        "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
+                        "estimatedRemaining, elapsed, outputfile, status, closed, percent"
+                        ") VALUES ("
+                        ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
+                        ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent"
+                        ")"
+                    ),
+                    {
+                        "pid": "1234",
+                        "display": "artifact process",
+                        "name": "artifact-process",
+                        "tabTitle": "Artifact Process",
+                        "hostIp": "10.0.0.5",
+                        "port": "443",
+                        "protocol": "tcp",
+                        "command": f"cat {artifact_path}",
+                        "startTime": "2026-03-17T00:00:00Z",
+                        "endTime": "2026-03-17T00:00:05Z",
+                        "estimatedRemaining": 0,
+                        "elapsed": 5,
+                        "outputfile": artifact_path,
+                        "status": "Finished",
+                        "closed": "False",
+                        "percent": "100.0",
+                    },
+                )
                 process_id = int(process_result.lastrowid or 0)
-                process_session.execute(text(
-                    "INSERT INTO process_output (processId, output) VALUES (:process_id, :output)"
-                ), {
-                    "process_id": process_id,
-                    "output": "captured output",
-                })
+                process_session.execute(
+                    text("INSERT INTO process_output (processId, output) VALUES (:process_id, :output)"),
+                    {
+                        "process_id": process_id,
+                        "output": "captured output",
+                    },
+                )
                 process_session.commit()
             finally:
                 process_session.close()
@@ -238,11 +247,13 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             with runtime._lock:
                 snapshot = WebRuntime._get_graph_snapshot_locked(runtime)
             screenshot_node = next(
-                node for node in list(snapshot.get("nodes", []) or [])
+                node
+                for node in list(snapshot.get("nodes", []) or [])
                 if str(node.get("type", "") or "") == "screenshot"
             )
             artifact_node = next(
-                node for node in list(snapshot.get("nodes", []) or [])
+                node
+                for node in list(snapshot.get("nodes", []) or [])
                 if str(node.get("type", "") or "") == "artifact"
                 and str(node.get("label", "") or "") == "scan-output.txt"
             )
@@ -259,9 +270,9 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
 
             restored_session = restored_project.database.session()
             try:
-                process_row = restored_session.execute(text(
-                    "SELECT outputfile, command FROM process WHERE id = :id LIMIT 1"
-                ), {"id": int(process_id)}).fetchone()
+                process_row = restored_session.execute(
+                    text("SELECT outputfile, command FROM process WHERE id = :id LIMIT 1"), {"id": int(process_id)}
+                ).fetchone()
             finally:
                 restored_session.close()
             self.assertIsNotNone(process_row)
@@ -277,15 +288,14 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
 
             execution_records = runtime.get_scheduler_execution_records(limit=10)
             matching_record = next(
-                row for row in list(execution_records or [])
+                row
+                for row in list(execution_records or [])
                 if str(row.get("execution_id", "") or "") == "restore-exec-1"
             )
             rebased_artifact_refs = [str(item or "") for item in list(matching_record.get("artifact_refs", []) or [])]
             self.assertTrue(any(ref.endswith(screenshot_name) for ref in rebased_artifact_refs))
             self.assertTrue(any(ref.endswith("scan-output.txt") for ref in rebased_artifact_refs))
-            self.assertTrue(
-                all(os.path.exists(ref) for ref in rebased_artifact_refs)
-            )
+            self.assertTrue(all(os.path.exists(ref) for ref in rebased_artifact_refs))
         finally:
             if bundle_path and os.path.isfile(bundle_path):
                 os.remove(bundle_path)
@@ -302,16 +312,18 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
 
         bundle_path = ""
         try:
-            runtime.get_scheduler_provider_logs = MagicMock(return_value=[
-                {
-                    "timestamp": "2026-03-21T22:43:14Z",
-                    "provider": "openai",
-                    "method": "POST",
-                    "endpoint": "https://api.openai.com/v1/chat/completions",
-                    "prompt_metadata": {"prompt_type": "ranking"},
-                    "response_status": 200,
-                }
-            ])
+            runtime.get_scheduler_provider_logs = MagicMock(
+                return_value=[
+                    {
+                        "timestamp": "2026-03-21T22:43:14Z",
+                        "provider": "openai",
+                        "method": "POST",
+                        "endpoint": "https://api.openai.com/v1/chat/completions",
+                        "prompt_metadata": {"prompt_type": "ranking"},
+                        "response_status": 200,
+                    }
+                ]
+            )
 
             bundle_path, _bundle_name = runtime.build_project_bundle_zip()
             with zipfile.ZipFile(bundle_path, "r") as archive:
@@ -342,74 +354,81 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             runtime._ensure_process_tables()
             session = project.database.session()
             try:
-                first_process = session.execute(text(
-                    "INSERT INTO process ("
-                    "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
-                    "estimatedRemaining, elapsed, outputfile, status, closed, percent, "
-                    "progressMessage, progressSource, progressUpdatedAt"
-                    ") VALUES ("
-                    ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
-                    ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent, "
-                    ":progressMessage, :progressSource, :progressUpdatedAt"
-                    ")"
-                ), {
-                    "pid": "4201",
-                    "display": "True",
-                    "name": "whatweb-http",
-                    "tabTitle": "WhatWeb HTTP",
-                    "hostIp": "10.0.0.5",
-                    "port": "5357",
-                    "protocol": "tcp",
-                    "command": "whatweb http://10.0.0.5:5357",
-                    "startTime": "2026-03-21T22:30:00Z",
-                    "endTime": "2026-03-21T22:30:05Z",
-                    "estimatedRemaining": 0,
-                    "elapsed": 5,
-                    "outputfile": "/tmp/legion/whatweb-http.txt",
-                    "status": "Finished",
-                    "closed": "False",
-                    "percent": "100",
-                    "progressMessage": "",
-                    "progressSource": "",
-                    "progressUpdatedAt": "",
-                })
-                session.execute(text(
-                    "INSERT INTO process_output (processId, output) VALUES (:process_id, :output)"
-                ), {
-                    "process_id": int(first_process.lastrowid or 0),
-                    "output": "fingerprint complete",
-                })
-                session.execute(text(
-                    "INSERT INTO process ("
-                    "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
-                    "estimatedRemaining, elapsed, outputfile, status, closed, percent, "
-                    "progressMessage, progressSource, progressUpdatedAt"
-                    ") VALUES ("
-                    ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
-                    ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent, "
-                    ":progressMessage, :progressSource, :progressUpdatedAt"
-                    ")"
-                ), {
-                    "pid": "4202",
-                    "display": "False",
-                    "name": "curl-headers",
-                    "tabTitle": "Curl Headers",
-                    "hostIp": "10.0.0.5",
-                    "port": "5357",
-                    "protocol": "tcp",
-                    "command": "curl -k -I http://10.0.0.5:5357",
-                    "startTime": "21 Mar 2026 22:30:01.000000",
-                    "endTime": "21 Mar 2026 22:30:02.000000",
-                    "estimatedRemaining": 0,
-                    "elapsed": 1,
-                    "outputfile": "/tmp/legion/curl-headers.txt",
-                    "status": "Finished",
-                    "closed": "True",
-                    "percent": "100",
-                    "progressMessage": "Requests 2534/4720 | RPS 166 | Matches 0 | Errors 16",
-                    "progressSource": "nuclei",
-                    "progressUpdatedAt": "21 Mar 2026 22:30:02.500000",
-                })
+                first_process = session.execute(
+                    text(
+                        "INSERT INTO process ("
+                        "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
+                        "estimatedRemaining, elapsed, outputfile, status, closed, percent, "
+                        "progressMessage, progressSource, progressUpdatedAt"
+                        ") VALUES ("
+                        ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
+                        ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent, "
+                        ":progressMessage, :progressSource, :progressUpdatedAt"
+                        ")"
+                    ),
+                    {
+                        "pid": "4201",
+                        "display": "True",
+                        "name": "whatweb-http",
+                        "tabTitle": "WhatWeb HTTP",
+                        "hostIp": "10.0.0.5",
+                        "port": "5357",
+                        "protocol": "tcp",
+                        "command": "whatweb http://10.0.0.5:5357",
+                        "startTime": "2026-03-21T22:30:00Z",
+                        "endTime": "2026-03-21T22:30:05Z",
+                        "estimatedRemaining": 0,
+                        "elapsed": 5,
+                        "outputfile": "/tmp/legion/whatweb-http.txt",
+                        "status": "Finished",
+                        "closed": "False",
+                        "percent": "100",
+                        "progressMessage": "",
+                        "progressSource": "",
+                        "progressUpdatedAt": "",
+                    },
+                )
+                session.execute(
+                    text("INSERT INTO process_output (processId, output) VALUES (:process_id, :output)"),
+                    {
+                        "process_id": int(first_process.lastrowid or 0),
+                        "output": "fingerprint complete",
+                    },
+                )
+                session.execute(
+                    text(
+                        "INSERT INTO process ("
+                        "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
+                        "estimatedRemaining, elapsed, outputfile, status, closed, percent, "
+                        "progressMessage, progressSource, progressUpdatedAt"
+                        ") VALUES ("
+                        ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
+                        ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent, "
+                        ":progressMessage, :progressSource, :progressUpdatedAt"
+                        ")"
+                    ),
+                    {
+                        "pid": "4202",
+                        "display": "False",
+                        "name": "curl-headers",
+                        "tabTitle": "Curl Headers",
+                        "hostIp": "10.0.0.5",
+                        "port": "5357",
+                        "protocol": "tcp",
+                        "command": "curl -k -I http://10.0.0.5:5357",
+                        "startTime": "21 Mar 2026 22:30:01.000000",
+                        "endTime": "21 Mar 2026 22:30:02.000000",
+                        "estimatedRemaining": 0,
+                        "elapsed": 1,
+                        "outputfile": "/tmp/legion/curl-headers.txt",
+                        "status": "Finished",
+                        "closed": "True",
+                        "percent": "100",
+                        "progressMessage": "Requests 2534/4720 | RPS 166 | Matches 0 | Errors 16",
+                        "progressSource": "nuclei",
+                        "progressUpdatedAt": "21 Mar 2026 22:30:02.500000",
+                    },
+                )
                 session.commit()
             finally:
                 session.close()
@@ -423,15 +442,17 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
                 payload = json.loads(archive.read(process_history_name).decode("utf-8"))
 
             local_tz = datetime.datetime.now().astimezone().tzinfo or datetime.timezone.utc
-            expected_human_start_utc = datetime.datetime(
-                2026, 3, 21, 22, 30, 1, tzinfo=local_tz
-            ).astimezone(datetime.timezone.utc).isoformat()
-            expected_human_end_utc = datetime.datetime(
-                2026, 3, 21, 22, 30, 2, tzinfo=local_tz
-            ).astimezone(datetime.timezone.utc).isoformat()
-            expected_human_progress_utc = datetime.datetime(
-                2026, 3, 21, 22, 30, 2, 500000, tzinfo=local_tz
-            ).astimezone(datetime.timezone.utc).isoformat()
+            expected_human_start_utc = (
+                datetime.datetime(2026, 3, 21, 22, 30, 1, tzinfo=local_tz).astimezone(datetime.timezone.utc).isoformat()
+            )
+            expected_human_end_utc = (
+                datetime.datetime(2026, 3, 21, 22, 30, 2, tzinfo=local_tz).astimezone(datetime.timezone.utc).isoformat()
+            )
+            expected_human_progress_utc = (
+                datetime.datetime(2026, 3, 21, 22, 30, 2, 500000, tzinfo=local_tz)
+                .astimezone(datetime.timezone.utc)
+                .isoformat()
+            )
 
             self.assertEqual(2, int(manifest.get("process_history_count", 0) or 0))
             self.assertEqual(2, len(payload))
@@ -485,10 +506,12 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
                 hash_value="bob::CORP:8877665544332211:11112222333344445555666677778888:0101000000000000",
                 details="NTLMv2-SSP hash",
             )
-            runtime.save_credential_capture_config({
-                "responder": {"interface_name": "eth0", "mode": "passive"},
-                "ntlmrelayx": {"target": "smb://10.0.0.20", "socks": True},
-            })
+            runtime.save_credential_capture_config(
+                {
+                    "responder": {"interface_name": "eth0", "mode": "passive"},
+                    "ntlmrelayx": {"target": "smb://10.0.0.20", "socks": True},
+                }
+            )
 
             bundle_path, _bundle_name = runtime.build_project_bundle_zip()
             with zipfile.ZipFile(bundle_path, "r") as archive:
@@ -527,37 +550,40 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             runtime._ensure_process_tables()
             session = project.database.session()
             try:
-                session.execute(text(
-                    "INSERT INTO process ("
-                    "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
-                    "estimatedRemaining, elapsed, outputfile, status, closed, percent, "
-                    "progressMessage, progressSource, progressUpdatedAt"
-                    ") VALUES ("
-                    ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
-                    ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent, "
-                    ":progressMessage, :progressSource, :progressUpdatedAt"
-                    ")"
-                ), {
-                    "pid": "7001",
-                    "display": "False",
-                    "name": "httpx-bootstrap",
-                    "tabTitle": "httpx bootstrap",
-                    "hostIp": "api.example.com",
-                    "port": "",
-                    "protocol": "tcp",
-                    "command": "httpx -l targets.txt -json",
-                    "startTime": "24 Mar 2026 02:27:52.130291",
-                    "endTime": "2026-03-24T02:27:53.130291+00:00",
-                    "estimatedRemaining": 0,
-                    "elapsed": 1,
-                    "outputfile": "/tmp/legion/httpx-bootstrap.txt",
-                    "status": "Finished",
-                    "closed": "True",
-                    "percent": "100",
-                    "progressMessage": "",
-                    "progressSource": "",
-                    "progressUpdatedAt": "24 Mar 2026 02:27:52.500000",
-                })
+                session.execute(
+                    text(
+                        "INSERT INTO process ("
+                        "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
+                        "estimatedRemaining, elapsed, outputfile, status, closed, percent, "
+                        "progressMessage, progressSource, progressUpdatedAt"
+                        ") VALUES ("
+                        ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
+                        ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent, "
+                        ":progressMessage, :progressSource, :progressUpdatedAt"
+                        ")"
+                    ),
+                    {
+                        "pid": "7001",
+                        "display": "False",
+                        "name": "httpx-bootstrap",
+                        "tabTitle": "httpx bootstrap",
+                        "hostIp": "api.example.com",
+                        "port": "",
+                        "protocol": "tcp",
+                        "command": "httpx -l targets.txt -json",
+                        "startTime": "24 Mar 2026 02:27:52.130291",
+                        "endTime": "2026-03-24T02:27:53.130291+00:00",
+                        "estimatedRemaining": 0,
+                        "elapsed": 1,
+                        "outputfile": "/tmp/legion/httpx-bootstrap.txt",
+                        "status": "Finished",
+                        "closed": "True",
+                        "percent": "100",
+                        "progressMessage": "",
+                        "progressSource": "",
+                        "progressUpdatedAt": "24 Mar 2026 02:27:52.500000",
+                    },
+                )
                 session.commit()
             finally:
                 session.close()
@@ -589,44 +615,48 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             runtime._ensure_process_tables()
             session = project.database.session()
             try:
-                process_result = session.execute(text(
-                    "INSERT INTO process ("
-                    "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
-                    "estimatedRemaining, elapsed, outputfile, status, closed, percent, "
-                    "progressMessage, progressSource, progressUpdatedAt"
-                    ") VALUES ("
-                    ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
-                    ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent, "
-                    ":progressMessage, :progressSource, :progressUpdatedAt"
-                    ")"
-                ), {
-                    "pid": "5001",
-                    "display": "True",
-                    "name": "nuclei-web",
-                    "tabTitle": "Nuclei Web",
-                    "hostIp": "10.0.0.9",
-                    "port": "5357",
-                    "protocol": "tcp",
-                    "command": "nuclei -u http://10.0.0.9:5357",
-                    "startTime": "2026-03-22T05:08:46Z",
-                    "endTime": "",
-                    "estimatedRemaining": 13,
-                    "elapsed": 15,
-                    "outputfile": "/tmp/legion/nuclei-web.txt",
-                    "status": "Running",
-                    "closed": "False",
-                    "percent": "53.0",
-                    "progressMessage": "Requests 2534/4720 | RPS 166 | Matches 0 | Errors 16",
-                    "progressSource": "nuclei",
-                    "progressUpdatedAt": "22 Mar 2026 00:08:46.336234",
-                })
+                process_result = session.execute(
+                    text(
+                        "INSERT INTO process ("
+                        "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
+                        "estimatedRemaining, elapsed, outputfile, status, closed, percent, "
+                        "progressMessage, progressSource, progressUpdatedAt"
+                        ") VALUES ("
+                        ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
+                        ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent, "
+                        ":progressMessage, :progressSource, :progressUpdatedAt"
+                        ")"
+                    ),
+                    {
+                        "pid": "5001",
+                        "display": "True",
+                        "name": "nuclei-web",
+                        "tabTitle": "Nuclei Web",
+                        "hostIp": "10.0.0.9",
+                        "port": "5357",
+                        "protocol": "tcp",
+                        "command": "nuclei -u http://10.0.0.9:5357",
+                        "startTime": "2026-03-22T05:08:46Z",
+                        "endTime": "",
+                        "estimatedRemaining": 13,
+                        "elapsed": 15,
+                        "outputfile": "/tmp/legion/nuclei-web.txt",
+                        "status": "Running",
+                        "closed": "False",
+                        "percent": "53.0",
+                        "progressMessage": "Requests 2534/4720 | RPS 166 | Matches 0 | Errors 16",
+                        "progressSource": "nuclei",
+                        "progressUpdatedAt": "22 Mar 2026 00:08:46.336234",
+                    },
+                )
                 process_id = int(process_result.lastrowid or 0)
-                session.execute(text(
-                    "INSERT INTO process_output (processId, output) VALUES (:process_id, :output)"
-                ), {
-                    "process_id": process_id,
-                    "output": "[0:00:15] | Requests: 2534/4720 (53%)",
-                })
+                session.execute(
+                    text("INSERT INTO process_output (processId, output) VALUES (:process_id, :output)"),
+                    {
+                        "process_id": process_id,
+                        "output": "[0:00:15] | Requests: 2534/4720 (53%)",
+                    },
+                )
                 session.commit()
             finally:
                 session.close()
@@ -654,39 +684,43 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             runtime._ensure_process_tables()
             session = project.database.session()
             try:
-                process_result = session.execute(text(
-                    "INSERT INTO process ("
-                    "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
-                    "estimatedRemaining, elapsed, outputfile, status, closed, percent"
-                    ") VALUES ("
-                    ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
-                    ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent"
-                    ")"
-                ), {
-                    "pid": "9101",
-                    "display": "True",
-                    "name": "shodan-enrichment",
-                    "tabTitle": "Shodan Enrichment",
-                    "hostIp": "connect.example.com",
-                    "port": "",
-                    "protocol": "tcp",
-                    "command": "python3 -m app.shodan_probe --target connect.example.com --api-key super-secret-key --output /tmp/out.json",
-                    "startTime": "2026-03-24T10:00:00Z",
-                    "endTime": "2026-03-24T10:00:05Z",
-                    "estimatedRemaining": 0,
-                    "elapsed": 5,
-                    "outputfile": "/tmp/out.json",
-                    "status": "Finished",
-                    "closed": "False",
-                    "percent": "100",
-                })
+                process_result = session.execute(
+                    text(
+                        "INSERT INTO process ("
+                        "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
+                        "estimatedRemaining, elapsed, outputfile, status, closed, percent"
+                        ") VALUES ("
+                        ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
+                        ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent"
+                        ")"
+                    ),
+                    {
+                        "pid": "9101",
+                        "display": "True",
+                        "name": "shodan-enrichment",
+                        "tabTitle": "Shodan Enrichment",
+                        "hostIp": "connect.example.com",
+                        "port": "",
+                        "protocol": "tcp",
+                        "command": "python3 -m app.shodan_probe --target connect.example.com --api-key super-secret-key --output /tmp/out.json",
+                        "startTime": "2026-03-24T10:00:00Z",
+                        "endTime": "2026-03-24T10:00:05Z",
+                        "estimatedRemaining": 0,
+                        "elapsed": 5,
+                        "outputfile": "/tmp/out.json",
+                        "status": "Finished",
+                        "closed": "False",
+                        "percent": "100",
+                    },
+                )
                 process_id = int(process_result.lastrowid or 0)
-                session.execute(text(
-                    "INSERT INTO process_output (processId, output) VALUES (:process_id, :output)"
-                ), {
-                    "process_id": process_id,
-                    "output": "ok",
-                })
+                session.execute(
+                    text("INSERT INTO process_output (processId, output) VALUES (:process_id, :output)"),
+                    {
+                        "process_id": process_id,
+                        "output": "ok",
+                    },
+                )
                 session.commit()
             finally:
                 session.close()
@@ -710,32 +744,35 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             runtime._ensure_process_tables()
             session = project.database.session()
             try:
-                session.execute(text(
-                    "INSERT INTO process ("
-                    "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
-                    "estimatedRemaining, elapsed, outputfile, status, closed, percent"
-                    ") VALUES ("
-                    ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
-                    ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent"
-                    ")"
-                ), {
-                    "pid": "9102",
-                    "display": "False",
-                    "name": "grayhatwarfare",
-                    "tabTitle": "Grayhat Warfare",
-                    "hostIp": "tantalumlabs.io",
-                    "port": "",
-                    "protocol": "tcp",
-                    "command": "GRAYHAT_API_KEY='top-secret-token' python3 -m app.grayhatwarfare_probe --domain tantalumlabs.io --api-key top-secret-token --output /tmp/grayhat.json",
-                    "startTime": "2026-03-24T10:10:00Z",
-                    "endTime": "2026-03-24T10:10:07Z",
-                    "estimatedRemaining": 0,
-                    "elapsed": 7,
-                    "outputfile": "/tmp/grayhat.json",
-                    "status": "Finished",
-                    "closed": "True",
-                    "percent": "100",
-                })
+                session.execute(
+                    text(
+                        "INSERT INTO process ("
+                        "pid, display, name, tabTitle, hostIp, port, protocol, command, startTime, endTime, "
+                        "estimatedRemaining, elapsed, outputfile, status, closed, percent"
+                        ") VALUES ("
+                        ":pid, :display, :name, :tabTitle, :hostIp, :port, :protocol, :command, :startTime, :endTime, "
+                        ":estimatedRemaining, :elapsed, :outputfile, :status, :closed, :percent"
+                        ")"
+                    ),
+                    {
+                        "pid": "9102",
+                        "display": "False",
+                        "name": "grayhatwarfare",
+                        "tabTitle": "Grayhat Warfare",
+                        "hostIp": "tantalumlabs.io",
+                        "port": "",
+                        "protocol": "tcp",
+                        "command": "GRAYHAT_API_KEY='top-secret-token' python3 -m app.grayhatwarfare_probe --domain tantalumlabs.io --api-key top-secret-token --output /tmp/grayhat.json",
+                        "startTime": "2026-03-24T10:10:00Z",
+                        "endTime": "2026-03-24T10:10:07Z",
+                        "estimatedRemaining": 0,
+                        "elapsed": 7,
+                        "outputfile": "/tmp/grayhat.json",
+                        "status": "Finished",
+                        "closed": "True",
+                        "percent": "100",
+                    },
+                )
                 session.commit()
             finally:
                 session.close()
@@ -791,14 +828,16 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
                 host_id,
                 {
                     "host_ip": "192.168.3.1",
-                    "screenshots": [{
-                        "artifact_ref": f"/api/screenshots/{screenshot_name}",
-                        "filename": screenshot_name,
-                        "port": "80",
-                        "protocol": "tcp",
-                        "source_kind": "observed",
-                        "observed": True,
-                    }],
+                    "screenshots": [
+                        {
+                            "artifact_ref": f"/api/screenshots/{screenshot_name}",
+                            "filename": screenshot_name,
+                            "port": "80",
+                            "protocol": "tcp",
+                            "source_kind": "observed",
+                            "observed": True,
+                        }
+                    ],
                 },
                 merge=False,
             )
@@ -807,7 +846,8 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             with runtime._lock:
                 snapshot = runtime._get_graph_snapshot_locked()
             screenshot_node = next(
-                node for node in list(snapshot.get("nodes", []) or [])
+                node
+                for node in list(snapshot.get("nodes", []) or [])
                 if str(node.get("type", "") or "") == "screenshot"
             )
 
@@ -849,14 +889,16 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
                 host_id,
                 {
                     "host_ip": "192.168.3.133",
-                    "findings": [{
-                        "title": "SMB shares enumerated (2)",
-                        "severity": "info",
-                        "evidence": "smbmap: ADMIN$, C$",
-                        "evidence_items": ["ADMIN$", "C$"],
-                        "source_kind": "observed",
-                        "observed": True,
-                    }],
+                    "findings": [
+                        {
+                            "title": "SMB shares enumerated (2)",
+                            "severity": "info",
+                            "evidence": "smbmap: ADMIN$, C$",
+                            "evidence_items": ["ADMIN$", "C$"],
+                            "source_kind": "observed",
+                            "observed": True,
+                        }
+                    ],
                 },
                 merge=False,
             )
@@ -865,12 +907,14 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             with runtime._lock:
                 snapshot = runtime._get_graph_snapshot_locked()
             finding_node = next(
-                node for node in list(snapshot.get("nodes", []) or [])
+                node
+                for node in list(snapshot.get("nodes", []) or [])
                 if str(node.get("type", "") or "") == "finding"
                 and str(node.get("label", "") or "") == "SMB shares enumerated (2)"
             )
             evidence_node = next(
-                node for node in list(snapshot.get("nodes", []) or [])
+                node
+                for node in list(snapshot.get("nodes", []) or [])
                 if str(node.get("type", "") or "") == "evidence_record"
                 and str(node.get("properties", {}).get("evidence", "") or "") == "smbmap: ADMIN$, C$"
             )

@@ -1,4 +1,5 @@
 """Temporary process-local timezone for tests of legacy, offset-free timestamps."""
+
 from contextlib import contextmanager
 import os
 import time
@@ -8,10 +9,10 @@ from unittest.mock import patch
 
 @contextmanager
 def local_timezone(zone):
-    if not hasattr(time, 'tzset'):
-        raise unittest.SkipTest('The platform cannot select a process-local timezone')
+    if not hasattr(time, "tzset"):
+        raise unittest.SkipTest("The platform cannot select a process-local timezone")
     try:
-        with patch.dict(os.environ, {'TZ': zone}):
+        with patch.dict(os.environ, {"TZ": zone}):
             time.tzset()
             yield
     finally:

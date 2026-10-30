@@ -1,8 +1,8 @@
-/** Workspace report delivery. */
 import { closeRibbonMenus } from "./dialogs.js";
 import { setActionStatus, setText } from "./dom.js";
 import { postJson } from "./http.js";
 import { collectProjectReportDeliveryFromForm } from "./scheduler_preferences.js";
+/** Workspace report delivery. */
 
 export async function pushProjectAiReportAction(event) {
     if (event) {

@@ -1,4 +1,13 @@
-/** Workspace host actions. */
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let pollSnapshot;
+export function connectHostActions(callbacks) {
+    for (const name of ["pollSnapshot"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing host_actions callback: ${name}`);
+    }
+    ({ pollSnapshot } = callbacks);
+}
+
 import { loadApprovals } from "./approvals.js";
 import { closeHostRemoveModalAction, requestHostRemoveAction } from "./dialogs.js";
 import { setWorkspaceStatus } from "./dom.js";
@@ -6,9 +15,9 @@ import { graphPropertyValue } from "./graph_common.js";
 import { graphEntityHostId } from "./graph_viewport.js";
 import { renderHostDetail } from "./host_detail.js";
 import { fetchJson, postJson } from "./http.js";
-import { pollSnapshot } from "./live_updates.js";
 import { graphWorkspaceState, hostRemoveState, workspaceState } from "./state.js";
 import { loadHostDetail, refreshWorkspace, waitForJobCompletion } from "./workspace_data.js";
+/** Workspace host actions. */
 
 export function buildLaunchToolButton(title = "Run supported tool") {
     const button = document.createElement("button");

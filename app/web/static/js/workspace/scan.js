@@ -1,11 +1,21 @@
-/** Workspace scan. */
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let applySchedulerPreferences;
+export function connectScan(callbacks) {
+    for (const name of ["applySchedulerPreferences"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing scan callback: ${name}`);
+    }
+    ({ applySchedulerPreferences } = callbacks);
+}
+
 import { closeNmapScanModalAction } from "./dialogs.js";
 import { getChecked, getValue, setActionStatus, setChecked, setValue } from "./dom.js";
+import { legacyGoalProfileFromEngagementPolicy } from "./engagement_policy.js";
 import { postJson } from "./http.js";
 import { pollSnapshot } from "./live_updates.js";
 import { buildEngagementPolicyForPresetSelection, getSelectedNmapEngagementPreset, getSelectedPassiveCaptureDuration, isInternalEngagementPresetSelection, isInternalQuickReconPreset } from "./scan_policy.js";
-import { applySchedulerPreferences, legacyGoalProfileFromEngagementPolicy } from "./scheduler_preferences.js";
 import { INTERNAL_QUICK_RECON_TCP_PORTS, RFC1918_COMPREHENSIVE_TCP_PORTS, nmapWizardState } from "./state.js";
+/** Workspace scan. */
 
 export function parseTargets(text) {
     return (text || "")

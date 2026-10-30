@@ -62,6 +62,8 @@ class ToolRunRequest:
             port=str(source.get("port", "") or "").strip(),
             protocol=str(source.get("protocol", "tcp") or "tcp").strip().lower() or "tcp",
             tool_id=str(source.get("tool_id", "") or "").strip(),
-            parameters=dict(source.get("parameters", {}) or {}) if isinstance(source.get("parameters", {}), dict) else {},
+            parameters=(
+                dict(source.get("parameters", {}) or {}) if isinstance(source.get("parameters", {}), dict) else {}
+            ),
             timeout=timeout,
         )

@@ -6,7 +6,6 @@ from app.web import runtime_scheduler_capture as web_runtime_scheduler_capture
 from app.web import runtime_scheduler_inference as web_runtime_scheduler_inference
 from app.web import runtime_scheduler_target_state as web_runtime_scheduler_target_state
 
-
 CPE22_TOKEN_RE = web_runtime_scheduler_inference.CPE22_TOKEN_RE
 CPE23_TOKEN_RE = web_runtime_scheduler_inference.CPE23_TOKEN_RE
 CVE_TOKEN_RE = web_runtime_scheduler_inference.CVE_TOKEN_RE

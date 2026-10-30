@@ -40,14 +40,14 @@ def read_text_excerpt(path: str, max_chars: int = 4000) -> str:
 
 
 def get_scheduler_execution_traces(
-        runtime,
-        *,
-        limit: int = 200,
-        host_id: int = 0,
-        host_ip: str = "",
-        tool_id: str = "",
-        include_output: bool = False,
-        output_max_chars: int = 4000,
+    runtime,
+    *,
+    limit: int = 200,
+    host_id: int = 0,
+    host_ip: str = "",
+    tool_id: str = "",
+    include_output: bool = False,
+    output_max_chars: int = 4000,
 ) -> List[Dict[str, Any]]:
     resolved_host_ip = str(host_ip or "").strip()
     if int(host_id or 0) > 0 and not resolved_host_ip:
@@ -81,9 +81,9 @@ def get_scheduler_execution_traces(
 
 
 def get_scheduler_execution_trace(
-        runtime,
-        execution_id: str,
-        output_max_chars: int = 4000,
+    runtime,
+    execution_id: str,
+    output_max_chars: int = 4000,
 ) -> Dict[str, Any]:
     with runtime._lock:
         project = runtime._require_active_project()
@@ -104,14 +104,14 @@ def get_scheduler_execution_trace(
 
 
 def persist_scheduler_execution_record(
-        runtime,
-        decision: ScheduledAction,
-        execution_record: Optional[ExecutionRecord],
-        *,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        service_name: str,
+    runtime,
+    decision: ScheduledAction,
+    execution_record: Optional[ExecutionRecord],
+    *,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    service_name: str,
 ) -> Optional[Dict[str, Any]]:
     if not isinstance(execution_record, ExecutionRecord):
         return None

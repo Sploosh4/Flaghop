@@ -1,13 +1,23 @@
-/** Workspace graph detail. */
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let graphRenderWorkspace;
+export function connectGraphDetail(callbacks) {
+    for (const name of ["graphRenderWorkspace"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing graph_detail callback: ${name}`);
+    }
+    ({ graphRenderWorkspace } = callbacks);
+}
+
 import { closeGraphNoteModalAction } from "./dialogs.js";
 import { getGraphCanvasPanel, getGraphWorkspaceShell, graphFriendlyLabel, graphHasActiveSelection, graphPropertyValue, graphSelectedNodeEntity } from "./graph_common.js";
-import { graphRenderWorkspace } from "./graph_render.js";
-import { graphEntityHostId, graphFindEntity } from "./graph_viewport.js";
+import { graphFindEntity } from "./graph_selection.js";
+import { graphEntityHostId } from "./graph_viewport.js";
 import { buildGraphToolMenu, buildHostActionButton, buildLaunchToolButton, buildScreenshotActionButton, buildSubnetActionButton, deleteGraphPortAction, deleteGraphServiceAction, graphToolLaunchContextForEntity, handleHostActionButtonAction, handleScreenshotActionButtonAction, handleSubnetActionButtonAction } from "./host_actions.js";
 import { fetchJson } from "./http.js";
 import { copyScreenshotAction, copyTextToClipboard, openScreenshotModal, openTextPreviewModal } from "./process_output.js";
 import { GRAPH_NODE_SIZE, GRAPH_SOURCE_KIND_LABELS, graphWorkspaceState, screenshotModalState } from "./state.js";
 import { openManualToolPicker } from "./tools.js";
+/** Workspace graph detail. */
 
 export function graphDismissSelection() {
     closeGraphNoteModalAction(false);

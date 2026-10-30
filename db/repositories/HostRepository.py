@@ -30,12 +30,11 @@ class HostRepository:
     def __init__(self, dbAdapter: Database):
         self.dbAdapter = dbAdapter
 
-
     def exists(self, host: str):
         session = self.dbAdapter.session()
         try:
-            query = text('SELECT host.ip FROM hostObj AS host WHERE host.ip == :host OR host.hostname == :host')
-            result = session.execute(query, {'host': str(host)}).fetchall()
+            query = text("SELECT host.ip FROM hostObj AS host WHERE host.ip == :host OR host.hostname == :host")
+            result = session.execute(query, {"host": str(host)}).fetchall()
             return True if result else False
         except OperationalError:
             return False
@@ -45,7 +44,7 @@ class HostRepository:
     def getHosts(self, filters):
         session = self.dbAdapter.session()
         try:
-            query = 'SELECT * FROM hostObj AS hosts WHERE 1=1'
+            query = "SELECT * FROM hostObj AS hosts WHERE 1=1"
             query += applyHostsFilters(filters)
             query = text(query)
             result = session.execute(query)
@@ -62,15 +61,17 @@ class HostRepository:
     def getHostsAndPortsByServiceName(self, service_name, filters: Filters):
         session = self.dbAdapter.session()
         try:
-            query = ("SELECT hosts.ip,ports.portId,ports.protocol,ports.state,ports.hostId,ports.serviceId,"
-                     "services.name,services.product,services.version,services.extrainfo,services.fingerprint "
-                     "FROM portObj AS ports "
-                     "INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
-                     "LEFT OUTER JOIN serviceObj AS services ON services.id=ports.serviceId "
-                     "WHERE services.name=:service_name")
+            query = (
+                "SELECT hosts.ip,ports.portId,ports.protocol,ports.state,ports.hostId,ports.serviceId,"
+                "services.name,services.product,services.version,services.extrainfo,services.fingerprint "
+                "FROM portObj AS ports "
+                "INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
+                "LEFT OUTER JOIN serviceObj AS services ON services.id=ports.serviceId "
+                "WHERE services.name=:service_name"
+            )
             query += applyFilters(filters)
             query = text(query)
-            result = session.execute(query, {'service_name': str(service_name)})
+            result = session.execute(query, {"service_name": str(service_name)})
             rows = result.fetchall()
             keys = result.keys()
             return [dict(zip(keys, row)) for row in rows]
@@ -106,10 +107,10 @@ class HostRepository:
         try:
             host = session.query(hostObj).filter_by(ip=ipAddress).first()
             if host:
-                if host.checked == 'False':
-                    host.checked = 'True'
+                if host.checked == "False":
+                    host.checked = "True"
                 else:
-                    host.checked = 'False'
+                    host.checked = "False"
                 session.add(host)
                 session.commit()
         except Exception:
@@ -160,37 +161,39 @@ class HostRepository:
         hosts = self.getAllHostObjs()
         counts = {}
         for host in hosts:
-            os_category = classify_os(getattr(host, 'osMatch', '') or '')
+            os_category = classify_os(getattr(host, "osMatch", "") or "")
             counts[os_category] = counts.get(os_category, 0) + 1
 
         summary = []
         for category in ORDERED_OS_CATEGORIES:
             count = counts.pop(category, 0)
-            if count > 0 or category == 'Unknown':
-                summary.append({'os': category, 'count': count})
+            if count > 0 or category == "Unknown":
+                summary.append({"os": category, "count": count})
 
         # Include any remaining categories that may have been introduced dynamically
         for category in sorted(counts.keys()):
-            summary.append({'os': category, 'count': counts[category]})
+            summary.append({"os": category, "count": counts[category]})
 
         if not summary:
-            summary.append({'os': 'Unknown', 'count': 0})
+            summary.append({"os": "Unknown", "count": 0})
 
         return summary
 
     def getHostsByOperatingSystem(self, os_name: str):
-        desired = (os_name or 'Unknown').strip()
+        desired = (os_name or "Unknown").strip()
         hosts = self.getAllHostObjs()
         results = []
         for host in hosts:
-            os_match = getattr(host, 'osMatch', '') or ''
+            os_match = getattr(host, "osMatch", "") or ""
             os_category = classify_os(os_match)
             if os_category.lower() == desired.lower():
-                results.append({
-                    'ip': getattr(host, 'ip', '') or getattr(host, 'ipv4', ''),
-                    'hostname': getattr(host, 'hostname', ''),
-                    'os': os_match,
-                    'status': getattr(host, 'status', ''),
-                })
+                results.append(
+                    {
+                        "ip": getattr(host, "ip", "") or getattr(host, "ipv4", ""),
+                        "hostname": getattr(host, "hostname", ""),
+                        "os": os_match,
+                        "status": getattr(host, "status", ""),
+                    }
+                )
 
         return results

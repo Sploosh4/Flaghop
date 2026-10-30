@@ -23,33 +23,36 @@ class SchedulerApprovalsStoreTest(unittest.TestCase):
         repository_factory = RepositoryFactory(db_log)
         project_manager = ProjectManager(shell, repository_factory, app_log)
         nmap_exporter = DefaultNmapExporter(shell, app_log)
-        _tool_coordinator = ToolCoordinator(shell, nmap_exporter)
+        _ = ToolCoordinator(shell, nmap_exporter)
 
         project = project_manager.createNewProject(projectType="legion", isTemp=True)
         try:
             ensure_scheduler_approval_table(project.database)
-            approval_id = queue_pending_approval(project.database, {
-                "host_ip": "10.0.0.5",
-                "port": "445",
-                "protocol": "tcp",
-                "service": "smb",
-                "tool_id": "smb-default",
-                "label": "SMB Bruteforce",
-                "command_template": "hydra [IP]",
-                "command_family_id": "fam1",
-                "danger_categories": "credential_bruteforce",
-                "risk_tags": "credential_bruteforce,account_lockout_risk",
-                "scheduler_mode": "ai",
-                "goal_profile": "internal_asset_discovery",
-                "engagement_preset": "internal_pentest",
-                "rationale": "high value",
-                "policy_decision": "approval_required",
-                "policy_reason": "requires approval under internal pentest",
-                "risk_summary": "Could lock or throttle real user accounts.",
-                "safer_alternative": "Prefer credential validation against known accounts or low-impact enumeration first.",
-                "family_policy_state": "",
-                "evidence_refs": "host:10.0.0.5,service:smb",
-            })
+            approval_id = queue_pending_approval(
+                project.database,
+                {
+                    "host_ip": "10.0.0.5",
+                    "port": "445",
+                    "protocol": "tcp",
+                    "service": "smb",
+                    "tool_id": "smb-default",
+                    "label": "SMB Bruteforce",
+                    "command_template": "hydra [IP]",
+                    "command_family_id": "fam1",
+                    "danger_categories": "credential_bruteforce",
+                    "risk_tags": "credential_bruteforce,account_lockout_risk",
+                    "scheduler_mode": "ai",
+                    "goal_profile": "internal_asset_discovery",
+                    "engagement_preset": "internal_pentest",
+                    "rationale": "high value",
+                    "policy_decision": "approval_required",
+                    "policy_reason": "requires approval under internal pentest",
+                    "risk_summary": "Could lock or throttle real user accounts.",
+                    "safer_alternative": "Prefer credential validation against known accounts or low-impact enumeration first.",
+                    "family_policy_state": "",
+                    "evidence_refs": "host:10.0.0.5,service:smb",
+                },
+            )
             self.assertGreater(approval_id, 0)
 
             listing = list_pending_approvals(project.database, limit=20, status="pending")

@@ -13,18 +13,18 @@ def screenshot_metadata_path(screenshot_path: Any) -> str:
 
 
 def build_screenshot_metadata(
-        *,
-        screenshot_path: Any,
-        host_ip: Any,
-        hostname: Any = "",
-        port: Any = "",
-        protocol: Any = "tcp",
-        service_name: Any = "",
-        target_url: Any = "",
-        capture_engine: Any = "",
-        capture_reason: Any = "",
-        captured_at: Any = "",
-        capture_returncode: Any = None,
+    *,
+    screenshot_path: Any,
+    host_ip: Any,
+    hostname: Any = "",
+    port: Any = "",
+    protocol: Any = "tcp",
+    service_name: Any = "",
+    target_url: Any = "",
+    capture_engine: Any = "",
+    capture_reason: Any = "",
+    captured_at: Any = "",
+    capture_returncode: Any = None,
 ) -> Dict[str, Any]:
     filename = os.path.basename(str(screenshot_path or "").strip())
     row: Dict[str, Any] = {
@@ -77,16 +77,18 @@ def load_screenshot_metadata(path_or_screenshot: Any) -> Dict[str, Any]:
 
 
 def build_screenshot_state_row(
-        *,
-        screenshot_path: Any = "",
-        artifact_ref: Any = "",
-        metadata: Any = None,
-        port: Any = "",
-        protocol: Any = "tcp",
+    *,
+    screenshot_path: Any = "",
+    artifact_ref: Any = "",
+    metadata: Any = None,
+    port: Any = "",
+    protocol: Any = "tcp",
 ) -> Dict[str, Any]:
     details = metadata if isinstance(metadata, dict) else {}
     resolved_artifact_ref = str(artifact_ref or screenshot_path or "").strip()
-    filename = str(details.get("filename", "") or os.path.basename(str(screenshot_path or artifact_ref or "").strip())).strip()
+    filename = str(
+        details.get("filename", "") or os.path.basename(str(screenshot_path or artifact_ref or "").strip())
+    ).strip()
     if not resolved_artifact_ref and not filename:
         return {}
 

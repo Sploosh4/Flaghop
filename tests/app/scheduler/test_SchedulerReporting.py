@@ -44,77 +44,143 @@ class SchedulerReportingTest(unittest.TestCase):
             session.add(service)
             session.commit()
             session.add(portObj("443", "tcp", "open", host_id, service.id))
-            session.add(cve(
-                name="CVE-2025-1234",
-                url="https://example.test/CVE-2025-1234",
-                product="nginx",
-                hostId=str(host_id),
-                severity="high",
-                source="nmap",
-                version="1.25",
-                exploitId=7,
-                exploit="ExploitDB #7",
-                exploitUrl="https://exploit-db.test/exploits/7",
-            ))
+            session.add(
+                cve(
+                    name="CVE-2025-1234",
+                    url="https://example.test/CVE-2025-1234",
+                    product="nginx",
+                    hostId=str(host_id),
+                    severity="high",
+                    source="nmap",
+                    version="1.25",
+                    exploitId=7,
+                    exploit="ExploitDB #7",
+                    exploitUrl="https://exploit-db.test/exploits/7",
+                )
+            )
             session.add(note(hostId=host_id, text="Operator note: validate admin path manually"))
             session.commit()
             session.close()
 
-            upsert_target_state(project.database, host_id, {
-                "host_ip": "10.0.0.5",
-                "last_mode": "deterministic",
-                "goal_profile": "external_pentest",
-                "engagement_preset": "external_pentest",
-                "hostname": "portal.local",
-                "hostname_confidence": 96,
-                "os_match": "Linux",
-                "os_confidence": 84,
-                "next_phase": "validation",
-                "technologies": [
-                    {"name": "nginx", "version": "1.25", "cpe": "cpe:/a:nginx:nginx:1.25", "evidence": "server header", "source_kind": "observed"},
-                ],
-                "findings": [
-                    {"title": "Admin panel exposed", "severity": "medium", "cvss": 5.0, "evidence": "/admin", "source_kind": "observed"},
-                    {"title": "Potential default credentials", "severity": "high", "cvss": 8.0, "evidence": "login banner", "source_kind": "ai_suggested"},
-                ],
-                "manual_tests": [
-                    {"why": "validate authentication weakness", "command": "curl -k https://10.0.0.5/admin", "scope_note": "safe", "source_kind": "ai_suggested"},
-                ],
-                "service_inventory": [
-                    {"port": "443", "protocol": "tcp", "state": "open", "service": "https", "service_product": "nginx", "service_version": "1.25"},
-                ],
-                "urls": [
-                    {"url": "https://portal.local/admin", "port": "443", "protocol": "tcp", "service": "https"},
-                ],
-                "coverage_gaps": [
-                    {"gap_id": "missing_auth_validation", "description": "authentication validation not completed", "recommended_tool_ids": ["nuclei-web"], "source_kind": "inferred"},
-                ],
-                "attempted_actions": [
-                    {
-                        "tool_id": "nuclei-web",
-                        "label": "Nuclei Web",
-                        "status": "executed",
-                        "attempted_at": "2026-03-17T02:00:00Z",
-                        "port": "443",
-                        "protocol": "tcp",
-                        "service": "https",
-                        "pack_ids": ["external_surface", "vuln_validation"],
-                        "artifact_refs": ["/tmp/nuclei-10.0.0.5.txt"],
-                    }
-                ],
-                "credentials": [
-                    {"username": "svc-web", "realm": "local", "type": "password", "evidence": "manual note", "source_kind": "observed"},
-                ],
-                "sessions": [
-                    {"session_type": "shell", "username": "svc-web", "host": "10.0.0.9", "port": "443", "protocol": "tcp", "evidence": "validated shell", "source_kind": "observed"},
-                ],
-                "screenshots": [
-                    {"artifact_ref": "/tmp/10.0.0.5-443-screenshot.png", "filename": "10.0.0.5-443-screenshot.png", "port": "443", "protocol": "tcp"},
-                ],
-                "artifacts": [
-                    {"ref": "/tmp/nuclei-10.0.0.5.txt", "kind": "artifact", "tool_id": "nuclei-web", "port": "443", "protocol": "tcp"},
-                ],
-            })
+            upsert_target_state(
+                project.database,
+                host_id,
+                {
+                    "host_ip": "10.0.0.5",
+                    "last_mode": "deterministic",
+                    "goal_profile": "external_pentest",
+                    "engagement_preset": "external_pentest",
+                    "hostname": "portal.local",
+                    "hostname_confidence": 96,
+                    "os_match": "Linux",
+                    "os_confidence": 84,
+                    "next_phase": "validation",
+                    "technologies": [
+                        {
+                            "name": "nginx",
+                            "version": "1.25",
+                            "cpe": "cpe:/a:nginx:nginx:1.25",
+                            "evidence": "server header",
+                            "source_kind": "observed",
+                        },
+                    ],
+                    "findings": [
+                        {
+                            "title": "Admin panel exposed",
+                            "severity": "medium",
+                            "cvss": 5.0,
+                            "evidence": "/admin",
+                            "source_kind": "observed",
+                        },
+                        {
+                            "title": "Potential default credentials",
+                            "severity": "high",
+                            "cvss": 8.0,
+                            "evidence": "login banner",
+                            "source_kind": "ai_suggested",
+                        },
+                    ],
+                    "manual_tests": [
+                        {
+                            "why": "validate authentication weakness",
+                            "command": "curl -k https://10.0.0.5/admin",
+                            "scope_note": "safe",
+                            "source_kind": "ai_suggested",
+                        },
+                    ],
+                    "service_inventory": [
+                        {
+                            "port": "443",
+                            "protocol": "tcp",
+                            "state": "open",
+                            "service": "https",
+                            "service_product": "nginx",
+                            "service_version": "1.25",
+                        },
+                    ],
+                    "urls": [
+                        {"url": "https://portal.local/admin", "port": "443", "protocol": "tcp", "service": "https"},
+                    ],
+                    "coverage_gaps": [
+                        {
+                            "gap_id": "missing_auth_validation",
+                            "description": "authentication validation not completed",
+                            "recommended_tool_ids": ["nuclei-web"],
+                            "source_kind": "inferred",
+                        },
+                    ],
+                    "attempted_actions": [
+                        {
+                            "tool_id": "nuclei-web",
+                            "label": "Nuclei Web",
+                            "status": "executed",
+                            "attempted_at": "2026-03-17T02:00:00Z",
+                            "port": "443",
+                            "protocol": "tcp",
+                            "service": "https",
+                            "pack_ids": ["external_surface", "vuln_validation"],
+                            "artifact_refs": ["/tmp/nuclei-10.0.0.5.txt"],
+                        }
+                    ],
+                    "credentials": [
+                        {
+                            "username": "svc-web",
+                            "realm": "local",
+                            "type": "password",
+                            "evidence": "manual note",
+                            "source_kind": "observed",
+                        },
+                    ],
+                    "sessions": [
+                        {
+                            "session_type": "shell",
+                            "username": "svc-web",
+                            "host": "10.0.0.9",
+                            "port": "443",
+                            "protocol": "tcp",
+                            "evidence": "validated shell",
+                            "source_kind": "observed",
+                        },
+                    ],
+                    "screenshots": [
+                        {
+                            "artifact_ref": "/tmp/10.0.0.5-443-screenshot.png",
+                            "filename": "10.0.0.5-443-screenshot.png",
+                            "port": "443",
+                            "protocol": "tcp",
+                        },
+                    ],
+                    "artifacts": [
+                        {
+                            "ref": "/tmp/nuclei-10.0.0.5.txt",
+                            "kind": "artifact",
+                            "tool_id": "nuclei-web",
+                            "port": "443",
+                            "protocol": "tcp",
+                        },
+                    ],
+                },
+            )
 
             step = PlanStep.from_legacy_fields(
                 tool_id="nuclei-web",
@@ -147,54 +213,60 @@ class SchedulerReportingTest(unittest.TestCase):
                 service="https",
             )
 
-            log_scheduler_decision(project.database, {
-                "timestamp": "2026-03-17T02:12:00Z",
-                "host_ip": "10.0.0.5",
-                "port": "443",
-                "protocol": "tcp",
-                "service": "https",
-                "scheduler_mode": "deterministic",
-                "goal_profile": "external_pentest",
-                "engagement_preset": "external_pentest",
-                "tool_id": "hydra-http-form",
-                "label": "HTTP Bruteforce",
-                "command_family_id": "hydra-http-form",
-                "danger_categories": "credential_bruteforce",
-                "risk_tags": "credential_bruteforce,high_detection_likelihood",
-                "requires_approval": "True",
-                "policy_decision": "approval_required",
-                "policy_reason": "Credential attacks require approval in external pentest.",
-                "risk_summary": "Could trigger account lockouts.",
-                "safer_alternative": "Validate known credentials first.",
-                "family_policy_state": "",
-                "approved": "False",
-                "executed": "False",
-                "reason": "pending approval #1",
-                "rationale": "Validate weak authentication controls.",
-                "approval_id": "1",
-            })
+            log_scheduler_decision(
+                project.database,
+                {
+                    "timestamp": "2026-03-17T02:12:00Z",
+                    "host_ip": "10.0.0.5",
+                    "port": "443",
+                    "protocol": "tcp",
+                    "service": "https",
+                    "scheduler_mode": "deterministic",
+                    "goal_profile": "external_pentest",
+                    "engagement_preset": "external_pentest",
+                    "tool_id": "hydra-http-form",
+                    "label": "HTTP Bruteforce",
+                    "command_family_id": "hydra-http-form",
+                    "danger_categories": "credential_bruteforce",
+                    "risk_tags": "credential_bruteforce,high_detection_likelihood",
+                    "requires_approval": "True",
+                    "policy_decision": "approval_required",
+                    "policy_reason": "Credential attacks require approval in external pentest.",
+                    "risk_summary": "Could trigger account lockouts.",
+                    "safer_alternative": "Validate known credentials first.",
+                    "family_policy_state": "",
+                    "approved": "False",
+                    "executed": "False",
+                    "reason": "pending approval #1",
+                    "rationale": "Validate weak authentication controls.",
+                    "approval_id": "1",
+                },
+            )
 
-            queue_pending_approval(project.database, {
-                "host_ip": "10.0.0.5",
-                "port": "443",
-                "protocol": "tcp",
-                "service": "https",
-                "tool_id": "hydra-http-form",
-                "label": "HTTP Bruteforce",
-                "command_template": "hydra -L users.txt -P pass.txt https-post-form",
-                "command_family_id": "hydra-http-form",
-                "danger_categories": "credential_bruteforce",
-                "risk_tags": "credential_bruteforce,high_detection_likelihood",
-                "scheduler_mode": "deterministic",
-                "goal_profile": "external_pentest",
-                "engagement_preset": "external_pentest",
-                "rationale": "Validate weak authentication controls.",
-                "policy_decision": "approval_required",
-                "policy_reason": "Credential attacks require approval in external pentest.",
-                "risk_summary": "Could trigger account lockouts.",
-                "safer_alternative": "Validate known credentials first.",
-                "evidence_refs": "host:10.0.0.5,/admin",
-            })
+            queue_pending_approval(
+                project.database,
+                {
+                    "host_ip": "10.0.0.5",
+                    "port": "443",
+                    "protocol": "tcp",
+                    "service": "https",
+                    "tool_id": "hydra-http-form",
+                    "label": "HTTP Bruteforce",
+                    "command_template": "hydra -L users.txt -P pass.txt https-post-form",
+                    "command_family_id": "hydra-http-form",
+                    "danger_categories": "credential_bruteforce",
+                    "risk_tags": "credential_bruteforce,high_detection_likelihood",
+                    "scheduler_mode": "deterministic",
+                    "goal_profile": "external_pentest",
+                    "engagement_preset": "external_pentest",
+                    "rationale": "Validate weak authentication controls.",
+                    "policy_decision": "approval_required",
+                    "policy_reason": "Credential attacks require approval in external pentest.",
+                    "risk_summary": "Could trigger account lockouts.",
+                    "safer_alternative": "Validate known credentials first.",
+                    "evidence_refs": "host:10.0.0.5,/admin",
+                },
+            )
 
             upsert_graph_annotation(
                 project.database,

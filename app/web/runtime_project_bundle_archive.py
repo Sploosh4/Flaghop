@@ -84,7 +84,9 @@ def extract_legacy_project_zip(archive: zipfile.ZipFile) -> Dict[str, Any]:
     if len(unique_members) > 1:
         preview = ", ".join(unique_members[:3])
         suffix = f", +{len(unique_members) - 3} more" if len(unique_members) > 3 else ""
-        raise ValueError(f"Bundle manifest.json is missing and legacy ZIP contains multiple .legion files: {preview}{suffix}")
+        raise ValueError(
+            f"Bundle manifest.json is missing and legacy ZIP contains multiple .legion files: {preview}{suffix}"
+        )
 
     session_member = unique_members[0]
     project_file_name = safe_bundle_filename(
@@ -180,7 +182,7 @@ def read_bundle_manifest(archive: zipfile.ZipFile) -> Tuple[str, str, Dict[str, 
 
     root_prefix = ""
     if manifest_name.endswith("/manifest.json"):
-        root_prefix = manifest_name[:-len("/manifest.json")]
+        root_prefix = manifest_name[: -len("/manifest.json")]
 
     return manifest_name, str(root_prefix or "").strip("/"), manifest
 
@@ -246,7 +248,7 @@ def extract_zip_prefix_to_dir(archive: zipfile.ZipFile, prefix: str, destination
             continue
         if clean_prefix and not normalized.startswith(clean_prefix):
             continue
-        relative = normalized[len(clean_prefix):] if clean_prefix else normalized
+        relative = normalized[len(clean_prefix) :] if clean_prefix else normalized
         safe_relative = safe_bundle_relative_path(relative)
         if not safe_relative:
             extraction_errors.append(f"{normalized}: unsafe path")

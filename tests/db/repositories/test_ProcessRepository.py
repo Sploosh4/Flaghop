@@ -15,12 +15,17 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import unittest
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
-from tests.db.helpers.db_helpers import mockExecuteRows, mockFirstBySideEffect, mockFirstByReturnValue, \
-    mockQueryWithFilterBy
+from tests.db.helpers.db_helpers import (
+    mockExecuteRows,
+    mockFirstBySideEffect,
+    mockFirstByReturnValue,
+    mockQueryWithFilterBy,
+)
 
 
 def build_mock_process(status: str, display: str) -> MagicMock:
@@ -33,6 +38,7 @@ def build_mock_process(status: str, display: str) -> MagicMock:
 class ProcessRepositoryTest(unittest.TestCase):
     def setUp(self) -> None:
         from db.repositories.ProcessRepository import ProcessRepository
+
         self.mockProcess = MagicMock()
         self.mockDbSession = MagicMock()
         self.mockDbAdapter = MagicMock()
@@ -43,36 +49,36 @@ class ProcessRepositoryTest(unittest.TestCase):
 
     def test_getProcesses_WhenProvidedShowProcessesWithNoNmapFlag_ReturnsProcesses(self):
         self.mockDbSession.execute.return_value = mockExecuteRows(
-            [('some-process',), ('some-process2',)],
-            ['name'],
+            [("some-process",), ("some-process2",)],
+            ["name"],
         )
-        processes = self.processRepository.getProcesses(self.mockFilters, showProcesses='noNmap')
-        self.assertEqual(processes, [{'name': 'some-process'}, {'name': 'some-process2'}])
+        processes = self.processRepository.getProcesses(self.mockFilters, showProcesses="noNmap")
+        self.assertEqual(processes, [{"name": "some-process"}, {"name": "some-process2"}])
         query = str(self.mockDbSession.execute.call_args.args[0])
         self.assertIn('FROM process AS process WHERE process.closed = "False"', query)
-        self.assertIn('ORDER BY process.id DESC', query)
+        self.assertIn("ORDER BY process.id DESC", query)
 
     def test_getProcesses_WhenProvidedShowProcessesWithFlagFalse_ReturnsProcesses(self):
         self.mockDbSession.execute.return_value = mockExecuteRows(
-            [('some-process',), ('some-process2',)],
-            ['name'],
+            [("some-process",), ("some-process2",)],
+            ["name"],
         )
         processes = self.processRepository.getProcesses(self.mockFilters, showProcesses=False)
-        self.assertEqual(processes, [{'name': 'some-process'}, {'name': 'some-process2'}])
+        self.assertEqual(processes, [{"name": "some-process"}, {"name": "some-process2"}])
         query, params = self.mockDbSession.execute.call_args.args
-        self.assertIn('INNER JOIN process_output AS output ON process.id = output.processId', str(query))
-        self.assertEqual({'display': 'False'}, params)
+        self.assertIn("INNER JOIN process_output AS output ON process.id = output.processId", str(query))
+        self.assertEqual({"display": "False"}, params)
 
     def test_getProcesses_WhenProvidedShowProcessesWithNoFlag_ReturnsProcesses(self):
         self.mockDbSession.execute.return_value = mockExecuteRows(
-            [('some-process',), ('some-process2',)],
-            ['name'],
+            [("some-process",), ("some-process2",)],
+            ["name"],
         )
-        processes = self.processRepository.getProcesses(self.mockFilters, "True", sort='asc', ncol='id')
-        self.assertEqual(processes, [{'name': 'some-process'}, {'name': 'some-process2'}])
+        processes = self.processRepository.getProcesses(self.mockFilters, "True", sort="asc", ncol="id")
+        self.assertEqual(processes, [{"name": "some-process"}, {"name": "some-process2"}])
         query, params = self.mockDbSession.execute.call_args.args
-        self.assertIn('WHERE process.display=:display ORDER BY id asc', str(query))
-        self.assertEqual({'display': 'True'}, params)
+        self.assertIn("WHERE process.display=:display ORDER BY id asc", str(query))
+        self.assertEqual({"display": "True"}, params)
 
     def test_storeProcess_WhenProvidedAProcess_StoreProcess(self):
         self.processRepository.storeProcess(self.mockProcess)
@@ -85,7 +91,7 @@ class ProcessRepositoryTest(unittest.TestCase):
         from db.entities.processOutput import process_output
 
         expected_process: process = MagicMock()
-        process.status = 'Running'
+        process.status = "Running"
         expected_process_output: process_output = MagicMock()
         mock_query = MagicMock()
         mock_query.filter_by.return_value = mockFirstBySideEffect([expected_process, expected_process_output])
@@ -93,10 +99,7 @@ class ProcessRepositoryTest(unittest.TestCase):
 
         self.processRepository.storeProcessOutput("some_process_id", "this is some cool output")
 
-        self.mockDbSession.add.assert_has_calls([
-            mock.call(expected_process_output),
-            mock.call(expected_process)
-        ])
+        self.mockDbSession.add.assert_has_calls([mock.call(expected_process_output), mock.call(expected_process)])
         self.mockDbSession.commit.assert_called_once()
 
     def test_storeProcessOutput_WhenProvidedProcessIdDoesNotExist_DoesNotPerformAnyUpdate(self):
@@ -109,64 +112,68 @@ class ProcessRepositoryTest(unittest.TestCase):
         self.mockDbSession.commit.assert_not_called()
 
     def test_storeProcessOutput_WhenProvidedExistingProcessIdAndOutputButProcKilled_StoresOutputButStatusNotUpdated(
-            self):
+        self,
+    ):
         self.whenProcessDoesNotFinishGracefully("Killed")
 
     def test_storeProcessOutput_WhenProvidedExistingProcessIdAndOutputButProcCancelled_StoresOutputButStatusNotUpdated(
-            self):
+        self,
+    ):
         self.whenProcessDoesNotFinishGracefully("Cancelled")
 
     def test_storeProcessOutput_WhenProvidedExistingProcessIdAndOutputButProcCrashed_StoresOutputButStatusNotUpdated(
-            self):
+        self,
+    ):
         self.whenProcessDoesNotFinishGracefully("Crashed")
 
     def test_storeProcessOutput_WhenProvidedExistingProcessIdAndOutputButProcProblem_StoresOutputButStatusNotUpdated(
-            self):
+        self,
+    ):
         self.whenProcessDoesNotFinishGracefully("Problem")
 
     def test_getStatusByProcessId_WhenGivenProcId_FetchesProcessStatus(self):
-        expectedQuery = 'SELECT process.status FROM process AS process WHERE process.id=:process_id'
-        self.mockDbSession.execute.return_value = mockExecuteRows([('Running',)], ['status'])
+        expectedQuery = "SELECT process.status FROM process AS process WHERE process.id=:process_id"
+        self.mockDbSession.execute.return_value = mockExecuteRows([("Running",)], ["status"])
 
         actual_status = self.processRepository.getStatusByProcessId("some_process_id")
 
-        self.assertEqual(actual_status, 'Running')
+        self.assertEqual(actual_status, "Running")
         query, params = self.mockDbSession.execute.call_args.args
         self.assertEqual(expectedQuery, str(query))
-        self.assertEqual({'process_id': 'some_process_id'}, params)
+        self.assertEqual({"process_id": "some_process_id"}, params)
 
     def test_getStatusByProcessId_WhenProcIdDoesNotExist_ReturnsNegativeOne(self):
-        expectedQuery = 'SELECT process.status FROM process AS process WHERE process.id=:process_id'
-        self.mockDbSession.execute.return_value = mockExecuteRows([], ['status'])
+        expectedQuery = "SELECT process.status FROM process AS process WHERE process.id=:process_id"
+        self.mockDbSession.execute.return_value = mockExecuteRows([], ["status"])
 
         actual_status = self.processRepository.getStatusByProcessId("some_process_id")
 
         self.assertEqual(actual_status, -1)
         query, params = self.mockDbSession.execute.call_args.args
         self.assertEqual(expectedQuery, str(query))
-        self.assertEqual({'process_id': 'some_process_id'}, params)
+        self.assertEqual({"process_id": "some_process_id"}, params)
 
     def test_getPIDByProcessId_WhenGivenProcId_FetchesProcessId(self):
-        expectedQuery = 'SELECT process.pid FROM process AS process WHERE process.id=:process_id'
-        self.mockDbSession.execute.return_value = mockExecuteRows([('1234',)], ['pid'])
+        expectedQuery = "SELECT process.pid FROM process AS process WHERE process.id=:process_id"
+        self.mockDbSession.execute.return_value = mockExecuteRows([("1234",)], ["pid"])
 
         actual_status = self.processRepository.getPIDByProcessId("some_process_id")
 
-        self.assertEqual(actual_status, '1234')
+        self.assertEqual(actual_status, "1234")
         query, params = self.mockDbSession.execute.call_args.args
         self.assertEqual(expectedQuery, str(query))
-        self.assertEqual({'process_id': 'some_process_id'}, params)
+        self.assertEqual({"process_id": "some_process_id"}, params)
 
     def test_getPIDByProcessId_WhenProcIdDoesNotExist_ReturnsNegativeOne(self):
-        expectedQuery = 'SELECT process.pid FROM process AS process WHERE process.id=:process_id'
-        self.mockDbSession.execute.return_value = mockExecuteRows([], ['pid'])
+        expectedQuery = "SELECT process.pid FROM process AS process WHERE process.id=:process_id"
+        self.mockDbSession.execute.return_value = mockExecuteRows([], ["pid"])
 
         actual_status = self.processRepository.getPIDByProcessId("some_process_id")
 
         self.assertEqual(actual_status, -1)
         query, params = self.mockDbSession.execute.call_args.args
         self.assertEqual(expectedQuery, str(query))
-        self.assertEqual({'process_id': 'some_process_id'}, params)
+        self.assertEqual({"process_id": "some_process_id"}, params)
 
     def test_isKilledProcess_WhenProvidedKilledProcessId_ReturnsTrue(self):
         expectedQuery = "SELECT process.status FROM process AS process WHERE process.id=:process_id"
@@ -175,7 +182,7 @@ class ProcessRepositoryTest(unittest.TestCase):
         self.assertTrue(self.processRepository.isKilledProcess("some_process_id"))
         query, params = self.mockDbSession.execute.call_args.args
         self.assertEqual(expectedQuery, str(query))
-        self.assertEqual({'process_id': 'some_process_id'}, params)
+        self.assertEqual({"process_id": "some_process_id"}, params)
 
     def test_isKilledProcess_WhenProvidedNonKilledProcessId_ReturnsFalse(self):
         expectedQuery = "SELECT process.status FROM process AS process WHERE process.id=:process_id"
@@ -184,7 +191,7 @@ class ProcessRepositoryTest(unittest.TestCase):
         self.assertFalse(self.processRepository.isKilledProcess("some_process_id"))
         query, params = self.mockDbSession.execute.call_args.args
         self.assertEqual(expectedQuery, str(query))
-        self.assertEqual({'process_id': 'some_process_id'}, params)
+        self.assertEqual({"process_id": "some_process_id"}, params)
 
     def test_isCancelledProcess_WhenProvidedCancelledProcessId_ReturnsTrue(self):
         expectedQuery = "SELECT process.status FROM process AS process WHERE process.id=:process_id"
@@ -193,7 +200,7 @@ class ProcessRepositoryTest(unittest.TestCase):
         self.assertTrue(self.processRepository.isCancelledProcess("some_process_id"))
         query, params = self.mockDbSession.execute.call_args.args
         self.assertEqual(expectedQuery, str(query))
-        self.assertEqual({'process_id': 'some_process_id'}, params)
+        self.assertEqual({"process_id": "some_process_id"}, params)
 
     def test_isCancelledProcess_WhenProvidedNonCancelledProcessId_ReturnsFalse(self):
         expectedQuery = "SELECT process.status FROM process AS process WHERE process.id=:process_id"
@@ -202,7 +209,7 @@ class ProcessRepositoryTest(unittest.TestCase):
         self.assertFalse(self.processRepository.isCancelledProcess("some_process_id"))
         query, params = self.mockDbSession.execute.call_args.args
         self.assertEqual(expectedQuery, str(query))
-        self.assertEqual({'process_id': 'some_process_id'}, params)
+        self.assertEqual({"process_id": "some_process_id"}, params)
 
     def test_storeProcessCrashStatus_WhenProvidedProcessId_StoresProcessCrashStatus(self):
         self.mockProcessStatusAndReturnSingle("Running")
@@ -263,11 +270,11 @@ class ProcessRepositoryTest(unittest.TestCase):
         self.assertEqual({"toolName": "some-toolname"}, params)
 
     def test_storeCloseStatus_WhenProvidedProcessId_StoresCloseStatus(self):
-        self.mockProcess.closed = 'False'
+        self.mockProcess.closed = "False"
         self.mockDbSession.query.return_value = mockQueryWithFilterBy(mockFirstByReturnValue(self.mockProcess))
         self.processRepository.storeCloseStatus("some-process-id")
 
-        self.assertEqual('True', self.mockProcess.closed)
+        self.assertEqual("True", self.mockProcess.closed)
         self.mockDbSession.add.assert_called_once_with(self.mockProcess)
         self.mockDbSession.commit.assert_called_once()
 
@@ -276,8 +283,7 @@ class ProcessRepositoryTest(unittest.TestCase):
         self.mockDbSession.add.assert_called_once()
         self.mockDbSession.commit.assert_called_once()
 
-    def test_toggleProcessDisplayStatus_whenResetAllIsTrue_setDisplayToFalseForAllProcessesThatAreNotRunning(
-            self):
+    def test_toggleProcessDisplayStatus_whenResetAllIsTrue_setDisplayToFalseForAllProcessesThatAreNotRunning(self):
         process1 = build_mock_process(status="Waiting", display="True")
         process2 = build_mock_process(status="Waiting", display="True")
         mock_query_response = MagicMock()
@@ -289,14 +295,17 @@ class ProcessRepositoryTest(unittest.TestCase):
 
         self.assertEqual("False", process1.display)
         self.assertEqual("False", process2.display)
-        self.mockDbSession.add.assert_has_calls([
-            mock.call(process1),
-            mock.call(process2),
-        ])
+        self.mockDbSession.add.assert_has_calls(
+            [
+                mock.call(process1),
+                mock.call(process2),
+            ]
+        )
         self.mockDbSession.commit.assert_called_once()
 
     def test_toggleProcessDisplayStatus_whenResetAllIFalse_setDisplayToFalseForAllProcessesThatAreNotRunningOrWaiting(
-            self):
+        self,
+    ):
         process1 = build_mock_process(status="Random Status", display="True")
         process2 = build_mock_process(status="Another Random Status", display="True")
         process3 = build_mock_process(status="Running", display="True")
@@ -310,10 +319,12 @@ class ProcessRepositoryTest(unittest.TestCase):
         self.assertEqual("False", process1.display)
         self.assertEqual("False", process2.display)
         self.assertEqual("True", process3.display)
-        self.mockDbSession.add.assert_has_calls([
-            mock.call(process1),
-            mock.call(process2),
-        ])
+        self.mockDbSession.add.assert_has_calls(
+            [
+                mock.call(process1),
+                mock.call(process2),
+            ]
+        )
         self.mockDbSession.commit.assert_called_once()
 
     def mockProcessStatusAndReturnSingle(self, processStatus: str):
@@ -333,7 +344,8 @@ class ProcessRepositoryTest(unittest.TestCase):
         expected_process.status = process_status
         expected_process_output: process_output = MagicMock()
         self.mockDbSession.query.return_value = mockQueryWithFilterBy(
-            mockFirstBySideEffect([expected_process, expected_process_output]))
+            mockFirstBySideEffect([expected_process, expected_process_output])
+        )
 
         self.processRepository.storeProcessOutput("some_process_id", "this is some cool output")
 

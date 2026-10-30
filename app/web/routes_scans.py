@@ -12,12 +12,6 @@ def _scan_service() -> ScanService:
     return ScanService(runtime_from_app())
 
 
-@scans_bp.after_request
-def _disable_cache(response):
-    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
-    return response
-
-
 @scans_bp.post("/api/targets/import-file")
 def import_targets():
     service = _scan_service()

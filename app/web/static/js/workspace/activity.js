@@ -1,10 +1,10 @@
-/** Workspace activity. */
 import { makeCell, setText, setWorkspaceStatus } from "./dom.js";
 import { fetchJson } from "./http.js";
 import { formatTargetLabel, renderAnsiOutput } from "./output_format.js";
 import { copyTextToClipboard, renderProcesses, renderSummary } from "./process_output.js";
+import { renderProject } from "./project_view.js";
 import { providerLogsState } from "./state.js";
-import { renderProject } from "./workspace_view.js";
+/** Workspace activity. */
 
 export async function loadProviderLogsAction() {
     setText("provider-logs-meta", "Loading logs...");

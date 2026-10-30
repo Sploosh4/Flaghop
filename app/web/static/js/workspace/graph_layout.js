@@ -1,7 +1,7 @@
-/** Workspace graph layout. */
 import { graphFriendlyLabel, graphPropertyValue, graphSubnetForIp } from "./graph_common.js";
 import { normalizeCategoryList } from "./host_filters.js";
 import { GRAPH_NODE_SIZE, GRAPH_SEVERITY_ORDER, GRAPH_TYPE_ORDER, graphWorkspaceState } from "./state.js";
+/** Workspace graph layout. */
 
 export function graphBuildHostMaps(nodes) {
     const hostById = new Map();

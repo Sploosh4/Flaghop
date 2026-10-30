@@ -12,8 +12,8 @@ from app.timing import getTimestamp
 
 
 def merge_engagement_policy_payload(
-        current_policy: Optional[Dict[str, Any]],
-        updates: Optional[Dict[str, Any]],
+    current_policy: Optional[Dict[str, Any]],
+    updates: Optional[Dict[str, Any]],
 ) -> Dict[str, Any]:
     merged = dict(current_policy or {})
     incoming = dict(updates or {}) if isinstance(updates, dict) else {}
@@ -65,12 +65,17 @@ def set_engagement_policy(runtime, updates: Optional[Dict[str, Any]] = None) -> 
         merged = merge_engagement_policy_payload(current, updates)
         normalized_policy = normalize_engagement_policy(
             merged,
-            fallback_goal_profile=str(current.get("legacy_goal_profile", current.get("goal_profile", "internal_asset_discovery")) or "internal_asset_discovery"),
+            fallback_goal_profile=str(
+                current.get("legacy_goal_profile", current.get("goal_profile", "internal_asset_discovery"))
+                or "internal_asset_discovery"
+            ),
         )
-        runtime.scheduler_config.update_preferences({
-            "engagement_policy": normalized_policy.to_dict(),
-            "goal_profile": normalized_policy.legacy_goal_profile,
-        })
+        runtime.scheduler_config.update_preferences(
+            {
+                "engagement_policy": normalized_policy.to_dict(),
+                "goal_profile": normalized_policy.legacy_goal_profile,
+            }
+        )
         project = getattr(runtime.logic, "activeProject", None)
         if project:
             ensure_scheduler_engagement_policy_table(project.database)

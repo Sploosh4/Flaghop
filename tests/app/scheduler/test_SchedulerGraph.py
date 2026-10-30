@@ -48,89 +48,173 @@ class SchedulerEvidenceGraphTest(unittest.TestCase):
 
             port = portObj("443", "tcp", "open", host_id, service.id)
             session.add(port)
-            session.add(cve(
-                name="CVE-2025-1234",
-                url="https://example.test/CVE-2025-1234",
-                product="nginx",
-                hostId=str(host_id),
-                severity="high",
-                source="nmap",
-                version="1.25",
-                exploitId=7,
-                exploit="ExploitDB #7",
-                exploitUrl="https://exploit-db.test/exploits/7",
-            ))
+            session.add(
+                cve(
+                    name="CVE-2025-1234",
+                    url="https://example.test/CVE-2025-1234",
+                    product="nginx",
+                    hostId=str(host_id),
+                    severity="high",
+                    source="nmap",
+                    version="1.25",
+                    exploitId=7,
+                    exploit="ExploitDB #7",
+                    exploitUrl="https://exploit-db.test/exploits/7",
+                )
+            )
             session.add(note(hostId=host_id, text="Operator note: verify admin panel manually"))
             session.commit()
             session.close()
 
-            upsert_target_state(project.database, host_id, {
-                "host_ip": "10.0.0.5",
-                "last_mode": "deterministic",
-                "goal_profile": "external_pentest",
-                "engagement_preset": "external_pentest",
-                "last_port": "443",
-                "last_protocol": "tcp",
-                "last_service": "https",
-                "hostname": "portal.local",
-                "hostname_confidence": 96,
-                "os_match": "Linux",
-                "os_confidence": 82,
-                "technologies": [{"name": "nginx", "version": "1.25", "cpe": "cpe:/a:nginx:nginx:1.25", "evidence": "server header"}],
-                "findings": [{
-                    "title": "Admin panel exposed",
-                    "severity": "medium",
-                    "cvss": 5.0,
-                    "cve": "",
-                    "evidence": "/admin",
-                    "evidence_items": ["/admin", "/admin/login"],
-                }],
-                "service_inventory": [{"port": "443", "protocol": "tcp", "state": "open", "service": "https", "service_product": "nginx", "service_version": "1.25"}],
-                "urls": [{"url": "https://portal.local", "port": "443", "protocol": "tcp", "service": "https"}],
-                "attempted_actions": [{
-                    "tool_id": "nuclei-web",
-                    "label": "Nuclei Web",
-                    "status": "executed",
-                    "attempted_at": "2026-03-17T02:00:00Z",
-                    "port": "443",
-                    "protocol": "tcp",
-                    "service": "https",
-                    "artifact_refs": ["/tmp/nuclei-10.0.0.5.txt", "/tmp/10.0.0.5-443-screenshot.png"],
-                }],
-                "credentials": [{"username": "svc-web", "realm": "local", "type": "password", "evidence": "manual note"}],
-                "sessions": [{"session_type": "shell", "username": "svc-web", "host": "10.0.0.9", "port": "443", "protocol": "tcp", "evidence": "validated shell"}],
-                "screenshots": [{"artifact_ref": "/tmp/10.0.0.5-443-screenshot.png", "filename": "10.0.0.5-443-screenshot.png", "port": "443", "protocol": "tcp"}],
-                "artifacts": [{"ref": "/tmp/nuclei-10.0.0.5.txt", "kind": "artifact", "tool_id": "nuclei-web", "port": "443", "protocol": "tcp"}],
-            })
+            upsert_target_state(
+                project.database,
+                host_id,
+                {
+                    "host_ip": "10.0.0.5",
+                    "last_mode": "deterministic",
+                    "goal_profile": "external_pentest",
+                    "engagement_preset": "external_pentest",
+                    "last_port": "443",
+                    "last_protocol": "tcp",
+                    "last_service": "https",
+                    "hostname": "portal.local",
+                    "hostname_confidence": 96,
+                    "os_match": "Linux",
+                    "os_confidence": 82,
+                    "technologies": [
+                        {
+                            "name": "nginx",
+                            "version": "1.25",
+                            "cpe": "cpe:/a:nginx:nginx:1.25",
+                            "evidence": "server header",
+                        }
+                    ],
+                    "findings": [
+                        {
+                            "title": "Admin panel exposed",
+                            "severity": "medium",
+                            "cvss": 5.0,
+                            "cve": "",
+                            "evidence": "/admin",
+                            "evidence_items": ["/admin", "/admin/login"],
+                        }
+                    ],
+                    "service_inventory": [
+                        {
+                            "port": "443",
+                            "protocol": "tcp",
+                            "state": "open",
+                            "service": "https",
+                            "service_product": "nginx",
+                            "service_version": "1.25",
+                        }
+                    ],
+                    "urls": [{"url": "https://portal.local", "port": "443", "protocol": "tcp", "service": "https"}],
+                    "attempted_actions": [
+                        {
+                            "tool_id": "nuclei-web",
+                            "label": "Nuclei Web",
+                            "status": "executed",
+                            "attempted_at": "2026-03-17T02:00:00Z",
+                            "port": "443",
+                            "protocol": "tcp",
+                            "service": "https",
+                            "artifact_refs": ["/tmp/nuclei-10.0.0.5.txt", "/tmp/10.0.0.5-443-screenshot.png"],
+                        }
+                    ],
+                    "credentials": [
+                        {"username": "svc-web", "realm": "local", "type": "password", "evidence": "manual note"}
+                    ],
+                    "sessions": [
+                        {
+                            "session_type": "shell",
+                            "username": "svc-web",
+                            "host": "10.0.0.9",
+                            "port": "443",
+                            "protocol": "tcp",
+                            "evidence": "validated shell",
+                        }
+                    ],
+                    "screenshots": [
+                        {
+                            "artifact_ref": "/tmp/10.0.0.5-443-screenshot.png",
+                            "filename": "10.0.0.5-443-screenshot.png",
+                            "port": "443",
+                            "protocol": "tcp",
+                        }
+                    ],
+                    "artifacts": [
+                        {
+                            "ref": "/tmp/nuclei-10.0.0.5.txt",
+                            "kind": "artifact",
+                            "tool_id": "nuclei-web",
+                            "port": "443",
+                            "protocol": "tcp",
+                        }
+                    ],
+                },
+            )
 
             snapshot = get_evidence_graph_snapshot(project.database)
             node_types = {item["type"] for item in snapshot["nodes"]}
             edge_types = {item["type"] for item in snapshot["edges"]}
 
-            self.assertTrue({
-                "scope", "subnet", "host", "fqdn", "port", "service", "url", "technology", "cpe",
-                "finding", "cve", "exploit_reference", "credential", "identity", "session",
-                "artifact", "screenshot", "action", "evidence_record",
-            }.issubset(node_types))
-            self.assertTrue({
-                "contains", "resolves_to", "exposes", "fingerprinted_as", "mapped_to_cpe",
-                "affected_by", "supports_exploit", "authenticated_as", "pivoted_to",
-                "captured", "produced", "derived_from",
-            }.issubset(edge_types))
-            self.assertTrue(any(item["type"] == "technology" and item["source_kind"] == "observed" for item in snapshot["nodes"]))
+            self.assertTrue(
+                {
+                    "scope",
+                    "subnet",
+                    "host",
+                    "fqdn",
+                    "port",
+                    "service",
+                    "url",
+                    "technology",
+                    "cpe",
+                    "finding",
+                    "cve",
+                    "exploit_reference",
+                    "credential",
+                    "identity",
+                    "session",
+                    "artifact",
+                    "screenshot",
+                    "action",
+                    "evidence_record",
+                }.issubset(node_types)
+            )
+            self.assertTrue(
+                {
+                    "contains",
+                    "resolves_to",
+                    "exposes",
+                    "fingerprinted_as",
+                    "mapped_to_cpe",
+                    "affected_by",
+                    "supports_exploit",
+                    "authenticated_as",
+                    "pivoted_to",
+                    "captured",
+                    "produced",
+                    "derived_from",
+                }.issubset(edge_types)
+            )
+            self.assertTrue(
+                any(item["type"] == "technology" and item["source_kind"] == "observed" for item in snapshot["nodes"])
+            )
             self.assertTrue(any(item["type"] == "finding" and item["evidence_refs"] for item in snapshot["nodes"]))
             self.assertTrue(any(str(item["source_ref"]).startswith("note:") for item in snapshot["annotations"]))
             finding_node = next(
-                item for item in snapshot["nodes"]
+                item
+                for item in snapshot["nodes"]
                 if item["type"] == "finding" and item["label"] == "Admin panel exposed"
             )
             self.assertIn("/admin/login", list(finding_node.get("evidence_refs", []) or []))
             evidence_node = next(
-                item for item in snapshot["nodes"]
+                item
+                for item in snapshot["nodes"]
                 if item["type"] == "evidence_record" and item.get("properties", {}).get("evidence") == "/admin"
             )
             self.assertIn("/admin/login", list(evidence_node.get("evidence_refs", []) or []))
-
 
         finally:
             project_manager.closeProject(project)
@@ -177,9 +261,24 @@ class SchedulerEvidenceGraphTest(unittest.TestCase):
             self.assertTrue(stored.get("graph_mutations"))
             self.assertIsNotNone(fetched)
             self.assertTrue(fetched["graph_mutations"])
-            self.assertTrue(any(item["type"] == "action" and item["properties"].get("execution_id") == record.execution_id for item in snapshot["nodes"]))
-            self.assertTrue(any(item["type"] == "artifact" and item["properties"].get("ref") == "/tmp/smb-enum-users.txt" for item in snapshot["nodes"]))
-            self.assertTrue(any(item["type"] == "evidence_record" and item["properties"].get("ref") == "process_output:42" for item in snapshot["nodes"]))
+            self.assertTrue(
+                any(
+                    item["type"] == "action" and item["properties"].get("execution_id") == record.execution_id
+                    for item in snapshot["nodes"]
+                )
+            )
+            self.assertTrue(
+                any(
+                    item["type"] == "artifact" and item["properties"].get("ref") == "/tmp/smb-enum-users.txt"
+                    for item in snapshot["nodes"]
+                )
+            )
+            self.assertTrue(
+                any(
+                    item["type"] == "evidence_record" and item["properties"].get("ref") == "process_output:42"
+                    for item in snapshot["nodes"]
+                )
+            )
             self.assertTrue(any(item["type"] == "produced" for item in snapshot["edges"]))
         finally:
             project_manager.closeProject(project)
@@ -197,18 +296,43 @@ class SchedulerEvidenceGraphTest(unittest.TestCase):
             session.commit()
             session.close()
 
-            upsert_target_state(project.database, host_id, {
-                "host_ip": "10.0.0.5",
-                "last_mode": "ai",
-                "provider": "openai",
-                "technologies": [
-                    {"name": "samba", "version": "4.x", "cpe": "cpe:/a:samba:samba:4", "evidence": "service banner", "source_kind": "observed"},
-                ],
-                "findings": [
-                    {"title": "SMB signing not required", "severity": "high", "cvss": 7.5, "evidence": "smb-security-mode", "source_kind": "ai_suggested"},
-                ],
-                "service_inventory": [{"port": "445", "protocol": "tcp", "state": "open", "service": "smb", "service_product": "samba", "service_version": "4.x"}],
-            })
+            upsert_target_state(
+                project.database,
+                host_id,
+                {
+                    "host_ip": "10.0.0.5",
+                    "last_mode": "ai",
+                    "provider": "openai",
+                    "technologies": [
+                        {
+                            "name": "samba",
+                            "version": "4.x",
+                            "cpe": "cpe:/a:samba:samba:4",
+                            "evidence": "service banner",
+                            "source_kind": "observed",
+                        },
+                    ],
+                    "findings": [
+                        {
+                            "title": "SMB signing not required",
+                            "severity": "high",
+                            "cvss": 7.5,
+                            "evidence": "smb-security-mode",
+                            "source_kind": "ai_suggested",
+                        },
+                    ],
+                    "service_inventory": [
+                        {
+                            "port": "445",
+                            "protocol": "tcp",
+                            "state": "open",
+                            "service": "smb",
+                            "service_product": "samba",
+                            "service_version": "4.x",
+                        }
+                    ],
+                },
+            )
 
             filtered = query_evidence_graph(
                 project.database,
@@ -243,18 +367,26 @@ class SchedulerEvidenceGraphTest(unittest.TestCase):
             down_host_id = int(down_host.id)
             session.close()
 
-            upsert_target_state(project.database, up_host_id, {
-                "host_ip": "10.0.0.5",
-                "hostname": "up.local",
-                "service_inventory": [{"port": "443", "protocol": "tcp", "state": "open", "service": "https"}],
-                "urls": [{"url": "https://up.local", "port": "443", "protocol": "tcp", "service": "https"}],
-            })
-            upsert_target_state(project.database, down_host_id, {
-                "host_ip": "10.0.0.6",
-                "hostname": "down.local",
-                "service_inventory": [{"port": "80", "protocol": "tcp", "state": "open", "service": "http"}],
-                "urls": [{"url": "http://down.local", "port": "80", "protocol": "tcp", "service": "http"}],
-            })
+            upsert_target_state(
+                project.database,
+                up_host_id,
+                {
+                    "host_ip": "10.0.0.5",
+                    "hostname": "up.local",
+                    "service_inventory": [{"port": "443", "protocol": "tcp", "state": "open", "service": "https"}],
+                    "urls": [{"url": "https://up.local", "port": "443", "protocol": "tcp", "service": "https"}],
+                },
+            )
+            upsert_target_state(
+                project.database,
+                down_host_id,
+                {
+                    "host_ip": "10.0.0.6",
+                    "hostname": "down.local",
+                    "service_inventory": [{"port": "80", "protocol": "tcp", "state": "open", "service": "http"}],
+                    "urls": [{"url": "http://down.local", "port": "80", "protocol": "tcp", "service": "http"}],
+                },
+            )
 
             hidden = query_evidence_graph(project.database, hide_down_hosts=True, limit_nodes=200, limit_edges=200)
             hidden_host_ids = {
@@ -326,21 +458,25 @@ class SchedulerEvidenceGraphTest(unittest.TestCase):
                     "source_ref": "url:https://portal.local:443/",
                     "first_seen": "2026-03-17T00:00:00Z",
                     "last_seen": "2026-03-17T00:00:00Z",
-                    "properties_json": "{\"host_id\": %d, \"url\": \"https://portal.local:443/\"}" % host_id,
+                    "properties_json": '{"host_id": %d, "url": "https://portal.local:443/"}' % host_id,
                 },
             )
             session.commit()
             session.close()
 
-            upsert_target_state(project.database, host_id, {
-                "host_ip": "10.0.0.5",
-                "hostname": "portal.local",
-                "service_inventory": [{"port": "443", "protocol": "tcp", "state": "open", "service": "https"}],
-                "urls": [
-                    {"url": "https://portal.local:443/", "port": "443", "protocol": "tcp", "service": "https"},
-                    {"url": "https://portal.local/", "port": "443", "protocol": "tcp", "service": "https"},
-                ],
-            })
+            upsert_target_state(
+                project.database,
+                host_id,
+                {
+                    "host_ip": "10.0.0.5",
+                    "hostname": "portal.local",
+                    "service_inventory": [{"port": "443", "protocol": "tcp", "state": "open", "service": "https"}],
+                    "urls": [
+                        {"url": "https://portal.local:443/", "port": "443", "protocol": "tcp", "service": "https"},
+                        {"url": "https://portal.local/", "port": "443", "protocol": "tcp", "service": "https"},
+                    ],
+                },
+            )
 
             snapshot = get_evidence_graph_snapshot(project.database)
             url_labels = [item["label"] for item in snapshot["nodes"] if item["type"] == "url"]
@@ -362,15 +498,19 @@ class SchedulerEvidenceGraphTest(unittest.TestCase):
             host_id = int(host.id)
             session.close()
 
-            upsert_target_state(project.database, host_id, {
-                "host_ip": "10.0.0.5",
-                "hostname": "portal.local",
-                "artifacts": [
-                    {"ref": "/tmp/web-nmap-01.xml", "tool_id": "nmap", "port": "443", "protocol": "tcp"},
-                    {"ref": "/tmp/web-nmap-01.gnmap", "tool_id": "nmap", "port": "443", "protocol": "tcp"},
-                    {"ref": "/tmp/nuclei-findings.txt", "tool_id": "nuclei-web", "port": "443", "protocol": "tcp"},
-                ],
-            })
+            upsert_target_state(
+                project.database,
+                host_id,
+                {
+                    "host_ip": "10.0.0.5",
+                    "hostname": "portal.local",
+                    "artifacts": [
+                        {"ref": "/tmp/web-nmap-01.xml", "tool_id": "nmap", "port": "443", "protocol": "tcp"},
+                        {"ref": "/tmp/web-nmap-01.gnmap", "tool_id": "nmap", "port": "443", "protocol": "tcp"},
+                        {"ref": "/tmp/nuclei-findings.txt", "tool_id": "nuclei-web", "port": "443", "protocol": "tcp"},
+                    ],
+                },
+            )
 
             default_graph = query_evidence_graph(project.database, host_id=host_id, limit_nodes=100, limit_edges=100)
             default_labels = {str(item["label"]) for item in default_graph["nodes"] if item["type"] == "artifact"}

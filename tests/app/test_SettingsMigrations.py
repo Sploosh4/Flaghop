@@ -5,7 +5,6 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-
 LEGACY_CONFIG = """[GeneralSettings]
 default-terminal=xterm
 
@@ -359,7 +358,9 @@ class SettingsMigrationTest(unittest.TestCase):
         normalized = AppSettings._ensure_katana_command(command)
 
         self.assertIn("command -v katana >/dev/null 2>&1", normalized)
-        self.assertIn("katana -silent -jsonl -d 2 -jc -kf robotstxt,sitemapxml -c 5 -p 1 -rl 5 -u [WEB_URL]", normalized)
+        self.assertIn(
+            "katana -silent -jsonl -d 2 -jc -kf robotstxt,sitemapxml -c 5 -p 1 -rl 5 -u [WEB_URL]", normalized
+        )
         self.assertIn("-o [OUTPUT].jsonl", normalized)
         self.assertNotIn("command -v katana -silent", normalized)
         self.assertNotIn("katana not found -o", normalized)
@@ -518,11 +519,15 @@ class SettingsMigrationTest(unittest.TestCase):
             "-web-server -status-code -content-type -u http://[IP]:[PORT] || echo httpx not found -o [OUTPUT].jsonl"
         )
 
-        self.assertIn("httpx -silent -json -title -tech-detect -web-server -status-code -content-type", httpx_normalized)
+        self.assertIn(
+            "httpx -silent -json -title -tech-detect -web-server -status-code -content-type", httpx_normalized
+        )
         self.assertIn("-u [WEB_URL]", httpx_normalized)
         self.assertIn("-o [OUTPUT].jsonl", httpx_normalized)
         self.assertIn("command -v httpx >/dev/null 2>&1 &&", httpx_wrapped_normalized)
-        self.assertIn("httpx -silent -json -title -tech-detect -web-server -status-code -content-type", httpx_wrapped_normalized)
+        self.assertIn(
+            "httpx -silent -json -title -tech-detect -web-server -status-code -content-type", httpx_wrapped_normalized
+        )
         self.assertIn("-u [WEB_URL] -o [OUTPUT].jsonl) || echo httpx not found", httpx_wrapped_normalized)
         self.assertIn("-u [WEB_URL] -o [OUTPUT].jsonl) || echo httpx not found", httpx_malformed_fallback)
         self.assertIn("-u [WEB_URL] -o [OUTPUT].jsonl) || echo httpx not found", httpx_malformed_missing_paren)
@@ -639,8 +644,7 @@ class SettingsMigrationTest(unittest.TestCase):
         from app.settings import AppSettings
 
         grouped = (
-            "(nmap -Pn -n -sV -p [PORT] --script=vuln,vulners [IP] || "
-            "nmap -Pn -n -sV -p [PORT] --script=vuln [IP])"
+            "(nmap -Pn -n -sV -p [PORT] --script=vuln,vulners [IP] || " "nmap -Pn -n -sV -p [PORT] --script=vuln [IP])"
         )
         normalized = AppSettings._ensure_nmap_output_argument(grouped, "[OUTPUT]")
 

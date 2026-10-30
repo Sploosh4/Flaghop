@@ -1,7 +1,7 @@
-/** Workspace graph projection. */
 import { graphFriendlyLabel, graphHashToken, graphHostnameSuffix, graphPropertyValue, graphSubnetForIp, graphUrlHost } from "./graph_common.js";
 import { graphGroupKeyForNode, graphNaturalCompare } from "./graph_layout.js";
 import { GRAPH_LARGE_EDGE_THRESHOLD, GRAPH_LARGE_NODE_THRESHOLD, GRAPH_MATRIX_EDGE_THRESHOLD, GRAPH_MATRIX_GROUP_LIMIT, GRAPH_MATRIX_NODE_THRESHOLD, GRAPH_SEVERITY_ORDER, graphWorkspaceState } from "./state.js";
+/** Workspace graph projection. */
 
 export function graphEntityUnderlyingNodeIds(entity) {
     if (!entity || typeof entity !== "object") {

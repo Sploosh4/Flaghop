@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
 </head>
 <body class="workspace-ui{% if legion_ui_opaque %} opaque-ui{% endif %}{% if legion_colorful_ascii_background %} colorful-background{% endif %}">
+<script id="scan-presets" type="application/json">{{ legion_scan_presets | tojson }}</script>
 <div class="background-glow"></div>
 {% if legion_colorful_ascii_background and console_logo_art %}
 <div class="logo-watermark" aria-hidden="true">

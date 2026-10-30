@@ -12,14 +12,6 @@ def _host_action_service() -> HostActionService:
     return HostActionService(runtime_from_app())
 
 
-@host_actions_bp.after_request
-def _disable_cache(response):
-    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
 @host_actions_bp.post("/api/workspace/ports/delete")
 def workspace_port_delete():
     service = _host_action_service()

@@ -1,13 +1,22 @@
-/** Workspace workspace data. */
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let graphLoadSnapshot, renderHosts, renderServices, renderTools;
+export function connectWorkspaceData(callbacks) {
+    for (const name of ["graphLoadSnapshot", "renderHosts", "renderServices", "renderTools"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing workspace_data callback: ${name}`);
+    }
+    ({ graphLoadSnapshot, renderHosts, renderServices, renderTools } = callbacks);
+}
+
 import { getChecked, getValue, setWorkspaceStatus } from "./dom.js";
-import { graphLoadSnapshot } from "./graph_data.js";
 import { renderHostDetail } from "./host_detail.js";
 import { currentHostFilterQuery, currentServicesFilterQuery, syncHostFilterControls } from "./host_filters.js";
+import { setServicesHostScope } from "./host_scope.js";
 import { fetchJson, postJson } from "./http.js";
-import { waitForWorkspaceInvalidation } from "./live_updates.js";
+import { waitForWorkspaceInvalidation } from "./invalidation_waiters.js";
 import { workspaceState } from "./state.js";
-import { fetchWorkspaceToolsAll } from "./tools.js";
-import { renderHosts, renderServices, renderTools, setServicesHostScope } from "./workspace_view.js";
+import { fetchWorkspaceToolsAll } from "./tool_api.js";
+/** Workspace workspace data. */
 
 export function sleepMs(ms) {
     return new Promise((resolve) => {

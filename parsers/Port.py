@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-__author__ = 'SECFORCE'
-__version__ = '0.1'
+__author__ = "SECFORCE"
+__version__ = "0.1"
 
 from typing import Optional
 
@@ -10,23 +10,23 @@ import parsers.Script as Script
 
 
 class Port:
-    portId: str = ''
-    protocol: str = ''
-    state: str = ''
+    portId: str = ""
+    protocol: str = ""
+    state: str = ""
 
     def __init__(self, PortNode):
         if not (PortNode is None):
             self.portNode = PortNode
-            self.portId = PortNode.getAttribute('portid')
-            self.protocol = PortNode.getAttribute('protocol')
-            state_nodes = PortNode.getElementsByTagName('state')
+            self.portId = PortNode.getAttribute("portid")
+            self.protocol = PortNode.getAttribute("protocol")
+            state_nodes = PortNode.getElementsByTagName("state")
             if state_nodes:
-                self.state = state_nodes[0].getAttribute('state')
+                self.state = state_nodes[0].getAttribute("state")
             else:
-                self.state = 'unknown'
+                self.state = "unknown"
 
     def getService(self) -> Optional[Service.Service]:
-        service_node = self.portNode.getElementsByTagName('service')
+        service_node = self.portNode.getElementsByTagName("service")
 
         if len(service_node) > 0:
             return Service.Service(service_node[0])
@@ -46,7 +46,7 @@ class Port:
 
     def getScripts(self):
         scripts = []
-        for scriptNode in self.portNode.getElementsByTagName('script'):
+        for scriptNode in self.portNode.getElementsByTagName("script"):
             scr = Script.Script(scriptNode)
             scripts.append(scr)
 

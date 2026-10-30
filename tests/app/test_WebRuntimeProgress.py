@@ -10,11 +10,13 @@ class _DummyProgressRepo:
         self.calls = []
 
     def storeProcessProgress(self, process_id, percent=None, estimated_remaining=None):
-        self.calls.append({
-            "process_id": process_id,
-            "percent": percent,
-            "estimated_remaining": estimated_remaining,
-        })
+        self.calls.append(
+            {
+                "process_id": process_id,
+                "percent": percent,
+                "estimated_remaining": estimated_remaining,
+            }
+        )
 
 
 class WebRuntimeNmapProgressTest(unittest.TestCase):
@@ -112,7 +114,9 @@ class WebRuntimeNmapProgressTest(unittest.TestCase):
         updated_new = WebRuntime._append_nmap_stats_every(["-Pn"], interval="15s")
         self.assertEqual(["-Pn", "--stats-every", "15s", "-vv"], updated_new)
 
-        updated_existing_verbose = WebRuntime._append_nmap_stats_every(["-Pn", "--stats-every", "15s", "-vv"], interval="15s")
+        updated_existing_verbose = WebRuntime._append_nmap_stats_every(
+            ["-Pn", "--stats-every", "15s", "-vv"], interval="15s"
+        )
         self.assertEqual(["-Pn", "--stats-every", "15s", "-vv"], updated_existing_verbose)
 
     def test_build_single_scan_plan_honors_force_pn_option(self):
@@ -207,7 +211,9 @@ class WebRuntimeNmapProgressTest(unittest.TestCase):
                 return True, "", 1
 
             runtime._run_command_with_tracking = fake_run_command_with_tracking
-            runtime._import_nmap_xml = lambda xml_path, run_actions=False: imported_xmls.append((xml_path, run_actions)) or {"xml_path": xml_path}
+            runtime._import_nmap_xml = lambda xml_path, run_actions=False: imported_xmls.append(
+                (xml_path, run_actions)
+            ) or {"xml_path": xml_path}
             runtime._run_scheduler_actions_web = lambda: {"ran": True}
             runtime._update_scan_submission_status = lambda **kwargs: status_updates.append(dict(kwargs))
 
@@ -282,7 +288,9 @@ class WebRuntimeNmapProgressTest(unittest.TestCase):
                 return True, "", 1
 
             runtime._run_command_with_tracking = fake_run_command_with_tracking
-            runtime._import_nmap_xml = lambda xml_path, run_actions=False: imported_xmls.append((xml_path, run_actions)) or {"xml_path": xml_path}
+            runtime._import_nmap_xml = lambda xml_path, run_actions=False: imported_xmls.append(
+                (xml_path, run_actions)
+            ) or {"xml_path": xml_path}
             runtime._run_scheduler_actions_web = lambda: {"ran": True}
             runtime._update_scan_submission_status = lambda **kwargs: status_updates.append(dict(kwargs))
 

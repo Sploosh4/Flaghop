@@ -30,3 +30,13 @@ def json_error(message: str, status_code: int = 400):
 
 def runtime_from_app():
     return current_app.extensions["legion_runtime"]
+
+
+def disable_api_cache(response):
+    from flask import request
+
+    if request.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response

@@ -1,0 +1,27 @@
+name: Maintainability checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install desktop runtime libraries
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libopengl0 libxkbcommon0 libdbus-1-3 libnss3 libasound2t64 libgbm1 libxcomposite1 libxdamage1 libxrandr2 libxi6 libxtst6 libfontconfig1
+      - name: Install Python dependencies
+        run: python -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt
+      - name: Tests, formatting and lint
+        run: scripts/check-maintainability.sh
+      - name: Fixture desktop smoke test
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
+        run: .venv/bin/python tests/desktop/workspace_smoke.py

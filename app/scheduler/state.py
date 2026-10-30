@@ -13,10 +13,6 @@ from sqlalchemy import text
 from app.scheduler.state_support.constants import (
     _utc_now,
 )
-from app.scheduler.state_support.legacy import (
-    legacy_ai_payload_to_target_state,
-    migrate_legacy_ai_state_to_target_state,
-)
 from app.scheduler.state_support.normalization import (
     _as_json,
     _load_custom_device_category_rules,
@@ -37,11 +33,7 @@ from app.scheduler.state_support.normalization import (
     _safe_bool,
     _safe_float,
 )
-from app.scheduler.state_support.storage import (
-    _ensure_target_state_table,
-    _fetch_target_state_row,
-    ensure_scheduler_target_state_table,
-)
+from app.scheduler.state_support.storage import _ensure_target_state_table, _fetch_target_state_row
 from app.scheduler.state_support.observations import build_artifact_entries as build_artifact_entries
 from app.scheduler.state_support.observations import build_attempted_action_entry as build_attempted_action_entry
 from app.scheduler.state_support.observations import build_target_urls as build_target_urls

@@ -28,15 +28,17 @@ def workspace_host_service_inventory(port_rows: List[Any], service_repo: Any) ->
             except Exception:
                 service_obj = None
         service_name = str(getattr(service_obj, "name", "") or getattr(port, "serviceName", "") or "").strip()
-        rows.append({
-            "port": str(getattr(port, "portId", "") or "").strip(),
-            "protocol": str(getattr(port, "protocol", "tcp") or "tcp").strip().lower(),
-            "state": str(getattr(port, "state", "") or "").strip(),
-            "service": service_name,
-            "service_product": str(getattr(service_obj, "product", "") or "").strip() if service_obj else "",
-            "service_version": str(getattr(service_obj, "version", "") or "").strip() if service_obj else "",
-            "service_extrainfo": str(getattr(service_obj, "extrainfo", "") or "").strip() if service_obj else "",
-        })
+        rows.append(
+            {
+                "port": str(getattr(port, "portId", "") or "").strip(),
+                "protocol": str(getattr(port, "protocol", "tcp") or "tcp").strip().lower(),
+                "state": str(getattr(port, "state", "") or "").strip(),
+                "service": service_name,
+                "service_product": str(getattr(service_obj, "product", "") or "").strip() if service_obj else "",
+                "service_version": str(getattr(service_obj, "version", "") or "").strip() if service_obj else "",
+                "service_extrainfo": str(getattr(service_obj, "extrainfo", "") or "").strip() if service_obj else "",
+            }
+        )
     return rows
 
 
@@ -71,12 +73,14 @@ def _service_inventory_os_records(service_inventory: List[Dict[str, Any]]) -> Li
     for item in list(service_inventory or []):
         if not isinstance(item, dict):
             continue
-        rows.append((
-            str(item.get("service", "") or ""),
-            str(item.get("service_product", "") or ""),
-            str(item.get("service_version", "") or ""),
-            str(item.get("service_extrainfo", "") or ""),
-        ))
+        rows.append(
+            (
+                str(item.get("service", "") or ""),
+                str(item.get("service_product", "") or ""),
+                str(item.get("service_version", "") or ""),
+                str(item.get("service_extrainfo", "") or ""),
+            )
+        )
     return rows
 
 
@@ -103,14 +107,19 @@ def _score_service_os_evidence(os_name: str, service_inventory: List[Dict[str, A
             elif service in {"kerberos-sec", "kpasswd5", "ldap", "ncacn_http"}:
                 matched_keys.add(service)
                 score += 10
-            if any(token in text_value for token in ("microsoft windows", "windows rpc", "microsoft httpapi", "ntlm", "termsrv")):
+            if any(
+                token in text_value
+                for token in ("microsoft windows", "windows rpc", "microsoft httpapi", "ntlm", "termsrv")
+            ):
                 score += 28
             elif "microsoft" in text_value:
                 score += 18
         elif normalized_os == "Linux":
             if service in {"ssh", "nfs", "rpcbind"}:
                 score += 8
-            if any(token in text_value for token in ("openssh", "linux", "ubuntu", "debian", "centos", "red hat", "rhel")):
+            if any(
+                token in text_value for token in ("openssh", "linux", "ubuntu", "debian", "centos", "red hat", "rhel")
+            ):
                 score += 24
         elif normalized_os == "Darwin":
             if any(token in text_value for token in ("darwin", "mac os", "macos", "apple")):
@@ -125,9 +134,9 @@ def _score_service_os_evidence(os_name: str, service_inventory: List[Dict[str, A
 
 
 def resolve_host_os(
-        host: Any,
-        service_inventory: Optional[List[Dict[str, Any]]] = None,
-        target_state: Optional[Dict[str, Any]] = None,
+    host: Any,
+    service_inventory: Optional[List[Dict[str, Any]]] = None,
+    target_state: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     state = dict(target_state or {})
     raw_os = str(getattr(host, "osMatch", "") or state.get("os_match", "") or "").strip()
@@ -150,9 +159,7 @@ def resolve_host_os(
     )
 
     if inferred_category != UNKNOWN_OS_CATEGORY and (
-            raw_unknown
-            or (contradictory and raw_weak and inferred_score >= 70)
-            or (contradictory and inferred_score >= 90)
+        raw_unknown or (contradictory and raw_weak and inferred_score >= 70) or (contradictory and inferred_score >= 90)
     ):
         return {
             "os": inferred_category,
@@ -170,12 +177,12 @@ def resolve_host_os(
 
 
 def resolve_host_device_categories(
-        runtime,
-        project: Any,
-        host: Any,
-        *,
-        target_state: Optional[Dict[str, Any]] = None,
-        service_inventory: Optional[List[Dict[str, Any]]] = None,
+    runtime,
+    project: Any,
+    host: Any,
+    *,
+    target_state: Optional[Dict[str, Any]] = None,
+    service_inventory: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     state = dict(target_state or {})
     effective = list(state.get("device_categories", []) or [])
@@ -194,11 +201,8 @@ def resolve_host_device_categories(
         except Exception:
             resolved_inventory = []
     manual = normalize_manual_device_categories(
-        manual or (
-            state.get("raw", {}).get("manual_device_categories", [])
-            if isinstance(state.get("raw", {}), dict)
-            else []
-        )
+        manual
+        or (state.get("raw", {}).get("manual_device_categories", []) if isinstance(state.get("raw", {}), dict) else [])
     )
     override_auto = bool(
         state.get("device_category_override", False)
@@ -226,17 +230,17 @@ def resolve_host_device_categories(
 
 
 def build_workspace_host_row(
-        runtime,
-        host: Any,
-        port_repo: Any,
-        service_repo: Any,
-        project: Any,
-        *,
-        get_target_state_func=None,
-        preloaded_ports: Optional[List[Any]] = None,
-        preloaded_service_inventory: Optional[List[Dict[str, Any]]] = None,
-        preloaded_services: Optional[List[str]] = None,
-        preloaded_target_state: Optional[Dict[str, Any]] = None,
+    runtime,
+    host: Any,
+    port_repo: Any,
+    service_repo: Any,
+    project: Any,
+    *,
+    get_target_state_func=None,
+    preloaded_ports: Optional[List[Any]] = None,
+    preloaded_service_inventory: Optional[List[Dict[str, Any]]] = None,
+    preloaded_services: Optional[List[str]] = None,
+    preloaded_target_state: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     target_state_getter = get_target_state_func or load_target_state
     ports = list(preloaded_ports) if preloaded_ports is not None else list(port_repo.getPortsByHostId(host.id) or [])
@@ -246,7 +250,9 @@ def build_workspace_host_row(
         if preloaded_service_inventory is not None
         else workspace_host_service_inventory(ports, service_repo)
     )
-    services = list(preloaded_services) if preloaded_services is not None else _service_names_from_inventory(service_inventory)
+    services = (
+        list(preloaded_services) if preloaded_services is not None else _service_names_from_inventory(service_inventory)
+    )
     target_state = (
         dict(preloaded_target_state)
         if preloaded_target_state is not None

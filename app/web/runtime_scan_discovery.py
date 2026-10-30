@@ -13,7 +13,6 @@ from app.web import runtime_scan_httpx as web_runtime_scan_httpx
 from db.entities.port import portObj
 from db.entities.service import serviceObj
 
-
 start_httpx_bootstrap_job = web_runtime_scan_httpx.start_httpx_bootstrap_job
 httpx_bootstrap_command = web_runtime_scan_httpx.httpx_bootstrap_command
 run_httpx_bootstrap = web_runtime_scan_httpx.run_httpx_bootstrap
@@ -155,22 +154,20 @@ def mark_discovered_host_origin(runtime, host_tokens: List[str], *, source_tool_
 
 
 def materialize_httpx_urls_as_web_targets(
-        runtime,
-        *,
-        host_id: int,
-        host_ip: str,
-        hostname: str,
-        host_token: str,
-        observed_payload: Dict[str, Any],
+    runtime,
+    *,
+    host_id: int,
+    host_ip: str,
+    hostname: str,
+    host_token: str,
+    observed_payload: Dict[str, Any],
 ) -> Dict[str, Any]:
     resolved_host_id = int(host_id or 0)
     if resolved_host_id <= 0:
         return {"targets": []}
 
     candidate_hosts = {
-        str(token or "").strip().lower()
-        for token in [host_token, host_ip, hostname]
-        if str(token or "").strip()
+        str(token or "").strip().lower() for token in [host_token, host_ip, hostname] if str(token or "").strip()
     }
     candidate_targets: Dict[Tuple[str, str], Dict[str, str]] = {}
     for item in list((observed_payload or {}).get("urls", []) or []):
@@ -210,11 +207,15 @@ def materialize_httpx_urls_as_web_targets(
                 port_value = str(item.get("port", "") or "").strip()
                 protocol_value = str(item.get("protocol", "tcp") or "tcp").strip().lower() or "tcp"
                 service_name = str(item.get("service", "") or "").strip() or "http"
-                port_row = session.query(portObj).filter_by(
-                    hostId=str(resolved_host_id),
-                    portId=port_value,
-                    protocol=protocol_value,
-                ).first()
+                port_row = (
+                    session.query(portObj)
+                    .filter_by(
+                        hostId=str(resolved_host_id),
+                        portId=port_value,
+                        protocol=protocol_value,
+                    )
+                    .first()
+                )
                 service_row = None
                 if port_row is not None and str(getattr(port_row, "serviceId", "") or "").strip():
                     service_row = session.query(serviceObj).filter_by(id=getattr(port_row, "serviceId", None)).first()
@@ -224,7 +225,15 @@ def materialize_httpx_urls_as_web_targets(
                     session.flush()
                 else:
                     current_name = str(getattr(service_row, "name", "") or "").strip().lower()
-                    if not current_name or current_name in {"http", "https", "ssl", "http-alt", "https-alt", "soap", "http-proxy"}:
+                    if not current_name or current_name in {
+                        "http",
+                        "https",
+                        "ssl",
+                        "http-alt",
+                        "https-alt",
+                        "soap",
+                        "http-proxy",
+                    }:
                         service_row.name = service_name
                         session.add(service_row)
                 if port_row is None:
@@ -281,10 +290,10 @@ def ingest_discovered_hosts(runtime, discovered_hosts: List[str], *, source_tool
 
 
 def run_governed_discovery(
-        runtime,
-        target: str,
-        *,
-        run_actions: bool = False,
+    runtime,
+    target: str,
+    *,
+    run_actions: bool = False,
 ) -> Dict[str, Any]:
     normalized_targets = runtime._normalize_targets([target])
     if not normalized_targets:

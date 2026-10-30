@@ -1,7 +1,6 @@
 import re
 from typing import Any, Dict, Iterable, List, Optional, Set
 
-
 DEFAULT_DEVICE_CATEGORY_RULES: List[Dict[str, Any]] = [
     {
         "name": "Windows",
@@ -376,14 +375,16 @@ def normalize_manual_device_categories(raw: Any) -> List[Dict[str, Any]]:
             numeric_confidence = float(confidence or 100.0)
         except (TypeError, ValueError):
             numeric_confidence = 100.0
-        rows.append({
-            "id": key,
-            "name": name,
-            "confidence": max(1.0, min(numeric_confidence, 100.0)),
-            "source_kind": "user_entered",
-            "origin": "manual",
-            "reasons": ["manual classification"],
-        })
+        rows.append(
+            {
+                "id": key,
+                "name": name,
+                "confidence": max(1.0, min(numeric_confidence, 100.0)),
+                "source_kind": "user_entered",
+                "origin": "manual",
+                "reasons": ["manual classification"],
+            }
+        )
     return rows[:32]
 
 
@@ -476,20 +477,22 @@ def classify_device_categories(context: Optional[Dict[str, Any]], custom_rules: 
         if not strong_match and score < min_score:
             continue
         confidence = min(98.0, 48.0 + float(score * 10))
-        rows.append({
-            "id": str(rule.get("id", "") or ""),
-            "name": str(rule.get("name", "") or ""),
-            "confidence": confidence,
-            "source_kind": "observed",
-            "origin": "auto",
-            "score": score,
-            "reasons": reasons[:8],
-            "matched_ports": matched_ports[:8],
-            "matched_fingerprint_fragments": matched_fingerprints[:6],
-            "matched_cpe_fragments": matched_cpes[:4],
-            "suppresses": list(rule.get("suppresses", []) or []),
-            "built_in": bool(rule.get("built_in", False)),
-        })
+        rows.append(
+            {
+                "id": str(rule.get("id", "") or ""),
+                "name": str(rule.get("name", "") or ""),
+                "confidence": confidence,
+                "source_kind": "observed",
+                "origin": "auto",
+                "score": score,
+                "reasons": reasons[:8],
+                "matched_ports": matched_ports[:8],
+                "matched_fingerprint_fragments": matched_fingerprints[:6],
+                "matched_cpe_fragments": matched_cpes[:4],
+                "suppresses": list(rule.get("suppresses", []) or []),
+                "built_in": bool(rule.get("built_in", False)),
+            }
+        )
     suppressed_categories: Set[str] = set()
     for item in rows:
         suppressed_categories.update(
@@ -499,7 +502,8 @@ def classify_device_categories(context: Optional[Dict[str, Any]], custom_rules: 
         )
     if suppressed_categories:
         rows = [
-            item for item in rows
+            item
+            for item in rows
             if slugify_device_category(item.get("name", "") or item.get("id", "")) not in suppressed_categories
         ]
     rows.sort(key=lambda item: (-float(item.get("confidence", 0.0) or 0.0), str(item.get("name", "")).lower()))

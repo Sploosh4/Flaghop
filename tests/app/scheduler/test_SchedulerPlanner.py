@@ -125,15 +125,17 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "deterministic",
-                "engagement_policy": {
-                    "preset": "external_recon",
-                    "scope": "external",
-                    "intent": "recon",
-                    "noise_budget": "low",
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "deterministic",
+                    "engagement_policy": {
+                        "preset": "external_recon",
+                        "scope": "external",
+                        "intent": "recon",
+                        "noise_budget": "low",
+                    },
+                }
+            )
             planner = SchedulerPlanner(manager)
 
             actions = planner.plan_actions("http", "tcp", settings)
@@ -194,17 +196,19 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "goal_profile": "internal_asset_discovery",
-                "dangerous_categories": ["credential_bruteforce"],
-                "engagement_policy": {
-                    "preset": "internal_pentest",
-                    "intent": "pentest",
-                    "credential_attack_mode": "approval",
-                    "lockout_risk_mode": "approval",
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "goal_profile": "internal_asset_discovery",
+                    "dangerous_categories": ["credential_bruteforce"],
+                    "engagement_policy": {
+                        "preset": "internal_pentest",
+                        "intent": "pentest",
+                        "credential_attack_mode": "approval",
+                        "lockout_risk_mode": "approval",
+                    },
+                }
+            )
             planner = SchedulerPlanner(manager)
 
             settings = SimpleNamespace(
@@ -222,7 +226,7 @@ class SchedulerPlannerTest(unittest.TestCase):
 
             manager.approve_family(
                 hydra.family_id,
-                {"tool_id": hydra.tool_id, "label": hydra.label, "danger_categories": hydra.danger_categories}
+                {"tool_id": hydra.tool_id, "label": hydra.label, "danger_categories": hydra.danger_categories},
             )
             actions_after_approval = planner.plan_actions("smb", "tcp", settings)
             hydra_after = [item for item in actions_after_approval if item.tool_id == "smb-default"][0]
@@ -234,10 +238,12 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "deterministic",
-                "engagement_policy": {"preset": "internal_recon"},
-            })
+            manager.update_preferences(
+                {
+                    "mode": "deterministic",
+                    "engagement_policy": {"preset": "internal_recon"},
+                }
+            )
             planner = SchedulerPlanner(manager)
 
             settings = SimpleNamespace(
@@ -260,10 +266,12 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "deterministic",
-                "engagement_policy": {"preset": "internal_quick_recon"},
-            })
+            manager.update_preferences(
+                {
+                    "mode": "deterministic",
+                    "engagement_policy": {"preset": "internal_quick_recon"},
+                }
+            )
             planner = SchedulerPlanner(manager)
 
             settings = SimpleNamespace(
@@ -297,27 +305,44 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "none",
-                "engagement_policy": {
-                    "preset": "internal_pentest",
-                    "scope": "internal",
-                    "intent": "pentest",
-                    "allow_exploitation": True,
-                    "allow_lateral_movement": True,
-                    "credential_attack_mode": "approval",
-                    "lockout_risk_mode": "approval",
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "none",
+                    "engagement_policy": {
+                        "preset": "internal_pentest",
+                        "scope": "internal",
+                        "intent": "pentest",
+                        "allow_exploitation": True,
+                        "allow_lateral_movement": True,
+                        "credential_attack_mode": "approval",
+                        "lockout_risk_mode": "approval",
+                    },
+                }
+            )
             planner = SchedulerPlanner(manager)
 
             settings = SimpleNamespace(
                 automatedAttacks=[],
                 portActions=[
-                    ["Prepare Responder capture workflow", "responder", "responder -I <interface> -w -F", "smb,ldap,kerberos"],
-                    ["Prepare ntlmrelayx relay workflow", "ntlmrelayx", "impacket-ntlmrelayx -t smb://[IP] -smb2support", "smb,ldap,kerberos"],
-                    ["Run netexec", "netexec", "netexec smb [IP] --port [PORT] -u '' -p '' --shares --users --pass-pol", "smb"],
+                    [
+                        "Prepare Responder capture workflow",
+                        "responder",
+                        "responder -I <interface> -w -F",
+                        "smb,ldap,kerberos",
+                    ],
+                    [
+                        "Prepare ntlmrelayx relay workflow",
+                        "ntlmrelayx",
+                        "impacket-ntlmrelayx -t smb://[IP] -smb2support",
+                        "smb,ldap,kerberos",
+                    ],
+                    [
+                        "Run netexec",
+                        "netexec",
+                        "netexec smb [IP] --port [PORT] -u '' -p '' --shares --users --pass-pol",
+                        "smb",
+                    ],
                 ],
             )
 
@@ -348,13 +373,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "openai",
-                "providers": {
-                    "openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"}
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "openai",
+                    "providers": {"openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"}},
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -382,17 +407,19 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "lm_studio",
-                "providers": {
-                    "lm_studio": {
-                        "enabled": True,
-                        "base_url": "http://127.0.0.1:1234/v1",
-                        "model": "o3-7b",
-                    }
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "lm_studio",
+                    "providers": {
+                        "lm_studio": {
+                            "enabled": True,
+                            "base_url": "http://127.0.0.1:1234/v1",
+                            "model": "o3-7b",
+                        }
+                    },
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -411,11 +438,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "goal_profile": "external_pentest",
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "goal_profile": "external_pentest",
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -441,11 +470,13 @@ class SchedulerPlannerTest(unittest.TestCase):
         for goal_profile in ["internal_asset_discovery", "external_pentest"]:
             with tempfile.TemporaryDirectory() as tmpdir:
                 manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-                manager.update_preferences({
-                    "mode": "ai",
-                    "goal_profile": goal_profile,
-                    "provider": "none",
-                })
+                manager.update_preferences(
+                    {
+                        "mode": "ai",
+                        "goal_profile": goal_profile,
+                        "provider": "none",
+                    }
+                )
                 planner = SchedulerPlanner(manager)
                 settings = SimpleNamespace(
                     automatedAttacks=[
@@ -471,11 +502,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "goal_profile": "internal_asset_discovery",
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "goal_profile": "internal_asset_discovery",
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -510,11 +543,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "deterministic",
-                "goal_profile": "internal_asset_discovery",
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "deterministic",
+                    "goal_profile": "internal_asset_discovery",
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[
@@ -552,11 +587,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "deterministic",
-                "goal_profile": "internal_asset_discovery",
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "deterministic",
+                    "goal_profile": "internal_asset_discovery",
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[
@@ -590,11 +627,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "goal_profile": "external_pentest",
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "goal_profile": "external_pentest",
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[
@@ -625,11 +664,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "none",
-                "disabled_tool_ids": ["http-drupal-modules.nse", "http-vuln-zimbra-lfi.nse"],
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "none",
+                    "disabled_tool_ids": ["http-drupal-modules.nse", "http-vuln-zimbra-lfi.nse"],
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -652,11 +693,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "goal_profile": "external_pentest",
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "goal_profile": "external_pentest",
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -688,13 +731,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "openai",
-                "providers": {
-                    "openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"}
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "openai",
+                    "providers": {"openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"}},
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -715,11 +758,31 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         candidates = [
             {"tool_id": "nuclei-web", "label": "Nuclei", "command_template": "nuclei -u [IP]", "service_scope": "http"},
-            {"tool_id": "nmap-vuln.nse", "label": "nmap vuln", "command_template": "nmap --script vuln [IP]", "service_scope": "http"},
+            {
+                "tool_id": "nmap-vuln.nse",
+                "label": "nmap vuln",
+                "command_template": "nmap --script vuln [IP]",
+                "service_scope": "http",
+            },
             {"tool_id": "wpscan", "label": "WPScan", "command_template": "wpscan --url [IP]", "service_scope": "http"},
-            {"tool_id": "http-vmware-path-vuln.nse", "label": "vmware path", "command_template": "nmap --script http-vmware-path-vuln", "service_scope": "http"},
-            {"tool_id": "http-iis-webdav-vuln.nse", "label": "iis webdav", "command_template": "nmap --script http-iis-webdav-vuln", "service_scope": "http"},
-            {"tool_id": "http-huawei-hg5xx-vuln.nse", "label": "huawei", "command_template": "nmap --script http-huawei-hg5xx-vuln", "service_scope": "http"},
+            {
+                "tool_id": "http-vmware-path-vuln.nse",
+                "label": "vmware path",
+                "command_template": "nmap --script http-vmware-path-vuln",
+                "service_scope": "http",
+            },
+            {
+                "tool_id": "http-iis-webdav-vuln.nse",
+                "label": "iis webdav",
+                "command_template": "nmap --script http-iis-webdav-vuln",
+                "service_scope": "http",
+            },
+            {
+                "tool_id": "http-huawei-hg5xx-vuln.nse",
+                "label": "huawei",
+                "command_template": "nmap --script http-huawei-hg5xx-vuln",
+                "service_scope": "http",
+            },
         ]
         context = {
             "signals": {
@@ -745,7 +808,12 @@ class SchedulerPlannerTest(unittest.TestCase):
         from app.scheduler.planner import SchedulerPlanner
 
         candidates = [
-            {"tool_id": "http-vmware-path-vuln.nse", "label": "vmware path", "command_template": "nmap --script http-vmware-path-vuln", "service_scope": "http"},
+            {
+                "tool_id": "http-vmware-path-vuln.nse",
+                "label": "vmware path",
+                "command_template": "nmap --script http-vmware-path-vuln",
+                "service_scope": "http",
+            },
         ]
         filtered = SchedulerPlanner._filter_candidates_with_context(
             candidates,
@@ -799,8 +867,18 @@ class SchedulerPlannerTest(unittest.TestCase):
         from app.scheduler.planner import SchedulerPlanner
 
         candidates = [
-            {"tool_id": "subfinder", "label": "Subfinder", "command_template": "subfinder -d [IP]", "service_scope": "host"},
-            {"tool_id": "curl-headers", "label": "Curl Headers", "command_template": "curl -k -I https://[IP]", "service_scope": "http"},
+            {
+                "tool_id": "subfinder",
+                "label": "Subfinder",
+                "command_template": "subfinder -d [IP]",
+                "service_scope": "host",
+            },
+            {
+                "tool_id": "curl-headers",
+                "label": "Curl Headers",
+                "command_template": "curl -k -I https://[IP]",
+                "service_scope": "http",
+            },
         ]
         context = {
             "target": {"hostname": "example.com"},
@@ -817,7 +895,12 @@ class SchedulerPlannerTest(unittest.TestCase):
         from app.scheduler.planner import SchedulerPlanner
 
         candidates = [
-            {"tool_id": "subfinder", "label": "Subfinder", "command_template": "subfinder -d [IP]", "service_scope": "host"},
+            {
+                "tool_id": "subfinder",
+                "label": "Subfinder",
+                "command_template": "subfinder -d [IP]",
+                "service_scope": "host",
+            },
         ]
         context = {
             "target": {
@@ -841,7 +924,12 @@ class SchedulerPlannerTest(unittest.TestCase):
                 "command_template": "python3 -m app.shodan_probe --target [IP] --api-key [SHODAN_API_KEY]",
                 "service_scope": "host",
             },
-            {"tool_id": "curl-headers", "label": "Curl Headers", "command_template": "curl -k -I https://[IP]", "service_scope": "http"},
+            {
+                "tool_id": "curl-headers",
+                "label": "Curl Headers",
+                "command_template": "curl -k -I https://[IP]",
+                "service_scope": "http",
+            },
         ]
         context = {
             "target": {
@@ -1112,11 +1200,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "goal_profile": "internal_asset_discovery",
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "goal_profile": "internal_asset_discovery",
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[["screenshooter", "http", "tcp"]],
@@ -1151,11 +1241,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-cpe.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "goal_profile": "internal_asset_discovery",
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "goal_profile": "internal_asset_discovery",
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -1186,19 +1278,31 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-dig-deeper.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "engagement_policy": {"preset": "external_pentest"},
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "engagement_policy": {"preset": "external_pentest"},
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[["screenshooter", "http", "tcp"]],
                 portActions=[
                     ["Run nuclei web scan", "nuclei-web", "nuclei -u http://[IP]:[PORT] -silent", "http"],
                     ["nmap-vuln.nse", "nmap-vuln.nse", "nmap --script vuln [IP] -p [PORT]", "http"],
-                    ["Run nuclei CVE follow-up", "nuclei-cves", "nuclei -tags cve -u http://[IP]:[PORT] -silent", "http"],
-                    ["Run nuclei exposure follow-up", "nuclei-exposures", "nuclei -tags exposure,panel -u http://[IP]:[PORT] -silent", "http"],
+                    [
+                        "Run nuclei CVE follow-up",
+                        "nuclei-cves",
+                        "nuclei -tags cve -u http://[IP]:[PORT] -silent",
+                        "http",
+                    ],
+                    [
+                        "Run nuclei exposure follow-up",
+                        "nuclei-exposures",
+                        "nuclei -tags exposure,panel -u http://[IP]:[PORT] -silent",
+                        "http",
+                    ],
                     ["WhatWeb", "whatweb", "whatweb http://[IP]:[PORT]", "http"],
                     ["Nikto", "nikto", "nikto -h [IP] -p [PORT]", "http"],
                     ["Web Discovery", "web-content-discovery", "gobuster dir -u http://[IP]:[PORT]", "http"],
@@ -1234,19 +1338,31 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-dir-content.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "engagement_policy": {"preset": "external_pentest"},
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "engagement_policy": {"preset": "external_pentest"},
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[["screenshooter", "http", "tcp"]],
                 portActions=[
                     ["Run nuclei web scan", "nuclei-web", "nuclei -u [WEB_URL] -silent", "http"],
                     ["WhatWeb", "whatweb", "whatweb [WEB_URL]", "http"],
-                    ["Run dirsearch", "dirsearch", "dirsearch -u [WEB_URL]/ --format=json --output=[OUTPUT].json", "http"],
-                    ["Run ffuf", "ffuf", "ffuf -u [WEB_URL]/FUZZ -w /usr/share/wordlists/dirb/common.txt -s -of json -o [OUTPUT].json", "http"],
+                    [
+                        "Run dirsearch",
+                        "dirsearch",
+                        "dirsearch -u [WEB_URL]/ --format=json --output=[OUTPUT].json",
+                        "http",
+                    ],
+                    [
+                        "Run ffuf",
+                        "ffuf",
+                        "ffuf -u [WEB_URL]/FUZZ -w /usr/share/wordlists/dirb/common.txt -s -of json -o [OUTPUT].json",
+                        "http",
+                    ],
                 ],
             )
 
@@ -1272,11 +1388,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-internal-gap.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "engagement_policy": {"preset": "internal_recon"},
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "engagement_policy": {"preset": "internal_recon"},
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[
@@ -1288,8 +1406,18 @@ class SchedulerPlannerTest(unittest.TestCase):
                 portActions=[
                     ["Run enum4linux-ng", "enum4linux-ng", "enum4linux-ng -A -oJ [OUTPUT] [IP]", "smb"],
                     ["Run smbmap", "smbmap", "smbmap -H [IP] -P [PORT] -q --no-write-check | tee [OUTPUT].txt", "smb"],
-                    ["Run rpcclient enum", "rpcclient-enum", "rpcclient [IP] -p [PORT] -U '%' -c 'srvinfo;enumdomusers' > [OUTPUT].txt", "smb"],
-                    ["Run netexec", "netexec", "netexec smb [IP] --port [PORT] -u '' -p '' --shares --users --pass-pol > [OUTPUT].txt", "smb"],
+                    [
+                        "Run rpcclient enum",
+                        "rpcclient-enum",
+                        "rpcclient [IP] -p [PORT] -U '%' -c 'srvinfo;enumdomusers' > [OUTPUT].txt",
+                        "smb",
+                    ],
+                    [
+                        "Run netexec",
+                        "netexec",
+                        "netexec smb [IP] --port [PORT] -u '' -p '' --shares --users --pass-pol > [OUTPUT].txt",
+                        "smb",
+                    ],
                     ["Banner", "banner", "echo | nc -v [IP] [PORT]", "smb"],
                 ],
             )
@@ -1317,10 +1445,12 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-det-gap.json"))
-            manager.update_preferences({
-                "mode": "deterministic",
-                "engagement_policy": {"preset": "external_pentest"},
-            })
+            manager.update_preferences(
+                {
+                    "mode": "deterministic",
+                    "engagement_policy": {"preset": "external_pentest"},
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[
@@ -1354,11 +1484,13 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-wordpress.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "engagement_policy": {"preset": "external_pentest"},
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "engagement_policy": {"preset": "external_pentest"},
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -1398,14 +1530,14 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-tls-pack.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "engagement_policy": {"preset": "external_pentest"},
-                "provider": "openai",
-                "providers": {
-                    "openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"}
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "engagement_policy": {"preset": "external_pentest"},
+                    "provider": "openai",
+                    "providers": {"openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"}},
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -1432,9 +1564,9 @@ class SchedulerPlannerTest(unittest.TestCase):
     @patch("app.scheduler.planner.select_web_followup_with_provider")
     @patch("app.scheduler.planner.rank_actions_with_provider")
     def test_ai_mode_web_followup_sidecar_boosts_selected_candidate_and_persists_payload(
-            self,
-            mock_rank_actions,
-            mock_sidecar,
+        self,
+        mock_rank_actions,
+        mock_sidecar,
     ):
         from app.scheduler.config import SchedulerConfigManager
         from app.scheduler.planner import SchedulerPlanner
@@ -1447,23 +1579,29 @@ class SchedulerPlannerTest(unittest.TestCase):
             "focus": "tech_validation",
             "selected_tool_ids": ["curl-headers"],
             "reason": "Reflection posture favors bounded HTTP follow-up over another generic check.",
-            "manual_tests": [{"why": "Verify headers manually", "command": "curl -k -I https://10.0.0.5", "scope_note": "safe read-only"}],
+            "manual_tests": [
+                {
+                    "why": "Verify headers manually",
+                    "command": "curl -k -I https://10.0.0.5",
+                    "scope_note": "safe read-only",
+                }
+            ],
             "prompt_version": "scheduler-web-followup-v1",
             "prompt_type": "web_followup",
         }
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-web-sidecar.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "openai",
-                "feature_flags": {
-                    "scheduler_web_followup_sidecar": True,
-                },
-                "providers": {
-                    "openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"}
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "openai",
+                    "feature_flags": {
+                        "scheduler_web_followup_sidecar": True,
+                    },
+                    "providers": {"openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"}},
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -1503,9 +1641,9 @@ class SchedulerPlannerTest(unittest.TestCase):
     @patch("app.scheduler.planner.select_web_followup_with_provider")
     @patch("app.scheduler.planner.rank_actions_with_provider")
     def test_ai_mode_skips_web_followup_sidecar_for_already_covered_broad_web_tools(
-            self,
-            mock_rank_actions,
-            mock_sidecar,
+        self,
+        mock_rank_actions,
+        mock_sidecar,
     ):
         from app.scheduler.config import SchedulerConfigManager
         from app.scheduler.planner import SchedulerPlanner
@@ -1517,16 +1655,16 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-web-covered.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "openai",
-                "feature_flags": {
-                    "scheduler_web_followup_sidecar": True,
-                },
-                "providers": {
-                    "openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"}
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "openai",
+                    "feature_flags": {
+                        "scheduler_web_followup_sidecar": True,
+                    },
+                    "providers": {"openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"}},
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -1570,14 +1708,16 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-abstain-gap.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "openai",
-                "engagement_policy": {"preset": "external_pentest"},
-                "providers": {
-                    "openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"},
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "openai",
+                    "engagement_policy": {"preset": "external_pentest"},
+                    "providers": {
+                        "openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"},
+                    },
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],
@@ -1611,14 +1751,16 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-gap-fallback.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "openai",
-                "engagement_policy": {"preset": "external_pentest"},
-                "providers": {
-                    "openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"},
-                },
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "openai",
+                    "engagement_policy": {"preset": "external_pentest"},
+                    "providers": {
+                        "openai": {"enabled": True, "model": "gpt-5-mini", "api_key": "x"},
+                    },
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[["screenshooter", "http", "tcp"]],
@@ -1648,10 +1790,12 @@ class SchedulerPlannerTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai-reflection-suppress.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "none",
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "none",
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[],

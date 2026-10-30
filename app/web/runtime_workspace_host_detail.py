@@ -7,16 +7,17 @@ from app.web.runtime_workspace_identity import resolve_host_os
 
 
 def get_host_workspace(
-        runtime,
-        host_id: int,
-        *,
-        get_target_state_func=None,
-        host_detail_script_preview_func=None,
+    runtime,
+    host_id: int,
+    *,
+    get_target_state_func=None,
+    host_detail_script_preview_func=None,
 ) -> Dict[str, Any]:
     target_state_getter = get_target_state_func or load_target_state
     preview_builder = host_detail_script_preview_func
     if preview_builder is None:
         from app.web.runtime_workspace_read import host_detail_script_preview
+
         preview_builder = host_detail_script_preview
 
     with runtime._lock:
@@ -44,27 +45,31 @@ def get_host_workspace(
             for script in script_repo.getScriptsByPortId(port.id):
                 script_id = str(getattr(script, "scriptId", "") or "")
                 output = str(getattr(script, "output", "") or "")
-                scripts.append({
-                    "id": int(getattr(script, "id", 0) or 0),
-                    "script_id": script_id,
-                    "output": output,
-                    "display_output": preview_builder(script_id, output),
-                })
+                scripts.append(
+                    {
+                        "id": int(getattr(script, "id", 0) or 0),
+                        "script_id": script_id,
+                        "output": output,
+                        "display_output": preview_builder(script_id, output),
+                    }
+                )
 
-            ports_data.append({
-                "id": int(getattr(port, "id", 0) or 0),
-                "port": str(getattr(port, "portId", "") or ""),
-                "protocol": str(getattr(port, "protocol", "") or ""),
-                "state": str(getattr(port, "state", "") or ""),
-                "service": {
-                    "id": int(getattr(service_obj, "id", 0) or 0) if service_obj else 0,
-                    "name": str(getattr(service_obj, "name", "") or "") if service_obj else "",
-                    "product": str(getattr(service_obj, "product", "") or "") if service_obj else "",
-                    "version": str(getattr(service_obj, "version", "") or "") if service_obj else "",
-                    "extrainfo": str(getattr(service_obj, "extrainfo", "") or "") if service_obj else "",
-                },
-                "scripts": scripts,
-            })
+            ports_data.append(
+                {
+                    "id": int(getattr(port, "id", 0) or 0),
+                    "port": str(getattr(port, "portId", "") or ""),
+                    "protocol": str(getattr(port, "protocol", "") or ""),
+                    "state": str(getattr(port, "state", "") or ""),
+                    "service": {
+                        "id": int(getattr(service_obj, "id", 0) or 0) if service_obj else 0,
+                        "name": str(getattr(service_obj, "name", "") or "") if service_obj else "",
+                        "product": str(getattr(service_obj, "product", "") or "") if service_obj else "",
+                        "version": str(getattr(service_obj, "version", "") or "") if service_obj else "",
+                        "extrainfo": str(getattr(service_obj, "extrainfo", "") or "") if service_obj else "",
+                    },
+                    "scripts": scripts,
+                }
+            )
 
         cves = runtime._load_cves_for_host(project, int(host.id))
         screenshots = runtime._list_screenshots_for_host(project, str(getattr(host, "ip", "") or ""))
@@ -95,9 +100,13 @@ def get_host_workspace(
             hostname_confidence=95.0 if str(getattr(host, "hostname", "") or "").strip() else 0.0,
             os_match=str(os_state.get("os", "") or ""),
             os_confidence=float(os_state.get("os_confidence", 0.0) or 0.0),
-            technologies=ai_analysis.get("technologies", []) if isinstance(ai_analysis.get("technologies", []), list) else [],
+            technologies=(
+                ai_analysis.get("technologies", []) if isinstance(ai_analysis.get("technologies", []), list) else []
+            ),
             findings=ai_analysis.get("findings", []) if isinstance(ai_analysis.get("findings", []), list) else [],
-            manual_tests=ai_analysis.get("manual_tests", []) if isinstance(ai_analysis.get("manual_tests", []), list) else [],
+            manual_tests=(
+                ai_analysis.get("manual_tests", []) if isinstance(ai_analysis.get("manual_tests", []), list) else []
+            ),
             next_phase=str(ai_analysis.get("next_phase", "") or ""),
             provider=str(ai_analysis.get("provider", "") or ""),
             goal_profile=str(ai_analysis.get("goal_profile", "") or ""),

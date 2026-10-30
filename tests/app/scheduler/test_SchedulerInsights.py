@@ -22,28 +22,53 @@ class SchedulerInsightsStoreTest(unittest.TestCase):
         repository_factory = RepositoryFactory(db_log)
         project_manager = ProjectManager(shell, repository_factory, app_log)
         nmap_exporter = DefaultNmapExporter(shell, app_log)
-        _tool_coordinator = ToolCoordinator(shell, nmap_exporter)
+        _ = ToolCoordinator(shell, nmap_exporter)
 
         project = project_manager.createNewProject(projectType="legion", isTemp=True)
         try:
             ensure_scheduler_ai_state_table(project.database)
-            upsert_host_ai_state(project.database, 11, {
-                "host_ip": "10.0.0.5",
-                "provider": "openai",
-                "goal_profile": "internal_asset_discovery",
-                "last_port": "443",
-                "last_protocol": "tcp",
-                "last_service": "https",
-                "hostname": "edge-gateway",
-                "hostname_confidence": 90,
-                "os_match": "Linux",
-                "os_confidence": 82,
-                "next_phase": "targeted_checks",
-                "technologies": [{"name": "nginx", "version": "1.20", "cpe": "cpe:/a:nginx:nginx:1.20", "evidence": "server header"}],
-                "findings": [{"title": "Open admin endpoint", "severity": "medium", "cvss": 5.1, "cve": "", "evidence": "/admin/login.jsp"}],
-                "manual_tests": [{"why": "confirm auth", "command": "curl -k https://10.0.0.5/admin/login.jsp", "scope_note": "safe"}],
-                "raw": {"actions": []},
-            })
+            upsert_host_ai_state(
+                project.database,
+                11,
+                {
+                    "host_ip": "10.0.0.5",
+                    "provider": "openai",
+                    "goal_profile": "internal_asset_discovery",
+                    "last_port": "443",
+                    "last_protocol": "tcp",
+                    "last_service": "https",
+                    "hostname": "edge-gateway",
+                    "hostname_confidence": 90,
+                    "os_match": "Linux",
+                    "os_confidence": 82,
+                    "next_phase": "targeted_checks",
+                    "technologies": [
+                        {
+                            "name": "nginx",
+                            "version": "1.20",
+                            "cpe": "cpe:/a:nginx:nginx:1.20",
+                            "evidence": "server header",
+                        }
+                    ],
+                    "findings": [
+                        {
+                            "title": "Open admin endpoint",
+                            "severity": "medium",
+                            "cvss": 5.1,
+                            "cve": "",
+                            "evidence": "/admin/login.jsp",
+                        }
+                    ],
+                    "manual_tests": [
+                        {
+                            "why": "confirm auth",
+                            "command": "curl -k https://10.0.0.5/admin/login.jsp",
+                            "scope_note": "safe",
+                        }
+                    ],
+                    "raw": {"actions": []},
+                },
+            )
 
             loaded = get_host_ai_state(project.database, 11)
             self.assertIsNotNone(loaded)

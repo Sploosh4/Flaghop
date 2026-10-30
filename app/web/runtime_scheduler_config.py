@@ -23,7 +23,6 @@ from app.tooling import audit_legion_tools
 from app.web import runtime_scheduler_config_values as web_runtime_scheduler_config_values
 from app.web import runtime_scheduler_policy_config as web_runtime_scheduler_policy_config
 
-
 job_worker_count = web_runtime_scheduler_config_values.job_worker_count
 normalize_project_report_headers = web_runtime_scheduler_config_values.normalize_project_report_headers
 project_report_delivery_config = web_runtime_scheduler_config_values.project_report_delivery_config
@@ -54,7 +53,9 @@ def get_scheduler_preferences(runtime) -> Dict[str, Any]:
 def apply_scheduler_preferences(runtime, updates: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     with runtime._lock:
         normalized = dict(updates or {})
-        policy_updates = normalized.get("engagement_policy") if isinstance(normalized.get("engagement_policy"), dict) else None
+        policy_updates = (
+            normalized.get("engagement_policy") if isinstance(normalized.get("engagement_policy"), dict) else None
+        )
         if policy_updates is not None or "goal_profile" in normalized:
             current_policy = load_engagement_policy_locked(runtime, persist_if_missing=True)
             if policy_updates is not None:
@@ -66,7 +67,12 @@ def apply_scheduler_preferences(runtime, updates: Optional[Dict[str, Any]] = Non
                 )
             resolved_policy = normalize_engagement_policy(
                 merged_policy,
-                fallback_goal_profile=str(current_policy.get("legacy_goal_profile", current_policy.get("goal_profile", "internal_asset_discovery")) or "internal_asset_discovery"),
+                fallback_goal_profile=str(
+                    current_policy.get(
+                        "legacy_goal_profile", current_policy.get("goal_profile", "internal_asset_discovery")
+                    )
+                    or "internal_asset_discovery"
+                ),
             )
             normalized["engagement_policy"] = resolved_policy.to_dict()
             normalized["goal_profile"] = resolved_policy.legacy_goal_profile
@@ -117,13 +123,16 @@ def get_scheduler_decisions(runtime, limit: int = 80) -> List[Dict[str, Any]]:
         ensure_scheduler_audit_table(project.database)
         session = project.database.session()
         try:
-            result = session.execute(text(
-                "SELECT id, timestamp, host_ip, port, protocol, service, scheduler_mode, goal_profile, "
-                "engagement_preset, tool_id, label, command_family_id, danger_categories, risk_tags, "
-                "requires_approval, policy_decision, policy_reason, risk_summary, safer_alternative, "
-                "family_policy_state, approved, executed, reason, rationale, approval_id "
-                "FROM scheduler_decision_log ORDER BY id DESC LIMIT :limit"
-            ), {"limit": int(limit)})
+            result = session.execute(
+                text(
+                    "SELECT id, timestamp, host_ip, port, protocol, service, scheduler_mode, goal_profile, "
+                    "engagement_preset, tool_id, label, command_family_id, danger_categories, risk_tags, "
+                    "requires_approval, policy_decision, policy_reason, risk_summary, safer_alternative, "
+                    "family_policy_state, approved, executed, reason, rationale, approval_id "
+                    "FROM scheduler_decision_log ORDER BY id DESC LIMIT :limit"
+                ),
+                {"limit": int(limit)},
+            )
             rows = result.fetchall()
             keys = result.keys()
             return [dict(zip(keys, row)) for row in rows]
@@ -134,9 +143,9 @@ def get_scheduler_decisions(runtime, limit: int = 80) -> List[Dict[str, Any]]:
 
 
 def get_scheduler_approvals(
-        runtime,
-        limit: int = 200,
-        status: Optional[str] = None,
+    runtime,
+    limit: int = 200,
+    status: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     with runtime._lock:
         project = runtime._require_active_project()
@@ -155,11 +164,11 @@ def scheduler_family_policy_metadata(runtime, item: Dict[str, Any]) -> Dict[str,
 
 
 def apply_family_policy_action(
-        runtime,
-        item: Dict[str, Any],
-        family_action: str,
-        *,
-        reason: str = "",
+    runtime,
+    item: Dict[str, Any],
+    family_action: str,
+    *,
+    reason: str = "",
 ) -> str:
     action = str(family_action or "").strip().lower()
     if action == "allowed":
@@ -213,7 +222,9 @@ def scheduler_preferences(runtime) -> Dict[str, Any]:
     return {
         "mode": config.get("mode", "deterministic"),
         "available_modes": ["deterministic", "ai"],
-        "goal_profile": str(engagement_policy.get("legacy_goal_profile", config.get("goal_profile", "internal_asset_discovery"))),
+        "goal_profile": str(
+            engagement_policy.get("legacy_goal_profile", config.get("goal_profile", "internal_asset_discovery"))
+        ),
         "goal_profiles": [
             {"id": "internal_asset_discovery", "name": "Internal Asset Discovery"},
             {"id": "external_pentest", "name": "External Pentest"},

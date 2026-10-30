@@ -71,7 +71,9 @@ class _CompatibilityRuntime:
         self.state.update(state_updates)
         if isinstance(self.state.get("engagement_policy"), dict):
             preset = str(self.state["engagement_policy"].get("preset", "") or "").strip().lower()
-            self.state["goal_profile"] = "external_pentest" if preset in {"external_recon", "external_pentest"} else "internal_asset_discovery"
+            self.state["goal_profile"] = (
+                "external_pentest" if preset in {"external_recon", "external_pentest"} else "internal_asset_discovery"
+            )
         return self.get_scheduler_preferences()
 
 
@@ -84,11 +86,13 @@ class SchedulerCompatibilityBaselineTest(unittest.TestCase):
     def test_deterministic_scheduler_golden_mapping_for_sample_services(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "deterministic",
-                "goal_profile": "internal_asset_discovery",
-                "dangerous_categories": ["credential_bruteforce"],
-            })
+            manager.update_preferences(
+                {
+                    "mode": "deterministic",
+                    "goal_profile": "internal_asset_discovery",
+                    "dangerous_categories": ["credential_bruteforce"],
+                }
+            )
             planner = SchedulerPlanner(manager)
             settings = SimpleNamespace(
                 automatedAttacks=[
@@ -119,55 +123,61 @@ class SchedulerCompatibilityBaselineTest(unittest.TestCase):
                 for action in smb_actions + http_actions
             ]
 
-            self.assertEqual([
-                {
-                    "tool_id": "smb-enum-users.nse",
-                    "label": "SMB Users",
-                    "protocol": "tcp",
-                    "goal_profile": "internal_asset_discovery",
-                    "danger_categories": [],
-                    "approval_state": "not_required",
-                    "requires_approval": False,
-                },
-                {
-                    "tool_id": "smb-default",
-                    "label": "SMB Default",
-                    "protocol": "tcp",
-                    "goal_profile": "internal_asset_discovery",
-                    "danger_categories": ["credential_bruteforce"],
-                    "approval_state": "blocked",
-                    "requires_approval": False,
-                },
-                {
-                    "tool_id": "nuclei-web",
-                    "label": "Run nuclei web scan",
-                    "protocol": "tcp",
-                    "goal_profile": "internal_asset_discovery",
-                    "danger_categories": [],
-                    "approval_state": "not_required",
-                    "requires_approval": False,
-                },
-            ], golden)
+            self.assertEqual(
+                [
+                    {
+                        "tool_id": "smb-enum-users.nse",
+                        "label": "SMB Users",
+                        "protocol": "tcp",
+                        "goal_profile": "internal_asset_discovery",
+                        "danger_categories": [],
+                        "approval_state": "not_required",
+                        "requires_approval": False,
+                    },
+                    {
+                        "tool_id": "smb-default",
+                        "label": "SMB Default",
+                        "protocol": "tcp",
+                        "goal_profile": "internal_asset_discovery",
+                        "danger_categories": ["credential_bruteforce"],
+                        "approval_state": "blocked",
+                        "requires_approval": False,
+                    },
+                    {
+                        "tool_id": "nuclei-web",
+                        "label": "Run nuclei web scan",
+                        "protocol": "tcp",
+                        "goal_profile": "internal_asset_discovery",
+                        "danger_categories": [],
+                        "approval_state": "not_required",
+                        "requires_approval": False,
+                    },
+                ],
+                golden,
+            )
 
     def test_approval_queue_round_trip_preserves_scheduler_fields(self):
         project_manager = self._create_project_manager()
         project = project_manager.createNewProject(projectType="legion", isTemp=True)
         try:
             ensure_scheduler_approval_table(project.database)
-            approval_id = queue_pending_approval(project.database, {
-                "host_ip": "10.0.0.5",
-                "port": "445",
-                "protocol": "tcp",
-                "service": "smb",
-                "tool_id": "smb-default",
-                "label": "SMB Default",
-                "command_template": "hydra [IP]",
-                "command_family_id": "compat-fam-1",
-                "danger_categories": "credential_bruteforce",
-                "scheduler_mode": "ai",
-                "goal_profile": "internal_asset_discovery",
-                "rationale": "baseline compatibility",
-            })
+            approval_id = queue_pending_approval(
+                project.database,
+                {
+                    "host_ip": "10.0.0.5",
+                    "port": "445",
+                    "protocol": "tcp",
+                    "service": "smb",
+                    "tool_id": "smb-default",
+                    "label": "SMB Default",
+                    "command_template": "hydra [IP]",
+                    "command_family_id": "compat-fam-1",
+                    "danger_categories": "credential_bruteforce",
+                    "scheduler_mode": "ai",
+                    "goal_profile": "internal_asset_discovery",
+                    "rationale": "baseline compatibility",
+                },
+            )
             stored = get_pending_approval(project.database, approval_id)
             self.assertEqual("smb-default", stored["tool_id"])
             self.assertEqual("credential_bruteforce", stored["danger_categories"])
@@ -189,23 +199,48 @@ class SchedulerCompatibilityBaselineTest(unittest.TestCase):
         project = project_manager.createNewProject(projectType="legion", isTemp=True)
         try:
             ensure_scheduler_ai_state_table(project.database)
-            upsert_host_ai_state(project.database, 22, {
-                "host_ip": "10.0.0.22",
-                "provider": "openai",
-                "goal_profile": "internal_asset_discovery",
-                "last_port": "443",
-                "last_protocol": "tcp",
-                "last_service": "https",
-                "hostname": "portal.internal",
-                "hostname_confidence": 95,
-                "os_match": "Linux",
-                "os_confidence": 88,
-                "next_phase": "targeted_checks",
-                "technologies": [{"name": "nginx", "version": "1.25", "cpe": "cpe:/a:nginx:nginx:1.25", "evidence": "server header"}],
-                "findings": [{"title": "Login panel exposed", "severity": "medium", "cvss": 5.0, "cve": "", "evidence": "/login"}],
-                "manual_tests": [{"why": "validate auth controls", "command": "curl -k https://10.0.0.22/login", "scope_note": "safe"}],
-                "raw": {"actions": [{"tool_id": "nuclei-web"}]},
-            })
+            upsert_host_ai_state(
+                project.database,
+                22,
+                {
+                    "host_ip": "10.0.0.22",
+                    "provider": "openai",
+                    "goal_profile": "internal_asset_discovery",
+                    "last_port": "443",
+                    "last_protocol": "tcp",
+                    "last_service": "https",
+                    "hostname": "portal.internal",
+                    "hostname_confidence": 95,
+                    "os_match": "Linux",
+                    "os_confidence": 88,
+                    "next_phase": "targeted_checks",
+                    "technologies": [
+                        {
+                            "name": "nginx",
+                            "version": "1.25",
+                            "cpe": "cpe:/a:nginx:nginx:1.25",
+                            "evidence": "server header",
+                        }
+                    ],
+                    "findings": [
+                        {
+                            "title": "Login panel exposed",
+                            "severity": "medium",
+                            "cvss": 5.0,
+                            "cve": "",
+                            "evidence": "/login",
+                        }
+                    ],
+                    "manual_tests": [
+                        {
+                            "why": "validate auth controls",
+                            "command": "curl -k https://10.0.0.22/login",
+                            "scope_note": "safe",
+                        }
+                    ],
+                    "raw": {"actions": [{"tool_id": "nuclei-web"}]},
+                },
+            )
 
             loaded = get_host_ai_state(project.database, 22)
             self.assertEqual("portal.internal", loaded["hostname"])
@@ -246,18 +281,24 @@ class SchedulerCompatibilityBaselineTest(unittest.TestCase):
         self.assertEqual(200, current.status_code)
         self.assertEqual("deterministic", current.json["mode"])
 
-        updated = client.post("/api/scheduler/preferences", json={
-            "mode": "ai",
-            "goal_profile": "external_pentest",
-            "ignored_field": "should-not-pass-through",
-        })
+        updated = client.post(
+            "/api/scheduler/preferences",
+            json={
+                "mode": "ai",
+                "goal_profile": "external_pentest",
+                "ignored_field": "should-not-pass-through",
+            },
+        )
         self.assertEqual(200, updated.status_code)
         self.assertEqual("ai", updated.json["mode"])
         self.assertEqual("external_pentest", updated.json["goal_profile"])
-        self.assertEqual({
-            "mode": "ai",
-            "goal_profile": "external_pentest",
-        }, runtime.last_updates)
+        self.assertEqual(
+            {
+                "mode": "ai",
+                "goal_profile": "external_pentest",
+            },
+            runtime.last_updates,
+        )
 
 
 if __name__ == "__main__":

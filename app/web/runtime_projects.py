@@ -19,6 +19,8 @@ def is_temp_project(runtime) -> bool:
 
 
 def require_active_project(runtime):
+    if "workspace" in getattr(runtime, "__dict__", {}):
+        return runtime.workspace.require_active()
     project = getattr(runtime.logic, "activeProject", None)
     if project is None:
         raise RuntimeError("No active project is loaded.")
@@ -89,7 +91,8 @@ def rename_project(runtime, name: str, expected_path: str = "") -> Dict[str, Any
             )
             connection.exec_driver_sql(
                 "INSERT INTO legion_workspace_metadata (key, value) VALUES ('display_name', ?) "
-                "ON CONFLICT(key) DO UPDATE SET value=excluded.value", (name,),
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                (name,),
             )
         details = get_project_details(runtime)
     runtime._emit_ui_invalidation("overview")
@@ -130,10 +133,7 @@ def project_listing_row(path: str, *, source: str, current_path: str = "") -> Di
 def list_projects(runtime, limit: int = 500) -> List[Dict[str, Any]]:
     with runtime._lock:
         current_name = str(project_metadata(runtime).get("name", "") or "").strip()
-        current_path = (
-            os.path.abspath(os.path.expanduser(current_name))
-            if current_name else ""
-        )
+        current_path = os.path.abspath(os.path.expanduser(current_name)) if current_name else ""
     max_items = max(1, min(int(limit or 500), 5000))
     roots = (
         ("temp", getTempFolder()),
@@ -171,10 +171,7 @@ def create_new_temporary_project(runtime) -> Dict[str, Any]:
             raise RuntimeError("Project save is in progress. Try again when it finishes.")
         active_jobs = count_running_scan_jobs(runtime, include_queued=True)
         if active_jobs > 0 or len(runtime._active_processes) > 0:
-            raise RuntimeError(
-                "Cannot create a new project while jobs/scans are active. "
-                "Stop running jobs first."
-            )
+            raise RuntimeError("Cannot create a new project while jobs/scans are active. " "Stop running jobs first.")
         close_active_project(runtime)
         runtime.logic.createNewTemporaryProject()
         runtime._ensure_scheduler_table()
@@ -193,10 +190,7 @@ def open_project(runtime, path: str) -> Dict[str, Any]:
             raise RuntimeError("Project save is in progress. Try again when it finishes.")
         active_jobs = count_running_scan_jobs(runtime, include_queued=True)
         if active_jobs > 0 or len(runtime._active_processes) > 0:
-            raise RuntimeError(
-                "Cannot open a project while jobs/scans are active. "
-                "Stop running jobs first."
-            )
+            raise RuntimeError("Cannot open a project while jobs/scans are active. " "Stop running jobs first.")
         previous_project = getattr(runtime.logic, "activeProject", None)
         opened_project = None
         try:

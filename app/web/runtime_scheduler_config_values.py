@@ -94,22 +94,10 @@ def project_report_delivery_config(preferences: Optional[Dict[str, Any]] = None)
     }
 
 
-def scheduler_max_concurrency(preferences: Optional[Dict[str, Any]] = None) -> int:
-    source = preferences if isinstance(preferences, dict) else {}
-    try:
-        value = int(source.get("max_concurrency", 1))
-    except (TypeError, ValueError):
-        value = 1
-    return max(1, min(value, 16))
+from app.scheduler.preferences import scheduler_max_concurrency as scheduler_max_concurrency
 
 
-def scheduler_max_host_concurrency(preferences: Optional[Dict[str, Any]] = None) -> int:
-    source = preferences if isinstance(preferences, dict) else {}
-    try:
-        value = int(source.get("max_host_concurrency", 1))
-    except (TypeError, ValueError):
-        value = 1
-    return max(1, min(value, 8))
+from app.scheduler.preferences import scheduler_max_host_concurrency as scheduler_max_host_concurrency
 
 
 def scheduler_max_jobs(preferences: Optional[Dict[str, Any]] = None) -> int:
@@ -131,12 +119,12 @@ def scheduler_feedback_config(preferences: Optional[Dict[str, Any]] = None) -> D
         merged["enabled"] = bool(source.get("enabled"))
 
     for key in (
-            "max_rounds_per_target",
-            "max_actions_per_round",
-            "recent_output_chars",
-            "stall_rounds_without_progress",
-            "stall_repeat_selection_threshold",
-            "max_reflections_per_target",
+        "max_rounds_per_target",
+        "max_actions_per_round",
+        "recent_output_chars",
+        "stall_rounds_without_progress",
+        "stall_repeat_selection_threshold",
+        "max_reflections_per_target",
     ):
         try:
             merged[key] = int(source.get(key, merged[key]))
@@ -180,8 +168,8 @@ def sanitize_integration_config(integration_cfg: Dict[str, Any]) -> Dict[str, An
 
 
 def scheduler_integration_api_key(
-        integration_name: str,
-        preferences: Optional[Dict[str, Any]] = None,
+    integration_name: str,
+    preferences: Optional[Dict[str, Any]] = None,
 ) -> str:
     config = preferences if isinstance(preferences, dict) else {}
     integrations = config.get("integrations", {}) if isinstance(config.get("integrations", {}), dict) else {}
@@ -215,14 +203,16 @@ def built_in_device_category_options() -> List[Dict[str, Any]]:
 
 
 def scheduler_command_placeholders(
-        runtime,
-        *,
-        host_ip: str,
-        hostname: str,
-        preferences: Optional[Dict[str, Any]] = None,
+    runtime,
+    *,
+    host_ip: str,
+    hostname: str,
+    preferences: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, str]:
     config = preferences if isinstance(preferences, dict) else runtime.scheduler_config.load()
-    root_domain = registrable_root_domain(str(hostname or "").strip()) or registrable_root_domain(str(host_ip or "").strip())
+    root_domain = registrable_root_domain(str(hostname or "").strip()) or registrable_root_domain(
+        str(host_ip or "").strip()
+    )
     return {
         "ROOT_DOMAIN": shlex.quote(root_domain) if root_domain else "",
         "GRAYHAT_API_KEY": shlex.quote(scheduler_integration_api_key("grayhatwarfare", config)),

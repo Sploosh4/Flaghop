@@ -12,89 +12,97 @@ from app.timing import getTimestamp
 
 
 def queue_scheduler_approval(
-        runtime,
-        decision: ScheduledAction,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        service_name: str,
-        command_template: str,
+    runtime,
+    decision: ScheduledAction,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    service_name: str,
+    command_template: str,
 ) -> int:
     with runtime._lock:
         project = runtime._require_active_project()
         ensure_scheduler_approval_table(project.database)
-        approval_id = queue_pending_approval(project.database, {
-            "status": "pending",
-            "host_ip": str(host_ip),
-            "port": str(port),
-            "protocol": str(protocol),
-            "service": str(service_name),
-            "tool_id": str(decision.tool_id),
-            "label": str(decision.label),
-            "command_template": str(command_template or ""),
-            "command_family_id": str(decision.family_id),
-            "danger_categories": ",".join(decision.danger_categories),
-            "risk_tags": ",".join(decision.risk_tags),
-            "scheduler_mode": str(decision.mode),
-            "goal_profile": str(decision.goal_profile),
-            "engagement_preset": str(decision.engagement_preset),
-            "rationale": str(decision.rationale),
-            "policy_decision": str(decision.policy_decision),
-            "policy_reason": str(decision.policy_reason),
-            "risk_summary": str(decision.risk_summary),
-            "safer_alternative": str(decision.safer_alternative),
-            "family_policy_state": str(decision.family_policy_state),
-            "evidence_refs": ",".join(str(item) for item in list(decision.linked_evidence_refs or []) if str(item).strip()),
-            "decision_reason": "pending approval",
-            "execution_job_id": "",
-        })
+        approval_id = queue_pending_approval(
+            project.database,
+            {
+                "status": "pending",
+                "host_ip": str(host_ip),
+                "port": str(port),
+                "protocol": str(protocol),
+                "service": str(service_name),
+                "tool_id": str(decision.tool_id),
+                "label": str(decision.label),
+                "command_template": str(command_template or ""),
+                "command_family_id": str(decision.family_id),
+                "danger_categories": ",".join(decision.danger_categories),
+                "risk_tags": ",".join(decision.risk_tags),
+                "scheduler_mode": str(decision.mode),
+                "goal_profile": str(decision.goal_profile),
+                "engagement_preset": str(decision.engagement_preset),
+                "rationale": str(decision.rationale),
+                "policy_decision": str(decision.policy_decision),
+                "policy_reason": str(decision.policy_reason),
+                "risk_summary": str(decision.risk_summary),
+                "safer_alternative": str(decision.safer_alternative),
+                "family_policy_state": str(decision.family_policy_state),
+                "evidence_refs": ",".join(
+                    str(item) for item in list(decision.linked_evidence_refs or []) if str(item).strip()
+                ),
+                "decision_reason": "pending approval",
+                "execution_job_id": "",
+            },
+        )
     runtime._emit_ui_invalidation("approvals", "overview")
     return approval_id
 
 
 def record_scheduler_decision(
-        runtime,
-        decision: ScheduledAction,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        service_name: str,
-        *,
-        approved: bool,
-        executed: bool,
-        reason: str,
-        approval_id: Optional[int] = None,
+    runtime,
+    decision: ScheduledAction,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    service_name: str,
+    *,
+    approved: bool,
+    executed: bool,
+    reason: str,
+    approval_id: Optional[int] = None,
 ):
     with runtime._lock:
         project = getattr(runtime.logic, "activeProject", None)
         if not project:
             return
-        log_scheduler_decision(project.database, {
-            "timestamp": getTimestamp(True),
-            "host_ip": str(host_ip),
-            "port": str(port),
-            "protocol": str(protocol),
-            "service": str(service_name),
-            "scheduler_mode": str(decision.mode),
-            "goal_profile": str(decision.goal_profile),
-            "engagement_preset": str(decision.engagement_preset),
-            "tool_id": str(decision.tool_id),
-            "label": str(decision.label),
-            "command_family_id": str(decision.family_id),
-            "danger_categories": ",".join(decision.danger_categories),
-            "risk_tags": ",".join(decision.risk_tags),
-            "requires_approval": "True" if decision.requires_approval else "False",
-            "policy_decision": str(decision.policy_decision),
-            "policy_reason": str(decision.policy_reason),
-            "risk_summary": str(decision.risk_summary),
-            "safer_alternative": str(decision.safer_alternative),
-            "family_policy_state": str(decision.family_policy_state),
-            "approved": "True" if approved else "False",
-            "executed": "True" if executed else "False",
-            "reason": str(reason),
-            "rationale": str(decision.rationale),
-            "approval_id": str(approval_id or ""),
-        })
+        log_scheduler_decision(
+            project.database,
+            {
+                "timestamp": getTimestamp(True),
+                "host_ip": str(host_ip),
+                "port": str(port),
+                "protocol": str(protocol),
+                "service": str(service_name),
+                "scheduler_mode": str(decision.mode),
+                "goal_profile": str(decision.goal_profile),
+                "engagement_preset": str(decision.engagement_preset),
+                "tool_id": str(decision.tool_id),
+                "label": str(decision.label),
+                "command_family_id": str(decision.family_id),
+                "danger_categories": ",".join(decision.danger_categories),
+                "risk_tags": ",".join(decision.risk_tags),
+                "requires_approval": "True" if decision.requires_approval else "False",
+                "policy_decision": str(decision.policy_decision),
+                "policy_reason": str(decision.policy_reason),
+                "risk_summary": str(decision.risk_summary),
+                "safer_alternative": str(decision.safer_alternative),
+                "family_policy_state": str(decision.family_policy_state),
+                "approved": "True" if approved else "False",
+                "executed": "True" if executed else "False",
+                "reason": str(reason),
+                "rationale": str(decision.rationale),
+                "approval_id": str(approval_id or ""),
+            },
+        )
     runtime._emit_ui_invalidation("decisions")
 
 
@@ -171,12 +179,12 @@ def build_scheduler_session_row(cls, tool_name: str, capture: Dict[str, Any]) ->
 
 
 def extract_credential_capture_entries(
-        cls,
-        tool_name: str,
-        line: Any,
-        *,
-        default_source: str = "",
-        context: Optional[Dict[str, Any]] = None,
+    cls,
+    tool_name: str,
+    line: Any,
+    *,
+    default_source: str = "",
+    context: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     stripped = str(line or "").strip()
     if not stripped:
@@ -196,12 +204,14 @@ def extract_credential_capture_entries(
         if auth_match:
             result = str(auth_match.group("result") or "").strip().lower()
             if result.startswith("suc"):
-                captures.append({
-                    "source": str(auth_match.group("target") or "").strip() or default_source_value,
-                    "details": stripped,
-                    "username": str(auth_match.group("account") or "").strip(),
-                    "hash_value": "",
-                })
+                captures.append(
+                    {
+                        "source": str(auth_match.group("target") or "").strip() or default_source_value,
+                        "details": stripped,
+                        "username": str(auth_match.group("account") or "").strip(),
+                        "hash_value": "",
+                    }
+                )
                 return captures
 
         sam_match = re.match(
@@ -209,12 +219,14 @@ def extract_credential_capture_entries(
             stripped,
         )
         if sam_match:
-            captures.append({
-                "source": default_source_value,
-                "details": stripped,
-                "username": str(sam_match.group("account") or "").strip(),
-                "hash_value": f"{sam_match.group('lm')}:{sam_match.group('nt')}",
-            })
+            captures.append(
+                {
+                    "source": default_source_value,
+                    "details": stripped,
+                    "username": str(sam_match.group("account") or "").strip(),
+                    "hash_value": f"{sam_match.group('lm')}:{sam_match.group('nt')}",
+                }
+            )
             return captures
         return []
 
@@ -233,58 +245,66 @@ def extract_credential_capture_entries(
         if hash_match:
             raw_hash = str(hash_match.group("hash") or "").strip()
             username, hash_value = cls._extract_credential_data(raw_hash)
-            captures.append({
-                "source": state.get("source", "") or default_source_value,
-                "details": stripped,
-                "username": state.get("username", "") or username,
-                "hash_value": hash_value or raw_hash,
-            })
+            captures.append(
+                {
+                    "source": state.get("source", "") or default_source_value,
+                    "details": stripped,
+                    "username": state.get("username", "") or username,
+                    "hash_value": hash_value or raw_hash,
+                }
+            )
             return captures
 
         cleartext_match = re.search(r"\bclear\s+text\s+password\s*:\s*(?P<password>.+)$", stripped, flags=re.IGNORECASE)
         if cleartext_match:
-            captures.append({
-                "source": state.get("source", "") or default_source_value,
-                "details": stripped,
-                "username": state.get("username", ""),
-                "hash_value": "",
-            })
+            captures.append(
+                {
+                    "source": state.get("source", "") or default_source_value,
+                    "details": stripped,
+                    "username": state.get("username", ""),
+                    "hash_value": "",
+                }
+            )
             return captures
 
         if "::" in stripped:
             username, hash_value = cls._extract_credential_data(stripped)
-            captures.append({
-                "source": state.get("source", "") or default_source_value,
-                "details": stripped,
-                "username": state.get("username", "") or username,
-                "hash_value": hash_value,
-            })
+            captures.append(
+                {
+                    "source": state.get("source", "") or default_source_value,
+                    "details": stripped,
+                    "username": state.get("username", "") or username,
+                    "hash_value": hash_value,
+                }
+            )
             return captures
         return captures
 
     interests = ("ntlm", "hash", "relay", "captured", "credential")
     if (
-            not any(keyword in stripped.lower() for keyword in interests)
-            and "::" not in stripped
-            and not re.search(r"from\s+[^:]+:\s*.+", stripped, re.IGNORECASE)
+        not any(keyword in stripped.lower() for keyword in interests)
+        and "::" not in stripped
+        and not re.search(r"from\s+[^:]+:\s*.+", stripped, re.IGNORECASE)
     ):
         return []
     username, hash_value = cls._extract_credential_data(stripped)
-    captures.append({
-        "source": default_source_value,
-        "details": stripped,
-        "username": username,
-        "hash_value": hash_value,
-    })
+    captures.append(
+        {
+            "source": default_source_value,
+            "details": stripped,
+            "username": username,
+            "hash_value": hash_value,
+        }
+    )
     return captures
 
 
 def persist_credential_captures_to_scheduler(
-        runtime,
-        captures: List[Dict[str, Any]],
-        *,
-        tool_name: str = "",
-        default_source: str = "",
+    runtime,
+    captures: List[Dict[str, Any]],
+    *,
+    tool_name: str = "",
+    default_source: str = "",
 ):
     if not isinstance(captures, list) or not captures:
         return
@@ -314,11 +334,14 @@ def persist_credential_captures_to_scheduler(
         host_ip = str(getattr(host_obj, "ip", "") or source_token or default_source_token).strip()
         if host_id <= 0 or not host_ip:
             continue
-        bucket = grouped.setdefault(host_id, {
-            "host_ip": host_ip,
-            "credentials": [],
-            "sessions": [],
-        })
+        bucket = grouped.setdefault(
+            host_id,
+            {
+                "host_ip": host_ip,
+                "credentials": [],
+                "sessions": [],
+            },
+        )
         credential_row = runtime._build_scheduler_credential_row(tool_name, capture)
         if credential_row:
             bucket["credentials"].append(credential_row)
@@ -329,15 +352,20 @@ def persist_credential_captures_to_scheduler(
     updated_at = getTimestamp(True)
     normalized_tool = str(tool_name or "").strip().lower()
     for host_id, payload in grouped.items():
-        upsert_target_state(database, int(host_id), {
-            "host_ip": str(payload.get("host_ip", "") or ""),
-            "updated_at": updated_at,
-            "credentials": list(payload.get("credentials", []) or []),
-            "sessions": list(payload.get("sessions", []) or []),
-            "raw": {
-                "credential_capture_tools": [normalized_tool] if normalized_tool else [],
+        upsert_target_state(
+            database,
+            int(host_id),
+            {
+                "host_ip": str(payload.get("host_ip", "") or ""),
+                "updated_at": updated_at,
+                "credentials": list(payload.get("credentials", []) or []),
+                "sessions": list(payload.get("sessions", []) or []),
+                "raw": {
+                    "credential_capture_tools": [normalized_tool] if normalized_tool else [],
+                },
             },
-        }, merge=True)
+            merge=True,
+        )
 
 
 def persist_credential_capture_output(runtime, *, tool_name: str, output_text: str, default_source: str = ""):

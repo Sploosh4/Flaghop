@@ -4,6 +4,8 @@ from typing import Any, Dict, List
 
 
 def register_job_process(runtime, job_id: int, process_id: int):
+    if "process_registry" in getattr(runtime, "__dict__", {}):
+        return runtime.process_registry.register(job_id, process_id)
     resolved_job_id = int(job_id or 0)
     resolved_process_id = int(process_id or 0)
     if resolved_job_id <= 0 or resolved_process_id <= 0:
@@ -19,6 +21,8 @@ def register_job_process(runtime, job_id: int, process_id: int):
 
 
 def unregister_job_process(runtime, process_id: int):
+    if "process_registry" in getattr(runtime, "__dict__", {}):
+        return runtime.process_registry.unregister(process_id)
     resolved_process_id = int(process_id or 0)
     if resolved_process_id <= 0:
         return
@@ -37,6 +41,8 @@ def unregister_job_process(runtime, process_id: int):
 
 
 def job_active_process_ids(runtime, job_id: int) -> List[int]:
+    if "process_registry" in getattr(runtime, "__dict__", {}):
+        return runtime.process_registry.members(job_id)
     resolved_job_id = int(job_id or 0)
     if resolved_job_id <= 0:
         return []

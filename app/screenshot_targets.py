@@ -107,14 +107,14 @@ def choose_preferred_web_scheme(service_name: str) -> str:
 
 
 def apply_preferred_target_placeholders(
-        template: str,
-        *,
-        hostname: str,
-        ip: str,
-        port: Optional[str] = None,
-        output: Optional[str] = None,
-        service_name: str = "",
-        extra_placeholders: Optional[Dict[str, str]] = None,
+    template: str,
+    *,
+    hostname: str,
+    ip: str,
+    port: Optional[str] = None,
+    output: Optional[str] = None,
+    service_name: str = "",
+    extra_placeholders: Optional[Dict[str, str]] = None,
 ) -> Tuple[str, str]:
     command = str(template or "")
     target_host = choose_preferred_command_host(hostname, ip, command)

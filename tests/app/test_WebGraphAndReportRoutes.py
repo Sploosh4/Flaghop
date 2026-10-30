@@ -13,7 +13,6 @@ class _GraphReportRuntime:
         self.calls.append(("rebuild_evidence_graph", host_id))
         return {"host_id": host_id}
 
-
     def get_graph_related_content(self, node_id, max_chars=12000):
         self.calls.append(("get_graph_related_content", str(node_id), int(max_chars)))
         return {"items": [{"node_id": str(node_id)}]}
@@ -61,7 +60,6 @@ class _GraphReportRuntime:
             )
         )
         return {"annotation_id": annotation_id or "annotation-1", "body": body, "target_ref": target_ref}
-
 
     def push_project_ai_report(self, overrides=None):
         self.calls.append(("push_project_ai_report", dict(overrides or {})))

@@ -1,5 +1,5 @@
-/** Workspace dom. */
 import { processOutputState, screenshotModalState, scriptOutputState, uiModalState } from "./state.js";
+/** Workspace dom. */
 
 export function updateBodyModalState() {
     const anyModalOpen = Boolean(

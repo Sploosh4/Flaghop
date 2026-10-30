@@ -97,35 +97,37 @@ class SchedulerConfigManagerTest(unittest.TestCase):
             self.assertEqual("POST", defaults["project_report_delivery"]["method"])
             self.assertEqual("json", defaults["project_report_delivery"]["format"])
 
-            updated = manager.update_preferences({
-                "mode": "ai",
-                "goal_profile": "external_pentest",
-                "provider": "openai",
-                "providers": {
-                    "openai": {
-                        "enabled": True,
-                        "model": "gpt-5-mini",
-                        "api_key": "test-key",
-                        "structured_outputs": True,
-                    }
-                },
-                "integrations": {
-                    "grayhatwarfare": {
-                        "api_key": "test-grayhat-key",
+            updated = manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "goal_profile": "external_pentest",
+                    "provider": "openai",
+                    "providers": {
+                        "openai": {
+                            "enabled": True,
+                            "model": "gpt-5-mini",
+                            "api_key": "test-key",
+                            "structured_outputs": True,
+                        }
                     },
-                    "shodan": {
-                        "api_key": "test-shodan-key",
-                    }
-                },
-                "device_categories": [
-                    {
-                        "name": "OT",
-                        "ports": ["502", "20000"],
-                        "fingerprint_fragments": ["modbus", "dnp3"],
-                        "cpe": ["schneider"],
-                    }
-                ],
-            })
+                    "integrations": {
+                        "grayhatwarfare": {
+                            "api_key": "test-grayhat-key",
+                        },
+                        "shodan": {
+                            "api_key": "test-shodan-key",
+                        },
+                    },
+                    "device_categories": [
+                        {
+                            "name": "OT",
+                            "ports": ["502", "20000"],
+                            "fingerprint_fragments": ["modbus", "dnp3"],
+                            "cpe": ["schneider"],
+                        }
+                    ],
+                }
+            )
             self.assertEqual("ai", updated["mode"])
             self.assertEqual("external_pentest", updated["goal_profile"])
             self.assertEqual("external_pentest", updated["engagement_policy"]["preset"])
@@ -140,46 +142,56 @@ class SchedulerConfigManagerTest(unittest.TestCase):
             self.assertEqual([502, 20000], updated["device_categories"][0]["ports"])
             self.assertEqual(5, int(updated["ai_feedback"]["max_rounds_per_target"]))
 
-            normalized_openai_model = manager.update_preferences({
-                "providers": {
-                    "openai": {
-                        "model": "",
-                    }
-                },
-            })
-            self.assertEqual("gpt-4.1-mini", normalized_openai_model["providers"]["openai"]["model"])
-
-            updated_concurrency = manager.update_preferences({
-                "max_concurrency": 99,
-            })
-            self.assertEqual(16, int(updated_concurrency["max_concurrency"]))
-
-            updated_host_concurrency = manager.update_preferences({
-                "max_host_concurrency": 99,
-            })
-            self.assertEqual(8, int(updated_host_concurrency["max_host_concurrency"]))
-
-            updated_jobs = manager.update_preferences({
-                "max_jobs": 99999,
-            })
-            self.assertEqual(2000, int(updated_jobs["max_jobs"]))
-
-            updated_delivery = manager.update_preferences({
-                "project_report_delivery": {
-                    "provider_name": "siem-prod",
-                    "endpoint": "https://example.local/report",
-                    "method": "delete",
-                    "format": "markdown",
-                    "headers": {"Authorization": "Bearer token"},
-                    "timeout_seconds": 999,
-                    "mtls": {
-                        "enabled": True,
-                        "client_cert_path": "/tmp/client.crt",
-                        "client_key_path": "/tmp/client.key",
-                        "ca_cert_path": "/tmp/ca.crt",
+            normalized_openai_model = manager.update_preferences(
+                {
+                    "providers": {
+                        "openai": {
+                            "model": "",
+                        }
                     },
                 }
-            })
+            )
+            self.assertEqual("gpt-4.1-mini", normalized_openai_model["providers"]["openai"]["model"])
+
+            updated_concurrency = manager.update_preferences(
+                {
+                    "max_concurrency": 99,
+                }
+            )
+            self.assertEqual(16, int(updated_concurrency["max_concurrency"]))
+
+            updated_host_concurrency = manager.update_preferences(
+                {
+                    "max_host_concurrency": 99,
+                }
+            )
+            self.assertEqual(8, int(updated_host_concurrency["max_host_concurrency"]))
+
+            updated_jobs = manager.update_preferences(
+                {
+                    "max_jobs": 99999,
+                }
+            )
+            self.assertEqual(2000, int(updated_jobs["max_jobs"]))
+
+            updated_delivery = manager.update_preferences(
+                {
+                    "project_report_delivery": {
+                        "provider_name": "siem-prod",
+                        "endpoint": "https://example.local/report",
+                        "method": "delete",
+                        "format": "markdown",
+                        "headers": {"Authorization": "Bearer token"},
+                        "timeout_seconds": 999,
+                        "mtls": {
+                            "enabled": True,
+                            "client_cert_path": "/tmp/client.crt",
+                            "client_key_path": "/tmp/client.key",
+                            "ca_cert_path": "/tmp/ca.crt",
+                        },
+                    }
+                }
+            )
             delivery = updated_delivery["project_report_delivery"]
             self.assertEqual("siem-prod", delivery["provider_name"])
             self.assertEqual("https://example.local/report", delivery["endpoint"])
@@ -189,18 +201,20 @@ class SchedulerConfigManagerTest(unittest.TestCase):
             self.assertEqual(300, int(delivery["timeout_seconds"]))
             self.assertTrue(delivery["mtls"]["enabled"])
 
-            normalized = manager.update_preferences({
-                "ai_feedback": {
-                    "enabled": True,
-                    "max_rounds_per_target": 99,
-                    "max_actions_per_round": 0,
-                    "recent_output_chars": 10,
-                    "reflection_enabled": False,
-                    "stall_rounds_without_progress": 99,
-                    "stall_repeat_selection_threshold": 0,
-                    "max_reflections_per_target": 99,
+            normalized = manager.update_preferences(
+                {
+                    "ai_feedback": {
+                        "enabled": True,
+                        "max_rounds_per_target": 99,
+                        "max_actions_per_round": 0,
+                        "recent_output_chars": 10,
+                        "reflection_enabled": False,
+                        "stall_rounds_without_progress": 99,
+                        "stall_repeat_selection_threshold": 0,
+                        "max_reflections_per_target": 99,
+                    }
                 }
-            })
+            )
             self.assertEqual(12, int(normalized["ai_feedback"]["max_rounds_per_target"]))
             self.assertEqual(1, int(normalized["ai_feedback"]["max_actions_per_round"]))
             self.assertEqual(320, int(normalized["ai_feedback"]["recent_output_chars"]))
@@ -209,34 +223,38 @@ class SchedulerConfigManagerTest(unittest.TestCase):
             self.assertEqual(1, int(normalized["ai_feedback"]["stall_repeat_selection_threshold"]))
             self.assertEqual(4, int(normalized["ai_feedback"]["max_reflections_per_target"]))
 
-            updated_runners = manager.update_preferences({
-                "runners": {
-                    "container": {
-                        "enabled": True,
-                        "runtime": "podman",
-                        "image": "kalilinux/kali-rolling",
-                    },
-                    "browser": {
-                        "enabled": False,
-                        "timeout": 9999,
-                    },
+            updated_runners = manager.update_preferences(
+                {
+                    "runners": {
+                        "container": {
+                            "enabled": True,
+                            "runtime": "podman",
+                            "image": "kalilinux/kali-rolling",
+                        },
+                        "browser": {
+                            "enabled": False,
+                            "timeout": 9999,
+                        },
+                    }
                 }
-            })
+            )
             self.assertTrue(updated_runners["runners"]["container"]["enabled"])
             self.assertEqual("podman", updated_runners["runners"]["container"]["runtime"])
             self.assertEqual("kalilinux/kali-rolling", updated_runners["runners"]["container"]["image"])
             self.assertFalse(updated_runners["runners"]["browser"]["enabled"])
             self.assertEqual(900, int(updated_runners["runners"]["browser"]["timeout"]))
 
-            updated_flags = manager.update_preferences({
-                "feature_flags": {
-                    "graph_workspace": False,
-                    "optional_runners": False,
-                    "context_summary_enabled": False,
-                    "scheduler_prompt_profiles": False,
-                    "scheduler_web_followup_sidecar": True,
+            updated_flags = manager.update_preferences(
+                {
+                    "feature_flags": {
+                        "graph_workspace": False,
+                        "optional_runners": False,
+                        "context_summary_enabled": False,
+                        "scheduler_prompt_profiles": False,
+                        "scheduler_web_followup_sidecar": True,
+                    }
                 }
-            })
+            )
             self.assertFalse(updated_flags["feature_flags"]["graph_workspace"])
             self.assertFalse(updated_flags["feature_flags"]["optional_runners"])
             self.assertFalse(updated_flags["feature_flags"]["context_summary_enabled"])
@@ -248,31 +266,41 @@ class SchedulerConfigManagerTest(unittest.TestCase):
             self.assertFalse(manager.is_feature_enabled("scheduler_prompt_profiles"))
             self.assertTrue(manager.is_feature_enabled("scheduler_web_followup_sidecar"))
 
-            updated_profiles = manager.update_preferences({
-                "tool_execution_profiles": {
-                    "nikto": {
-                        "activity_timeout_seconds": 2400,
-                    },
-                    "feroxbuster": {
-                        "quiet_long_running": True,
-                        "activity_timeout_seconds": 900,
-                        "hard_timeout_seconds": 7200,
-                    },
+            updated_profiles = manager.update_preferences(
+                {
+                    "tool_execution_profiles": {
+                        "nikto": {
+                            "activity_timeout_seconds": 2400,
+                        },
+                        "feroxbuster": {
+                            "quiet_long_running": True,
+                            "activity_timeout_seconds": 900,
+                            "hard_timeout_seconds": 7200,
+                        },
+                    }
                 }
-            })
-            self.assertEqual(2400, int(updated_profiles["tool_execution_profiles"]["nikto"]["activity_timeout_seconds"]))
+            )
+            self.assertEqual(
+                2400, int(updated_profiles["tool_execution_profiles"]["nikto"]["activity_timeout_seconds"])
+            )
             self.assertTrue(updated_profiles["tool_execution_profiles"]["feroxbuster"]["quiet_long_running"])
-            self.assertEqual(900, int(updated_profiles["tool_execution_profiles"]["feroxbuster"]["activity_timeout_seconds"]))
-            self.assertEqual(7200, int(updated_profiles["tool_execution_profiles"]["feroxbuster"]["hard_timeout_seconds"]))
+            self.assertEqual(
+                900, int(updated_profiles["tool_execution_profiles"]["feroxbuster"]["activity_timeout_seconds"])
+            )
+            self.assertEqual(
+                7200, int(updated_profiles["tool_execution_profiles"]["feroxbuster"]["hard_timeout_seconds"])
+            )
 
-            updated_policy = manager.update_preferences({
-                "engagement_policy": {
-                    "preset": "internal_pentest",
-                    "intent": "pentest",
-                    "allow_exploitation": True,
-                    "allow_lateral_movement": True,
+            updated_policy = manager.update_preferences(
+                {
+                    "engagement_policy": {
+                        "preset": "internal_pentest",
+                        "intent": "pentest",
+                        "allow_exploitation": True,
+                        "allow_lateral_movement": True,
+                    }
                 }
-            })
+            )
             self.assertEqual("internal_pentest", updated_policy["engagement_policy"]["preset"])
             self.assertEqual("internal_asset_discovery", updated_policy["goal_profile"])
             self.assertTrue(updated_policy["engagement_policy"]["allow_exploitation"])
@@ -300,19 +328,21 @@ class SchedulerConfigManagerTest(unittest.TestCase):
             secret_store = _MemorySecretStore()
             manager = SchedulerConfigManager(config_path=path, secret_store=secret_store)
 
-            updated = manager.update_preferences({
-                "providers": {
-                    "openai": {
-                        "enabled": True,
-                        "api_key": "sk-test-openai",
-                    }
-                },
-                "integrations": {
-                    "shodan": {
-                        "api_key": "shodan-test-key",
-                    }
-                },
-            })
+            updated = manager.update_preferences(
+                {
+                    "providers": {
+                        "openai": {
+                            "enabled": True,
+                            "api_key": "sk-test-openai",
+                        }
+                    },
+                    "integrations": {
+                        "shodan": {
+                            "api_key": "shodan-test-key",
+                        }
+                    },
+                }
+            )
 
             self.assertEqual("sk-test-openai", updated["providers"]["openai"]["api_key"])
             self.assertEqual("shodan-test-key", updated["integrations"]["shodan"]["api_key"])
@@ -372,14 +402,16 @@ class SchedulerConfigManagerTest(unittest.TestCase):
             manager.load()
 
             with self.assertRaises(SecretStoreError):
-                manager.update_preferences({
-                    "providers": {
-                        "openai": {
-                            "enabled": True,
-                            "api_key": "new-openai-key",
+                manager.update_preferences(
+                    {
+                        "providers": {
+                            "openai": {
+                                "enabled": True,
+                                "api_key": "new-openai-key",
+                            }
                         }
                     }
-                })
+                )
 
             with open(path, "r", encoding="utf-8") as handle:
                 persisted = handle.read()
@@ -413,13 +445,15 @@ class SchedulerConfigManagerTest(unittest.TestCase):
             self.assertEqual(2, int(updated["max_concurrency"]))
 
             with self.assertRaises(SecretStoreError):
-                manager.update_preferences({
-                    "providers": {
-                        "openai": {
-                            "api_key": "changed-openai-key",
+                manager.update_preferences(
+                    {
+                        "providers": {
+                            "openai": {
+                                "api_key": "changed-openai-key",
+                            }
                         }
                     }
-                })
+                )
 
 
 if __name__ == "__main__":

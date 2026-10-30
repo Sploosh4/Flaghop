@@ -1,12 +1,20 @@
-/** Workspace dialogs. */
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let openManualToolPicker, pollSnapshot;
+export function connectDialogs(callbacks) {
+    for (const name of ["openManualToolPicker", "pollSnapshot"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing dialogs callback: ${name}`);
+    }
+    ({ openManualToolPicker, pollSnapshot } = callbacks);
+}
+
 import { loadProviderLogsAction } from "./activity.js";
 import { renderDeviceCategorySettingsModal, setDeviceCategorySettingsStatus } from "./device_categories.js";
 import { setText, setValue, updateBodyModalState } from "./dom.js";
 import { setHostServiceFilterPopoverOpen } from "./host_filters.js";
-import { pollSnapshot } from "./live_updates.js";
 import { resetNmapScanWizardState } from "./scan_policy.js";
 import { hostRemoveState, providerLogsState, ribbonMenuState, uiModalState, workspaceState } from "./state.js";
-import { openManualToolPicker } from "./tools.js";
+/** Workspace dialogs. */
 
 export function setNmapScanModalOpen(open) {
     const overlay = document.getElementById("nmap-scan-modal");

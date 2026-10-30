@@ -9,12 +9,14 @@ class ToolingEnvTest(unittest.TestCase):
     def test_build_tool_execution_env_prepends_go_bin_directory(self):
         from app.tooling import build_tool_execution_env
 
-        env = build_tool_execution_env({
-            "HOME": "/tmp/legion-home",
-            "PATH": "/usr/local/bin:/usr/bin",
-            "GOBIN": "",
-            "GOPATH": "",
-        })
+        env = build_tool_execution_env(
+            {
+                "HOME": "/tmp/legion-home",
+                "PATH": "/usr/local/bin:/usr/bin",
+                "GOBIN": "",
+                "GOPATH": "",
+            }
+        )
 
         path_parts = env["PATH"].split(os.pathsep)
         self.assertEqual("/tmp/legion-home/go/bin", path_parts[0])
@@ -24,12 +26,14 @@ class ToolingEnvTest(unittest.TestCase):
     def test_build_tool_execution_env_prefers_configured_gobin(self):
         from app.tooling import build_tool_execution_env
 
-        env = build_tool_execution_env({
-            "HOME": "/tmp/legion-home",
-            "PATH": "/usr/bin",
-            "GOBIN": "/opt/projectdiscovery/bin",
-            "GOPATH": "/workspace/go",
-        })
+        env = build_tool_execution_env(
+            {
+                "HOME": "/tmp/legion-home",
+                "PATH": "/usr/bin",
+                "GOBIN": "/opt/projectdiscovery/bin",
+                "GOPATH": "/workspace/go",
+            }
+        )
 
         path_parts = env["PATH"].split(os.pathsep)
         self.assertEqual("/opt/projectdiscovery/bin", path_parts[0])
@@ -61,12 +65,15 @@ class ToolingEnvTest(unittest.TestCase):
 
             settings = StubSettings()
             settings.tools_path_nmap = nmap_path
-            rows = audit_legion_tools(settings, base_env={
-                "HOME": tempdir,
-                "PATH": tempdir,
-                "GOBIN": "",
-                "GOPATH": "",
-            })
+            rows = audit_legion_tools(
+                settings,
+                base_env={
+                    "HOME": tempdir,
+                    "PATH": tempdir,
+                    "GOBIN": "",
+                    "GOPATH": "",
+                },
+            )
             by_key = {row.key: row for row in rows}
             self.assertEqual("installed", by_key["nmap"].status)
             self.assertEqual(nmap_path, by_key["nmap"].resolved_path)
@@ -85,15 +92,23 @@ class ToolingEnvTest(unittest.TestCase):
             hostActions = []
             portTerminalActions = []
             portActions = [
-                ["Custom scan", "customscan", "(command -v customscan >/dev/null 2>&1 && customscan [IP]) || echo customscan not found", "http"]
+                [
+                    "Custom scan",
+                    "customscan",
+                    "(command -v customscan >/dev/null 2>&1 && customscan [IP]) || echo customscan not found",
+                    "http",
+                ]
             ]
 
-        rows = audit_legion_tools(StubSettings(), base_env={
-            "HOME": "/tmp/legion-home",
-            "PATH": "/usr/bin",
-            "GOBIN": "",
-            "GOPATH": "",
-        })
+        rows = audit_legion_tools(
+            StubSettings(),
+            base_env={
+                "HOME": "/tmp/legion-home",
+                "PATH": "/usr/bin",
+                "GOBIN": "",
+                "GOPATH": "",
+            },
+        )
         by_key = {row.key: row for row in rows}
         self.assertIn("customscan", by_key)
         self.assertEqual("custom", by_key["customscan"].category)
@@ -115,12 +130,15 @@ class ToolingEnvTest(unittest.TestCase):
                 ["SMTP enum", "smtp-enum", "smtp-user-enum -M VRFY -t [IP] -p [PORT]", "smtp"],
             ]
 
-        rows = audit_legion_tools(StubSettings(), base_env={
-            "HOME": "/tmp/legion-home",
-            "PATH": "/usr/bin",
-            "GOBIN": "",
-            "GOPATH": "",
-        })
+        rows = audit_legion_tools(
+            StubSettings(),
+            base_env={
+                "HOME": "/tmp/legion-home",
+                "PATH": "/usr/bin",
+                "GOBIN": "",
+                "GOPATH": "",
+            },
+        )
         by_key = {row.key: row for row in rows}
         self.assertIn("hping3", by_key)
         self.assertEqual("legacy", by_key["hping3"].category)
@@ -149,14 +167,17 @@ class ToolingEnvTest(unittest.TestCase):
                 handle.write("#!/bin/sh\nexit 0\n")
             os.chmod(impacket_tool, stat.S_IRWXU)
 
-            rows = audit_legion_tools(StubSettings(), base_env={
-                "HOME": tempdir,
-                "PATH": "/usr/bin",
-                "GOBIN": "",
-                "GOPATH": "",
-                "CARGO_HOME": "",
-                "PIPX_BIN_DIR": "",
-            })
+            rows = audit_legion_tools(
+                StubSettings(),
+                base_env={
+                    "HOME": tempdir,
+                    "PATH": "/usr/bin",
+                    "GOBIN": "",
+                    "GOPATH": "",
+                    "CARGO_HOME": "",
+                    "PIPX_BIN_DIR": "",
+                },
+            )
             by_key = {row.key: row for row in rows}
             self.assertEqual("installed", by_key["samrdump"].status)
             self.assertEqual(impacket_tool, by_key["samrdump"].resolved_path)
@@ -175,12 +196,15 @@ class ToolingEnvTest(unittest.TestCase):
             portTerminalActions = []
             portActions = []
 
-        rows = audit_legion_tools(StubSettings(), base_env={
-            "HOME": "/tmp/legion-home",
-            "PATH": "/usr/bin",
-            "GOBIN": "",
-            "GOPATH": "",
-        })
+        rows = audit_legion_tools(
+            StubSettings(),
+            base_env={
+                "HOME": "/tmp/legion-home",
+                "PATH": "/usr/bin",
+                "GOBIN": "",
+                "GOPATH": "",
+            },
+        )
         by_key = {row.key: row for row in rows}
         self.assertEqual("cargo install feroxbuster", by_key["feroxbuster"].ubuntu_install)
         self.assertIn("github.com/cddmp/enum4linux-ng.git", by_key["enum4linux-ng"].ubuntu_install)
@@ -270,12 +294,16 @@ class ToolingEnvTest(unittest.TestCase):
             ),
         ]
 
-        plan = build_tool_install_plan(rows, platform="kali", base_env={
-            "HOME": "/tmp/legion-home",
-            "PATH": "/usr/local/sbin",
-            "GOBIN": "",
-            "GOPATH": "",
-        })
+        plan = build_tool_install_plan(
+            rows,
+            platform="kali",
+            base_env={
+                "HOME": "/tmp/legion-home",
+                "PATH": "/usr/local/sbin",
+                "GOBIN": "",
+                "GOPATH": "",
+            },
+        )
         commands = [item["command"] for item in plan["commands"]]
         self.assertEqual("sudo -n apt-get install -y golang-go", commands[0])
         self.assertIn("go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest", commands[1])
@@ -314,14 +342,18 @@ class ToolingEnvTest(unittest.TestCase):
             ),
         ]
 
-        plan = build_tool_install_plan(rows, platform="ubuntu", base_env={
-            "HOME": "/tmp/legion-home",
-            "PATH": "/usr/local/sbin",
-            "GOBIN": "",
-            "GOPATH": "",
-            "CARGO_HOME": "",
-            "PIPX_BIN_DIR": "",
-        })
+        plan = build_tool_install_plan(
+            rows,
+            platform="ubuntu",
+            base_env={
+                "HOME": "/tmp/legion-home",
+                "PATH": "/usr/local/sbin",
+                "GOBIN": "",
+                "GOPATH": "",
+                "CARGO_HOME": "",
+                "PIPX_BIN_DIR": "",
+            },
+        )
         commands = [item["command"] for item in plan["commands"]]
         self.assertIn("sudo -n apt-get install -y git", commands)
         self.assertIn("sudo -n apt-get install -y cargo", commands)
@@ -341,12 +373,15 @@ class ToolingEnvTest(unittest.TestCase):
             "manual": [],
             "script": "#!/usr/bin/env bash\nprintf 'legion-tool-test'\n",
         }
-        result = execute_tool_install_plan(plan, base_env={
-            "HOME": "/tmp/legion-home",
-            "PATH": "/usr/bin:/bin",
-            "GOBIN": "",
-            "GOPATH": "",
-        })
+        result = execute_tool_install_plan(
+            plan,
+            base_env={
+                "HOME": "/tmp/legion-home",
+                "PATH": "/usr/bin:/bin",
+                "GOBIN": "",
+                "GOPATH": "",
+            },
+        )
         self.assertEqual(1, result["command_count"])
         self.assertEqual(1, len(result["completed_commands"]))
         self.assertEqual(0, result["completed_commands"][0]["exit_code"])

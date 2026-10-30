@@ -1,10 +1,10 @@
-/** Workspace graph filters. */
 import { getChecked, getValue } from "./dom.js";
 import { graphCurrentViewConfig, graphEntityMatchesPack, graphEntityMatchesSeverity, graphEntityMatchesTimeWindow, graphTimeWindowCutoff } from "./graph_common.js";
 import { graphBuildHostMaps, graphComputeCompactLayout, graphGroupKeyForNode, graphSortNodes } from "./graph_layout.js";
 import { graphBuildLargeGraphProjection, graphComputeFocusedSubgraph, graphComputeMatrixView, graphShouldUseMatrixMode, graphShouldUseSummaryMode } from "./graph_projection.js";
 import { selectedHostServiceFilters } from "./host_filters.js";
 import { graphWorkspaceState, workspaceState } from "./state.js";
+/** Workspace graph filters. */
 
 export function graphCollectServerQuery() {
     graphWorkspaceState.viewId = String(getValue("graph-view-select") || graphWorkspaceState.viewId || "attack_surface").trim();

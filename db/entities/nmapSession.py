@@ -15,13 +15,14 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import String, Column
 
 from db.database import Base
 
 
 class nmapSessionObj(Base):
-    __tablename__ = 'nmapSessionObj'
+    __tablename__ = "nmapSessionObj"
     filename = Column(String, primary_key=True)
     startTime = Column(String)
     finish_time = Column(String)
@@ -34,22 +35,22 @@ class nmapSessionObj(Base):
     def __init__(
         self,
         filename,
-        startTime='',
-        finish_time='',
-        nmapVersion='unknown',
-        scanArgs='',
-        totalHosts='0',
-        upHosts='0',
-        downHosts='0',
-        **kwargs
+        startTime="",
+        finish_time="",
+        nmapVersion="unknown",
+        scanArgs="",
+        totalHosts="0",
+        upHosts="0",
+        downHosts="0",
+        **kwargs,
     ):
         self.filename = filename
-        self.startTime = kwargs.get('startTime', startTime) or ''
-        self.finish_time = kwargs.get('finish_time', finish_time) or ''
-        self.nmapVersion = kwargs.get('nmapVersion', nmapVersion) or 'unknown'
-        self.scanArgs = kwargs.get('scanArgs', scanArgs) or ''
+        self.startTime = kwargs.get("startTime", startTime) or ""
+        self.finish_time = kwargs.get("finish_time", finish_time) or ""
+        self.nmapVersion = kwargs.get("nmapVersion", nmapVersion) or "unknown"
+        self.scanArgs = kwargs.get("scanArgs", scanArgs) or ""
         # Some legacy code may use the old 'total_host' key name
-        legacy_total = kwargs.get('total_host')
-        self.totalHosts = kwargs.get('totalHosts', legacy_total if legacy_total is not None else totalHosts) or '0'
-        self.upHosts = kwargs.get('upHosts', upHosts) or '0'
-        self.downHosts = kwargs.get('downHosts', downHosts) or '0'
+        legacy_total = kwargs.get("total_host")
+        self.totalHosts = kwargs.get("totalHosts", legacy_total if legacy_total is not None else totalHosts) or "0"
+        self.upHosts = kwargs.get("upHosts", upHosts) or "0"
+        self.downHosts = kwargs.get("downHosts", downHosts) or "0"

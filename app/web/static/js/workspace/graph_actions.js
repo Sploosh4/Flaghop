@@ -1,4 +1,3 @@
-/** Workspace graph actions. */
 import { closeGraphNoteModalAction, setGraphNoteModalOpen } from "./dialogs.js";
 import { getChecked, getValue, setText, setValue } from "./dom.js";
 import { graphCurrentViewConfig, graphFriendlyLabel, graphPropertyValue, graphRenderLayoutOptions, graphSelectedNodeEntity, setGraphStatus } from "./graph_common.js";
@@ -7,9 +6,10 @@ import { graphApplyLocalFilters } from "./graph_filters.js";
 import { graphBuildHostMaps, graphComputeCompactLayout, graphGroupKeyForNode } from "./graph_layout.js";
 import { graphEntityUnderlyingNodeIds } from "./graph_projection.js";
 import { graphRenderWorkspace } from "./graph_render.js";
-import { graphFindEntity } from "./graph_viewport.js";
+import { graphFindEntity } from "./graph_selection.js";
 import { postJson } from "./http.js";
 import { graphWorkspaceState } from "./state.js";
+/** Workspace graph actions. */
 
 export function graphApplyLayoutById(layoutId) {
     const selected = (graphWorkspaceState.layouts || []).find((item) => String(item?.layout_id || "") === String(layoutId || ""));

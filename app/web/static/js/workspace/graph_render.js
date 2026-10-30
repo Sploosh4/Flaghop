@@ -1,10 +1,11 @@
-/** Workspace graph render. */
 import { setText } from "./dom.js";
 import { getGraphCanvasScrollNode, graphCreateSvgNode, graphEdgeStrokeColor, graphFriendlyLabel, graphNodeColor, graphNodeFillColor, graphPropertyValue, graphSelectedNodeEntity, graphSourceStyle, graphSplitLabel, opaqueUiEnabled } from "./graph_common.js";
 import { graphRenderSelectionDetail, graphSyncDetailPresentation } from "./graph_detail.js";
 import { graphApplyLocalFilters } from "./graph_filters.js";
-import { graphFindEntity, graphNodeMatchesSelectedHost, graphShouldShowGroupLabels, graphShouldShowNodeLabel, graphShouldShowNodeTypeLabel, graphUpdateViewport } from "./graph_viewport.js";
+import { graphFindEntity } from "./graph_selection.js";
+import { graphNodeMatchesSelectedHost, graphShouldShowGroupLabels, graphShouldShowNodeLabel, graphShouldShowNodeTypeLabel, graphUpdateViewport } from "./graph_viewport.js";
 import { GRAPH_EDGE_HIGHLIGHT_COLOR, GRAPH_NODE_SIZE, GRAPH_WORKSPACE_DEFAULT_HEIGHT, graphWorkspaceState } from "./state.js";
+/** Workspace graph render. */
 
 export function graphRenderMatrixView(filtered) {
     const container = document.getElementById("graph-matrix-view");

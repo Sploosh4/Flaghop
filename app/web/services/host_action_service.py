@@ -64,7 +64,6 @@ class HostActionService:
         query = ScriptOutputQuery.from_args(args)
         return self.runtime.get_script_output(script_id, offset=query.offset, max_chars=query.max_chars)
 
-
     def start_host_dig_deeper(self, host_id: int) -> Dict[str, Any]:
         job = self.runtime.start_host_dig_deeper_job(int(host_id))
         return {"status": "accepted", "job": job}

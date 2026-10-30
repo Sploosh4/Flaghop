@@ -59,12 +59,14 @@ def list_capture_interfaces(runtime) -> List[Dict[str, Any]]:
                 ipv4_networks.append(network_text)
         if not ipv4_addresses:
             continue
-        rows.append({
-            "name": token,
-            "label": f"{token} ({', '.join(ipv4_addresses[:2])})",
-            "ipv4_addresses": ipv4_addresses,
-            "ipv4_networks": ipv4_networks,
-        })
+        rows.append(
+            {
+                "name": token,
+                "label": f"{token} ({', '.join(ipv4_addresses[:2])})",
+                "ipv4_addresses": ipv4_addresses,
+                "ipv4_networks": ipv4_networks,
+            }
+        )
     rows.sort(key=preferred_capture_interface_sort_key)
     return rows
 
@@ -134,11 +136,11 @@ def classify_passive_protocols(protocol_blob: str, udp_ports: List[str], query_n
 
 
 def analyze_passive_capture(
-        runtime,
-        *,
-        interface_name: str,
-        capture_path: str,
-        analysis_path: str,
+    runtime,
+    *,
+    interface_name: str,
+    capture_path: str,
+    analysis_path: str,
 ) -> Dict[str, Any]:
     if not os.path.isfile(str(capture_path or "")):
         return {
@@ -206,7 +208,7 @@ def analyze_passive_capture(
         columns = line.split("\t")
         while len(columns) < len(fields):
             columns.append("")
-        protocol_blob, ip_src, ip_dst, arp_src, arp_dst, udp_src, udp_dst, query_name = columns[:len(fields)]
+        protocol_blob, ip_src, ip_dst, arp_src, arp_dst, udp_src, udp_dst, query_name = columns[: len(fields)]
         ip_values = []
         for value in (ip_src, ip_dst, arp_src, arp_dst):
             ip_values.extend(parse_tshark_field_blob(value))
@@ -250,10 +252,7 @@ def analyze_passive_capture(
     summary = {
         "candidate_networks": sorted(candidate_networks),
         "observed_private_hosts": sorted(observed_private_hosts),
-        "signals": [
-            {"name": key, "count": int(protocol_counts[key])}
-            for key in sorted(protocol_counts.keys())
-        ],
+        "signals": [{"name": key, "count": int(protocol_counts[key])} for key in sorted(protocol_counts.keys())],
         "analysis_path": str(analysis_path or ""),
         "record_count": int(record_count),
     }

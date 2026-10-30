@@ -2,23 +2,23 @@
 
 
 class CVE:
-    name = ''
-    product = ''
-    version = ''
-    url = ''
-    source = ''
-    severity = ''
-    exploitId = ''
-    exploit = ''
-    exploitUrl = ''
+    name = ""
+    product = ""
+    version = ""
+    url = ""
+    source = ""
+    severity = ""
+    exploitId = ""
+    exploit = ""
+    exploitUrl = ""
 
     def __init__(self, cveData):
-        self.name = cveData.get('id', 'unknown')
-        self.product = cveData.get('product', 'unknown')
-        self.version = cveData.get('version', 'unknown')
-        self.url = cveData.get('url', 'unknown')
-        self.source = cveData.get('source', 'unknown')
-        self.severity = cveData.get('severity', 'unknown')
-        self.exploitId = cveData.get('exploitId', '')
-        self.exploit = cveData.get('exploit', '')
-        self.exploitUrl = cveData.get('exploitUrl', '')
+        self.name = cveData.get("id", "unknown")
+        self.product = cveData.get("product", "unknown")
+        self.version = cveData.get("version", "unknown")
+        self.url = cveData.get("url", "unknown")
+        self.source = cveData.get("source", "unknown")
+        self.severity = cveData.get("severity", "unknown")
+        self.exploitId = cveData.get("exploitId", "")
+        self.exploit = cveData.get("exploit", "")
+        self.exploitUrl = cveData.get("exploitUrl", "")

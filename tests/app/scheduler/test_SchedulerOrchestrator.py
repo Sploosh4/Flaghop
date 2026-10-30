@@ -30,12 +30,14 @@ class _PlannerStub:
         self.plan_calls = 0
 
     def plan_actions(self, service, protocol, settings, **kwargs):
-        self.calls.append({
-            "service": service,
-            "protocol": protocol,
-            "settings": settings,
-            **kwargs,
-        })
+        self.calls.append(
+            {
+                "service": service,
+                "protocol": protocol,
+                "settings": settings,
+                **kwargs,
+            }
+        )
         if self.decisions and isinstance(self.decisions[0], list):
             index = min(self.plan_calls, len(self.decisions) - 1)
             selected = self.decisions[index]
@@ -175,7 +177,9 @@ class SchedulerOrchestratorTest(unittest.TestCase):
 
         planner = _PlannerStub([blocked, approval, allowed])
         orchestrator = SchedulerOrchestrator(_ConfigStub(), planner=planner)
-        target = SchedulerTarget(host_id=11, host_ip="10.0.0.5", hostname="demo", port="80", protocol="tcp", service_name="http")
+        target = SchedulerTarget(
+            host_id=11, host_ip="10.0.0.5", hostname="demo", port="80", protocol="tcp", service_name="http"
+        )
 
         blocked_events = []
         approval_events = []
@@ -237,7 +241,12 @@ class SchedulerOrchestratorTest(unittest.TestCase):
 
     def test_run_targets_uses_reflection_to_suppress_and_promote_tools_after_stall(self):
         from app.scheduler.models import PlanStep
-        from app.scheduler.orchestrator import SchedulerExecutionTask, SchedulerOrchestrator, SchedulerRunOptions, SchedulerTarget
+        from app.scheduler.orchestrator import (
+            SchedulerExecutionTask,
+            SchedulerOrchestrator,
+            SchedulerRunOptions,
+            SchedulerTarget,
+        )
 
         tool_a = PlanStep.from_legacy_fields(
             tool_id="tool-a",
@@ -293,7 +302,9 @@ class SchedulerOrchestratorTest(unittest.TestCase):
             ],
         )
         orchestrator = SchedulerOrchestrator(_ConfigStub(), planner=planner)
-        target = SchedulerTarget(host_id=41, host_ip="10.0.0.8", hostname="edge", port="443", protocol="tcp", service_name="https")
+        target = SchedulerTarget(
+            host_id=41, host_ip="10.0.0.8", hostname="edge", port="443", protocol="tcp", service_name="https"
+        )
 
         executed_batches = []
         reflections = []
@@ -321,7 +332,9 @@ class SchedulerOrchestratorTest(unittest.TestCase):
                 "priority_shift": "coverage_first",
                 "promote_tool_ids": ["tool-d"],
                 "suppress_tool_ids": ["tool-c"],
-                "manual_tests": [{"why": "verify auth manually", "command": "curl -k https://10.0.0.8/admin", "scope_note": "safe"}],
+                "manual_tests": [
+                    {"why": "verify auth manually", "command": "curl -k https://10.0.0.8/admin", "scope_note": "safe"}
+                ],
                 "prompt_version": "scheduler-reflection-v1",
                 "prompt_type": "reflection",
             }
@@ -536,7 +549,12 @@ class SchedulerOrchestratorTest(unittest.TestCase):
 
     def test_run_targets_expands_whatweb_reflection_suppression_only_after_real_attempt(self):
         from app.scheduler.models import PlanStep
-        from app.scheduler.orchestrator import SchedulerExecutionTask, SchedulerOrchestrator, SchedulerRunOptions, SchedulerTarget
+        from app.scheduler.orchestrator import (
+            SchedulerExecutionTask,
+            SchedulerOrchestrator,
+            SchedulerRunOptions,
+            SchedulerTarget,
+        )
 
         whatweb_http = PlanStep.from_legacy_fields(
             tool_id="whatweb-http",
@@ -592,7 +610,9 @@ class SchedulerOrchestratorTest(unittest.TestCase):
             ],
         )
         orchestrator = SchedulerOrchestrator(_ConfigStub(), planner=planner)
-        target = SchedulerTarget(host_id=42, host_ip="10.0.0.9", hostname="edge", port="80", protocol="tcp", service_name="http")
+        target = SchedulerTarget(
+            host_id=42, host_ip="10.0.0.9", hostname="edge", port="80", protocol="tcp", service_name="http"
+        )
 
         executed_batches = []
 
@@ -667,7 +687,12 @@ class SchedulerOrchestratorTest(unittest.TestCase):
 
     def test_run_targets_executes_only_safe_web_followup_wave_tools(self):
         from app.scheduler.models import PlanStep
-        from app.scheduler.orchestrator import SchedulerExecutionTask, SchedulerOrchestrator, SchedulerRunOptions, SchedulerTarget
+        from app.scheduler.orchestrator import (
+            SchedulerExecutionTask,
+            SchedulerOrchestrator,
+            SchedulerRunOptions,
+            SchedulerTarget,
+        )
 
         curl_headers = PlanStep.from_legacy_fields(
             tool_id="curl-headers",
@@ -724,7 +749,9 @@ class SchedulerOrchestratorTest(unittest.TestCase):
             ],
         )
         orchestrator = SchedulerOrchestrator(_ConfigStub(), planner=planner)
-        target = SchedulerTarget(host_id=70, host_ip="10.0.0.30", hostname="web", port="5357", protocol="tcp", service_name="http")
+        target = SchedulerTarget(
+            host_id=70, host_ip="10.0.0.30", hostname="web", port="5357", protocol="tcp", service_name="http"
+        )
 
         executed_batches = []
 
@@ -768,7 +795,12 @@ class SchedulerOrchestratorTest(unittest.TestCase):
 
     def test_run_targets_caps_safe_web_followup_wave_at_three_tools_and_sidecar_order(self):
         from app.scheduler.models import PlanStep
-        from app.scheduler.orchestrator import SchedulerExecutionTask, SchedulerOrchestrator, SchedulerRunOptions, SchedulerTarget
+        from app.scheduler.orchestrator import (
+            SchedulerExecutionTask,
+            SchedulerOrchestrator,
+            SchedulerRunOptions,
+            SchedulerTarget,
+        )
 
         whatweb_http = PlanStep.from_legacy_fields(
             tool_id="whatweb-http",
@@ -836,7 +868,9 @@ class SchedulerOrchestratorTest(unittest.TestCase):
             ],
         )
         orchestrator = SchedulerOrchestrator(_ConfigStub(), planner=planner)
-        target = SchedulerTarget(host_id=71, host_ip="10.0.0.31", hostname="web", port="443", protocol="tcp", service_name="https")
+        target = SchedulerTarget(
+            host_id=71, host_ip="10.0.0.31", hostname="web", port="443", protocol="tcp", service_name="https"
+        )
 
         executed_batches = []
 
@@ -880,7 +914,12 @@ class SchedulerOrchestratorTest(unittest.TestCase):
 
     def test_run_targets_ignores_nonvisible_sidecar_drift_for_web_followup_wave(self):
         from app.scheduler.models import PlanStep
-        from app.scheduler.orchestrator import SchedulerExecutionTask, SchedulerOrchestrator, SchedulerRunOptions, SchedulerTarget
+        from app.scheduler.orchestrator import (
+            SchedulerExecutionTask,
+            SchedulerOrchestrator,
+            SchedulerRunOptions,
+            SchedulerTarget,
+        )
 
         whatweb_http = PlanStep.from_legacy_fields(
             tool_id="whatweb-http",
@@ -937,7 +976,9 @@ class SchedulerOrchestratorTest(unittest.TestCase):
             ],
         )
         orchestrator = SchedulerOrchestrator(_ConfigStub(), planner=planner)
-        target = SchedulerTarget(host_id=72, host_ip="10.0.0.32", hostname="web", port="5357", protocol="tcp", service_name="http")
+        target = SchedulerTarget(
+            host_id=72, host_ip="10.0.0.32", hostname="web", port="5357", protocol="tcp", service_name="http"
+        )
 
         executed_batches = []
 
@@ -981,7 +1022,12 @@ class SchedulerOrchestratorTest(unittest.TestCase):
 
     def test_run_targets_caps_external_recon_web_followup_by_bucket(self):
         from app.scheduler.models import PlanStep
-        from app.scheduler.orchestrator import SchedulerExecutionTask, SchedulerOrchestrator, SchedulerRunOptions, SchedulerTarget
+        from app.scheduler.orchestrator import (
+            SchedulerExecutionTask,
+            SchedulerOrchestrator,
+            SchedulerRunOptions,
+            SchedulerTarget,
+        )
 
         whatweb_http = PlanStep.from_legacy_fields(
             tool_id="whatweb-http",
@@ -1072,9 +1118,18 @@ class SchedulerOrchestratorTest(unittest.TestCase):
             family_id="fam-katana",
         )
 
-        planner = _PlannerStub([[whatweb_http, curl_headers, curl_options, nikto, dirsearch, nuclei_aws_storage, nuclei_web, katana]])
+        planner = _PlannerStub(
+            [[whatweb_http, curl_headers, curl_options, nikto, dirsearch, nuclei_aws_storage, nuclei_web, katana]]
+        )
         orchestrator = SchedulerOrchestrator(_ConfigStub(), planner=planner)
-        target = SchedulerTarget(host_id=73, host_ip="198.51.100.10", hostname="portal.example.com", port="443", protocol="tcp", service_name="https")
+        target = SchedulerTarget(
+            host_id=73,
+            host_ip="198.51.100.10",
+            hostname="portal.example.com",
+            port="443",
+            protocol="tcp",
+            service_name="https",
+        )
 
         executed_batches = []
 
@@ -1122,12 +1177,19 @@ class SchedulerOrchestratorTest(unittest.TestCase):
             execute_batch=execute_batch,
         )
 
-        self.assertEqual([["whatweb-http", "curl-headers", "nikto", "dirsearch", "nuclei-aws-storage"]], executed_batches)
+        self.assertEqual(
+            [["whatweb-http", "curl-headers", "nikto", "dirsearch", "nuclei-aws-storage"]], executed_batches
+        )
         self.assertEqual(5, summary["executed"])
 
     def test_run_targets_stops_low_yield_external_recon_web_after_flat_rounds(self):
         from app.scheduler.models import PlanStep
-        from app.scheduler.orchestrator import SchedulerExecutionTask, SchedulerOrchestrator, SchedulerRunOptions, SchedulerTarget
+        from app.scheduler.orchestrator import (
+            SchedulerExecutionTask,
+            SchedulerOrchestrator,
+            SchedulerRunOptions,
+            SchedulerTarget,
+        )
 
         whatweb_http = PlanStep.from_legacy_fields(
             tool_id="whatweb-http",
@@ -1153,7 +1215,14 @@ class SchedulerOrchestratorTest(unittest.TestCase):
         )
         planner = _PlannerStub([[whatweb_http], [curl_headers], [whatweb_http], [curl_headers]])
         orchestrator = SchedulerOrchestrator(_ConfigStub(), planner=planner)
-        target = SchedulerTarget(host_id=74, host_ip="198.51.100.11", hostname="edge.example.com", port="443", protocol="tcp", service_name="https")
+        target = SchedulerTarget(
+            host_id=74,
+            host_ip="198.51.100.11",
+            hostname="edge.example.com",
+            port="443",
+            protocol="tcp",
+            service_name="https",
+        )
 
         executed_batches = []
 
@@ -1207,7 +1276,12 @@ class SchedulerOrchestratorTest(unittest.TestCase):
 
     def test_run_targets_skips_host_root_banner_and_nmap_without_port(self):
         from app.scheduler.models import PlanStep
-        from app.scheduler.orchestrator import SchedulerExecutionTask, SchedulerOrchestrator, SchedulerRunOptions, SchedulerTarget
+        from app.scheduler.orchestrator import (
+            SchedulerExecutionTask,
+            SchedulerOrchestrator,
+            SchedulerRunOptions,
+            SchedulerTarget,
+        )
 
         banner = PlanStep.from_legacy_fields(
             tool_id="banner",
@@ -1245,7 +1319,14 @@ class SchedulerOrchestratorTest(unittest.TestCase):
 
         planner = _PlannerStub([[banner, nmap, subfinder]])
         orchestrator = SchedulerOrchestrator(_ConfigStub(), planner=planner)
-        target = SchedulerTarget(host_id=81, host_ip="198.51.100.50", hostname="portal.example.com", port="", protocol="tcp", service_name="host")
+        target = SchedulerTarget(
+            host_id=81,
+            host_ip="198.51.100.50",
+            hostname="portal.example.com",
+            port="",
+            protocol="tcp",
+            service_name="host",
+        )
 
         executed_batches = []
 
@@ -1270,9 +1351,19 @@ class SchedulerOrchestratorTest(unittest.TestCase):
         summary = orchestrator.run_targets(
             settings=SimpleNamespace(
                 portActions=[
-                    ["Grab banner", "banner", "LEGION_BANNER_TARGET=[IP] LEGION_BANNER_PORT=[PORT] LEGION_BANNER_PROTOCOL=tcp python3 -m app.banner_probe", "http,https"],
+                    [
+                        "Grab banner",
+                        "banner",
+                        "LEGION_BANNER_TARGET=[IP] LEGION_BANNER_PORT=[PORT] LEGION_BANNER_PROTOCOL=tcp python3 -m app.banner_probe",
+                        "http,https",
+                    ],
                     ["Run nmap", "nmap", "nmap -Pn -sV -sC -p [PORT] [IP]", ""],
-                    ["Run subfinder passive subdomain discovery", "subfinder", "subfinder -d [IP] -o [OUTPUT].jsonl", "host"],
+                    [
+                        "Run subfinder passive subdomain discovery",
+                        "subfinder",
+                        "subfinder -d [IP] -o [OUTPUT].jsonl",
+                        "host",
+                    ],
                 ],
                 automatedAttacks=[],
             ),
@@ -1296,7 +1387,12 @@ class SchedulerOrchestratorTest(unittest.TestCase):
 
     def test_run_targets_only_runs_root_domain_tools_once_on_canonical_root_targets(self):
         from app.scheduler.models import PlanStep
-        from app.scheduler.orchestrator import SchedulerExecutionTask, SchedulerOrchestrator, SchedulerRunOptions, SchedulerTarget
+        from app.scheduler.orchestrator import (
+            SchedulerExecutionTask,
+            SchedulerOrchestrator,
+            SchedulerRunOptions,
+            SchedulerTarget,
+        )
 
         subfinder = PlanStep.from_legacy_fields(
             tool_id="subfinder",
@@ -1326,7 +1422,12 @@ class SchedulerOrchestratorTest(unittest.TestCase):
         settings = SimpleNamespace(
             portActions=[
                 ["Run subfinder", "subfinder", "subfinder -d [IP] -o [OUTPUT].jsonl", "host"],
-                ["Run grayhatwarfare", "grayhatwarfare", "python3 -m app.grayhatwarfare_probe --domain [ROOT_DOMAIN] --output [OUTPUT].json", "host"],
+                [
+                    "Run grayhatwarfare",
+                    "grayhatwarfare",
+                    "python3 -m app.grayhatwarfare_probe --domain [ROOT_DOMAIN] --output [OUTPUT].json",
+                    "host",
+                ],
             ],
             automatedAttacks=[],
         )

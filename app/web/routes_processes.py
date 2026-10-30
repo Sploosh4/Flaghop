@@ -12,14 +12,6 @@ def _process_service() -> ProcessService:
     return ProcessService(runtime_from_app())
 
 
-@processes_bp.after_request
-def _disable_cache(response):
-    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
 @processes_bp.post("/api/processes/<int:process_id>/kill")
 def process_kill(process_id):
     service = _process_service()

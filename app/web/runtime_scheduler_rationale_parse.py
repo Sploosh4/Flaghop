@@ -60,7 +60,8 @@ def extract_provider_response_payload(runtime_or_cls, response_body: Any) -> Dic
     _ = runtime_or_cls
     payload = safe_json_loads(response_body)
     if isinstance(payload, dict) and any(
-            key in payload for key in ("actions", "selected_tool_ids", "promote_tool_ids", "suppress_tool_ids", "next_phase", "focus")
+        key in payload
+        for key in ("actions", "selected_tool_ids", "promote_tool_ids", "suppress_tool_ids", "next_phase", "focus")
     ):
         return payload
 

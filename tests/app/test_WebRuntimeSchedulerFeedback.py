@@ -29,40 +29,52 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         from app.web.runtime import WebRuntime
 
         runtime = WebRuntime.__new__(WebRuntime)
-        runtime.scheduler_config = SimpleNamespace(load=lambda: {
-            "integrations": {
-                "shodan": {
-                    "api_key": "scheduler-owned-key",
+        runtime.scheduler_config = SimpleNamespace(
+            load=lambda: {
+                "integrations": {
+                    "shodan": {
+                        "api_key": "scheduler-owned-key",
+                    }
                 }
             }
-        })
+        )
 
         self.assertTrue(runtime._shodan_integration_enabled())
-        self.assertTrue(runtime._shodan_integration_enabled({
-            "integrations": {
-                "shodan": {
-                    "api_key": "another-key",
+        self.assertTrue(
+            runtime._shodan_integration_enabled(
+                {
+                    "integrations": {
+                        "shodan": {
+                            "api_key": "another-key",
+                        }
+                    }
                 }
-            }
-        }))
-        self.assertFalse(runtime._shodan_integration_enabled({
-            "integrations": {
-                "shodan": {
-                    "api_key": "",
+            )
+        )
+        self.assertFalse(
+            runtime._shodan_integration_enabled(
+                {
+                    "integrations": {
+                        "shodan": {
+                            "api_key": "",
+                        }
+                    }
                 }
-            }
-        }))
+            )
+        )
 
     def test_analyze_passive_capture_infers_candidate_networks_and_protocols(self):
         from app.web.runtime import WebRuntime
 
         runtime = WebRuntime.__new__(WebRuntime)
-        runtime.list_capture_interfaces = lambda: [{
-            "name": "eth0",
-            "label": "eth0 (192.168.3.10)",
-            "ipv4_addresses": ["192.168.3.10"],
-            "ipv4_networks": ["192.168.3.0/24"],
-        }]
+        runtime.list_capture_interfaces = lambda: [
+            {
+                "name": "eth0",
+                "label": "eth0 (192.168.3.10)",
+                "ipv4_addresses": ["192.168.3.10"],
+                "ipv4_networks": ["192.168.3.0/24"],
+            }
+        ]
 
         with tempfile.TemporaryDirectory() as temp_dir:
             capture_path = os.path.join(temp_dir, "capture.pcapng")
@@ -74,7 +86,10 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
                 "eth:ethertype:ip:udp:mdns\t192.168.3.25\t224.0.0.251\t\t\t5353\t5353\tprinter.local\n"
                 "eth:ethertype:arp\t\t\t192.168.3.44\t192.168.3.1\t\t\t\n"
             )
-            with mock.patch("app.web.runtime.subprocess.run", return_value=SimpleNamespace(returncode=0, stdout=tshark_output, stderr="")):
+            with mock.patch(
+                "app.web.runtime.subprocess.run",
+                return_value=SimpleNamespace(returncode=0, stdout=tshark_output, stderr=""),
+            ):
                 summary = runtime._analyze_passive_capture(
                     interface_name="eth0",
                     capture_path=capture_path,
@@ -126,18 +141,46 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
             linux_host_id = int(linux_host.id)
             session.close()
 
-            upsert_target_state(project.database, windows_host_id, {
-                "host_ip": "10.0.0.10",
-                "os_match": "Windows Server",
-                "service_inventory": [{"port": "445", "protocol": "tcp", "state": "open", "service": "microsoft-ds", "service_product": "Microsoft Directory Services"}],
-                "technologies": [{"name": "windows", "cpe": "cpe:/o:microsoft:windows", "evidence": "service detection"}],
-            })
-            upsert_target_state(project.database, linux_host_id, {
-                "host_ip": "10.0.0.20",
-                "os_match": "Linux",
-                "service_inventory": [{"port": "22", "protocol": "tcp", "state": "open", "service": "ssh", "service_product": "OpenSSH"}],
-                "technologies": [{"name": "linux", "cpe": "cpe:/o:linux:linux_kernel", "evidence": "service detection"}],
-            })
+            upsert_target_state(
+                project.database,
+                windows_host_id,
+                {
+                    "host_ip": "10.0.0.10",
+                    "os_match": "Windows Server",
+                    "service_inventory": [
+                        {
+                            "port": "445",
+                            "protocol": "tcp",
+                            "state": "open",
+                            "service": "microsoft-ds",
+                            "service_product": "Microsoft Directory Services",
+                        }
+                    ],
+                    "technologies": [
+                        {"name": "windows", "cpe": "cpe:/o:microsoft:windows", "evidence": "service detection"}
+                    ],
+                },
+            )
+            upsert_target_state(
+                project.database,
+                linux_host_id,
+                {
+                    "host_ip": "10.0.0.20",
+                    "os_match": "Linux",
+                    "service_inventory": [
+                        {
+                            "port": "22",
+                            "protocol": "tcp",
+                            "state": "open",
+                            "service": "ssh",
+                            "service_product": "OpenSSH",
+                        }
+                    ],
+                    "technologies": [
+                        {"name": "linux", "cpe": "cpe:/o:linux:linux_kernel", "evidence": "service detection"}
+                    ],
+                },
+            )
 
             runtime = WebRuntime.__new__(WebRuntime)
             runtime._lock = threading.RLock()
@@ -229,7 +272,9 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
             }
             subfinder_actions = []
             for host_name in ("api.example.com", "admin.example.com"):
-                target_state = get_target_state(project.database, int(getattr(host_rows_by_name[host_name], "id", 0) or 0)) or {}
+                target_state = (
+                    get_target_state(project.database, int(getattr(host_rows_by_name[host_name], "id", 0) or 0)) or {}
+                )
                 for item in list(target_state.get("attempted_actions", []) or []):
                     if str(item.get("tool_id", "") or "").strip().lower() == "subfinder":
                         subfinder_actions.append(item)
@@ -300,15 +345,14 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
                 result = runtime._run_httpx_bootstrap(["api.example.com"], job_id=0)
 
             port_rows = project.repositoryContainer.portRepository.getPortsByHostId(host_id)
-            port_map = {
-                str(getattr(item, "portId", "") or "").strip(): item
-                for item in list(port_rows or [])
-            }
+            port_map = {str(getattr(item, "portId", "") or "").strip(): item for item in list(port_rows or [])}
             https_port = port_map.get("443")
             self.assertIsNotNone(https_port)
             self.assertEqual("open", str(getattr(https_port, "state", "") or "").strip().lower())
 
-            service_row = project.repositoryContainer.serviceRepository.getServiceById(getattr(https_port, "serviceId", None))
+            service_row = project.repositoryContainer.serviceRepository.getServiceById(
+                getattr(https_port, "serviceId", None)
+            )
             self.assertIsNotNone(service_row)
             self.assertEqual("https", str(getattr(service_row, "name", "") or "").strip().lower())
 
@@ -318,12 +362,12 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
 
             target_state = get_target_state(project.database, host_id) or {}
             attempted_httpx = [
-                item for item in list(target_state.get("attempted_actions", []) or [])
+                item
+                for item in list(target_state.get("attempted_actions", []) or [])
                 if str(item.get("tool_id", "") or "").strip().lower() == "httpx"
             ]
             observed_urls = {
-                str(item.get("url", "") or "").strip()
-                for item in list(target_state.get("urls", []) or [])
+                str(item.get("url", "") or "").strip() for item in list(target_state.get("urls", []) or [])
             }
             self.assertEqual(1, len(attempted_httpx))
             self.assertEqual("443", str(attempted_httpx[0].get("port", "") or "").strip())
@@ -352,16 +396,23 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
             host_id = int(host.id)
             session.close()
 
-            upsert_target_state(project.database, host_id, {
-                "host_ip": "portal.example.com",
-                "attempted_actions": [{
-                    "tool_id": "subfinder",
-                    "status": "executed",
-                    "port": "80",
-                    "protocol": "tcp",
-                    "attempted_at": "2026-03-23T00:00:00Z",
-                }],
-            }, merge=True)
+            upsert_target_state(
+                project.database,
+                host_id,
+                {
+                    "host_ip": "portal.example.com",
+                    "attempted_actions": [
+                        {
+                            "tool_id": "subfinder",
+                            "status": "executed",
+                            "port": "80",
+                            "protocol": "tcp",
+                            "attempted_at": "2026-03-23T00:00:00Z",
+                        }
+                    ],
+                },
+                merge=True,
+            )
 
             runtime = WebRuntime.__new__(WebRuntime)
             runtime._lock = threading.RLock()
@@ -399,16 +450,23 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
             host_id = int(host.id)
             session.close()
 
-            upsert_target_state(project.database, host_id, {
-                "host_ip": "connect.example.com",
-                "attempted_actions": [{
-                    "tool_id": "shodan-enrichment",
-                    "status": "executed",
-                    "port": "",
-                    "protocol": "tcp",
-                    "attempted_at": "2026-03-24T00:00:00Z",
-                }],
-            }, merge=True)
+            upsert_target_state(
+                project.database,
+                host_id,
+                {
+                    "host_ip": "connect.example.com",
+                    "attempted_actions": [
+                        {
+                            "tool_id": "shodan-enrichment",
+                            "status": "executed",
+                            "port": "",
+                            "protocol": "tcp",
+                            "attempted_at": "2026-03-24T00:00:00Z",
+                        }
+                    ],
+                },
+                merge=True,
+            )
 
             runtime = WebRuntime.__new__(WebRuntime)
             runtime._lock = threading.RLock()
@@ -447,11 +505,13 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         runtime = WebRuntime.__new__(WebRuntime)
         runtime._lock = threading.RLock()
         runtime._resolve_host = lambda host_id: SimpleNamespace(id=int(host_id), ip="192.168.3.10")
-        runtime.scheduler_config = SimpleNamespace(load=lambda: {
-            "mode": "deterministic",
-            "provider": "none",
-            "providers": {},
-        })
+        runtime.scheduler_config = SimpleNamespace(
+            load=lambda: {
+                "mode": "deterministic",
+                "provider": "none",
+                "providers": {},
+            }
+        )
         runtime.jobs = SimpleNamespace(
             list_jobs=lambda limit=200: [],
             start=lambda *args, **kwargs: {"id": 1},
@@ -466,11 +526,13 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         runtime = WebRuntime.__new__(WebRuntime)
         runtime._lock = threading.RLock()
         runtime._resolve_host = lambda host_id: SimpleNamespace(id=int(host_id), ip="192.168.3.10")
-        runtime.scheduler_config = SimpleNamespace(load=lambda: {
-            "mode": "ai",
-            "provider": "openai",
-            "providers": {"openai": {"enabled": True}},
-        })
+        runtime.scheduler_config = SimpleNamespace(
+            load=lambda: {
+                "mode": "ai",
+                "provider": "openai",
+                "providers": {"openai": {"enabled": True}},
+            }
+        )
         runtime.jobs = SimpleNamespace(
             list_jobs=lambda limit=200: [
                 {
@@ -490,18 +552,20 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
     def test_scheduler_feedback_config_clamps_values(self):
         from app.web.runtime import WebRuntime
 
-        cfg = WebRuntime._scheduler_feedback_config({
-            "ai_feedback": {
-                "enabled": True,
-                "max_rounds_per_target": 100,
-                "max_actions_per_round": -3,
-                "recent_output_chars": 10,
-                "reflection_enabled": False,
-                "stall_rounds_without_progress": 99,
-                "stall_repeat_selection_threshold": 0,
-                "max_reflections_per_target": 99,
+        cfg = WebRuntime._scheduler_feedback_config(
+            {
+                "ai_feedback": {
+                    "enabled": True,
+                    "max_rounds_per_target": 100,
+                    "max_actions_per_round": -3,
+                    "recent_output_chars": 10,
+                    "reflection_enabled": False,
+                    "stall_rounds_without_progress": 99,
+                    "stall_repeat_selection_threshold": 0,
+                    "max_reflections_per_target": 99,
+                }
             }
-        })
+        )
         self.assertTrue(cfg["enabled"])
         self.assertEqual(12, cfg["max_rounds_per_target"])
         self.assertEqual(1, cfg["max_actions_per_round"])
@@ -536,9 +600,13 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
             "os_match": "Linux",
             "os_confidence": 77,
             "next_phase": "targeted_checks",
-            "technologies": [{"name": "nginx", "version": "1.25", "cpe": "cpe:/a:nginx:nginx:1.25", "evidence": "banner"}],
+            "technologies": [
+                {"name": "nginx", "version": "1.25", "cpe": "cpe:/a:nginx:nginx:1.25", "evidence": "banner"}
+            ],
             "findings": [{"title": "Admin portal", "severity": "medium", "cve": "", "evidence": "/admin"}],
-            "manual_tests": [{"why": "validate auth", "command": "curl -k https://10.0.0.5/admin", "scope_note": "safe"}],
+            "manual_tests": [
+                {"why": "validate auth", "command": "curl -k https://10.0.0.5/admin", "scope_note": "safe"}
+            ],
             "raw": {
                 "reflection": {
                     "state": "stalled",
@@ -551,8 +619,10 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
             },
         }
 
-        with mock.patch("app.web.runtime_scheduler_target_state.ensure_scheduler_ai_state_table"), \
-                mock.patch("app.web.runtime_scheduler_target_state.get_host_ai_state", return_value=ai_row):
+        with (
+            mock.patch("app.web.runtime_scheduler_target_state.ensure_scheduler_ai_state_table"),
+            mock.patch("app.web.runtime_scheduler_target_state.get_host_ai_state", return_value=ai_row),
+        ):
             loaded = runtime._load_host_ai_analysis(project, 11, "10.0.0.5")
 
         self.assertEqual("openai", loaded["provider"])
@@ -629,7 +699,9 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         self.assertTrue(any("Admin console exposed" in item for item in summary["top_findings"]))
         self.assertTrue(any("Admin console exposed" in item for item in summary["important_findings"]))
         self.assertIn("web:banner", summary["attempted_families"])
-        self.assertTrue(any(item.startswith("ffuf:") or item.startswith("feroxbuster:") for item in summary["recent_failures"]))
+        self.assertTrue(
+            any(item.startswith("ffuf:") or item.startswith("feroxbuster:") for item in summary["recent_failures"])
+        )
         self.assertIn("banner", summary["recent_attempts"])
         self.assertIn("curl -k https://10.0.0.5/admin", summary["manual_tests"])
         self.assertEqual("stalled", summary["reflection_posture"]["state"])
@@ -641,72 +713,98 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
     def test_build_scheduler_rationale_feed_items_summarizes_scores_and_outcomes(self):
         from app.web.runtime import WebRuntime
 
-        provider_logs = [{
-            "timestamp": "2026-03-22T05:35:17+00:00",
-            "request_body": json.dumps({
-                "messages": [
-                    {"role": "system", "content": "Return strict JSON only."},
+        provider_logs = [
+            {
+                "timestamp": "2026-03-22T05:35:17+00:00",
+                "request_body": json.dumps(
                     {
-                        "role": "user",
-                        "content": (
-                            "Context:\n"
-                            "{\"target\":{\"host_ip\":\"192.168.3.133\",\"port\":\"5357\",\"protocol\":\"tcp\",\"service\":\"http\"}}\n"
-                            "Candidates:\n"
-                            "{\"tool_id\":\"nmap-vuln.nse\"}\n"
-                            "{\"tool_id\":\"whatweb\"}\n"
-                            "{\"tool_id\":\"nikto\"}\n"
-                        ),
-                    },
-                ],
-            }),
-            "response_body": json.dumps({
-                "choices": [{
-                    "message": {
-                        "content": json.dumps({
-                            "actions": [
-                                {"tool_id": "nmap-vuln.nse", "score": 92, "rationale": "Best baseline gap filler for the confirmed HTTP service."},
-                                {"tool_id": "whatweb", "score": 84, "rationale": "Safe technology fingerprinting can refine Microsoft HTTPAPI evidence."},
-                                {"tool_id": "nikto", "score": 78, "rationale": "Broad HTTP validation remains explicitly missing."},
-                            ],
-                            "host_updates": {},
-                            "findings": [],
-                            "manual_tests": [],
-                            "next_phase": "protocol_checks",
-                        })
+                        "messages": [
+                            {"role": "system", "content": "Return strict JSON only."},
+                            {
+                                "role": "user",
+                                "content": (
+                                    "Context:\n"
+                                    '{"target":{"host_ip":"192.168.3.133","port":"5357","protocol":"tcp","service":"http"}}\n'
+                                    "Candidates:\n"
+                                    '{"tool_id":"nmap-vuln.nse"}\n'
+                                    '{"tool_id":"whatweb"}\n'
+                                    '{"tool_id":"nikto"}\n'
+                                ),
+                            },
+                        ],
                     }
-                }]
-            }),
-            "prompt_metadata": {
-                "prompt_type": "ranking",
-                "prompt_profile": "web:broad_vuln",
-                "current_phase": "broad_vuln",
-                "visible_candidate_tool_ids": ["nmap-vuln.nse", "whatweb", "nikto"],
-            },
-        }]
-        decisions = [{
-            "id": 41,
-            "timestamp": "22 Mar 2026 00:35:18.000000",
-            "host_ip": "192.168.3.133",
-            "port": "5357",
-            "protocol": "tcp",
-            "service": "http",
-            "tool_id": "nmap-vuln.nse",
-            "approved": "True",
-            "executed": "True",
-            "requires_approval": "False",
-            "reason": "approved & completed",
-            "rationale": "Best baseline gap filler for the confirmed HTTP service.",
-        }]
-        executions = [{
-            "execution_id": "exec-12",
-            "tool_id": "nmap-vuln.nse",
-            "host_ip": "192.168.3.133",
-            "port": "5357",
-            "protocol": "tcp",
-            "service": "http",
-            "started_at": "2026-03-22T05:35:18+00:00",
-            "exit_status": "0",
-        }]
+                ),
+                "response_body": json.dumps(
+                    {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": json.dumps(
+                                        {
+                                            "actions": [
+                                                {
+                                                    "tool_id": "nmap-vuln.nse",
+                                                    "score": 92,
+                                                    "rationale": "Best baseline gap filler for the confirmed HTTP service.",
+                                                },
+                                                {
+                                                    "tool_id": "whatweb",
+                                                    "score": 84,
+                                                    "rationale": "Safe technology fingerprinting can refine Microsoft HTTPAPI evidence.",
+                                                },
+                                                {
+                                                    "tool_id": "nikto",
+                                                    "score": 78,
+                                                    "rationale": "Broad HTTP validation remains explicitly missing.",
+                                                },
+                                            ],
+                                            "host_updates": {},
+                                            "findings": [],
+                                            "manual_tests": [],
+                                            "next_phase": "protocol_checks",
+                                        }
+                                    )
+                                }
+                            }
+                        ]
+                    }
+                ),
+                "prompt_metadata": {
+                    "prompt_type": "ranking",
+                    "prompt_profile": "web:broad_vuln",
+                    "current_phase": "broad_vuln",
+                    "visible_candidate_tool_ids": ["nmap-vuln.nse", "whatweb", "nikto"],
+                },
+            }
+        ]
+        decisions = [
+            {
+                "id": 41,
+                "timestamp": "22 Mar 2026 00:35:18.000000",
+                "host_ip": "192.168.3.133",
+                "port": "5357",
+                "protocol": "tcp",
+                "service": "http",
+                "tool_id": "nmap-vuln.nse",
+                "approved": "True",
+                "executed": "True",
+                "requires_approval": "False",
+                "reason": "approved & completed",
+                "rationale": "Best baseline gap filler for the confirmed HTTP service.",
+            }
+        ]
+        executions = [
+            {
+                "execution_id": "exec-12",
+                "tool_id": "nmap-vuln.nse",
+                "host_ip": "192.168.3.133",
+                "port": "5357",
+                "protocol": "tcp",
+                "service": "http",
+                "started_at": "2026-03-22T05:35:18+00:00",
+                "exit_status": "0",
+            }
+        ]
 
         feed = WebRuntime._build_scheduler_rationale_feed_items(provider_logs, decisions, executions, limit=10)
 
@@ -722,40 +820,50 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
     def test_build_scheduler_rationale_feed_filters_non_visible_model_suggestions(self):
         from app.web.runtime import WebRuntime
 
-        provider_logs = [{
-            "timestamp": "2026-03-22T05:35:09+00:00",
-            "request_body": json.dumps({
-                "messages": [
+        provider_logs = [
+            {
+                "timestamp": "2026-03-22T05:35:09+00:00",
+                "request_body": json.dumps(
                     {
-                        "role": "user",
-                        "content": (
-                            "{\"target\":{\"host_ip\":\"192.168.3.133\",\"port\":\"5357\",\"protocol\":\"tcp\",\"service\":\"http\"}}\n"
-                            "Candidates:\n"
-                            "{\"tool_id\":\"curl-headers\"}\n"
-                            "{\"tool_id\":\"curl-options\"}\n"
-                        ),
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": (
+                                    '{"target":{"host_ip":"192.168.3.133","port":"5357","protocol":"tcp","service":"http"}}\n'
+                                    "Candidates:\n"
+                                    '{"tool_id":"curl-headers"}\n'
+                                    '{"tool_id":"curl-options"}\n'
+                                ),
+                            }
+                        ],
                     }
-                ],
-            }),
-            "response_body": json.dumps({
-                "choices": [{
-                    "message": {
-                        "content": json.dumps({
-                            "focus": "tech_validation",
-                            "selected_tool_ids": ["curl-headers", "nmap-vuln.nse"],
-                            "reason": "Validate the observed HTTP stack with bounded read-only checks.",
-                            "manual_tests": [],
-                        })
+                ),
+                "response_body": json.dumps(
+                    {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": json.dumps(
+                                        {
+                                            "focus": "tech_validation",
+                                            "selected_tool_ids": ["curl-headers", "nmap-vuln.nse"],
+                                            "reason": "Validate the observed HTTP stack with bounded read-only checks.",
+                                            "manual_tests": [],
+                                        }
+                                    )
+                                }
+                            }
+                        ]
                     }
-                }]
-            }),
-            "prompt_metadata": {
-                "prompt_type": "web_followup",
-                "prompt_profile": "web",
-                "current_phase": "broad_vuln",
-                "visible_candidate_tool_ids": ["curl-headers", "curl-options"],
-            },
-        }]
+                ),
+                "prompt_metadata": {
+                    "prompt_type": "web_followup",
+                    "prompt_profile": "web",
+                    "current_phase": "broad_vuln",
+                    "visible_candidate_tool_ids": ["curl-headers", "curl-options"],
+                },
+            }
+        ]
 
         feed = WebRuntime._build_scheduler_rationale_feed_items(provider_logs, [], [], limit=10)
 
@@ -766,12 +874,14 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
     def test_tool_audit_availability_tracks_installed_and_missing_tools(self):
         from app.web.runtime import WebRuntime
 
-        snapshot = WebRuntime._tool_audit_availability([
-            {"key": "whatweb", "status": "installed"},
-            {"key": "nikto", "status": "missing"},
-            {"key": "dirsearch", "status": "configured-missing"},
-            {"key": "curl", "status": "installed"},
-        ])
+        snapshot = WebRuntime._tool_audit_availability(
+            [
+                {"key": "whatweb", "status": "installed"},
+                {"key": "nikto", "status": "missing"},
+                {"key": "dirsearch", "status": "configured-missing"},
+                {"key": "curl", "status": "installed"},
+            ]
+        )
 
         self.assertEqual(["curl", "whatweb"], snapshot["available_tool_ids"])
         self.assertEqual(["dirsearch", "nikto"], snapshot["unavailable_tool_ids"])
@@ -953,7 +1063,7 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
                     "status": "Problem",
                     "output_excerpt": (
                         "Traceback (most recent call last):\n"
-                        "  File \"/usr/local/bin/sslyze\", line 3, in <module>\n"
+                        '  File "/usr/local/bin/sslyze", line 3, in <module>\n'
                         "    from sslyze.__main__ import main\n"
                         "ModuleNotFoundError: No module named 'cryptography.hazmat.backends.openssl.ocsp'"
                     ),
@@ -963,7 +1073,7 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
                     "status": "Problem",
                     "output_excerpt": (
                         "Traceback (most recent call last):\n"
-                        "  File \"/usr/bin/wafw00f\", line 4, in <module>\n"
+                        '  File "/usr/bin/wafw00f", line 4, in <module>\n'
                         "    from wafw00f import main\n"
                         "ImportError: cannot import name 'MutableMapping' from 'collections'"
                     ),
@@ -993,7 +1103,9 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         runtime._infer_host_findings = lambda project, host_id, host_ip, host_cves_raw: [
             {"title": "Host wide stale finding", "severity": "medium", "cve": "", "evidence": "host scope"}
         ]
-        runtime._merge_ai_items = lambda existing, incoming, key_fields=None, limit=0: list(incoming or []) + list(existing or [])
+        runtime._merge_ai_items = lambda existing, incoming, key_fields=None, limit=0: list(incoming or []) + list(
+            existing or []
+        )
         runtime._apply_ai_host_updates = lambda **kwargs: None
 
         captured = {}
@@ -1004,14 +1116,18 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
             "goal_profile": "internal_asset_discovery",
             "engagement_preset": "internal_recon",
             "findings": [{"title": "Older host finding", "severity": "medium", "cve": "", "evidence": "older"}],
-            "technologies": [{"name": "OpenSSH", "version": "9.0", "cpe": "cpe:/a:openbsd:openssh:9.0", "evidence": "22/tcp"}],
+            "technologies": [
+                {"name": "OpenSSH", "version": "9.0", "cpe": "cpe:/a:openbsd:openssh:9.0", "evidence": "22/tcp"}
+            ],
             "manual_tests": [{"why": "host check", "command": "echo host", "scope_note": ""}],
             "raw": {},
         }
 
-        with mock.patch("app.web.runtime_scheduler_ai_state.ensure_scheduler_ai_state_table"), \
-                mock.patch("app.web.runtime_scheduler_ai_state.get_host_ai_state", return_value=existing_state), \
-                mock.patch("app.web.runtime_scheduler_ai_state.upsert_host_ai_state") as upsert_host_state:
+        with (
+            mock.patch("app.web.runtime_scheduler_ai_state.ensure_scheduler_ai_state_table"),
+            mock.patch("app.web.runtime_scheduler_ai_state.get_host_ai_state", return_value=existing_state),
+            mock.patch("app.web.runtime_scheduler_ai_state.upsert_host_ai_state") as upsert_host_state,
+        ):
             runtime._persist_scheduler_ai_analysis(
                 host_id=11,
                 host_ip="10.0.0.5",
@@ -1041,8 +1157,12 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
             )
 
         persisted_titles = {str(item.get("title", "")).strip() for item in list(captured.get("findings", []) or [])}
-        persisted_technologies = {str(item.get("name", "")).strip() for item in list(captured.get("technologies", []) or [])}
-        persisted_commands = {str(item.get("command", "")).strip() for item in list(captured.get("manual_tests", []) or [])}
+        persisted_technologies = {
+            str(item.get("name", "")).strip() for item in list(captured.get("technologies", []) or [])
+        }
+        persisted_commands = {
+            str(item.get("command", "")).strip() for item in list(captured.get("manual_tests", []) or [])
+        }
         host_state_payload = dict(upsert_host_state.call_args.args[2] or {})
 
         self.assertEqual({"Target-specific web finding"}, persisted_titles)
@@ -1353,7 +1473,9 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
                 "wafw00f",
             },
             host_cves=[],
-            inferred_technologies=[{"name": "Jetty", "version": "10.0.13", "cpe": "cpe:/a:eclipse:jetty:10.0.13", "evidence": "service"}],
+            inferred_technologies=[
+                {"name": "Jetty", "version": "10.0.13", "cpe": "cpe:/a:eclipse:jetty:10.0.13", "evidence": "service"}
+            ],
             analysis_mode="dig_deeper",
         )
 
@@ -1449,10 +1571,7 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
             script_records=[
                 {
                     "script_id": "nmap-vuln.nse",
-                    "excerpt": (
-                        "Starting Nmap 7.80 ( https://nmap.org ) "
-                        "OpenSSH_8.4p1 Debian 5+deb11u3"
-                    ),
+                    "excerpt": ("Starting Nmap 7.80 ( https://nmap.org ) " "OpenSSH_8.4p1 Debian 5+deb11u3"),
                 }
             ],
             process_records=[
@@ -1519,10 +1638,7 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
             limit=32,
         )
 
-        pihole_rows = [
-            item for item in technologies
-            if str(item.get("name", "")).strip().lower() == "pi-hole"
-        ]
+        pihole_rows = [item for item in technologies if str(item.get("name", "")).strip().lower() == "pi-hole"]
         self.assertEqual(1, len(pihole_rows))
         self.assertEqual("", str(pihole_rows[0].get("version", "")).strip())
 
@@ -1621,9 +1737,7 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         )
 
         bad_versions = {
-            str(item.get("version", "")).strip()
-            for item in technologies
-            if str(item.get("version", "")).strip()
+            str(item.get("version", "")).strip() for item in technologies if str(item.get("version", "")).strip()
         }
         names = {str(item.get("name", "")).strip().lower() for item in technologies}
         self.assertIn("apache http server", names)
@@ -1658,25 +1772,24 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         from app.web.runtime import WebRuntime
 
         runtime = WebRuntime.__new__(WebRuntime)
-        technologies = runtime._normalize_ai_technologies([
-            {
-                "name": "nginx",
-                "version": "7.80",
-                "cpe": "cpe:/a:nginx:nginx:7.80",
-                "evidence": "http-headers.nse output fingerprint",
-            },
-            {
-                "name": "Apache HTTP Server",
-                "version": "7.80",
-                "cpe": "cpe:/a:apache:http_server:7.80",
-                "evidence": "http-vuln-cve2011-3192.nse output fingerprint",
-            },
-        ])
+        technologies = runtime._normalize_ai_technologies(
+            [
+                {
+                    "name": "nginx",
+                    "version": "7.80",
+                    "cpe": "cpe:/a:nginx:nginx:7.80",
+                    "evidence": "http-headers.nse output fingerprint",
+                },
+                {
+                    "name": "Apache HTTP Server",
+                    "version": "7.80",
+                    "cpe": "cpe:/a:apache:http_server:7.80",
+                    "evidence": "http-vuln-cve2011-3192.nse output fingerprint",
+                },
+            ]
+        )
 
-        by_name = {
-            str(item.get("name", "")).strip().lower(): item
-            for item in technologies
-        }
+        by_name = {str(item.get("name", "")).strip().lower(): item for item in technologies}
         self.assertEqual("", str(by_name["nginx"].get("version", "")).strip())
         self.assertEqual("cpe:/a:nginx:nginx", str(by_name["nginx"].get("cpe", "")).strip())
         self.assertEqual("", str(by_name["apache http server"].get("version", "")).strip())
@@ -1686,25 +1799,24 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         from app.web.runtime import WebRuntime
 
         runtime = WebRuntime.__new__(WebRuntime)
-        technologies = runtime._normalize_ai_technologies([
-            {
-                "name": "True",
-                "version": "",
-                "cpe": "",
-                "evidence": "httpx fingerprint cdn True",
-            },
-            {
-                "name": "Cloudflare",
-                "version": "",
-                "cpe": "",
-                "evidence": "whatweb-http fingerprint ...[truncated]",
-            },
-        ])
+        technologies = runtime._normalize_ai_technologies(
+            [
+                {
+                    "name": "True",
+                    "version": "",
+                    "cpe": "",
+                    "evidence": "httpx fingerprint cdn True",
+                },
+                {
+                    "name": "Cloudflare",
+                    "version": "",
+                    "cpe": "",
+                    "evidence": "whatweb-http fingerprint ...[truncated]",
+                },
+            ]
+        )
 
-        by_name = {
-            str(item.get("name", "")).strip().lower(): item
-            for item in technologies
-        }
+        by_name = {str(item.get("name", "")).strip().lower(): item for item in technologies}
         self.assertNotIn("true", by_name)
         self.assertIn("cloudflare", by_name)
         self.assertIn("whatweb-http fingerprint", str(by_name["cloudflare"].get("evidence", "")).strip())
@@ -1713,22 +1825,24 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         from app.web.runtime import WebRuntime
 
         runtime = WebRuntime.__new__(WebRuntime)
-        findings = runtime._normalize_ai_findings([
-            {
-                "title": "truncated",
-                "severity": "info",
-                "cvss": 0.0,
-                "cve": "",
-                "evidence": "...[truncated]",
-            },
-            {
-                "title": "Directory listing observed",
-                "severity": "low",
-                "cvss": 0.0,
-                "cve": "",
-                "evidence": "...[truncated]",
-            },
-        ])
+        findings = runtime._normalize_ai_findings(
+            [
+                {
+                    "title": "truncated",
+                    "severity": "info",
+                    "cvss": 0.0,
+                    "cve": "",
+                    "evidence": "...[truncated]",
+                },
+                {
+                    "title": "Directory listing observed",
+                    "severity": "low",
+                    "cvss": 0.0,
+                    "cve": "",
+                    "evidence": "...[truncated]",
+                },
+            ]
+        )
 
         self.assertEqual(1, len(findings))
         self.assertEqual("Directory listing observed", findings[0]["title"])
@@ -1825,8 +1939,7 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
                 {
                     "tool_id": "httpx-web",
                     "output_excerpt": (
-                        '{"url":"https://portal.example:443/admin/","title":"Admin Console",'
-                        '"tech":["Vue.js"]}'
+                        '{"url":"https://portal.example:443/admin/","title":"Admin Console",' '"tech":["Vue.js"]}'
                     ),
                 },
                 {
@@ -1911,18 +2024,20 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         from app.web.runtime import WebRuntime
 
         runtime = WebRuntime.__new__(WebRuntime)
-        manual_tests = runtime._normalize_ai_manual_tests([
-            {
-                "why": "Confirm headers",
-                "command": "curl -k -I https://10.0.0.5",
-                "scope_note": "safe",
-            },
-            {
-                "why": "Validate front door",
-                "command": "curl -k -I https://10.0.0.5",
-                "scope_note": "same command",
-            },
-        ])
+        manual_tests = runtime._normalize_ai_manual_tests(
+            [
+                {
+                    "why": "Confirm headers",
+                    "command": "curl -k -I https://10.0.0.5",
+                    "scope_note": "safe",
+                },
+                {
+                    "why": "Validate front door",
+                    "command": "curl -k -I https://10.0.0.5",
+                    "scope_note": "same command",
+                },
+            ]
+        )
 
         self.assertEqual(1, len(manual_tests))
         self.assertEqual("curl -k -I https://10.0.0.5", manual_tests[0]["command"])

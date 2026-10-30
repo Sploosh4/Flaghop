@@ -15,13 +15,14 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import Integer, Column, String, ForeignKey
 
 from db.database import Base
 
 
 class osObj(Base):
-    __tablename__ = 'osObj'
+    __tablename__ = "osObj"
     id = Column(Integer, primary_key=True)
     name = Column(String)
     family = Column(String)
@@ -29,23 +30,13 @@ class osObj(Base):
     osType = Column(String)
     vendor = Column(String)
     accuracy = Column(String)
-    hostId = Column(String, ForeignKey('hostObj.id'))
+    hostId = Column(String, ForeignKey("hostObj.id"))
 
-    def __init__(
-        self,
-        name,
-        family='',
-        generation='',
-        osType='',
-        vendor='',
-        accuracy='',
-        hostId='',
-        **kwargs
-    ):
+    def __init__(self, name, family="", generation="", osType="", vendor="", accuracy="", hostId="", **kwargs):
         self.name = name
-        self.family = kwargs.get('family', family) or ''
-        self.generation = kwargs.get('generation', generation) or ''
-        self.osType = kwargs.get('osType', osType) or ''
-        self.vendor = kwargs.get('vendor', vendor) or ''
-        self.accuracy = kwargs.get('accuracy', accuracy) or ''
-        self.hostId = kwargs.get('hostId', hostId) or ''
+        self.family = kwargs.get("family", family) or ""
+        self.generation = kwargs.get("generation", generation) or ""
+        self.osType = kwargs.get("osType", osType) or ""
+        self.vendor = kwargs.get("vendor", vendor) or ""
+        self.accuracy = kwargs.get("accuracy", accuracy) or ""
+        self.hostId = kwargs.get("hostId", hostId) or ""

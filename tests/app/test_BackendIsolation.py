@@ -49,8 +49,9 @@ finally:
     def test_failed_settings_reload_preserves_live_configuration(self):
         runtime = SimpleNamespace(settings_file=object(), settings=object())
         before = runtime.settings_file, runtime.settings
-        with patch("app.web.services.settings_service.AppSettings"), patch(
-            "app.web.services.settings_service.Settings", side_effect=ValueError("invalid settings")
+        with (
+            patch("app.web.services.settings_service.AppSettings"),
+            patch("app.web.services.settings_service.Settings", side_effect=ValueError("invalid settings")),
         ):
             with self.assertRaisesRegex(ValueError, "invalid settings"):
                 _refresh_runtime_settings(runtime)

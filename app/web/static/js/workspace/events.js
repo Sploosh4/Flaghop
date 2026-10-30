@@ -1,4 +1,3 @@
-/** Workspace events. */
 import { copyProviderLogsAction, downloadProviderLogsAction, loadProviderLogsAction } from "./activity.js";
 import { approveApproval, rejectApproval } from "./approvals.js";
 import { copyCredentialCaptureHashesAction, downloadCredentialCaptureHashesAction, downloadCredentialCaptureLogAction, openCredentialCaptureConfigAction, openCredentialCaptureCredentialsAction, openCredentialCaptureLogAction, saveCredentialCaptureConfigAction, saveCredentialCaptureResponderModeQuickAction, startCredentialCaptureToolAction, stopCredentialCaptureToolAction } from "./credential_capture.js";
@@ -23,6 +22,7 @@ import { copyToolInstallScriptAction, refreshToolAuditAction, refreshToolInstall
 import { addScriptEntry, deleteScript, handleManualToolContextChange, handleManualToolTargetChange, renderManualToolParameters, runManualTool, runSchedulerNow } from "./tools.js";
 import { refreshWorkspace, saveHostCategories, saveHostNote } from "./workspace_data.js";
 import { selectHost, setGraphPanelCollapsed, setServicesPanelCollapsed, toggleGraphPanelAction, toggleServicesPanelAction } from "./workspace_view.js";
+/** Workspace events. */
 
 export function bindActionButtons() {
     const bind = (id, handler) => {

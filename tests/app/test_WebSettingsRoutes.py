@@ -71,15 +71,20 @@ class WebSettingsRoutesTest(unittest.TestCase):
         self.assertEqual(200, audit.status_code)
         self.assertEqual("installed", audit.json["tools"][0]["status"])
 
-        plan = self.client.get("/api/settings/tool-audit/install-plan?platform=ubuntu&scope=missing&tool_keys=nmap,nikto")
+        plan = self.client.get(
+            "/api/settings/tool-audit/install-plan?platform=ubuntu&scope=missing&tool_keys=nmap,nikto"
+        )
         self.assertEqual(200, plan.status_code)
         self.assertEqual("ubuntu", plan.json["platform"])
 
-        install = self.client.post("/api/settings/tool-audit/install", json={
-            "platform": "ubuntu",
-            "scope": "missing",
-            "tool_keys": ["nmap", "nikto"],
-        })
+        install = self.client.post(
+            "/api/settings/tool-audit/install",
+            json={
+                "platform": "ubuntu",
+                "scope": "missing",
+                "tool_keys": ["nmap", "nikto"],
+            },
+        )
         self.assertEqual(202, install.status_code)
         self.assertEqual("tool-install", install.json["job"]["type"])
 

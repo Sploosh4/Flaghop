@@ -44,9 +44,7 @@ _SUPPORTED_WORKSPACE_TOOL_IDS = {
     "wpscan",
 }
 
-_SUPPORTED_WORKSPACE_TOOL_PREFIXES = (
-    "http-vuln-",
-)
+_SUPPORTED_WORKSPACE_TOOL_PREFIXES = ("http-vuln-",)
 
 
 def _service_matches_scope(normalized_service: str, service_scope: List[str]) -> bool:
@@ -75,11 +73,11 @@ def _port_matches_scope(normalized_port: str, target_ports: List[str]) -> bool:
 
 
 def _pipette_matches_context(
-        *,
-        normalized_service: str,
-        service_scope: List[str],
-        normalized_port: str,
-        target_ports: List[str],
+    *,
+    normalized_service: str,
+    service_scope: List[str],
+    normalized_port: str,
+    target_ports: List[str],
 ) -> bool:
     if not normalized_service and not normalized_port:
         return True
@@ -102,10 +100,9 @@ def _is_supported_tool(tool_id: str) -> bool:
 def tool_run_stats(project) -> Dict[str, Dict[str, Any]]:
     session = project.database.session()
     try:
-        result = session.execute(text(
-            "SELECT p.name, COUNT(*) AS run_count, MAX(p.id) AS max_id "
-            "FROM process AS p GROUP BY p.name"
-        ))
+        result = session.execute(
+            text("SELECT p.name, COUNT(*) AS run_count, MAX(p.id) AS max_id " "FROM process AS p GROUP BY p.name")
+        )
         rows = result.fetchall()
         stats = {}
         for name, run_count, max_id in rows:
@@ -113,9 +110,9 @@ def tool_run_stats(project) -> Dict[str, Dict[str, Any]]:
             last_status = ""
             last_start = ""
             if max_id:
-                detail = session.execute(text(
-                    "SELECT status, startTime FROM process WHERE id = :id LIMIT 1"
-                ), {"id": int(max_id)}).fetchone()
+                detail = session.execute(
+                    text("SELECT status, startTime FROM process WHERE id = :id LIMIT 1"), {"id": int(max_id)}
+                ).fetchone()
                 if detail:
                     last_status = str(detail[0] or "")
                     last_start = str(detail[1] or "")
@@ -158,17 +155,19 @@ def workspace_tools_rows(runtime, service: str = "", port: str = "", protocol: s
                 continue
 
             stats = run_stats.get(tool_id, {})
-            rows.append({
-                "label": label,
-                "tool_id": tool_id,
-                "command_template": command_template,
-                "service_scope": service_scope,
-                "danger_categories": classify_command_danger(command_template, dangerous_categories),
-                "run_count": int(stats.get("run_count", 0) or 0),
-                "last_status": str(stats.get("last_status", "") or ""),
-                "last_start": str(stats.get("last_start", "") or ""),
-                "runnable": True,
-            })
+            rows.append(
+                {
+                    "label": label,
+                    "tool_id": tool_id,
+                    "command_template": command_template,
+                    "service_scope": service_scope,
+                    "danger_categories": classify_command_danger(command_template, dangerous_categories),
+                    "run_count": int(stats.get("run_count", 0) or 0),
+                    "last_status": str(stats.get("last_status", "") or ""),
+                    "last_start": str(stats.get("last_start", "") or ""),
+                    "runnable": True,
+                }
+            )
             seen_tool_ids.add(tool_id)
 
         for automated in settings.automatedAttacks:
@@ -182,17 +181,19 @@ def workspace_tools_rows(runtime, service: str = "", port: str = "", protocol: s
                 continue
 
             stats = run_stats.get(tool_id, {})
-            rows.append({
-                "label": _SCHEDULER_ONLY_LABELS.get(tool_id, tool_id),
-                "tool_id": tool_id,
-                "command_template": "",
-                "service_scope": service_scope,
-                "danger_categories": [],
-                "run_count": int(stats.get("run_count", 0) or 0),
-                "last_status": str(stats.get("last_status", "") or ""),
-                "last_start": str(stats.get("last_start", "") or ""),
-                "runnable": False,
-            })
+            rows.append(
+                {
+                    "label": _SCHEDULER_ONLY_LABELS.get(tool_id, tool_id),
+                    "tool_id": tool_id,
+                    "command_template": "",
+                    "service_scope": service_scope,
+                    "danger_categories": [],
+                    "run_count": int(stats.get("run_count", 0) or 0),
+                    "last_status": str(stats.get("last_status", "") or ""),
+                    "last_start": str(stats.get("last_start", "") or ""),
+                    "runnable": False,
+                }
+            )
             seen_tool_ids.add(tool_id)
 
         for pipette in list_pipettes():
@@ -202,39 +203,46 @@ def workspace_tools_rows(runtime, service: str = "", port: str = "", protocol: s
             service_scope = list(pipette.service_scope)
             target_ports = list(pipette.target_ports)
             protocol_scope = [str(item or "").strip().lower() for item in pipette.protocol_scope]
-            if normalized_protocol and protocol_scope and "*" not in protocol_scope and normalized_protocol not in protocol_scope:
+            if (
+                normalized_protocol
+                and protocol_scope
+                and "*" not in protocol_scope
+                and normalized_protocol not in protocol_scope
+            ):
                 continue
             if not _pipette_matches_context(
-                    normalized_service=normalized_service,
-                    service_scope=service_scope,
-                    normalized_port=normalized_port,
-                    target_ports=target_ports,
+                normalized_service=normalized_service,
+                service_scope=service_scope,
+                normalized_port=normalized_port,
+                target_ports=target_ports,
             ):
                 continue
 
             stats = run_stats.get(tool_id, {})
-            rows.append({
-                "label": pipette.label,
-                "tool_id": tool_id,
-                "command_template": pipette.command_template,
-                "service_scope": service_scope,
-                "danger_categories": classify_command_danger(pipette.command_template, dangerous_categories),
-                "run_count": int(stats.get("run_count", 0) or 0),
-                "last_status": str(stats.get("last_status", "") or ""),
-                "last_start": str(stats.get("last_start", "") or ""),
-                "runnable": True,
-                "pipette": True,
-                "description": pipette.description,
-                "required_tools": list(pipette.required_tools),
-                "optional_tools": list(pipette.optional_tools),
-                "risk_tags": list(pipette.risk_tags),
-                "impact_level": pipette.impact_level,
-                "noise_level": pipette.noise_level,
-                "mode": pipette.mode,
-                "default_timeout": int(pipette.default_timeout),
-                "target_ports": target_ports,
-                "parameters": [dict(item) for item in pipette.parameters],
-            })
+            rows.append(
+                {
+                    "label": pipette.label,
+                    "tool_id": tool_id,
+                    "command_template": pipette.command_template,
+                    "service_scope": service_scope,
+                    "danger_categories": classify_command_danger(pipette.command_template, dangerous_categories),
+                    "run_count": int(stats.get("run_count", 0) or 0),
+                    "last_status": str(stats.get("last_status", "") or ""),
+                    "last_start": str(stats.get("last_start", "") or ""),
+                    "runnable": True,
+                    "pipette": True,
+                    "description": pipette.description,
+                    "required_tools": list(pipette.required_tools),
+                    "optional_tools": list(pipette.optional_tools),
+                    "risk_tags": list(pipette.risk_tags),
+                    "impact_level": pipette.impact_level,
+                    "noise_level": pipette.noise_level,
+                    "mode": pipette.mode,
+                    "default_timeout": int(pipette.default_timeout),
+                    "target_ports": target_ports,
+                    "parameters": [dict(item) for item in pipette.parameters],
+                }
+            )
             seen_tool_ids.add(tool_id)
 
         rows.sort(key=lambda item: item["label"].lower())
@@ -242,11 +250,11 @@ def workspace_tools_rows(runtime, service: str = "", port: str = "", protocol: s
 
 
 def get_workspace_tool_targets(
-        runtime,
-        *,
-        host_id: int = 0,
-        service: str = "",
-        limit: int = 500,
+    runtime,
+    *,
+    host_id: int = 0,
+    service: str = "",
+    limit: int = 500,
 ) -> List[Dict[str, Any]]:
     with runtime._lock:
         project = getattr(runtime.logic, "activeProject", None)
@@ -260,28 +268,31 @@ def get_workspace_tool_targets(
                 normalized_host_id = 0
             normalized_service = str(service or "").strip().rstrip("?").lower()
             resolved_limit = max(1, min(int(limit or 500), 5000))
-            result = session.execute(text(
-                "SELECT hosts.id AS host_id, "
-                "COALESCE(hosts.ip, '') AS host_ip, "
-                "COALESCE(hosts.hostname, '') AS hostname, "
-                "COALESCE(ports.portId, '') AS port, "
-                "LOWER(COALESCE(ports.protocol, 'tcp')) AS protocol, "
-                "COALESCE(services.name, 'unknown') AS service, "
-                "COALESCE(services.product, '') AS service_product, "
-                "COALESCE(services.version, '') AS service_version "
-                "FROM portObj AS ports "
-                "INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
-                "LEFT OUTER JOIN serviceObj AS services ON services.id = ports.serviceId "
-                "WHERE ports.state IN ('open', 'open|filtered') "
-                "AND (:host_id <= 0 OR hosts.id = :host_id) "
-                "AND (:service = '' OR LOWER(COALESCE(services.name, 'unknown')) = :service) "
-                "ORDER BY hosts.ip ASC, ports.protocol ASC, ports.portId ASC "
-                "LIMIT :limit"
-            ), {
-                "host_id": normalized_host_id,
-                "service": normalized_service,
-                "limit": resolved_limit,
-            })
+            result = session.execute(
+                text(
+                    "SELECT hosts.id AS host_id, "
+                    "COALESCE(hosts.ip, '') AS host_ip, "
+                    "COALESCE(hosts.hostname, '') AS hostname, "
+                    "COALESCE(ports.portId, '') AS port, "
+                    "LOWER(COALESCE(ports.protocol, 'tcp')) AS protocol, "
+                    "COALESCE(services.name, 'unknown') AS service, "
+                    "COALESCE(services.product, '') AS service_product, "
+                    "COALESCE(services.version, '') AS service_version "
+                    "FROM portObj AS ports "
+                    "INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
+                    "LEFT OUTER JOIN serviceObj AS services ON services.id = ports.serviceId "
+                    "WHERE ports.state IN ('open', 'open|filtered') "
+                    "AND (:host_id <= 0 OR hosts.id = :host_id) "
+                    "AND (:service = '' OR LOWER(COALESCE(services.name, 'unknown')) = :service) "
+                    "ORDER BY hosts.ip ASC, ports.protocol ASC, ports.portId ASC "
+                    "LIMIT :limit"
+                ),
+                {
+                    "host_id": normalized_host_id,
+                    "service": normalized_service,
+                    "limit": resolved_limit,
+                },
+            )
             rows = []
             for row in result.mappings():
                 service_name = str(row.get("service", "") or "").strip()
@@ -295,35 +306,39 @@ def get_workspace_tool_targets(
                 if service_name:
                     label_parts.append(service_name)
                 label_parts.append(f"{port_value}/{protocol}")
-                rows.append({
-                    "host_id": int(row.get("host_id", 0) or 0),
-                    "host_ip": host_ip,
-                    "hostname": hostname,
-                    "port": port_value,
-                    "protocol": protocol,
-                    "service": service_name,
-                    "service_product": str(row.get("service_product", "") or ""),
-                    "service_version": str(row.get("service_version", "") or ""),
-                    "label": " | ".join(part for part in label_parts if part),
-                })
-            rows.sort(key=lambda item: (
-                str(item.get("host_ip", "") or ""),
-                runtime._port_sort_key(item.get("port", "")),
-                str(item.get("protocol", "") or ""),
-                str(item.get("service", "") or ""),
-            ))
+                rows.append(
+                    {
+                        "host_id": int(row.get("host_id", 0) or 0),
+                        "host_ip": host_ip,
+                        "hostname": hostname,
+                        "port": port_value,
+                        "protocol": protocol,
+                        "service": service_name,
+                        "service_product": str(row.get("service_product", "") or ""),
+                        "service_version": str(row.get("service_version", "") or ""),
+                        "label": " | ".join(part for part in label_parts if part),
+                    }
+                )
+            rows.sort(
+                key=lambda item: (
+                    str(item.get("host_ip", "") or ""),
+                    runtime._port_sort_key(item.get("port", "")),
+                    str(item.get("protocol", "") or ""),
+                    str(item.get("service", "") or ""),
+                )
+            )
             return rows
         finally:
             session.close()
 
 
 def get_workspace_tools_page(
-        runtime,
-        service: str = "",
-        port: str = "",
-        protocol: str = "tcp",
-        limit: int = 300,
-        offset: int = 0,
+    runtime,
+    service: str = "",
+    port: str = "",
+    protocol: str = "tcp",
+    limit: int = 300,
+    offset: int = 0,
 ) -> Dict[str, Any]:
     rows = workspace_tools_rows(runtime, service=service, port=port, protocol=protocol)
     total = len(rows)
@@ -338,7 +353,7 @@ def get_workspace_tools_page(
 
     resolved_limit = max(1, min(resolved_limit, 500))
     resolved_offset = max(0, min(resolved_offset, total))
-    page_rows = rows[resolved_offset:resolved_offset + resolved_limit]
+    page_rows = rows[resolved_offset : resolved_offset + resolved_limit]
     next_offset = resolved_offset + len(page_rows)
     has_more = next_offset < total
     return {
@@ -352,12 +367,12 @@ def get_workspace_tools_page(
 
 
 def get_workspace_tools(
-        runtime,
-        service: str = "",
-        port: str = "",
-        protocol: str = "tcp",
-        limit: int = 300,
-        offset: int = 0,
+    runtime,
+    service: str = "",
+    port: str = "",
+    protocol: str = "tcp",
+    limit: int = 300,
+    offset: int = 0,
 ) -> List[Dict[str, Any]]:
     return get_workspace_tools_page(
         runtime,

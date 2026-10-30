@@ -162,9 +162,10 @@ class Database:
             return str(destination_path)
 
         try:
-            with sqlite3.connect(f"file:{self.name}?mode=ro", uri=True) as src, sqlite3.connect(
-                str(destination_path)
-            ) as dst:
+            with (
+                sqlite3.connect(f"file:{self.name}?mode=ro", uri=True) as src,
+                sqlite3.connect(str(destination_path)) as dst,
+            ):
                 src.backup(dst)
         except sqlite3.DatabaseError as exc:
             raise DatabaseIntegrityError(f"SQLite backup failed: {exc}") from exc

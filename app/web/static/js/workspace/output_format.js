@@ -1,6 +1,6 @@
-/** Workspace output format. */
 import { escapeHtml } from "./dom.js";
 import { ANSI_BG_CLASS_BY_CODE, ANSI_FG_CLASS_BY_CODE } from "./state.js";
+/** Workspace output format. */
 
 export function resetAnsiState(state) {
     state.bold = false;

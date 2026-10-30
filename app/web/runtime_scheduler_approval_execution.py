@@ -11,7 +11,6 @@ from app.scheduler.audit import update_scheduler_decision_for_approval
 from app.scheduler.planner import ScheduledAction
 from app.web import runtime_scheduler_decision_execution as web_runtime_scheduler_decision_execution
 
-
 execute_scheduler_decision = web_runtime_scheduler_decision_execution.execute_scheduler_decision
 
 
@@ -45,16 +44,16 @@ def active_execution_job_for_approval(runtime, item: Dict[str, Any]) -> Optional
 
 
 def approve_scheduler_approval(
-        runtime,
-        approval_id: int,
-        approve_family: bool = False,
-        run_now: bool = True,
-        family_action: str = "",
-        *,
-        ensure_scheduler_approval_table_fn=ensure_scheduler_approval_table,
-        get_pending_approval_fn=get_pending_approval,
-        update_pending_approval_fn=update_pending_approval,
-        update_scheduler_decision_for_approval_fn=update_scheduler_decision_for_approval,
+    runtime,
+    approval_id: int,
+    approve_family: bool = False,
+    run_now: bool = True,
+    family_action: str = "",
+    *,
+    ensure_scheduler_approval_table_fn=ensure_scheduler_approval_table,
+    get_pending_approval_fn=get_pending_approval,
+    update_pending_approval_fn=update_pending_approval,
+    update_scheduler_decision_for_approval_fn=update_scheduler_decision_for_approval,
 ):
     with runtime._lock:
         project = runtime._require_active_project()
@@ -128,15 +127,15 @@ def approve_scheduler_approval(
 
 
 def reject_scheduler_approval(
-        runtime,
-        approval_id: int,
-        reason: str = "rejected via web",
-        family_action: str = "",
-        *,
-        ensure_scheduler_approval_table_fn=ensure_scheduler_approval_table,
-        get_pending_approval_fn=get_pending_approval,
-        update_pending_approval_fn=update_pending_approval,
-        update_scheduler_decision_for_approval_fn=update_scheduler_decision_for_approval,
+    runtime,
+    approval_id: int,
+    reason: str = "rejected via web",
+    family_action: str = "",
+    *,
+    ensure_scheduler_approval_table_fn=ensure_scheduler_approval_table,
+    get_pending_approval_fn=get_pending_approval,
+    update_pending_approval_fn=update_pending_approval,
+    update_scheduler_decision_for_approval_fn=update_scheduler_decision_for_approval,
 ):
     with runtime._lock:
         project = runtime._require_active_project()
@@ -168,13 +167,13 @@ def reject_scheduler_approval(
 
 
 def execute_approved_scheduler_item(
-        runtime,
-        approval_id: int,
-        job_id: int = 0,
-        *,
-        get_pending_approval_fn=get_pending_approval,
-        update_pending_approval_fn=update_pending_approval,
-        update_scheduler_decision_for_approval_fn=update_scheduler_decision_for_approval,
+    runtime,
+    approval_id: int,
+    job_id: int = 0,
+    *,
+    get_pending_approval_fn=get_pending_approval,
+    update_pending_approval_fn=update_pending_approval,
+    update_scheduler_decision_for_approval_fn=update_scheduler_decision_for_approval,
 ) -> Dict[str, Any]:
     with runtime._lock:
         project = runtime._require_active_project()
@@ -228,9 +227,7 @@ def execute_approved_scheduler_item(
         mode=str(item.get("scheduler_mode", "ai") or "ai"),
         goal_profile=str(item.get("goal_profile", "") or ""),
         family_id=str(item.get("command_family_id", "")),
-        danger_categories=runtime._split_csv(
-            str(item.get("risk_tags", "") or item.get("danger_categories", ""))
-        ),
+        danger_categories=runtime._split_csv(str(item.get("risk_tags", "") or item.get("danger_categories", ""))),
         requires_approval=False,
         target_ref={
             "host_ip": str(item.get("host_ip", "")),
@@ -317,4 +314,3 @@ def execute_approved_scheduler_item(
         "reason": reason,
         "process_id": process_id,
     }
-

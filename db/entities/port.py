@@ -15,22 +15,23 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import Integer, Column, String, ForeignKey
 
 from db.database import Base
 
 
 class portObj(Base):
-    __tablename__ = 'portObj'
+    __tablename__ = "portObj"
     portId = Column(String)
     id = Column(Integer, primary_key=True)
     protocol = Column(String)
     state = Column(String)
-    hostId = Column(String, ForeignKey('hostObj.id'))
-    serviceId = Column(String, ForeignKey('serviceObj.id'))
-    scriptId = Column(String, ForeignKey('l1ScriptObj.id'))
+    hostId = Column(String, ForeignKey("hostObj.id"))
+    serviceId = Column(String, ForeignKey("serviceObj.id"))
+    scriptId = Column(String, ForeignKey("l1ScriptObj.id"))
 
-    def __init__(self, portId, protocol, state, host, service=''):
+    def __init__(self, portId, protocol, state, host, service=""):
         self.portId = portId
         self.protocol = protocol
         self.state = state

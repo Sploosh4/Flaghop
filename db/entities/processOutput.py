@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import Column, Integer, ForeignKey, String
 
 from db.database import Base
@@ -22,10 +23,10 @@ from six import u as unicode
 
 
 class process_output(Base):
-    __tablename__ = 'process_output'
-    processId = Column(Integer, ForeignKey('process.id'))
+    __tablename__ = "process_output"
+    processId = Column(Integer, ForeignKey("process.id"))
     id = Column(Integer, primary_key=True)
     output = Column(String)
 
     def __init__(self):
-        self.output = unicode('')
+        self.output = unicode("")

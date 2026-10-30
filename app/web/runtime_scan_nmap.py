@@ -9,7 +9,6 @@ from app.importers.nmap_runner import import_nmap_xml_into_project
 from app.web import runtime_scan_nmap_jobs as web_runtime_scan_nmap_jobs
 from app.web import runtime_scan_rfc1918 as web_runtime_scan_rfc1918
 
-
 start_subnet_rescan_job = web_runtime_scan_nmap_jobs.start_subnet_rescan_job
 start_nmap_xml_import_job = web_runtime_scan_nmap_jobs.start_nmap_xml_import_job
 start_host_rescan_job = web_runtime_scan_nmap_jobs.start_host_rescan_job
@@ -18,10 +17,10 @@ run_rfc1918_chunked_scan_and_import = web_runtime_scan_rfc1918.run_rfc1918_chunk
 
 
 def import_nmap_xml(
-        runtime,
-        xml_path: str,
-        run_actions: bool = False,
-        job_id: int = 0,
+    runtime,
+    xml_path: str,
+    run_actions: bool = False,
+    job_id: int = 0,
 ) -> Dict[str, Any]:
     resolved_job_id = int(job_id or 0)
     if resolved_job_id > 0:
@@ -75,16 +74,16 @@ def import_nmap_xml(
 
 
 def run_nmap_scan_and_import(
-        runtime,
-        targets: List[str],
-        discovery: bool,
-        staged: bool,
-        run_actions: bool,
-        nmap_path: str,
-        nmap_args: str,
-        scan_mode: str = "legacy",
-        scan_options: Optional[Dict[str, Any]] = None,
-        job_id: int = 0,
+    runtime,
+    targets: List[str],
+    discovery: bool,
+    staged: bool,
+    run_actions: bool,
+    nmap_path: str,
+    nmap_args: str,
+    scan_mode: str = "legacy",
+    scan_options: Optional[Dict[str, Any]] = None,
+    job_id: int = 0,
 ) -> Dict[str, Any]:
     resolved_job_id = int(job_id or 0)
     if resolved_job_id > 0:
@@ -147,19 +146,20 @@ def run_nmap_scan_and_import(
                 timeout=int(stage.get("timeout", 3600)),
                 job_id=resolved_job_id,
             )
-            stage_results.append({
-                "name": stage["tool_name"],
-                "command": stage["command"],
-                "executed": bool(executed),
-                "reason": reason,
-                "process_id": int(process_id or 0),
-                "output_prefix": stage["output_prefix"],
-                "xml_path": stage["xml_path"],
-            })
+            stage_results.append(
+                {
+                    "name": stage["tool_name"],
+                    "command": stage["command"],
+                    "executed": bool(executed),
+                    "reason": reason,
+                    "process_id": int(process_id or 0),
+                    "output_prefix": stage["output_prefix"],
+                    "xml_path": stage["xml_path"],
+                }
+            )
             if not executed:
                 raise RuntimeError(
-                    f"Nmap stage '{stage['tool_name']}' failed ({reason}). "
-                    f"Command: {stage['command']}"
+                    f"Nmap stage '{stage['tool_name']}' failed ({reason}). " f"Command: {stage['command']}"
                 )
 
         xml_path = scan_plan["xml_path"]
@@ -180,8 +180,7 @@ def run_nmap_scan_and_import(
                 )
             else:
                 warnings.append(
-                    "Nmap completed but no hosts were imported. "
-                    "Verify target reachability and scan privileges."
+                    "Nmap completed but no hosts were imported. " "Verify target reachability and scan privileges."
                 )
 
         result = {
@@ -218,4 +217,3 @@ def run_nmap_scan_and_import(
             )
         runtime._emit_ui_invalidation("scan_history")
         raise
-

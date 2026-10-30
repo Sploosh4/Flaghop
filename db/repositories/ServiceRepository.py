@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from app.core.common import Filters
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
@@ -30,12 +31,14 @@ class ServiceRepository:
     def getServiceNames(self, filters: Filters):
         session = self.dbAdapter.session()
         try:
-            query = ("SELECT DISTINCT service.name FROM serviceObj as service "
-                     "INNER JOIN portObj as ports "
-                     "INNER JOIN hostObj AS hosts "
-                     "ON hosts.id = ports.hostId AND service.id=ports.serviceId WHERE 1=1")
+            query = (
+                "SELECT DISTINCT service.name FROM serviceObj as service "
+                "INNER JOIN portObj as ports "
+                "INNER JOIN hostObj AS hosts "
+                "ON hosts.id = ports.hostId AND service.id=ports.serviceId WHERE 1=1"
+            )
             query += applyFilters(filters)
-            query += ' ORDER BY service.name ASC'
+            query += " ORDER BY service.name ASC"
             query = text(query)
             result = session.execute(query)
             rows = result.fetchall()
@@ -50,11 +53,13 @@ class ServiceRepository:
     def getServiceNamesByHostIPAndPort(self, host_ip, port):
         session = self.dbAdapter.session()
         try:
-            query = text("SELECT services.name FROM serviceObj AS services "
-                         "INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
-                         "INNER JOIN portObj AS ports ON services.id=ports.serviceId "
-                         "WHERE hosts.ip=:host_ip and ports.portId = :port")
-            return session.execute(query, {'host_ip': str(host_ip), 'port': str(port)}).first()
+            query = text(
+                "SELECT services.name FROM serviceObj AS services "
+                "INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
+                "INNER JOIN portObj AS ports ON services.id=ports.serviceId "
+                "WHERE hosts.ip=:host_ip and ports.portId = :port"
+            )
+            return session.execute(query, {"host_ip": str(host_ip), "port": str(port)}).first()
         except OperationalError:
             return None
         finally:

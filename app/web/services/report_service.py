@@ -9,7 +9,6 @@ class ReportService:
     def __init__(self, runtime):
         self.runtime = runtime
 
-
     def push_project_ai_report(self, payload: Any) -> Tuple[Dict[str, Any], int]:
         request = ProjectReportPushRequest.from_payload(payload)
         result = self.runtime.push_project_ai_report(overrides=request.overrides)

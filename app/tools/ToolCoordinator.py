@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import ntpath
 
 from app.shell.Shell import Shell
@@ -43,6 +44,7 @@ class ToolCoordinator:
     # to the 'tool output' folder
     def saveToolOutput(self, projectOutputFolder: str, outputFileName: str) -> None:
         import os
+
         # Determine the correct output folder for the scan output
         # If outputFileName is inside a subdirectory (e.g., .../nmap/...), preserve it in the output folder
         # Otherwise, move directly to the output folder
@@ -65,6 +67,7 @@ class ToolCoordinator:
                 nmap_exts = (".xml", ".nmap", ".gnmap", ".html")
                 for f in files:
                     import os
+
                     full_path = os.path.normpath(os.path.join(outputFileName, f))
                     if self.shell.isFile(full_path) and f.lower().endswith(nmap_exts):
                         self.shell.move(full_path, toolOutputFolder)
@@ -79,13 +82,13 @@ class ToolCoordinator:
         # move all the nmap files (not only the .xml)
         elif nmapFileExists(self.shell, outputFileName):
             self.nmapExporter.exportOutputToHtml(outputFileName, toolOutputFolder)
-            self.shell.move(outputFileName + '.xml', toolOutputFolder)
-            self.shell.move(outputFileName + '.nmap', toolOutputFolder)
-            self.shell.move(outputFileName + '.gnmap', toolOutputFolder)
+            self.shell.move(outputFileName + ".xml", toolOutputFolder)
+            self.shell.move(outputFileName + ".nmap", toolOutputFolder)
+            self.shell.move(outputFileName + ".gnmap", toolOutputFolder)
         elif xmlFileExists(self.shell, outputFileName):
-            self.shell.move(outputFileName + '.xml', toolOutputFolder)
+            self.shell.move(outputFileName + ".xml", toolOutputFolder)
         elif textFileExists(self.shell, outputFileName):
-            self.shell.move(outputFileName + '.txt', toolOutputFolder)
+            self.shell.move(outputFileName + ".txt", toolOutputFolder)
 
     @staticmethod
     def __determineToolUsedByOutputFilename(outputFileName) -> str:

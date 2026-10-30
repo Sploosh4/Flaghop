@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import ssl
 
 
@@ -37,8 +38,10 @@ def _is_certificate_error(message: str) -> bool:
 
 def isHttps(host, port) -> bool:
     from urllib.error import URLError
+
     try:
         from urllib.request import Request, urlopen
+
         headers = {"User-Agent": defaultUserAgent()}
         req = Request(f"https://{host}:{port}", headers=headers)
         context = ssl.create_default_context()
@@ -48,7 +51,7 @@ def isHttps(host, port) -> bool:
         return True
     except URLError as e:
         reason = str(getattr(e, "reason", e))
-        if 'Forbidden' in reason or _is_certificate_error(reason):
+        if "Forbidden" in reason or _is_certificate_error(reason):
             return True
         return False
     except ssl.CertificateError:

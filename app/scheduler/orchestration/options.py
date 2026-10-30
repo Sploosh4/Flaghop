@@ -1,6 +1,7 @@
 """SchedulerOrchestrator: options."""
 
 from __future__ import annotations
+from app.scheduler.preferences import scheduler_max_concurrency, scheduler_max_host_concurrency
 
 from typing import Any, Dict, List, Optional, Sequence
 from app.scheduler.planner import SchedulerPlanner
@@ -21,23 +22,9 @@ from app.scheduler.orchestration.models import (
 
 
 class Options:
-    @staticmethod
-    def _scheduler_max_concurrency(preferences: Optional[Dict[str, Any]] = None) -> int:
-        source = preferences if isinstance(preferences, dict) else {}
-        try:
-            value = int(source.get("max_concurrency", 1))
-        except (TypeError, ValueError):
-            value = 1
-        return max(1, min(value, 16))
+    _scheduler_max_concurrency = staticmethod(scheduler_max_concurrency)
 
-    @staticmethod
-    def _scheduler_max_host_concurrency(preferences: Optional[Dict[str, Any]] = None) -> int:
-        source = preferences if isinstance(preferences, dict) else {}
-        try:
-            value = int(source.get("max_host_concurrency", 1))
-        except (TypeError, ValueError):
-            value = 1
-        return max(1, min(value, 8))
+    _scheduler_max_host_concurrency = staticmethod(scheduler_max_host_concurrency)
 
     @staticmethod
     def _scheduler_feedback_config(preferences: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:

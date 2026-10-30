@@ -6,37 +6,41 @@ from app.device_categories import category_names, classify_device_categories
 
 class DeviceCategoriesTest(unittest.TestCase):
     def test_phone_signaling_classifies_phone_and_suppresses_generic_server(self):
-        rows = classify_device_categories({
-            "hostname": "lobby-phone.local",
-            "service_inventory": [
-                {"port": "80", "protocol": "tcp", "state": "open", "service": "http"},
-                {"port": "443", "protocol": "tcp", "state": "open", "service": "https"},
-                {
-                    "port": "5060",
-                    "protocol": "udp",
-                    "state": "open",
-                    "service": "sip",
-                    "service_product": "Grandstream SIP phone",
-                },
-            ],
-        })
+        rows = classify_device_categories(
+            {
+                "hostname": "lobby-phone.local",
+                "service_inventory": [
+                    {"port": "80", "protocol": "tcp", "state": "open", "service": "http"},
+                    {"port": "443", "protocol": "tcp", "state": "open", "service": "https"},
+                    {
+                        "port": "5060",
+                        "protocol": "udp",
+                        "state": "open",
+                        "service": "sip",
+                        "service_product": "Grandstream SIP phone",
+                    },
+                ],
+            }
+        )
 
         names = category_names(rows)
         self.assertIn("Phone", names)
         self.assertNotIn("Server", names)
 
     def test_rtp_service_evidence_classifies_phone_without_broad_port_ranges(self):
-        rows = classify_device_categories({
-            "service_inventory": [
-                {
-                    "port": "16384",
-                    "protocol": "udp",
-                    "state": "open",
-                    "service": "rtp",
-                    "service_product": "SRTP media endpoint",
-                },
-            ],
-        })
+        rows = classify_device_categories(
+            {
+                "service_inventory": [
+                    {
+                        "port": "16384",
+                        "protocol": "udp",
+                        "state": "open",
+                        "service": "rtp",
+                        "service_product": "SRTP media endpoint",
+                    },
+                ],
+            }
+        )
 
         self.assertIn("Phone", category_names(rows))
 

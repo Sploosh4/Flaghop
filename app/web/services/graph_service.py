@@ -25,7 +25,6 @@ class GraphService:
         result = self.runtime.rebuild_evidence_graph(host_id=request.host_id or None)
         return {"status": "ok", **result}
 
-
     def get_node_content(self, node_id: str, args) -> Dict[str, Any]:
         query = GraphContentQuery.from_args(args)
         return self.runtime.get_graph_related_content(node_id, max_chars=query.max_chars)

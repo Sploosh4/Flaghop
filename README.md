@@ -284,13 +284,30 @@ Legion is licensed under the GNU General Public License v3.0. See
 
 ## Code organization
 
-- `app/web/runtime.py` owns the active project and worker lifecycle. Small, explicit facades in `runtime_domains/` bind the existing runtime API to its domain implementations; adapters remain where parameter translation is required.
+- `app/services/` owns workspace/autosave state, process tracking, scheduler collaborators and UI events. `app/web/runtime.py` is an explicit compatibility facade with no domain mixin inheritance. Existing plugin methods and state aliases remain available; new behavior belongs in the owning service.
 - `app/scheduler/observations/` separates shared parsing utilities from fingerprint, vulnerability, TLS, discovery, network, enrichment and screenshot parsers. `observation_parsers.py` dispatches to those parsers.
-- `app/scheduler/provider_support/` separates prompt construction, context, payload validation, logging, model discovery and provider HTTP clients. `providers.py` exposes the scheduler-facing API.
+- `app/scheduler/provider_support/` separates prompt construction, context, payload validation, logging, model discovery and provider HTTP clients. Named context-section builders preserve prompt order and limits. `providers.py` exposes the scheduler-facing API.
+- `app/scheduler/context/` owns context assembly and text analysis, with an explicit port contract and a host-evidence repository. HTTP adapters supply the callbacks and workspace; this package does not import the web or desktop layers.
+- `app/processes/` owns command execution, monitoring, completion and typed request/result contracts. The web adapter preserves the old tuple API for existing callers.
+- `app/importers/NmapImporter.py` coordinates parsing and import stages. `ImportSession` releases its write lock before completion/cancellation listeners run and always closes the session. Existing stage-level commits are preserved.
+- `app/scheduler/orchestration/target_run.py` owns target/round state, callback contracts and the run budget; reflection, selection, execution and round recording are separate operations.
 - `app/scheduler/planning/` owns candidate scoring/filtering, target context, web follow-up and strategy helpers. `planner.py` retains the planning entry points.
 - `app/scheduler/graph_support/` owns storage, queries, annotations and entity-specific synchronization. Synchronization stages share one caller-owned transaction.
 - `app/configuration/` owns action defaults, migrations and command normalizers. `settings.py` retains configuration loading and the public settings API.
-- `app/web/static/js/workspace/` contains ES modules for workspace models, requests, commands, rendering and graph behavior. `legion.js` is the bootstrap; `workspace.js` is the presentation shell. Shared state is explicit rather than attached to `window`.
+- `app/web/static/js/workspace/` contains ES modules for workspace models, requests, commands, rendering and graph behavior. `legion.js` is the bootstrap; `workspace.js` is the presentation shell. Shared state is explicit rather than attached to `window`. `WorkspaceController` connects upward action callbacks before startup; shared models, transport helpers and views have no circular imports. Scan presets are supplied by the backend bootstrap.
 - `app/web/templates/partials/` and `app/web/static/css/workspace/` separate panels, dialogs and feature styles while retaining control IDs and stylesheet order.
 
-The runtime facade remains a compatibility boundary: domain implementations still share workspace state and locks. Future changes should pass narrower collaborators into new domain code instead of adding responsibilities to that shared state.
+The compatibility facade still exposes legacy domain helpers. New code should use the owning services and explicit ports rather than expand that facade. Stateless parsing, normalization and rendering helpers remain functions; classes own mutable state, resources or lifecycle.
+
+## Development checks
+
+Install `requirements-dev.txt` and run `scripts/check-maintainability.sh`. It checks Black formatting, flake8 diagnostics, architecture boundaries and the unit/integration suite. Black owns layout (including its deliberate handling of long strings and URLs); flake8 checks code correctness.
+
+Run the real desktop fixture separately with:
+
+```bash
+QT_QPA_PLATFORM=offscreen QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu --no-sandbox" \
+  .venv/bin/python tests/desktop/workspace_smoke.py
+```
+
+The smoke test uses a synthetic SQLite workspace, an ephemeral localhost port and a temporary configuration; it does not execute scans or credential actions. Results and screenshots go under `.artifacts/disposable/workspace-smoke/`. The GitHub workflow runs the same checks. No production workspace, browser profile or evidence is used.

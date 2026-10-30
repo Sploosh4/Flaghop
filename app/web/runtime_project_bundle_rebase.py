@@ -29,23 +29,23 @@ def path_tail(path: str, depth: int = 2) -> str:
     if not token:
         return ""
     parts = [part for part in token.split("/") if part]
-    return "/".join(parts[-max(1, int(depth or 2)):])
+    return "/".join(parts[-max(1, int(depth or 2)) :])
 
 
 def build_restore_root_mappings(
-        *,
-        manifest: Dict[str, Any],
-        project_path: str,
-        output_folder: str,
-        running_folder: str,
+    *,
+    manifest: Dict[str, Any],
+    project_path: str,
+    output_folder: str,
+    running_folder: str,
 ) -> List[Tuple[str, str]]:
     _ = project_path
     candidates: List[Tuple[str, str]] = []
     old_output_folder = str(manifest.get("output_folder", "") or "").strip()
     old_running_folder = str(manifest.get("running_folder", "") or "").strip()
     for old_root, new_root in (
-            (old_output_folder, output_folder),
-            (old_running_folder, running_folder),
+        (old_output_folder, output_folder),
+        (old_running_folder, running_folder),
     ):
         old_norm = normalize_restore_compare_path(old_root)
         new_norm = normalize_restore_compare_path(os.path.abspath(str(new_root or "").strip()))
@@ -127,11 +127,11 @@ def match_rebased_candidate(raw_value: str, candidates: List[str]) -> str:
 
 
 def rebase_restored_file_reference(
-        value: str,
-        *,
-        root_mappings: List[Tuple[str, str]],
-        text_replacements: List[Tuple[str, str]],
-        basename_index: Dict[str, List[str]],
+    value: str,
+    *,
+    root_mappings: List[Tuple[str, str]],
+    text_replacements: List[Tuple[str, str]],
+    basename_index: Dict[str, List[str]],
 ) -> str:
     _ = root_mappings
     raw_value = str(value or "").strip()
@@ -159,12 +159,12 @@ def rebase_restored_file_reference(
 
 
 def rewrite_restored_json_value(
-        value: Any,
-        *,
-        root_mappings: List[Tuple[str, str]],
-        text_replacements: List[Tuple[str, str]],
-        basename_index: Dict[str, List[str]],
-        key_name: str = "",
+    value: Any,
+    *,
+    root_mappings: List[Tuple[str, str]],
+    text_replacements: List[Tuple[str, str]],
+    basename_index: Dict[str, List[str]],
+    key_name: str = "",
 ) -> Any:
     if isinstance(value, dict):
         return {
@@ -236,11 +236,11 @@ def sqlite_table_columns(connection: sqlite3.Connection, table_name: str) -> Lis
 
 
 def rewrite_restored_json_text(
-        raw_json: Any,
-        *,
-        root_mappings: List[Tuple[str, str]],
-        text_replacements: List[Tuple[str, str]],
-        basename_index: Dict[str, List[str]],
+    raw_json: Any,
+    *,
+    root_mappings: List[Tuple[str, str]],
+    text_replacements: List[Tuple[str, str]],
+    basename_index: Dict[str, List[str]],
 ) -> Any:
     token = str(raw_json or "").strip()
     if not token:
@@ -262,13 +262,13 @@ def rewrite_restored_json_text(
 
 
 def rewrite_sqlite_table_rows(
-        connection: sqlite3.Connection,
-        table_name: str,
-        column_modes: Dict[str, str],
-        *,
-        root_mappings: List[Tuple[str, str]],
-        text_replacements: List[Tuple[str, str]],
-        basename_index: Dict[str, List[str]],
+    connection: sqlite3.Connection,
+    table_name: str,
+    column_modes: Dict[str, str],
+    *,
+    root_mappings: List[Tuple[str, str]],
+    text_replacements: List[Tuple[str, str]],
+    basename_index: Dict[str, List[str]],
 ) -> None:
     available_columns = set(sqlite_table_columns(connection, table_name))
     target_columns = [column for column in list(column_modes or {}) if column in available_columns]
@@ -312,11 +312,11 @@ def rewrite_sqlite_table_rows(
 
 
 def rebase_restored_project_paths(
-        *,
-        project_path: str,
-        manifest: Dict[str, Any],
-        output_folder: str,
-        running_folder: str,
+    *,
+    project_path: str,
+    manifest: Dict[str, Any],
+    output_folder: str,
+    running_folder: str,
 ) -> None:
     root_mappings = build_restore_root_mappings(
         manifest=manifest,

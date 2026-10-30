@@ -1,10 +1,14 @@
-/** Application entry point. Domain modules own state, rendering and commands. */
+import { WorkspaceController } from "./workspace/controller.js";
 import { loadApprovals } from "./workspace/approvals.js";
 import { bindActionButtons } from "./workspace/events.js";
 import { bindGraphWorkspaceEvents } from "./workspace/graph_events.js";
 import { connectSnapshotWebSocket, pollSnapshot, renderSnapshot, setLiveChip } from "./workspace/live_updates.js";
 import { loadSchedulerPreferences, saveProjectReportDeliveryPreferences, saveSchedulerPreferences, setSchedulerProviderFieldVisibility, syncEngagementPresetControls } from "./workspace/scheduler_preferences.js";
 import { refreshWorkspace } from "./workspace/workspace_data.js";
+/** Application entry point. Domain modules own state, rendering and commands. */
+
+const controller = new WorkspaceController();
+controller.connect();
 
 window.addEventListener("DOMContentLoaded", () => {
     const bootstrapNode = document.getElementById("initial-snapshot");

@@ -1,14 +1,15 @@
-/** Workspace graph data. */
 import { getValue, setWorkspaceStatus } from "./dom.js";
 import { graphPopulateDynamicFilters, graphRenderLayoutOptions, graphWorkspaceEnabled, setGraphStatus } from "./graph_common.js";
 import { graphFetchRelatedContent } from "./graph_detail.js";
 import { graphCollectServerQuery } from "./graph_filters.js";
 import { graphRenderWorkspace } from "./graph_render.js";
-import { graphEntityHostId, graphFindEntity } from "./graph_viewport.js";
+import { graphFindEntity } from "./graph_selection.js";
+import { graphEntityHostId } from "./graph_viewport.js";
 import { fetchJson, postJson } from "./http.js";
 import { graphWorkspaceState, workspaceState } from "./state.js";
 import { loadHostDetail } from "./workspace_data.js";
 import { renderHostSelectionState } from "./workspace_view.js";
+/** Workspace graph data. */
 
 export function graphSelectEntity(kind, ref) {
     const entity = kind === "node" ? graphFindEntity("node", ref) : graphFindEntity("edge", ref);

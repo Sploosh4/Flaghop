@@ -7,12 +7,12 @@ from app.web import runtime_scheduler_inference_helpers as web_runtime_scheduler
 
 
 def infer_technologies_from_observations(
-        runtime,
-        *,
-        service_records: List[Dict[str, Any]],
-        script_records: List[Dict[str, Any]],
-        process_records: List[Dict[str, Any]],
-        limit: int = 180,
+    runtime,
+    *,
+    service_records: List[Dict[str, Any]],
+    script_records: List[Dict[str, Any]],
+    process_records: List[Dict[str, Any]],
+    limit: int = 180,
 ) -> List[Dict[str, str]]:
     rows: List[Dict[str, str]] = []
     seen = set()
@@ -54,7 +54,10 @@ def infer_technologies_from_observations(
         if not tech_name and not tech_cpe:
             return
         if runtime._is_weak_technology_name(tech_name) and not tech_cpe:
-            if not any(marker in tech_evidence.lower() for marker in web_runtime_scheduler_inference_helpers.TECH_STRONG_EVIDENCE_MARKERS):
+            if not any(
+                marker in tech_evidence.lower()
+                for marker in web_runtime_scheduler_inference_helpers.TECH_STRONG_EVIDENCE_MARKERS
+            ):
                 return
 
         quality = runtime._technology_quality_score(
@@ -69,12 +72,14 @@ def infer_technologies_from_observations(
         if key in seen:
             return
         seen.add(key)
-        rows.append({
-            "name": tech_name,
-            "version": tech_version,
-            "cpe": tech_cpe,
-            "evidence": tech_evidence,
-        })
+        rows.append(
+            {
+                "name": tech_name,
+                "version": tech_version,
+                "cpe": tech_cpe,
+                "evidence": tech_evidence,
+            }
+        )
 
     for record in service_records[:320]:
         if not isinstance(record, dict):
@@ -87,13 +92,15 @@ def infer_technologies_from_observations(
         port = str(record.get("port", "") or "").strip()
         protocol = str(record.get("protocol", "") or "").strip().lower()
 
-        evidence_blob = " ".join([
-            service_name,
-            product,
-            version,
-            extrainfo,
-            banner,
-        ])
+        evidence_blob = " ".join(
+            [
+                service_name,
+                product,
+                version,
+                extrainfo,
+                banner,
+            ]
+        )
         cpes = runtime._extract_cpe_tokens(evidence_blob, limit=3)
         hinted_rows = runtime._guess_technology_hints(evidence_blob, version_hint=version)
 
@@ -102,10 +109,10 @@ def infer_technologies_from_observations(
             service_token = service_name.lower()
             has_strong_context = bool(version or cpes or hinted_rows or banner or extrainfo)
             if (
-                    service_name
-                    and service_token not in web_runtime_scheduler_inference_helpers.GENERIC_TECH_NAME_TOKENS
-                    and not runtime._is_weak_technology_name(service_name)
-                    and has_strong_context
+                service_name
+                and service_token not in web_runtime_scheduler_inference_helpers.GENERIC_TECH_NAME_TOKENS
+                and not runtime._is_weak_technology_name(service_name)
+                and has_strong_context
             ):
                 primary_name = service_name
         if primary_name and primary_name.lower() not in {"unknown", "generic"}:
@@ -128,14 +135,12 @@ def infer_technologies_from_observations(
         if len(rows) >= int(limit):
             break
 
-    for record in (script_records[:320] + process_records[:220]):
+    for record in script_records[:320] + process_records[:220]:
         if not isinstance(record, dict):
             continue
         source_id = str(record.get("script_id", "") or record.get("tool_id", "")).strip()
         output = str(
-            record.get("analysis_excerpt", "")
-            or record.get("excerpt", "")
-            or record.get("output_excerpt", "")
+            record.get("analysis_excerpt", "") or record.get("excerpt", "") or record.get("output_excerpt", "")
         ).strip()
         if not output:
             continue
@@ -176,16 +181,16 @@ def infer_technologies_from_observations(
         if len(rows) >= int(limit):
             break
 
-    return web_runtime_scheduler_inference_helpers.normalize_ai_technologies(runtime, rows[:int(limit)])
+    return web_runtime_scheduler_inference_helpers.normalize_ai_technologies(runtime, rows[: int(limit)])
 
 
 def infer_findings_from_observations(
-        runtime,
-        *,
-        host_cves_raw: List[Dict[str, Any]],
-        script_records: List[Dict[str, Any]],
-        process_records: List[Dict[str, Any]],
-        limit: int = 220,
+    runtime,
+    *,
+    host_cves_raw: List[Dict[str, Any]],
+    script_records: List[Dict[str, Any]],
+    process_records: List[Dict[str, Any]],
+    limit: int = 220,
 ) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     cve_index: Dict[str, Dict[str, Any]] = {}
@@ -201,32 +206,36 @@ def infer_findings_from_observations(
         version = str(row.get("version", "") or "").strip()
         url = str(row.get("url", "") or "").strip()
         title = cve_id or cve_name or f"Potential vulnerability in {product or 'service'}"
-        evidence = " | ".join(part for part in [
-            f"product={product}" if product else "",
-            f"version={version}" if version else "",
-            f"url={url}" if url else "",
-        ] if part)
-        rows.append({
-            "title": title,
-            "severity": severity,
-            "cvss": 0.0,
-            "cve": cve_id,
-            "evidence": evidence or title,
-        })
+        evidence = " | ".join(
+            part
+            for part in [
+                f"product={product}" if product else "",
+                f"version={version}" if version else "",
+                f"url={url}" if url else "",
+            ]
+            if part
+        )
+        rows.append(
+            {
+                "title": title,
+                "severity": severity,
+                "cvss": 0.0,
+                "cve": cve_id,
+                "evidence": evidence or title,
+            }
+        )
         if cve_id:
             cve_index[cve_id] = {
                 "severity": severity,
                 "evidence": evidence or title,
             }
 
-    for record in (script_records[:360] + process_records[:220]):
+    for record in script_records[:360] + process_records[:220]:
         if not isinstance(record, dict):
             continue
         source_id = str(record.get("script_id", "") or record.get("tool_id", "")).strip()[:80]
         excerpt = str(
-            record.get("analysis_excerpt", "")
-            or record.get("excerpt", "")
-            or record.get("output_excerpt", "")
+            record.get("analysis_excerpt", "") or record.get("excerpt", "") or record.get("output_excerpt", "")
         ).strip()
         if not excerpt:
             continue
@@ -244,13 +253,17 @@ def infer_findings_from_observations(
         for item in list(parsed.get("findings", []) or [])[:32]:
             if not isinstance(item, dict):
                 continue
-            rows.append({
-                "title": str(item.get("title", "") or ""),
-                "severity": runtime._severity_from_text(item.get("severity", "info")),
-                "cvss": 0.0,
-                "cve": str(item.get("cve", "") or "").upper(),
-                "evidence": runtime._truncate_scheduler_text(item.get("evidence", "") or cleaned_excerpt or excerpt, 420),
-            })
+            rows.append(
+                {
+                    "title": str(item.get("title", "") or ""),
+                    "severity": runtime._severity_from_text(item.get("severity", "info")),
+                    "cvss": 0.0,
+                    "cve": str(item.get("cve", "") or "").upper(),
+                    "evidence": runtime._truncate_scheduler_text(
+                        item.get("evidence", "") or cleaned_excerpt or excerpt, 420
+                    ),
+                }
+            )
         suppressed_cves = {
             str(item.get("cve", "") or "").strip().upper()
             for item in list(parsed.get("finding_quality_events", []) or [])
@@ -265,34 +278,34 @@ def infer_findings_from_observations(
                 f"{source_id}: {evidence_line}",
                 420,
             )
-            rows.append({
-                "title": cve_id,
-                "severity": severity,
-                "cvss": 0.0,
-                "cve": cve_id,
-                "evidence": evidence,
-            })
+            rows.append(
+                {
+                    "title": cve_id,
+                    "severity": severity,
+                    "cvss": 0.0,
+                    "cve": cve_id,
+                    "evidence": evidence,
+                }
+            )
 
     normalized = web_runtime_scheduler_inference_helpers.normalize_ai_findings(runtime, rows)
-    return normalized[:int(limit)]
+    return normalized[: int(limit)]
 
 
 def infer_urls_from_observations(
-        runtime,
-        *,
-        script_records: List[Dict[str, Any]],
-        process_records: List[Dict[str, Any]],
-        limit: int = 160,
+    runtime,
+    *,
+    script_records: List[Dict[str, Any]],
+    process_records: List[Dict[str, Any]],
+    limit: int = 160,
 ) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
-    for record in (script_records[:320] + process_records[:220]):
+    for record in script_records[:320] + process_records[:220]:
         if not isinstance(record, dict):
             continue
         source_id = str(record.get("script_id", "") or record.get("tool_id", "")).strip()
         output = str(
-            record.get("analysis_excerpt", "")
-            or record.get("excerpt", "")
-            or record.get("output_excerpt", "")
+            record.get("analysis_excerpt", "") or record.get("excerpt", "") or record.get("output_excerpt", "")
         ).strip()
         if not output:
             continue
@@ -309,16 +322,18 @@ def infer_urls_from_observations(
         for item in list(parsed.get("urls", []) or [])[:32]:
             if not isinstance(item, dict):
                 continue
-            rows.append({
-                "url": str(item.get("url", "") or ""),
-                "port": str(item.get("port", "") or record.get("port", "") or ""),
-                "protocol": str(item.get("protocol", "tcp") or record.get("protocol", "tcp") or "tcp"),
-                "service": str(item.get("service", "") or record.get("service", "") or ""),
-                "label": str(item.get("label", "") or source_id),
-                "confidence": float(item.get("confidence", 90.0) or 90.0),
-                "source_kind": str(item.get("source_kind", "observed") or "observed"),
-                "observed": bool(item.get("observed", True)),
-            })
+            rows.append(
+                {
+                    "url": str(item.get("url", "") or ""),
+                    "port": str(item.get("port", "") or record.get("port", "") or ""),
+                    "protocol": str(item.get("protocol", "tcp") or record.get("protocol", "tcp") or "tcp"),
+                    "service": str(item.get("service", "") or record.get("service", "") or ""),
+                    "label": str(item.get("label", "") or source_id),
+                    "confidence": float(item.get("confidence", 90.0) or 90.0),
+                    "source_kind": str(item.get("source_kind", "observed") or "observed"),
+                    "observed": bool(item.get("observed", True)),
+                }
+            )
         if len(rows) >= int(limit):
             break
-    return rows[:int(limit)]
+    return rows[: int(limit)]

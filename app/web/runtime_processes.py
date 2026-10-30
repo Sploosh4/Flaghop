@@ -5,7 +5,6 @@ from app.web import runtime_process_history as web_runtime_process_history
 from app.web import runtime_process_parsing as web_runtime_process_parsing
 from app.web import runtime_process_progress as web_runtime_process_progress
 
-
 redact_command_secrets = web_runtime_process_parsing.redact_command_secrets
 is_nmap_command = web_runtime_process_parsing.is_nmap_command
 is_nuclei_command = web_runtime_process_parsing.is_nuclei_command

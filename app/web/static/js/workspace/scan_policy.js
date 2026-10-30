@@ -1,24 +1,18 @@
-/** Workspace scan policy. */
-import { getChecked, getValue, setChecked, setText, setValue } from "./dom.js";
-import { fetchJson } from "./http.js";
-import { applyNmapModeTargetDefaults, refreshNmapModeOptions, refreshNmapScanButtonState, setNmapWizardStep, updateNmapCommandPreview } from "./scan.js";
-import { defaultEngagementPolicyForPreset, normalizeEngagementPolicyPayload } from "./scheduler_preferences.js";
-import { nmapWizardState } from "./state.js";
 
-export function engagementPresetSummaryText(preset, isCustom) {
-    if (isCustom) {
-        return "Custom lets you override scope and intent manually. Use the standard presets unless you need a non-standard combination.";
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let applyNmapModeTargetDefaults, refreshNmapModeOptions, refreshNmapScanButtonState, setNmapWizardStep, updateNmapCommandPreview;
+export function connectScanPolicy(callbacks) {
+    for (const name of ["applyNmapModeTargetDefaults", "refreshNmapModeOptions", "refreshNmapScanButtonState", "setNmapWizardStep", "updateNmapCommandPreview"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing scan_policy callback: ${name}`);
     }
-    const normalizedPreset = String(preset || "").trim().toLowerCase();
-    const descriptions = {
-        external_recon: "Low-noise external mapping focused on discovery, fingerprinting, and bounded validation.",
-        external_pentest: "Broader external follow-up once recon shows a target is worth deeper assessment.",
-        internal_quick_recon: "Fast internal low-hanging-fruit sweep focused on SMB, NetBIOS, NFS, printers, common admin panels, and other obvious exposure points.",
-        internal_recon: "Broader internal discovery and validation across exposed services without moving into pentest depth.",
-        internal_pentest: "Deeper internal assessment with wider follow-up and higher-noise exploration.",
-    };
-    return descriptions[normalizedPreset] || "Preset drives scope and intent for most runs. Switch to custom only if you need a manual override.";
+    ({ applyNmapModeTargetDefaults, refreshNmapModeOptions, refreshNmapScanButtonState, setNmapWizardStep, updateNmapCommandPreview } = callbacks);
 }
+
+import { getChecked, getValue, setChecked, setText, setValue } from "./dom.js";
+import { defaultEngagementPolicyForPreset, engagementPresetSummaryText, normalizeEngagementPolicyPayload } from "./engagement_policy.js";
+import { fetchJson } from "./http.js";
+import { nmapWizardState } from "./state.js";
+/** Workspace scan policy. */
 
 
 export function getActiveEngagementPreset() {

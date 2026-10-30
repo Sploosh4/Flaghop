@@ -1,7 +1,6 @@
 import re
 from typing import Any, Dict, Iterable, List, Optional, Set
 
-
 VALID_RISK_TAGS = {
     "exploit_execution",
     "credential_bruteforce",
@@ -230,8 +229,8 @@ def safer_alternative_for_risk_tags(tags: Optional[Iterable[Any]]) -> str:
 
 
 def risk_tags_to_legacy_categories(
-        risk_tags: Optional[Iterable[Any]],
-        enabled_categories: Optional[Iterable[Any]] = None,
+    risk_tags: Optional[Iterable[Any]],
+    enabled_categories: Optional[Iterable[Any]] = None,
 ) -> List[str]:
     normalized_tags = set(normalize_risk_tags(risk_tags))
     if enabled_categories is None:
@@ -251,21 +250,23 @@ def risk_tags_to_legacy_categories(
 
 
 def classify_risk_tags(
-        command: str,
-        *,
-        tool_id: str = "",
-        label: str = "",
-        service_scope: Optional[Iterable[Any]] = None,
-        runner_type: str = "",
+    command: str,
+    *,
+    tool_id: str = "",
+    label: str = "",
+    service_scope: Optional[Iterable[Any]] = None,
+    runner_type: str = "",
 ) -> List[str]:
     service_text = " ".join(str(item or "") for item in list(service_scope or []))
-    combined_text = " ".join([
-        str(tool_id or ""),
-        str(label or ""),
-        str(command or ""),
-        str(service_text or ""),
-        str(runner_type or ""),
-    ])
+    combined_text = " ".join(
+        [
+            str(tool_id or ""),
+            str(label or ""),
+            str(command or ""),
+            str(service_text or ""),
+            str(runner_type or ""),
+        ]
+    )
     tags = []
     for tag, patterns in RISK_TAG_PATTERNS.items():
         for pattern in patterns:
@@ -277,7 +278,9 @@ def classify_risk_tags(
     normalized_label = _normalize_text(label)
     text = combined_text.lower()
 
-    if "browser" in _normalize_text(runner_type) and any(token in text for token in ("login", "submit", "fill", "click", "post")):
+    if "browser" in _normalize_text(runner_type) and any(
+        token in text for token in ("login", "submit", "fill", "click", "post")
+    ):
         tags.append("browser_state_change")
     if "screenshooter" in normalized_tool or "eyewitness" in text:
         tags = [tag for tag in tags if tag != "browser_state_change"]

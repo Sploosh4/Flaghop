@@ -13,12 +13,7 @@ from app.scheduler.state_support.normalization import (
 )
 
 
-def _ensure_column(session, table_name: str, column_name: str, column_type: str):
-    rows = session.execute(text(f"PRAGMA table_info({table_name})")).fetchall()
-    existing = {str(row[1]) for row in rows if len(row) > 1}
-    if str(column_name) in existing:
-        return
-    session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"))
+from db.schema import ensure_column as _ensure_column
 
 
 def _ensure_target_state_table(session):
@@ -96,6 +91,7 @@ def ensure_scheduler_target_state_table(database):
         session.commit()
     except Exception:
         session.rollback()
+        raise
     finally:
         session.close()
 

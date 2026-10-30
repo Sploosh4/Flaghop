@@ -12,14 +12,6 @@ def _runtime_service() -> RuntimeService:
     return RuntimeService(runtime_from_app())
 
 
-@runtime_bp.after_request
-def _disable_cache(response):
-    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
 @runtime_bp.get("/api/snapshot")
 def snapshot():
     service = _runtime_service()

@@ -1,60 +1,14 @@
 from __future__ import annotations
 
-import datetime
-import time
 from typing import Any, Dict, Optional
 
 
-def emit_ui_invalidation(runtime, *channels: str, throttle_seconds: float = 0.0):
-    normalized = sorted({str(item or "").strip() for item in channels if str(item or "").strip()})
-    if not normalized:
-        return
-    key = ",".join(normalized)
-    with runtime._ui_event_condition:
-        now = time.monotonic()
-        if float(throttle_seconds or 0.0) > 0.0:
-            last_emitted = float(runtime._ui_last_emit_monotonic.get(key, 0.0) or 0.0)
-            if (now - last_emitted) < float(throttle_seconds):
-                return
-        runtime._ui_last_emit_monotonic[key] = now
-        runtime._ui_event_seq += 1
-        runtime._ui_events.append({
-            "type": "invalidate",
-            "seq": int(runtime._ui_event_seq),
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "channels": normalized,
-        })
-        if len(runtime._ui_events) > 256:
-            runtime._ui_events = runtime._ui_events[-256:]
-        runtime._ui_event_condition.notify_all()
+def emit_ui_invalidation(runtime, *channels, throttle_seconds=0.0):
+    return _event_stream(runtime).emit(*channels, throttle_seconds=throttle_seconds)
 
 
-def wait_for_ui_event(runtime, after_seq: int = 0, timeout_seconds: float = 30.0) -> Dict[str, Any]:
-    cursor = max(0, int(after_seq or 0))
-    timeout_value = max(0.0, float(timeout_seconds or 0.0))
-    deadline = time.monotonic() + timeout_value if timeout_value > 0 else None
-    with runtime._ui_event_condition:
-        while True:
-            pending = [item for item in runtime._ui_events if int(item.get("seq", 0) or 0) > cursor]
-            if pending:
-                channels = sorted({
-                    str(channel or "").strip()
-                    for item in pending
-                    for channel in list(item.get("channels", []) or [])
-                    if str(channel or "").strip()
-                })
-                return {
-                    "type": "invalidate",
-                    "seq": max(int(item.get("seq", 0) or 0) for item in pending),
-                    "channels": channels,
-                }
-            if deadline is None:
-                runtime._ui_event_condition.wait()
-                continue
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                return {"type": "heartbeat", "seq": cursor, "channels": []}
-            runtime._ui_event_condition.wait(remaining)
+def wait_for_ui_event(runtime, after_seq=0, timeout_seconds=30.0):
+    return _event_stream(runtime).wait(after_seq, timeout_seconds)
 
 
 def handle_job_change(runtime, job: Dict[str, Any], event_name: str):
@@ -80,13 +34,13 @@ def handle_job_change(runtime, job: Dict[str, Any], event_name: str):
 
 
 def start_job(
-        runtime,
-        job_type: str,
-        runner_with_job_id,
-        *,
-        payload: Optional[Dict[str, Any]] = None,
-        queue_front: bool = False,
-        exclusive: bool = False,
+    runtime,
+    job_type: str,
+    runner_with_job_id,
+    *,
+    payload: Optional[Dict[str, Any]] = None,
+    queue_front: bool = False,
+    exclusive: bool = False,
 ) -> Dict[str, Any]:
     if not callable(runner_with_job_id):
         raise ValueError("runner_with_job_id must be callable.")
@@ -124,3 +78,13 @@ def find_active_job(runtime, *, job_type: str, host_id: Optional[int] = None) ->
         if payload_host_id == int(host_id):
             return job
     return None
+
+
+def _event_stream(runtime):
+    from app.services.events import EventStream
+
+    stream = getattr(runtime, "events", None)
+    if stream is None:
+        stream = EventStream()
+        runtime.events = stream
+    return stream

@@ -119,7 +119,7 @@ def add_temporary_host_alias(ip_value: str, hostname_value: str, hosts_path: str
         updated_lines.append(new_entry)
         updated_lines.append(LEGION_TEMP_END)
     else:
-        if _block_contains_alias(updated_lines[begin_index + 1:end_index], ip_text, alias):
+        if _block_contains_alias(updated_lines[begin_index + 1 : end_index], ip_text, alias):
             return True, "already-present"
         updated_lines.insert(end_index, new_entry)
 

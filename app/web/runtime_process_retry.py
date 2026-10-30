@@ -114,12 +114,12 @@ def retry_process(runtime, process_id: int, timeout: int = 300, job_id: int = 0)
 
 
 def build_process_retry_plan(
-        runtime,
-        *,
-        tool_name: str,
-        host_ip: str,
-        port: str,
-        protocol: str,
+    runtime,
+    *,
+    tool_name: str,
+    host_ip: str,
+    port: str,
+    protocol: str,
 ) -> Dict[str, Any]:
     normalized_tool = str(tool_name or "").strip()
     normalized_host = str(host_ip or "").strip()
@@ -161,11 +161,7 @@ def split_process_retry_targets(value: str) -> List[str]:
     raw = str(value or "").strip()
     if not raw:
         return []
-    tokens = [
-        item.strip()
-        for item in re.split(r"[\s,]+", raw)
-        if item.strip()
-    ]
+    tokens = [item.strip() for item in re.split(r"[\s,]+", raw) if item.strip()]
     deduped: List[str] = []
     for item in tokens:
         if item not in deduped:

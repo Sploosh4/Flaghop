@@ -16,7 +16,6 @@ from app.web import runtime_scheduler_rationale as web_runtime_scheduler_rationa
 from app.web import runtime_scheduler_target_state as web_runtime_scheduler_target_state
 from app.web import runtime_scheduler_trace as web_runtime_scheduler_trace
 
-
 get_scheduler_preferences = web_runtime_scheduler_config.get_scheduler_preferences
 merge_engagement_policy_payload = web_runtime_scheduler_config.merge_engagement_policy_payload
 load_engagement_policy_locked = web_runtime_scheduler_config.load_engagement_policy_locked
@@ -123,7 +122,9 @@ truncate_rationale_text = web_runtime_scheduler_rationale.truncate_rationale_tex
 scheduler_event_timestamp_epoch = web_runtime_scheduler_rationale.scheduler_event_timestamp_epoch
 strip_json_fences = web_runtime_scheduler_rationale.strip_json_fences
 extract_prompt_text_from_provider_request = web_runtime_scheduler_rationale.extract_prompt_text_from_provider_request
-extract_scheduler_target_fields_from_prompt = web_runtime_scheduler_rationale.extract_scheduler_target_fields_from_prompt
+extract_scheduler_target_fields_from_prompt = (
+    web_runtime_scheduler_rationale.extract_scheduler_target_fields_from_prompt
+)
 extract_provider_response_payload = web_runtime_scheduler_rationale.extract_provider_response_payload
 rationale_list_text = web_runtime_scheduler_rationale.rationale_list_text
 rationale_tag_label = web_runtime_scheduler_rationale.rationale_tag_label
@@ -153,14 +154,16 @@ def execute_scheduler_task_batch(runtime, tasks: List[Dict[str, Any]], max_concu
             try:
                 results.append(future.result())
             except Exception as exc:
-                results.append({
-                    "decision": task["decision"],
-                    "tool_id": str(task.get("tool_id", "") or ""),
-                    "executed": False,
-                    "reason": f"error: {exc}",
-                    "process_id": 0,
-                    "execution_record": None,
-                })
+                results.append(
+                    {
+                        "decision": task["decision"],
+                        "tool_id": str(task.get("tool_id", "") or ""),
+                        "executed": False,
+                        "reason": f"error: {exc}",
+                        "process_id": 0,
+                        "execution_record": None,
+                    }
+                )
     return results
 
 

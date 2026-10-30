@@ -16,10 +16,25 @@ class SchedulerRegistryTest(unittest.TestCase):
             portActions=[
                 ["Run nuclei web scan", "nuclei-web", "nuclei -u http://[IP]:[PORT] -silent", "http,https"],
                 ["SMB Enum Users", "smb-enum-users.nse", "nmap --script=smb-enum-users [IP] -p [PORT]", "smb"],
-                ["Run dirsearch", "dirsearch", "dirsearch -u [WEB_URL]/ --format=json --output=[OUTPUT].json", "http,https"],
+                [
+                    "Run dirsearch",
+                    "dirsearch",
+                    "dirsearch -u [WEB_URL]/ --format=json --output=[OUTPUT].json",
+                    "http,https",
+                ],
                 ["Run enum4linux-ng", "enum4linux-ng", "enum4linux-ng -A -oJ [OUTPUT] [IP]", "smb"],
-                ["Prepare Responder capture workflow", "responder", "responder -I <interface> -w -F", "smb,ldap,kerberos"],
-                ["Prepare ntlmrelayx relay workflow", "ntlmrelayx", "impacket-ntlmrelayx -t smb://[IP] -smb2support", "smb,ldap,kerberos"],
+                [
+                    "Prepare Responder capture workflow",
+                    "responder",
+                    "responder -I <interface> -w -F",
+                    "smb,ldap,kerberos",
+                ],
+                [
+                    "Prepare ntlmrelayx relay workflow",
+                    "ntlmrelayx",
+                    "impacket-ntlmrelayx -t smb://[IP] -smb2support",
+                    "smb,ldap,kerberos",
+                ],
             ],
         )
 

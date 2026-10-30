@@ -39,17 +39,20 @@ def summary(runtime) -> Dict[str, int]:
     session = project.database.session()
     try:
         hosts_count = session.execute(text("SELECT COUNT(*) FROM hostObj")).scalar() or 0
-        open_ports = session.execute(
-            text("SELECT COUNT(*) FROM portObj WHERE state = 'open' OR state = 'open|filtered'")
-        ).scalar() or 0
+        open_ports = (
+            session.execute(
+                text("SELECT COUNT(*) FROM portObj WHERE state = 'open' OR state = 'open|filtered'")
+            ).scalar()
+            or 0
+        )
         services = session.execute(text("SELECT COUNT(*) FROM serviceObj")).scalar() or 0
         cves_count = session.execute(text("SELECT COUNT(*) FROM cve")).scalar() or 0
-        running_processes = session.execute(
-            text("SELECT COUNT(*) FROM process WHERE status IN ('Running', 'Waiting')")
-        ).scalar() or 0
-        finished_processes = session.execute(
-            text("SELECT COUNT(*) FROM process WHERE status = 'Finished'")
-        ).scalar() or 0
+        running_processes = (
+            session.execute(text("SELECT COUNT(*) FROM process WHERE status IN ('Running', 'Waiting')")).scalar() or 0
+        )
+        finished_processes = (
+            session.execute(text("SELECT COUNT(*) FROM process WHERE status = 'Finished'")).scalar() or 0
+        )
         return {
             "hosts": int(hosts_count),
             "open_ports": int(open_ports),
@@ -72,11 +75,11 @@ def summary(runtime) -> Dict[str, int]:
 
 
 def hosts(
-        runtime,
-        limit: Optional[int] = None,
-        include_down: bool = False,
-        *,
-        build_workspace_host_row_func=None,
+    runtime,
+    limit: Optional[int] = None,
+    include_down: bool = False,
+    *,
+    build_workspace_host_row_func=None,
 ) -> List[Dict[str, Any]]:
     project = getattr(runtime.logic, "activeProject", None)
     if not project:
@@ -139,10 +142,13 @@ def resolve_host(runtime, host_id: int):
 def load_cves_for_host(project, host_id: int) -> List[Dict[str, Any]]:
     session = project.database.session()
     try:
-        result = session.execute(text(
-            "SELECT id, name, severity, product, version, url, source, exploitId, exploit, exploitUrl "
-            "FROM cve WHERE hostId = :host_id ORDER BY id DESC"
-        ), {"host_id": str(host_id)})
+        result = session.execute(
+            text(
+                "SELECT id, name, severity, product, version, url, source, exploitId, exploit, exploitUrl "
+                "FROM cve WHERE hostId = :host_id ORDER BY id DESC"
+            ),
+            {"host_id": str(host_id)},
+        )
         rows = result.fetchall()
         keys = result.keys()
         return [dict(zip(keys, row)) for row in rows]
@@ -186,9 +192,7 @@ def _host_matches_service_filters(row: Dict[str, Any], service_filters: List[str
     if not service_filters:
         return True
     row_services = {
-        str(item or "").strip().lower()
-        for item in list(row.get("services", []) or [])
-        if str(item or "").strip()
+        str(item or "").strip().lower() for item in list(row.get("services", []) or []) if str(item or "").strip()
     }
     return any(service_name in row_services for service_name in service_filters)
 
@@ -196,11 +200,7 @@ def _host_matches_service_filters(row: Dict[str, Any], service_filters: List[str
 def _services_match_filters(services: List[str], service_filters: List[str]) -> bool:
     if not service_filters:
         return True
-    row_services = {
-        str(item or "").strip().lower()
-        for item in list(services or [])
-        if str(item or "").strip()
-    }
+    row_services = {str(item or "").strip().lower() for item in list(services or []) if str(item or "").strip()}
     return any(service_name in row_services for service_name in service_filters)
 
 
@@ -225,19 +225,22 @@ def service_name_for_target(runtime, host_ip: str, port: str, protocol: str) -> 
 
         session = project.database.session()
         try:
-            result = session.execute(text(
-                "SELECT COALESCE(s.name, '') "
-                "FROM portObj AS p "
-                "LEFT JOIN serviceObj AS s ON s.id = p.serviceId "
-                "WHERE p.hostId = :host_id "
-                "AND COALESCE(p.portId, '') = :port "
-                "AND LOWER(COALESCE(p.protocol, '')) = LOWER(:protocol) "
-                "ORDER BY p.id DESC LIMIT 1"
-            ), {
-                "host_id": host_id,
-                "port": str(port or ""),
-                "protocol": str(protocol or "tcp"),
-            }).fetchone()
+            result = session.execute(
+                text(
+                    "SELECT COALESCE(s.name, '') "
+                    "FROM portObj AS p "
+                    "LEFT JOIN serviceObj AS s ON s.id = p.serviceId "
+                    "WHERE p.hostId = :host_id "
+                    "AND COALESCE(p.portId, '') = :port "
+                    "AND LOWER(COALESCE(p.protocol, '')) = LOWER(:protocol) "
+                    "ORDER BY p.id DESC LIMIT 1"
+                ),
+                {
+                    "host_id": host_id,
+                    "port": str(port or ""),
+                    "protocol": str(protocol or "tcp"),
+                },
+            ).fetchone()
             return str(result[0] or "") if result else ""
         finally:
             session.close()
@@ -246,13 +249,13 @@ def service_name_for_target(runtime, host_ip: str, port: str, protocol: str) -> 
 
 
 def get_workspace_hosts(
-        runtime,
-        limit: Optional[int] = None,
-        include_down: bool = False,
-        service: str = "",
-        category: str = "",
-        *,
-        build_workspace_host_row_func=None,
+    runtime,
+    limit: Optional[int] = None,
+    include_down: bool = False,
+    service: str = "",
+    category: str = "",
+    *,
+    build_workspace_host_row_func=None,
 ) -> List[Dict[str, Any]]:
     with runtime._lock:
         project = runtime._require_active_project()
@@ -274,27 +277,29 @@ def get_workspace_hosts(
             if service_filters and not _services_match_filters(services, service_filters):
                 continue
             prepared.append((host, ports, service_inventory, services))
-        target_states = _load_target_state_cache(project, [
-            int(getattr(host, "id", 0) or 0)
-            for host, *_ in prepared
-        ])
+        target_states = _load_target_state_cache(project, [int(getattr(host, "id", 0) or 0) for host, *_ in prepared])
         rows = []
         for host, ports, service_inventory, services in prepared:
-            rows.append(row_builder(
-                runtime,
-                host,
-                port_repo,
-                service_repo,
-                project,
-                preloaded_ports=ports,
-                preloaded_service_inventory=service_inventory,
-                preloaded_services=services,
-                preloaded_target_state=target_states.get(int(getattr(host, "id", 0) or 0), {}),
-            ))
+            rows.append(
+                row_builder(
+                    runtime,
+                    host,
+                    port_repo,
+                    service_repo,
+                    project,
+                    preloaded_ports=ports,
+                    preloaded_service_inventory=service_inventory,
+                    preloaded_services=services,
+                    preloaded_target_state=target_states.get(int(getattr(host, "id", 0) or 0), {}),
+                )
+            )
         if category_filter:
             rows = [
-                row for row in rows
-                if any(str(item or "").strip().lower() == category_filter for item in list(row.get("categories", []) or []))
+                row
+                for row in rows
+                if any(
+                    str(item or "").strip().lower() == category_filter for item in list(row.get("categories", []) or [])
+                )
             ]
         if limit is not None:
             try:
@@ -316,47 +321,7 @@ def get_workspace_services(runtime, limit: int = 300, host_id: int = 0, category
     )
 
 
-def strip_nmap_preamble(output_text: str) -> str:
-    text_value = str(output_text or "")
-    if not text_value.strip():
-        return ""
-    filtered = []
-    for raw_line in text_value.splitlines():
-        line = str(raw_line or "")
-        stripped = line.strip()
-        lowered = stripped.lower()
-        if not stripped:
-            if filtered:
-                filtered.append("")
-            continue
-        if re.match(r"(?i)^Starting Nmap\b", stripped):
-            continue
-        if re.match(r"(?i)^Nmap scan report for\b", stripped):
-            continue
-        if re.match(r"(?i)^Host is up\b", stripped):
-            continue
-        if re.match(r"(?i)^Not shown:\b", stripped):
-            continue
-        if re.match(r"(?i)^All \d+ scanned ports\b", stripped):
-            continue
-        if re.match(r"(?i)^NSE:\s+(Loaded|Script Pre-scanning|Starting runlevel|Ending runlevel)\b", stripped):
-            continue
-        if re.match(r"(?i)^Service detection performed\b", stripped):
-            continue
-        if "nmap.org" in lowered and (
-                lowered.startswith("starting nmap")
-                or lowered.startswith("service detection performed")
-                or lowered.startswith("read data files from")
-                or lowered.startswith("please report")
-        ):
-            continue
-        if re.match(r"(?i)^PORT\s+STATE\s+SERVICE\b", stripped):
-            continue
-        if re.match(r"(?i)^Nmap done:", stripped):
-            continue
-        filtered.append(line)
-    cleaned = "\n".join(filtered).strip()
-    return cleaned or text_value.strip()
+from app.nmap_text import strip_nmap_preamble as strip_nmap_preamble
 
 
 def host_detail_script_preview(script_id: str, output_text: str, max_chars: int = 220) -> str:
@@ -367,16 +332,16 @@ def host_detail_script_preview(script_id: str, output_text: str, max_chars: int 
         display = strip_nmap_preamble(raw_output)
     display = re.sub(r"\s+", " ", str(display or "")).strip()
     if len(display) > int(max_chars or 220):
-        return display[:max(0, int(max_chars or 220) - 1)].rstrip() + "..."
+        return display[: max(0, int(max_chars or 220) - 1)].rstrip() + "..."
     return display
 
 
 def get_target_state_view(
-        runtime,
-        host_id: int = 0,
-        limit: int = 500,
-        *,
-        get_target_state_func=None,
+    runtime,
+    host_id: int = 0,
+    limit: int = 500,
+    *,
+    get_target_state_func=None,
 ) -> Dict[str, Any]:
     return web_runtime_workspace_findings.get_target_state_view(
         runtime,
@@ -387,12 +352,12 @@ def get_target_state_view(
 
 
 def get_findings(
-        runtime,
-        host_id: int = 0,
-        limit_hosts: int = 500,
-        limit_findings: int = 1000,
-        *,
-        get_target_state_func=None,
+    runtime,
+    host_id: int = 0,
+    limit_hosts: int = 500,
+    limit_findings: int = 1000,
+    *,
+    get_target_state_func=None,
 ) -> Dict[str, Any]:
     return web_runtime_workspace_findings.get_findings(
         runtime,

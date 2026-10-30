@@ -703,9 +703,7 @@ _TOOL_PROMPT_ENTRIES: Tuple[SchedulerToolPromptInfo, ...] = (
     ),
 )
 
-_TOOL_PROMPT_REGISTRY: Dict[str, SchedulerToolPromptInfo] = {
-    entry.tool_id: entry for entry in _TOOL_PROMPT_ENTRIES
-}
+_TOOL_PROMPT_REGISTRY: Dict[str, SchedulerToolPromptInfo] = {entry.tool_id: entry for entry in _TOOL_PROMPT_ENTRIES}
 _PROMPT_GROUP_ORDER: Dict[str, Tuple[str, ...]] = {}
 for _entry in _TOOL_PROMPT_ENTRIES:
     for _group in _entry.prompt_groups:
@@ -790,11 +788,11 @@ def _fallback_when_to_use(*, service_scope: str = "", purpose: str = "") -> str:
 
 
 def get_scheduler_tool_prompt_info(
-        tool_id: str,
-        *,
-        label: str = "",
-        command_template: str = "",
-        service_scope: str = "",
+    tool_id: str,
+    *,
+    label: str = "",
+    command_template: str = "",
+    service_scope: str = "",
 ) -> SchedulerToolPromptInfo:
     key = str(tool_id or "").strip().lower()
     if key in _TOOL_PROMPT_REGISTRY:

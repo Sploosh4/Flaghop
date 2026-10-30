@@ -13,6 +13,7 @@ Copyright (c) 2025 Shane William Scott
     You should have received a copy of the GNU General Public License along with this program.
     If not, see <http://www.gnu.org/licenses/>.
 """
+
 from sqlalchemy import Column, Integer, String, DateTime, Text
 from datetime import datetime
 
@@ -20,7 +21,7 @@ from db.database import Base
 
 
 class credentialCapture(Base):
-    __tablename__ = 'credentialCapture'
+    __tablename__ = "credentialCapture"
 
     id = Column(Integer, primary_key=True)
     tool = Column(String)
@@ -30,10 +31,10 @@ class credentialCapture(Base):
     details = Column(Text)
     capturedAt = Column(DateTime)
 
-    def __init__(self, tool, source='', username='', hash_value='', details=''):
+    def __init__(self, tool, source="", username="", hash_value="", details=""):
         self.tool = tool
-        self.source = source or ''
-        self.username = username or ''
-        self.hash = hash_value or ''
-        self.details = details or ''
+        self.source = source or ""
+        self.username = username or ""
+        self.hash = hash_value or ""
+        self.details = details or ""
         self.capturedAt = datetime.utcnow()

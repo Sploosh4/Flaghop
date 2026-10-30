@@ -196,10 +196,10 @@ def handle_scheduler_execution_result(runtime, *, target, decision, result: Dict
 
 
 def _merge_observed_discovery_results(
-        runtime,
-        decision,
-        observed_payload: Dict[str, Any],
-        observed_raw: Dict[str, Any],
+    runtime,
+    decision,
+    observed_payload: Dict[str, Any],
+    observed_raw: Dict[str, Any],
 ) -> None:
     quality_events = list(observed_payload.get("finding_quality_events", []) or [])
     if quality_events:

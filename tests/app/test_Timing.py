@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import unittest
 from datetime import datetime
 from time import time
@@ -24,13 +25,13 @@ from app.timing import getTimestamp
 
 
 class TimingTest(unittest.TestCase):
-    @patch('utilities.stenoLogging.get_logger')
+    @patch("utilities.stenoLogging.get_logger")
     def test_getTimestamp_WhenInvokedWithNoParameters_ReturnsStandardFormattedTimestamp(self, getLogger):
         expectedStandardTimestampFormat = "%Y%m%d%H%M%S%f"
         currentTime = datetime.fromtimestamp(time())
         self.assertEqual(getTimestamp()[:-3], currentTime.strftime(expectedStandardTimestampFormat)[:-3])
 
-    @patch('utilities.stenoLogging.get_logger')
+    @patch("utilities.stenoLogging.get_logger")
     def test_getTimestamp_WhenInvokedWithHumanParameter_ReturnsHumanFormattedTimestamp(self, getLogger):
         expectedHumanTimestampFormat = "%d %b %Y %H:%M:%S.%f"
         currentTime = datetime.fromtimestamp(time())

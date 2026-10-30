@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship
 
@@ -22,9 +23,9 @@ from db.database import Base
 
 
 class process(Base):
-    __tablename__ = 'process'
+    __tablename__ = "process"
     pid = Column(String)
-    id = Column(Integer, primary_key = True)
+    id = Column(Integer, primary_key=True)
     display = Column(String)
     name = Column(String)
     tabTitle = Column(String)
@@ -48,41 +49,41 @@ class process(Base):
     def __init__(
         self,
         pid,
-        name='',
-        tabTitle='',
-        hostIp='',
-        port='',
-        protocol='',
-        command='',
-        startTime='',
-        endTime='',
-        outputfile='',
-        status='',
+        name="",
+        tabTitle="",
+        hostIp="",
+        port="",
+        protocol="",
+        command="",
+        startTime="",
+        endTime="",
+        outputfile="",
+        status="",
         output=None,
         estimatedRemaining=None,
         elapsed=0,
         percent=None,
-        progressMessage='',
-        progressSource='',
-        progressUpdatedAt='',
-        **kwargs
+        progressMessage="",
+        progressSource="",
+        progressUpdatedAt="",
+        **kwargs,
     ):
-        self.display = 'True'
+        self.display = "True"
         self.pid = pid
-        self.name = kwargs.get('name', name) or ''
-        self.tabTitle = kwargs.get('tabTitle', tabTitle) or ''
-        self.hostIp = kwargs.get('hostIp', hostIp) or ''
-        self.port = kwargs.get('port', port) or ''
-        self.protocol = kwargs.get('protocol', protocol) or ''
-        self.command = kwargs.get('command', command) or ''
-        self.startTime = kwargs.get('startTime', startTime) or ''
-        self.endTime = kwargs.get('endTime', endTime) or ''
-        self.outputfile = kwargs.get('outputfile', outputfile) or ''
-        output_value = kwargs.get('output', output if output is not None else [])
+        self.name = kwargs.get("name", name) or ""
+        self.tabTitle = kwargs.get("tabTitle", tabTitle) or ""
+        self.hostIp = kwargs.get("hostIp", hostIp) or ""
+        self.port = kwargs.get("port", port) or ""
+        self.protocol = kwargs.get("protocol", protocol) or ""
+        self.command = kwargs.get("command", command) or ""
+        self.startTime = kwargs.get("startTime", startTime) or ""
+        self.endTime = kwargs.get("endTime", endTime) or ""
+        self.outputfile = kwargs.get("outputfile", outputfile) or ""
+        output_value = kwargs.get("output", output if output is not None else [])
         self.output = output_value
-        self.status = kwargs.get('status', status) or ''
-        self.closed = kwargs.get('closed', 'False') or 'False'
-        estimated_remaining_value = kwargs.get('estimatedRemaining', estimatedRemaining)
+        self.status = kwargs.get("status", status) or ""
+        self.closed = kwargs.get("closed", "False") or "False"
+        estimated_remaining_value = kwargs.get("estimatedRemaining", estimatedRemaining)
         if estimated_remaining_value in ("", None):
             self.estimatedRemaining = None
         else:
@@ -90,8 +91,8 @@ class process(Base):
                 self.estimatedRemaining = max(0, int(float(estimated_remaining_value)))
             except Exception:
                 self.estimatedRemaining = None
-        self.elapsed = kwargs.get('elapsed', elapsed) or 0
-        self.percent = kwargs.get('percent', percent)
-        self.progressMessage = kwargs.get('progressMessage', progressMessage) or ''
-        self.progressSource = kwargs.get('progressSource', progressSource) or ''
-        self.progressUpdatedAt = kwargs.get('progressUpdatedAt', progressUpdatedAt) or ''
+        self.elapsed = kwargs.get("elapsed", elapsed) or 0
+        self.percent = kwargs.get("percent", percent)
+        self.progressMessage = kwargs.get("progressMessage", progressMessage) or ""
+        self.progressSource = kwargs.get("progressSource", progressSource) or ""
+        self.progressUpdatedAt = kwargs.get("progressUpdatedAt", progressUpdatedAt) or ""

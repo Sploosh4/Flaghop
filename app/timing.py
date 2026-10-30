@@ -15,16 +15,14 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from datetime import datetime
 from functools import wraps
 from time import time
 
 from app.logging.legionLog import getAppLogger
 
-timestampFormats = {
-    "HUMAN_FORMAT": "%d %b %Y %H:%M:%S.%f",
-    "STANDARD_TIMESTAMP": '%Y%m%d%H%M%S%f'
-}
+timestampFormats = {"HUMAN_FORMAT": "%d %b %Y %H:%M:%S.%f", "STANDARD_TIMESTAMP": "%Y%m%d%H%M%S%f"}
 
 
 def timing(f):
@@ -36,7 +34,7 @@ def timing(f):
         result = f(*args, **kw)
         te = time()
         tr = te - ts
-        log.debug('Function:%r args:[%r, %r] took: %2.4f sec' % (f.__name__, args, kw, tr))
+        log.debug("Function:%r args:[%r, %r] took: %2.4f sec" % (f.__name__, args, kw, tr))
         return result
 
     return wrap

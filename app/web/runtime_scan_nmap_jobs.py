@@ -39,21 +39,24 @@ def start_subnet_rescan_job(runtime, subnet: str) -> Dict[str, Any]:
             scan_options=dict(template.get("scan_options", {}) or {}),
         )
 
-    default_scan_options = runtime._apply_engagement_scan_profile({
-        "discovery": True,
-        "skip_dns": True,
-        "timing": "T3",
-        "top_ports": 1000,
-        "explicit_ports": "",
-        "service_detection": True,
-        "default_scripts": True,
-        "os_detection": False,
-        "aggressive": False,
-        "full_ports": False,
-        "vuln_scripts": False,
-        "host_discovery_only": False,
-        "arp_ping": False,
-    }, engagement_policy=engagement_policy)
+    default_scan_options = runtime._apply_engagement_scan_profile(
+        {
+            "discovery": True,
+            "skip_dns": True,
+            "timing": "T3",
+            "top_ports": 1000,
+            "explicit_ports": "",
+            "service_detection": True,
+            "default_scripts": True,
+            "os_detection": False,
+            "aggressive": False,
+            "full_ports": False,
+            "vuln_scripts": False,
+            "host_discovery_only": False,
+            "arp_ping": False,
+        },
+        engagement_policy=engagement_policy,
+    )
     return runtime.start_nmap_scan_job(
         targets=[normalized_subnet],
         discovery=True,
@@ -67,9 +70,9 @@ def start_subnet_rescan_job(runtime, subnet: str) -> Dict[str, Any]:
 
 
 def start_nmap_xml_import_job(
-        runtime,
-        path: str,
-        run_actions: bool = False,
+    runtime,
+    path: str,
+    run_actions: bool = False,
 ) -> Dict[str, Any]:
     xml_path = runtime._normalize_existing_file(path)
     job = runtime._start_job(
@@ -100,21 +103,24 @@ def start_host_rescan_job(runtime, host_id: int) -> Dict[str, Any]:
 
     scan_target = choose_preferred_command_host(hostname, host_ip, "nmap")
     uses_hostname_target = scan_target != host_ip
-    default_scan_options = runtime._apply_engagement_scan_profile({
-        "discovery": True,
-        "skip_dns": not uses_hostname_target,
-        "timing": "T3",
-        "top_ports": 1000,
-        "explicit_ports": "",
-        "service_detection": True,
-        "default_scripts": True,
-        "os_detection": False,
-        "aggressive": False,
-        "full_ports": False,
-        "vuln_scripts": False,
-        "host_discovery_only": False,
-        "arp_ping": False,
-    }, engagement_policy=engagement_policy)
+    default_scan_options = runtime._apply_engagement_scan_profile(
+        {
+            "discovery": True,
+            "skip_dns": not uses_hostname_target,
+            "timing": "T3",
+            "top_ports": 1000,
+            "explicit_ports": "",
+            "service_detection": True,
+            "default_scripts": True,
+            "os_detection": False,
+            "aggressive": False,
+            "full_ports": False,
+            "vuln_scripts": False,
+            "host_discovery_only": False,
+            "arp_ping": False,
+        },
+        engagement_policy=engagement_policy,
+    )
     return runtime.start_nmap_scan_job(
         targets=[scan_target],
         discovery=True,
@@ -128,15 +134,15 @@ def start_host_rescan_job(runtime, host_id: int) -> Dict[str, Any]:
 
 
 def start_nmap_scan_job(
-        runtime,
-        targets,
-        discovery: bool = True,
-        staged: bool = False,
-        run_actions: bool = False,
-        nmap_path: str = "nmap",
-        nmap_args: str = "",
-        scan_mode: str = "legacy",
-        scan_options: Optional[Dict[str, Any]] = None,
+    runtime,
+    targets,
+    discovery: bool = True,
+    staged: bool = False,
+    run_actions: bool = False,
+    nmap_path: str = "nmap",
+    nmap_args: str = "",
+    scan_mode: str = "legacy",
+    scan_options: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     normalized_targets = runtime._normalize_targets(targets)
     resolved_nmap_path = str(nmap_path or "nmap").strip() or "nmap"

@@ -43,9 +43,11 @@ class PortRepository:
     def getPortsByIPAndProtocol(self, host_ip, protocol):
         session = self.dbAdapter.session()
         try:
-            query = text("SELECT ports.portId FROM portObj AS ports INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
-                         "WHERE hosts.ip = :host_ip and ports.protocol = :protocol")
-            return session.execute(query, {'host_ip': str(host_ip), 'protocol': str(protocol)}).first()
+            query = text(
+                "SELECT ports.portId FROM portObj AS ports INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
+                "WHERE hosts.ip = :host_ip and ports.protocol = :protocol"
+            )
+            return session.execute(query, {"host_ip": str(host_ip), "protocol": str(protocol)}).first()
         except OperationalError:
             return None
         finally:
@@ -54,8 +56,8 @@ class PortRepository:
     def getPortStatesByHostId(self, host_id):
         session = self.dbAdapter.session()
         try:
-            query = text('SELECT port.state FROM portObj as port WHERE port.hostId = :host_id')
-            return session.execute(query, {'host_id': str(host_id)}).fetchall()
+            query = text("SELECT port.state FROM portObj as port WHERE port.hostId = :host_id")
+            return session.execute(query, {"host_id": str(host_id)}).fetchall()
         except OperationalError:
             return []
         finally:
@@ -64,13 +66,15 @@ class PortRepository:
     def getPortsAndServicesByHostIP(self, host_ip, filters):
         session = self.dbAdapter.session()
         try:
-            query = ("SELECT hosts.ip, ports.portId, ports.protocol, ports.state, ports.hostId, ports.serviceId, "
-                     "services.name, services.product, services.version, services.extrainfo, services.fingerprint "
-                     "FROM portObj AS ports INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
-                     "LEFT OUTER JOIN serviceObj AS services ON services.id = ports.serviceId WHERE hosts.ip = :host_ip")
+            query = (
+                "SELECT hosts.ip, ports.portId, ports.protocol, ports.state, ports.hostId, ports.serviceId, "
+                "services.name, services.product, services.version, services.extrainfo, services.fingerprint "
+                "FROM portObj AS ports INNER JOIN hostObj AS hosts ON hosts.id = ports.hostId "
+                "LEFT OUTER JOIN serviceObj AS services ON services.id = ports.serviceId WHERE hosts.ip = :host_ip"
+            )
             query += applyPortFilters(filters)
             query = text(query)
-            result = session.execute(query, {'host_ip': str(host_ip)})
+            result = session.execute(query, {"host_ip": str(host_ip)})
             rows = result.fetchall()
             keys = result.keys()
             return [dict(zip(keys, row)) for row in rows]
@@ -83,9 +87,9 @@ class PortRepository:
     def deleteAllPortsAndScriptsByHostId(self, hostID, protocol):
         session = self.dbAdapter.session()
         try:
-            ports_for_host = session.query(portObj)\
-                .filter(portObj.hostId == hostID)\
-                .filter(portObj.protocol == str(protocol)).all()
+            ports_for_host = (
+                session.query(portObj).filter(portObj.hostId == hostID).filter(portObj.protocol == str(protocol)).all()
+            )
 
             for p in ports_for_host:
                 scripts_for_ports = session.query(l1ScriptObj).filter(l1ScriptObj.portId == p.id).all()
@@ -104,10 +108,13 @@ class PortRepository:
     def deletePortByHostIdAndPort(self, hostID, port, protocol):
         session = self.dbAdapter.session()
         try:
-            port_entry = session.query(portObj)\
-                .filter(portObj.hostId == hostID)\
-                .filter(portObj.portId == str(port))\
-                .filter(portObj.protocol == str(protocol)).first()
+            port_entry = (
+                session.query(portObj)
+                .filter(portObj.hostId == hostID)
+                .filter(portObj.portId == str(port))
+                .filter(portObj.protocol == str(protocol))
+                .first()
+            )
             if port_entry:
                 scripts_for_port = session.query(l1ScriptObj).filter(l1ScriptObj.portId == port_entry.id).all()
                 for s in scripts_for_port:
@@ -124,10 +131,13 @@ class PortRepository:
     def getPortByHostIdAndPort(self, hostID, port, protocol):
         session = self.dbAdapter.session()
         try:
-            return session.query(portObj)\
-                .filter(portObj.hostId == hostID)\
-                .filter(portObj.portId == str(port))\
-                .filter(portObj.protocol == str(protocol)).first()
+            return (
+                session.query(portObj)
+                .filter(portObj.hostId == hostID)
+                .filter(portObj.portId == str(port))
+                .filter(portObj.protocol == str(protocol))
+                .first()
+            )
         except OperationalError:
             return None
         finally:

@@ -4,7 +4,6 @@ import shutil
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
-
 VALID_RUNNER_TYPES = {"local", "container", "browser", "manual", "auto"}
 
 DEFAULT_RUNNER_SETTINGS = {
@@ -108,15 +107,17 @@ class RunnerExecutionResult:
 
 
 def resolve_runner_selection(
-        action_runner_type: Any,
-        *,
-        runner_preference: Any = "",
-        runner_settings: Any = None,
-        allow_optional_runners: bool = True,
+    action_runner_type: Any,
+    *,
+    runner_preference: Any = "",
+    runner_settings: Any = None,
+    allow_optional_runners: bool = True,
 ) -> RunnerSelection:
     _ = normalize_runner_settings(runner_settings)
     declared = _normalize_runner_type(action_runner_type, "local")
-    preferred = _normalize_runner_type(runner_preference, "auto" if str(runner_preference or "").strip().lower() == "auto" else "local")
+    preferred = _normalize_runner_type(
+        runner_preference, "auto" if str(runner_preference or "").strip().lower() == "auto" else "local"
+    )
 
     if declared in {"browser", "manual"}:
         if declared == "browser" and not allow_optional_runners:
@@ -174,11 +175,11 @@ class LocalRunner:
     runner_type = "local"
 
     def execute(
-            self,
-            request: RunnerExecutionRequest,
-            *,
-            build_command: Callable[[RunnerExecutionRequest], Tuple[str, str]],
-            execute_command: Callable[..., RunnerExecutionResult],
+        self,
+        request: RunnerExecutionRequest,
+        *,
+        build_command: Callable[[RunnerExecutionRequest], Tuple[str, str]],
+        execute_command: Callable[..., RunnerExecutionResult],
     ) -> RunnerExecutionResult:
         command, outputfile = build_command(request)
         if not str(command or "").strip():
@@ -202,11 +203,11 @@ class ContainerRunner:
         self.settings = normalize_runner_settings(settings)
 
     def build_wrapped_command(
-            self,
-            rendered_command: str,
-            *,
-            mount_paths: Optional[Sequence[Any]] = None,
-            workdir: str = "",
+        self,
+        rendered_command: str,
+        *,
+        mount_paths: Optional[Sequence[Any]] = None,
+        workdir: str = "",
     ) -> Tuple[str, str]:
         container = self.settings["container"]
         if not bool(container.get("enabled", False)):
@@ -248,13 +249,13 @@ class ContainerRunner:
         return shlex.join(command_parts), ""
 
     def execute(
-            self,
-            request: RunnerExecutionRequest,
-            *,
-            build_command: Callable[[RunnerExecutionRequest], Tuple[str, str]],
-            execute_command: Callable[..., RunnerExecutionResult],
-            mount_paths: Optional[Sequence[Any]] = None,
-            workdir: str = "",
+        self,
+        request: RunnerExecutionRequest,
+        *,
+        build_command: Callable[[RunnerExecutionRequest], Tuple[str, str]],
+        execute_command: Callable[..., RunnerExecutionResult],
+        mount_paths: Optional[Sequence[Any]] = None,
+        workdir: str = "",
     ) -> RunnerExecutionResult:
         command, outputfile = build_command(request)
         if not str(command or "").strip():
@@ -291,10 +292,10 @@ class BrowserRunner:
         self.settings = normalize_runner_settings(settings)
 
     def execute(
-            self,
-            request: RunnerExecutionRequest,
-            *,
-            execute_browser: Callable[..., RunnerExecutionResult],
+        self,
+        request: RunnerExecutionRequest,
+        *,
+        execute_browser: Callable[..., RunnerExecutionResult],
     ) -> RunnerExecutionResult:
         browser_settings = dict(self.settings.get("browser", {}))
         if not bool(browser_settings.get("enabled", True)):
@@ -323,16 +324,16 @@ class ManualRunner:
 
 
 def execute_runner_request(
-        request: RunnerExecutionRequest,
-        *,
-        runner_preference: Any = "",
-        runner_settings: Any = None,
-        allow_optional_runners: bool = True,
-        build_command: Callable[[RunnerExecutionRequest], Tuple[str, str]],
-        execute_local_command: Callable[..., RunnerExecutionResult],
-        execute_browser_action: Callable[..., RunnerExecutionResult],
-        mount_paths: Optional[Sequence[Any]] = None,
-        workdir: str = "",
+    request: RunnerExecutionRequest,
+    *,
+    runner_preference: Any = "",
+    runner_settings: Any = None,
+    allow_optional_runners: bool = True,
+    build_command: Callable[[RunnerExecutionRequest], Tuple[str, str]],
+    execute_local_command: Callable[..., RunnerExecutionResult],
+    execute_browser_action: Callable[..., RunnerExecutionResult],
+    mount_paths: Optional[Sequence[Any]] = None,
+    workdir: str = "",
 ) -> RunnerExecutionResult:
     settings = normalize_runner_settings(runner_settings)
     if not allow_optional_runners:

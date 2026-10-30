@@ -17,7 +17,9 @@ class SqliteDbAdapterBackupTest(unittest.TestCase):
             database = Database(db_path)
             session = database.session()
             try:
-                session.execute(text("CREATE TABLE IF NOT EXISTS backup_test_table (id INTEGER PRIMARY KEY, value TEXT)"))
+                session.execute(
+                    text("CREATE TABLE IF NOT EXISTS backup_test_table (id INTEGER PRIMARY KEY, value TEXT)")
+                )
                 session.execute(text("INSERT INTO backup_test_table (value) VALUES ('ok')"))
                 session.commit()
             finally:

@@ -7,7 +7,6 @@ import shlex
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
-
 DEFAULT_PIPETTES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, "pipettes"))
 _PARAMETER_NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
 _PARAMETER_FLAG_RE = re.compile(r"^--[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
@@ -58,15 +57,17 @@ def _normalize_parameters(values: Any) -> List[Dict[str, Any]]:
             re.compile(pattern)
         except re.error:
             pattern = _DEFAULT_PARAMETER_VALUE_RE
-        rows.append({
-            "name": name,
-            "label": str(value.get("label", name) or name).strip() or name,
-            "description": str(value.get("description", "") or "").strip(),
-            "placeholder": str(value.get("placeholder", "") or "").strip(),
-            "flag": flag,
-            "required": bool(value.get("required", False)),
-            "value_pattern": pattern,
-        })
+        rows.append(
+            {
+                "name": name,
+                "label": str(value.get("label", name) or name).strip() or name,
+                "description": str(value.get("description", "") or "").strip(),
+                "placeholder": str(value.get("placeholder", "") or "").strip(),
+                "flag": flag,
+                "required": bool(value.get("required", False)),
+                "value_pattern": pattern,
+            }
+        )
     return rows
 
 
@@ -113,10 +114,7 @@ class PipetteSpec:
 
     @property
     def command_template(self) -> str:
-        return (
-            f"bash {shlex.quote(self.entrypoint)} "
-            "--target '[IP]' --port '[PORT]' --output '[OUTPUT].txt'"
-        )
+        return f"bash {shlex.quote(self.entrypoint)} " "--target '[IP]' --port '[PORT]' --output '[OUTPUT].txt'"
 
     def validate_parameter_values(self, values: Optional[Dict[str, Any]] = None) -> Dict[str, str]:
         source = values if isinstance(values, dict) else {}

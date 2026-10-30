@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import unittest
 from unittest import mock
 from unittest.mock import MagicMock, patch
@@ -51,16 +52,20 @@ class ProjectManagerTest(unittest.TestCase):
         self.mockShell.create_named_temporary_file.assert_called_once_with(
             suffix=".legion", prefix="legion-", directory=PROJECT_MANAGER_TEMP, delete_on_close=False
         )
-        self.mockShell.create_temporary_directory.assert_has_calls([
-            mock.call(prefix="legion-", suffix="-tool-output", directory=PROJECT_MANAGER_TEMP),
-            mock.call(prefix="legion-", suffix="-running", directory=PROJECT_MANAGER_TEMP),
-        ])
-        self.mockShell.create_directory_recursively.assert_has_calls([
-            mock.call("/outputFolder/screenshots"),
-            mock.call("/runningFolder/nmap"),
-            mock.call("/runningFolder/hydra"),
-            mock.call("/runningFolder/dnsmap"),
-        ])
+        self.mockShell.create_temporary_directory.assert_has_calls(
+            [
+                mock.call(prefix="legion-", suffix="-tool-output", directory=PROJECT_MANAGER_TEMP),
+                mock.call(prefix="legion-", suffix="-running", directory=PROJECT_MANAGER_TEMP),
+            ]
+        )
+        self.mockShell.create_directory_recursively.assert_has_calls(
+            [
+                mock.call("/outputFolder/screenshots"),
+                mock.call("/runningFolder/nmap"),
+                mock.call("/runningFolder/hydra"),
+                mock.call("/runningFolder/dnsmap"),
+            ]
+        )
         self.assertIsNotNone(project.properties.projectName)
         self.assertEqual(project.properties.projectType, "legion")
         self.assertEqual(project.properties.workingDirectory, "workingDir/")
@@ -111,13 +116,15 @@ class ProjectManagerTest(unittest.TestCase):
         self.assertIsNotNone(openedExistingProject.properties.usernamesWordList)
         self.assertIsNotNone(openedExistingProject.properties.passwordWordList)
         self.assertTrue(openedExistingProject.properties.storeWordListsOnExit)
-        self.mockShell.create_temporary_directory.assert_called_once_with(suffix="-running", prefix="legion-",
-                                                                          directory=PROJECT_MANAGER_TEMP)
+        self.mockShell.create_temporary_directory.assert_called_once_with(
+            suffix="-running", prefix="legion-", directory=PROJECT_MANAGER_TEMP
+        )
         self.mockRepositoryFactory.buildRepositories.assert_called_once()
 
-    @patch('os.system')
-    def test_saveProjectAs_WhenProvidedAnActiveTemporaryProjectAndASaveFileName_SavesProjectSuccessfully(self,
-                                                                                                         osSystem):
+    @patch("os.system")
+    def test_saveProjectAs_WhenProvidedAnActiveTemporaryProjectAndASaveFileName_SavesProjectSuccessfully(
+        self, osSystem
+    ):
         expectedFileName = "my-test-project"
         self.project.properties.projectName = "some-running-temporary-project"
         self.project.properties.outputFolder = "some-temporary-output-folder"
@@ -127,8 +134,10 @@ class ProjectManagerTest(unittest.TestCase):
         self.mockDatabaseClass.return_value = validation_db
         self.projectManager.openExistingProject = MagicMock(return_value="saved-project")
 
-        with patch("app.ProjectManager.os.path.exists", return_value=False), \
-                patch("app.ProjectManager.shutil.copytree") as mock_copytree:
+        with (
+            patch("app.ProjectManager.os.path.exists", return_value=False),
+            patch("app.ProjectManager.shutil.copytree") as mock_copytree,
+        ):
             savedProject: Project = self.projectManager.saveProjectAs(
                 self.project,
                 expectedFileName,

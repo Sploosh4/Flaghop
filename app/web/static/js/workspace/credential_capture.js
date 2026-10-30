@@ -1,10 +1,10 @@
-/** Workspace credential capture. */
 import { getChecked, getValue, makeCell, setChecked, setText, setValue, setWorkspaceStatus, updateBodyModalState } from "./dom.js";
 import { fetchJson, postJson } from "./http.js";
 import { pollSnapshot } from "./live_updates.js";
 import { copyTextToClipboard, openProcessOutputModal } from "./process_output.js";
 import { credentialCaptureState, uiModalState } from "./state.js";
 import { applyCredentialCapturePanelEnabled } from "./tool_settings.js";
+/** Workspace credential capture. */
 
 export function setCredentialsModalOpen(open) {
     const modal = document.getElementById("credentials-modal");

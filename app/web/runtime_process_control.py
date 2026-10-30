@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from db.schema import ensure_column
+
 import os
 import signal
 import subprocess
@@ -114,9 +116,9 @@ def close_process(runtime, process_id: int) -> Dict[str, Any]:
         status = str(process_repo.getStatusByProcessId(str(int(process_id))) or "")
         session = project.database.session()
         try:
-            session.execute(text(
-                "UPDATE process SET display = 'False', closed = 'True' WHERE id = :id"
-            ), {"id": int(process_id)})
+            session.execute(
+                text("UPDATE process SET display = 'False', closed = 'True' WHERE id = :id"), {"id": int(process_id)}
+            )
             session.commit()
         except Exception:
             session.rollback()
@@ -137,19 +139,22 @@ def get_process_output(runtime, process_id: int, offset: int = 0, max_chars: int
         project = runtime._require_active_project()
         session = project.database.session()
         try:
-            result = session.execute(text(
-                "SELECT p.id, p.name, p.hostIp, p.port, p.protocol, p.command, p.status, p.startTime, p.endTime, "
-                "COALESCE(p.percent, '') AS percent, "
-                "p.estimatedRemaining AS estimatedRemaining, "
-                "COALESCE(p.elapsed, 0) AS elapsed, "
-                "COALESCE(p.progressMessage, '') AS progressMessage, "
-                "COALESCE(p.progressSource, '') AS progressSource, "
-                "COALESCE(p.progressUpdatedAt, '') AS progressUpdatedAt, "
-                "COALESCE(o.output, '') AS output "
-                "FROM process AS p "
-                "LEFT JOIN process_output AS o ON o.processId = p.id "
-                "WHERE p.id = :id LIMIT 1"
-            ), {"id": int(process_id)})
+            result = session.execute(
+                text(
+                    "SELECT p.id, p.name, p.hostIp, p.port, p.protocol, p.command, p.status, p.startTime, p.endTime, "
+                    "COALESCE(p.percent, '') AS percent, "
+                    "p.estimatedRemaining AS estimatedRemaining, "
+                    "COALESCE(p.elapsed, 0) AS elapsed, "
+                    "COALESCE(p.progressMessage, '') AS progressMessage, "
+                    "COALESCE(p.progressSource, '') AS progressSource, "
+                    "COALESCE(p.progressUpdatedAt, '') AS progressUpdatedAt, "
+                    "COALESCE(o.output, '') AS output "
+                    "FROM process AS p "
+                    "LEFT JOIN process_output AS o ON o.processId = p.id "
+                    "WHERE p.id = :id LIMIT 1"
+                ),
+                {"id": int(process_id)},
+            )
             row = result.fetchone()
             if row is None:
                 raise KeyError(f"Unknown process id: {process_id}")
@@ -162,7 +167,7 @@ def get_process_output(runtime, process_id: int, offset: int = 0, max_chars: int
     output_length = len(full_output)
     chunk = ""
     if offset_value < output_length:
-        chunk = full_output[offset_value:offset_value + max_len]
+        chunk = full_output[offset_value : offset_value + max_len]
     next_offset = offset_value + len(chunk)
     status = str(data.get("status", "") or "")
     completed = status not in {"Running", "Waiting"}
@@ -232,48 +237,49 @@ def ensure_process_tables(runtime):
         return
     session = project.database.session()
     try:
-        def _ensure_column(table_name: str, column_name: str, column_type: str):
-            rows = session.execute(text(f"PRAGMA table_info({table_name})")).fetchall()
-            existing = {str(row[1]) for row in rows if len(row) > 1}
-            if str(column_name) in existing:
-                return
-            session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"))
 
-        session.execute(text(
-            "CREATE TABLE IF NOT EXISTS process ("
-            "pid TEXT,"
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "display TEXT,"
-            "name TEXT,"
-            "tabTitle TEXT,"
-            "hostIp TEXT,"
-            "port TEXT,"
-            "protocol TEXT,"
-            "command TEXT,"
-            "startTime TEXT,"
-            "endTime TEXT,"
-            "estimatedRemaining INTEGER,"
-            "elapsed INTEGER,"
-            "outputfile TEXT,"
-            "status TEXT,"
-            "closed TEXT,"
-            "percent TEXT,"
-            "progressMessage TEXT,"
-            "progressSource TEXT,"
-            "progressUpdatedAt TEXT"
-            ")"
-        ))
-        session.execute(text(
-            "CREATE TABLE IF NOT EXISTS process_output ("
-            "processId INTEGER,"
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "output TEXT"
-            ")"
-        ))
+        def _ensure_column(table_name, column_name, column_type):
+            ensure_column(session, table_name, column_name, column_type)
+
+        session.execute(
+            text(
+                "CREATE TABLE IF NOT EXISTS process ("
+                "pid TEXT,"
+                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "display TEXT,"
+                "name TEXT,"
+                "tabTitle TEXT,"
+                "hostIp TEXT,"
+                "port TEXT,"
+                "protocol TEXT,"
+                "command TEXT,"
+                "startTime TEXT,"
+                "endTime TEXT,"
+                "estimatedRemaining INTEGER,"
+                "elapsed INTEGER,"
+                "outputfile TEXT,"
+                "status TEXT,"
+                "closed TEXT,"
+                "percent TEXT,"
+                "progressMessage TEXT,"
+                "progressSource TEXT,"
+                "progressUpdatedAt TEXT"
+                ")"
+            )
+        )
+        session.execute(
+            text(
+                "CREATE TABLE IF NOT EXISTS process_output ("
+                "processId INTEGER,"
+                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "output TEXT"
+                ")"
+            )
+        )
         for column_name, column_type in (
-                ("progressMessage", "TEXT"),
-                ("progressSource", "TEXT"),
-                ("progressUpdatedAt", "TEXT"),
+            ("progressMessage", "TEXT"),
+            ("progressSource", "TEXT"),
+            ("progressUpdatedAt", "TEXT"),
         ):
             _ensure_column("process", column_name, column_type)
         session.commit()
@@ -286,9 +292,7 @@ def ensure_process_tables(runtime):
 def count_running_or_waiting_processes(project) -> int:
     session = project.database.session()
     try:
-        count = session.execute(
-            text("SELECT COUNT(*) FROM process WHERE status IN ('Running', 'Waiting')")
-        ).scalar()
+        count = session.execute(text("SELECT COUNT(*) FROM process WHERE status IN ('Running', 'Waiting')")).scalar()
         return int(count or 0)
     except Exception:
         return 0

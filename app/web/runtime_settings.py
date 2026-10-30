@@ -52,11 +52,11 @@ def tool_audit_availability(entries: Any) -> Dict[str, List[str]]:
 
 
 def get_tool_install_plan(
-        runtime,
-        *,
-        platform: str = "kali",
-        scope: str = "missing",
-        tool_keys: Optional[List[str]] = None,
+    runtime,
+    *,
+    platform: str = "kali",
+    scope: str = "missing",
+    tool_keys: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     settings = getattr(runtime, "settings", None)
     if settings is None:
@@ -71,11 +71,11 @@ def get_tool_install_plan(
 
 
 def start_tool_install_job(
-        runtime,
-        *,
-        platform: str = "kali",
-        scope: str = "missing",
-        tool_keys: Optional[List[str]] = None,
+    runtime,
+    *,
+    platform: str = "kali",
+    scope: str = "missing",
+    tool_keys: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     normalized_platform = normalize_tool_install_platform(platform)
     normalized_scope = str(scope or "missing").strip().lower() or "missing"
@@ -99,16 +99,18 @@ def start_tool_install_job(
 
 
 def run_tool_install_job(
-        runtime,
-        *,
-        platform: str = "kali",
-        scope: str = "missing",
-        tool_keys: Optional[List[str]] = None,
-        job_id: int = 0,
+    runtime,
+    *,
+    platform: str = "kali",
+    scope: str = "missing",
+    tool_keys: Optional[List[str]] = None,
+    job_id: int = 0,
 ) -> Dict[str, Any]:
     plan = get_tool_install_plan(runtime, platform=platform, scope=scope, tool_keys=tool_keys)
     resolved_job_id = int(job_id or 0)
     return execute_tool_install_plan(
         plan,
-        is_cancel_requested=(lambda: runtime.jobs.is_cancel_requested(resolved_job_id)) if resolved_job_id > 0 else None,
+        is_cancel_requested=(
+            (lambda: runtime.jobs.is_cancel_requested(resolved_job_id)) if resolved_job_id > 0 else None
+        ),
     )

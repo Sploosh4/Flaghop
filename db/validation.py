@@ -20,4 +20,4 @@ Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@
 # this function makes a string safe for use in sql query. the main point is to prevent us from breaking,
 # not so much SQLi as such.
 def sanitise(string: str) -> str:
-    return string.replace('\'', '\'\'')
+    return string.replace("'", "''")

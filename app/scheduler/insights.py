@@ -18,36 +18,33 @@ def _utc_now() -> str:
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
 
-def _ensure_column(session, table_name: str, column_name: str, column_type: str):
-    rows = session.execute(text(f"PRAGMA table_info({table_name})")).fetchall()
-    existing = {str(row[1]) for row in rows if len(row) > 1}
-    if str(column_name) in existing:
-        return
-    session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"))
+from db.schema import ensure_column as _ensure_column
 
 
 def _ensure_table(session):
-    session.execute(text(
-        "CREATE TABLE IF NOT EXISTS scheduler_host_ai_state ("
-        "host_id INTEGER PRIMARY KEY,"
-        "host_ip TEXT,"
-        "updated_at TEXT,"
-        "provider TEXT,"
-        "goal_profile TEXT,"
-        "last_port TEXT,"
-        "last_protocol TEXT,"
-        "last_service TEXT,"
-        "hostname TEXT,"
-        "hostname_confidence REAL,"
-        "os_match TEXT,"
-        "os_confidence REAL,"
-        "next_phase TEXT,"
-        "technologies_json TEXT,"
-        "findings_json TEXT,"
-        "manual_tests_json TEXT,"
-        "raw_json TEXT"
-        ")"
-    ))
+    session.execute(
+        text(
+            "CREATE TABLE IF NOT EXISTS scheduler_host_ai_state ("
+            "host_id INTEGER PRIMARY KEY,"
+            "host_ip TEXT,"
+            "updated_at TEXT,"
+            "provider TEXT,"
+            "goal_profile TEXT,"
+            "last_port TEXT,"
+            "last_protocol TEXT,"
+            "last_service TEXT,"
+            "hostname TEXT,"
+            "hostname_confidence REAL,"
+            "os_match TEXT,"
+            "os_confidence REAL,"
+            "next_phase TEXT,"
+            "technologies_json TEXT,"
+            "findings_json TEXT,"
+            "manual_tests_json TEXT,"
+            "raw_json TEXT"
+            ")"
+        )
+    )
     _ensure_column(session, "scheduler_host_ai_state", "host_ip", "TEXT")
     _ensure_column(session, "scheduler_host_ai_state", "updated_at", "TEXT")
     _ensure_column(session, "scheduler_host_ai_state", "provider", "TEXT")
@@ -108,12 +105,15 @@ def get_host_ai_state(database, host_id: int) -> Optional[Dict[str, Any]]:
     session = database.session()
     try:
         _ensure_table(session)
-        result = session.execute(text(
-            "SELECT host_id, host_ip, updated_at, provider, goal_profile, last_port, last_protocol, last_service, "
-            "hostname, hostname_confidence, os_match, os_confidence, next_phase, technologies_json, findings_json, "
-            "manual_tests_json, raw_json "
-            "FROM scheduler_host_ai_state WHERE host_id = :host_id LIMIT 1"
-        ), {"host_id": int(host_id or 0)})
+        result = session.execute(
+            text(
+                "SELECT host_id, host_ip, updated_at, provider, goal_profile, last_port, last_protocol, last_service, "
+                "hostname, hostname_confidence, os_match, os_confidence, next_phase, technologies_json, findings_json, "
+                "manual_tests_json, raw_json "
+                "FROM scheduler_host_ai_state WHERE host_id = :host_id LIMIT 1"
+            ),
+            {"host_id": int(host_id or 0)},
+        )
         row = result.fetchone()
         if row is None:
             return None
@@ -153,43 +153,50 @@ def upsert_host_ai_state(database, host_id: int, payload: Dict[str, Any]) -> Dic
             "raw_json": _as_json(payload.get("raw", {})),
         }
 
-        existing = session.execute(text(
-            "SELECT host_id FROM scheduler_host_ai_state WHERE host_id = :host_id LIMIT 1"
-        ), {"host_id": int(host_id)}).fetchone()
+        existing = session.execute(
+            text("SELECT host_id FROM scheduler_host_ai_state WHERE host_id = :host_id LIMIT 1"),
+            {"host_id": int(host_id)},
+        ).fetchone()
 
         if existing is None:
-            session.execute(text(
-                "INSERT INTO scheduler_host_ai_state ("
-                "host_id, host_ip, updated_at, provider, goal_profile, last_port, last_protocol, last_service, "
-                "hostname, hostname_confidence, os_match, os_confidence, next_phase, technologies_json, findings_json, "
-                "manual_tests_json, raw_json"
-                ") VALUES ("
-                ":host_id, :host_ip, :updated_at, :provider, :goal_profile, :last_port, :last_protocol, :last_service, "
-                ":hostname, :hostname_confidence, :os_match, :os_confidence, :next_phase, :technologies_json, "
-                ":findings_json, :manual_tests_json, :raw_json"
-                ")"
-            ), row_payload)
+            session.execute(
+                text(
+                    "INSERT INTO scheduler_host_ai_state ("
+                    "host_id, host_ip, updated_at, provider, goal_profile, last_port, last_protocol, last_service, "
+                    "hostname, hostname_confidence, os_match, os_confidence, next_phase, technologies_json, findings_json, "
+                    "manual_tests_json, raw_json"
+                    ") VALUES ("
+                    ":host_id, :host_ip, :updated_at, :provider, :goal_profile, :last_port, :last_protocol, :last_service, "
+                    ":hostname, :hostname_confidence, :os_match, :os_confidence, :next_phase, :technologies_json, "
+                    ":findings_json, :manual_tests_json, :raw_json"
+                    ")"
+                ),
+                row_payload,
+            )
         else:
-            session.execute(text(
-                "UPDATE scheduler_host_ai_state SET "
-                "host_ip = :host_ip, "
-                "updated_at = :updated_at, "
-                "provider = :provider, "
-                "goal_profile = :goal_profile, "
-                "last_port = :last_port, "
-                "last_protocol = :last_protocol, "
-                "last_service = :last_service, "
-                "hostname = :hostname, "
-                "hostname_confidence = :hostname_confidence, "
-                "os_match = :os_match, "
-                "os_confidence = :os_confidence, "
-                "next_phase = :next_phase, "
-                "technologies_json = :technologies_json, "
-                "findings_json = :findings_json, "
-                "manual_tests_json = :manual_tests_json, "
-                "raw_json = :raw_json "
-                "WHERE host_id = :host_id"
-            ), row_payload)
+            session.execute(
+                text(
+                    "UPDATE scheduler_host_ai_state SET "
+                    "host_ip = :host_ip, "
+                    "updated_at = :updated_at, "
+                    "provider = :provider, "
+                    "goal_profile = :goal_profile, "
+                    "last_port = :last_port, "
+                    "last_protocol = :last_protocol, "
+                    "last_service = :last_service, "
+                    "hostname = :hostname, "
+                    "hostname_confidence = :hostname_confidence, "
+                    "os_match = :os_match, "
+                    "os_confidence = :os_confidence, "
+                    "next_phase = :next_phase, "
+                    "technologies_json = :technologies_json, "
+                    "findings_json = :findings_json, "
+                    "manual_tests_json = :manual_tests_json, "
+                    "raw_json = :raw_json "
+                    "WHERE host_id = :host_id"
+                ),
+                row_payload,
+            )
 
         session.commit()
         if sync_target_state:
@@ -197,10 +204,13 @@ def upsert_host_ai_state(database, host_id: int, payload: Dict[str, Any]) -> Dic
                 upsert_target_state(
                     database,
                     int(host_id or 0),
-                    legacy_ai_payload_to_target_state(int(host_id or 0), {
-                        **dict(payload or {}),
-                        "updated_at": str(row_payload.get("updated_at", now) or now),
-                    }),
+                    legacy_ai_payload_to_target_state(
+                        int(host_id or 0),
+                        {
+                            **dict(payload or {}),
+                            "updated_at": str(row_payload.get("updated_at", now) or now),
+                        },
+                    ),
                     merge=True,
                 )
             except Exception:
@@ -218,9 +228,9 @@ def delete_host_ai_state(database, host_id: int) -> int:
     deleted_target = 0
     try:
         _ensure_table(session)
-        result = session.execute(text(
-            "DELETE FROM scheduler_host_ai_state WHERE host_id = :host_id"
-        ), {"host_id": int(host_id)})
+        result = session.execute(
+            text("DELETE FROM scheduler_host_ai_state WHERE host_id = :host_id"), {"host_id": int(host_id)}
+        )
         session.commit()
         try:
             deleted_target = int(delete_target_state(database, int(host_id or 0)) or 0)

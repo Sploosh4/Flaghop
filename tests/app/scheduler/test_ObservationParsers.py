@@ -8,16 +8,18 @@ class ObservationParsersTest(unittest.TestCase):
     def test_extract_tool_observations_suppresses_nuclei_rate_limited_matches(self):
         from app.scheduler.observation_parsers import extract_tool_observations
 
-        output = json.dumps({
-            "template-id": "generic-admin-panel",
-            "matched-at": "https://portal.example/admin",
-            "info": {
-                "name": "Authenticated admin panel exposure",
-                "severity": "high",
-                "classification": {"cve-id": ["CVE-2026-1111"]},
-            },
-            "extracted-results": ["429 Too Many Requests", "Retry-After: 120"],
-        })
+        output = json.dumps(
+            {
+                "template-id": "generic-admin-panel",
+                "matched-at": "https://portal.example/admin",
+                "info": {
+                    "name": "Authenticated admin panel exposure",
+                    "severity": "high",
+                    "classification": {"cve-id": ["CVE-2026-1111"]},
+                },
+                "extracted-results": ["429 Too Many Requests", "Retry-After: 120"],
+            }
+        )
 
         parsed = extract_tool_observations(
             "nuclei-cves",
@@ -88,10 +90,10 @@ class ObservationParsersTest(unittest.TestCase):
         from app.scheduler.observation_parsers import extract_tool_observations
 
         output = (
-            '[aws-public-bucket] [http] [medium] https://tenant-assets.s3.amazonaws.com '
-            'Amazon S3 bucket listing exposed x-amz-request-id: 1234\n'
-            '[azure-blob-container-public] [http] [medium] https://tenant.blob.core.windows.net '
-            'Azure Blob listing exposed x-ms-version: 2024-11-04'
+            "[aws-public-bucket] [http] [medium] https://tenant-assets.s3.amazonaws.com "
+            "Amazon S3 bucket listing exposed x-amz-request-id: 1234\n"
+            "[azure-blob-container-public] [http] [medium] https://tenant.blob.core.windows.net "
+            "Azure Blob listing exposed x-ms-version: 2024-11-04"
         )
 
         parsed = extract_tool_observations(
@@ -267,7 +269,7 @@ class ObservationParsersTest(unittest.TestCase):
                     '{"results":['
                     '{"url":"https://api.example/graphql","status":200},'
                     '{"url":"https://api.example/swagger","status":401}'
-                    ']}'
+                    "]}"
                 )
 
             parsed = extract_tool_observations(
@@ -302,14 +304,14 @@ class ObservationParsersTest(unittest.TestCase):
         from app.scheduler.observation_parsers import extract_tool_observations
 
         output = (
-            '{'
+            "{"
             '"results":['
             '{"http://192.168.3.133:5357/":['
             '{"content-length":312,"path":"/%2e%2e//google.com","redirect":null,"status":403},'
             '{"content-length":312,"path":"/\\\\..\\\\..\\\\etc\\\\passwd","redirect":null,"status":403}'
-            ']}'
-            ']'
-            '}'
+            "]}"
+            "]"
+            "}"
         )
 
         parsed = extract_tool_observations(
@@ -351,12 +353,14 @@ class ObservationParsersTest(unittest.TestCase):
     def test_extract_tool_observations_parses_httpx_directory_listing_api_and_cdn(self):
         from app.scheduler.observation_parsers import extract_tool_observations
 
-        output = "\n".join([
-            '{"scheme":"https","host":"files.example","path":"/","title":"Index of /",'
-            '"status-code":200,"content-type":"text/html","webserver":"Apache/2.4.57"}',
-            '{"url":"https://api.example/swagger/index.html","title":"Swagger UI",'
-            '"status-code":200,"content-type":"text/html","cdn":"cloudflare"}',
-        ])
+        output = "\n".join(
+            [
+                '{"scheme":"https","host":"files.example","path":"/","title":"Index of /",'
+                '"status-code":200,"content-type":"text/html","webserver":"Apache/2.4.57"}',
+                '{"url":"https://api.example/swagger/index.html","title":"Swagger UI",'
+                '"status-code":200,"content-type":"text/html","cdn":"cloudflare"}',
+            ]
+        )
 
         parsed = extract_tool_observations("httpx", output)
 
@@ -383,10 +387,7 @@ class ObservationParsersTest(unittest.TestCase):
 
         parsed = extract_tool_observations("httpx", output)
 
-        technology_names = {
-            str(item.get("name", "")).strip().lower()
-            for item in parsed["technologies"]
-        }
+        technology_names = {str(item.get("name", "")).strip().lower() for item in parsed["technologies"]}
 
         self.assertIn("cloudflare", technology_names)
         self.assertIn("hsts", technology_names)
@@ -676,7 +677,11 @@ class ObservationParsersTest(unittest.TestCase):
                         {"id": "heartbleed", "severity": "OK", "finding": "not vulnerable", "cve": "CVE-2014-0160"},
                     ],
                     "cipherTests": [
-                        {"id": "SWEET32", "severity": "LOW", "finding": "uses 64 bit block ciphers for TLS 1.0 and above"},
+                        {
+                            "id": "SWEET32",
+                            "severity": "LOW",
+                            "finding": "uses 64 bit block ciphers for TLS 1.0 and above",
+                        },
                     ],
                 }
             ]
@@ -713,23 +718,29 @@ class ObservationParsersTest(unittest.TestCase):
     def test_extract_tool_observations_ignores_testssl_check_failed_records(self):
         from app.scheduler.observation_parsers import extract_tool_observations
 
-        output = json.dumps({
-            "scanResult": [
-                {
-                    "targetHost": "edge.example",
-                    "ip": "192.0.2.15",
-                    "port": "443",
-                    "service": "HTTP",
-                    "vulnerabilities": [
-                        {"id": "secure_renego", "severity": "WARN", "finding": "OpenSSL handshake didn't succeed"},
-                        {"id": "fallback_SCSV", "severity": "WARN", "finding": "Check failed, unexpected result"},
-                    ],
-                    "serverDefaults": [
-                        {"id": "cert_expirationStatus <cert#1>", "severity": "MEDIUM", "finding": "expires < 60 days (12)"},
-                    ],
-                }
-            ]
-        })
+        output = json.dumps(
+            {
+                "scanResult": [
+                    {
+                        "targetHost": "edge.example",
+                        "ip": "192.0.2.15",
+                        "port": "443",
+                        "service": "HTTP",
+                        "vulnerabilities": [
+                            {"id": "secure_renego", "severity": "WARN", "finding": "OpenSSL handshake didn't succeed"},
+                            {"id": "fallback_SCSV", "severity": "WARN", "finding": "Check failed, unexpected result"},
+                        ],
+                        "serverDefaults": [
+                            {
+                                "id": "cert_expirationStatus <cert#1>",
+                                "severity": "MEDIUM",
+                                "finding": "expires < 60 days (12)",
+                            },
+                        ],
+                    }
+                ]
+            }
+        )
 
         parsed = extract_tool_observations("testssl.sh", output)
 
@@ -758,10 +769,7 @@ class ObservationParsersTest(unittest.TestCase):
         self.assertIn("https://portal.example", generic_urls)
         self.assertTrue(any("server header is different" in row.lower() for row in generic_evidence))
 
-        no_waf_output = (
-            "[*] Checking https://portal.example\n"
-            "[-] No WAF detected by the generic detection\n"
-        )
+        no_waf_output = "[*] Checking https://portal.example\n" "[-] No WAF detected by the generic detection\n"
         no_waf_parsed = extract_tool_observations("wafw00f", no_waf_output)
 
         self.assertEqual([], no_waf_parsed["findings"])
@@ -866,9 +874,9 @@ class ObservationParsersTest(unittest.TestCase):
 
         output = (
             "{"
-            "\"banner\":{\"version\":\"3.8.28\"},"
-            "\"scan_aborted\":\"The remote website is up, but does not seem to be running WordPress.\","
-            "\"target_url\":\"http://ruckuspki-devicesubca-1/\""
+            '"banner":{"version":"3.8.28"},'
+            '"scan_aborted":"The remote website is up, but does not seem to be running WordPress.",'
+            '"target_url":"http://ruckuspki-devicesubca-1/"'
             "}"
         )
 
@@ -887,9 +895,9 @@ class ObservationParsersTest(unittest.TestCase):
 
         output = (
             "{"
-            "\"banner\":{\"description\":\"WordPress Security Scanner by the WPScan Team\",\"sponsor\":\"Sponsored by Automattic - https://automattic.com/\"},"
-            "\"scan_aborted\":\"The remote website is up, but does not seem to be running WordPress.\","
-            "\"target_url\":\"http://ruckuspki-devicesubca-1/\""
+            '"banner":{"description":"WordPress Security Scanner by the WPScan Team","sponsor":"Sponsored by Automattic - https://automattic.com/"},'
+            '"scan_aborted":"The remote website is up, but does not seem to be running WordPress.",'
+            '"target_url":"http://ruckuspki-devicesubca-1/"'
             "}"
         )
 
@@ -948,7 +956,7 @@ class ObservationParsersTest(unittest.TestCase):
             "Server: Apache/2.4.58\n"
             "Location: /admin/login\n"
             "Allow: GET, HEAD, POST, PUT, DELETE\n"
-            "WWW-Authenticate: Basic realm=\"Admin\"\n"
+            'WWW-Authenticate: Basic realm="Admin"\n'
             "Strict-Transport-Security: max-age=31536000\n"
             "Content-Security-Policy: default-src 'self'\n"
             "X-Frame-Options: DENY\n"
@@ -984,12 +992,7 @@ class ObservationParsersTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             artifact = os.path.join(tmpdir, "robots.txt")
             with open(artifact, "w", encoding="utf-8") as handle:
-                handle.write(
-                    "User-agent: *\n"
-                    "Disallow: /admin\n"
-                    "Allow: /health\n"
-                    "Sitemap: /sitemap.xml\n"
-                )
+                handle.write("User-agent: *\n" "Disallow: /admin\n" "Allow: /health\n" "Sitemap: /sitemap.xml\n")
 
             parsed = extract_tool_observations(
                 "curl-robots",
@@ -1269,9 +1272,7 @@ class ObservationParsersTest(unittest.TestCase):
         from app.scheduler.observation_parsers import extract_tool_observations
 
         output = (
-            "Found domain name: CONTOSO\n"
-            "Found user: Administrator, uid = 500\n"
-            "Found user: HelpDesk, uid = 1107\n"
+            "Found domain name: CONTOSO\n" "Found user: Administrator, uid = 500\n" "Found user: HelpDesk, uid = 1107\n"
         )
 
         parsed = extract_tool_observations(
@@ -1414,7 +1415,9 @@ class ObservationParsersTest(unittest.TestCase):
         self.assertIn("Internal DNS records disclosed (1)", findings)
         self.assertIn("www.example.com", findings["DNS subdomains discovered (2)"]["evidence_items"])
         self.assertIn("intranet.example.com", findings["DNS subdomains discovered (2)"]["evidence_items"])
-        self.assertIn("intranet.example.com -> 10.0.0.5", findings["Internal DNS records disclosed (1)"]["evidence_items"])
+        self.assertIn(
+            "intranet.example.com -> 10.0.0.5", findings["Internal DNS records disclosed (1)"]["evidence_items"]
+        )
         self.assertEqual(
             {"www.example.com", "intranet.example.com"},
             {str(item).strip() for item in parsed.get("discovered_hosts", [])},
@@ -1424,11 +1427,11 @@ class ObservationParsersTest(unittest.TestCase):
         from app.scheduler.observation_parsers import extract_tool_observations
 
         output = (
-            "{\"host\":\"api.example.com\",\"input\":\"example.com\",\"source\":\"crtsh\"}\n"
-            "{\"host\":\"cdn.example.com\",\"input\":\"example.com\",\"source\":\"alienvault\"}\n"
+            '{"host":"api.example.com","input":"example.com","source":"crtsh"}\n'
+            '{"host":"cdn.example.com","input":"example.com","source":"alienvault"}\n'
             "admin.example.com\n"
             "[INF] completed providers\n"
-            "{\"host\":\"api.example.com\",\"input\":\"example.com\",\"source\":\"buffer\"}\n"
+            '{"host":"api.example.com","input":"example.com","source":"buffer"}\n'
         )
 
         parsed = extract_tool_observations("subfinder", output)
@@ -1445,40 +1448,42 @@ class ObservationParsersTest(unittest.TestCase):
     def test_extract_tool_observations_parses_shodan_enrichment_output(self):
         from app.scheduler.observation_parsers import extract_tool_observations
 
-        output = json.dumps({
-            "input_target": "connect.example.com",
-            "exact_hostname": "connect.example.com",
-            "root_domain": "example.com",
-            "supported": True,
-            "dns_resolve": {
-                "connect.example.com": "203.0.113.10",
-            },
-            "dns_domain": {
-                "domain": "example.com",
-                "data": [
-                    {"subdomain": "www", "type": "A", "value": "203.0.113.20"},
-                    {"subdomain": "admin", "type": "CNAME", "value": "edge.example.net"},
+        output = json.dumps(
+            {
+                "input_target": "connect.example.com",
+                "exact_hostname": "connect.example.com",
+                "root_domain": "example.com",
+                "supported": True,
+                "dns_resolve": {
+                    "connect.example.com": "203.0.113.10",
+                },
+                "dns_domain": {
+                    "domain": "example.com",
+                    "data": [
+                        {"subdomain": "www", "type": "A", "value": "203.0.113.20"},
+                        {"subdomain": "admin", "type": "CNAME", "value": "edge.example.net"},
+                    ],
+                },
+                "search_query": 'hostname:"connect.example.com"',
+                "total": 2,
+                "matches": [
+                    {
+                        "ip_str": "203.0.113.10",
+                        "port": 443,
+                        "hostnames": ["connect.example.com", "www.example.com"],
+                        "domains": ["connect.example.com", "www.example.com", "example.com"],
+                        "product": "nginx",
+                    },
+                    {
+                        "ip": 3405803787,
+                        "port": 80,
+                        "hostnames": ["api.example.com"],
+                        "domains": ["api.example.com", "example.com"],
+                        "product": "Envoy",
+                    },
                 ],
-            },
-            "search_query": 'hostname:"connect.example.com"',
-            "total": 2,
-            "matches": [
-                {
-                    "ip_str": "203.0.113.10",
-                    "port": 443,
-                    "hostnames": ["connect.example.com", "www.example.com"],
-                    "domains": ["connect.example.com", "www.example.com", "example.com"],
-                    "product": "nginx",
-                },
-                {
-                    "ip": 3405803787,
-                    "port": 80,
-                    "hostnames": ["api.example.com"],
-                    "domains": ["api.example.com", "example.com"],
-                    "product": "Envoy",
-                },
-            ],
-        })
+            }
+        )
 
         parsed = extract_tool_observations("shodan-enrichment", output)
 
@@ -1503,17 +1508,20 @@ class ObservationParsersTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             metadata_path = os.path.join(temp_dir, "203.0.113.44-80-screenshot.png.json")
             with open(metadata_path, "w", encoding="utf-8") as handle:
-                json.dump({
-                    "tool_id": "screenshooter",
-                    "filename": "203.0.113.44-80-screenshot.png",
-                    "host_ip": "203.0.113.44",
-                    "hostname": "portal.example",
-                    "port": "80",
-                    "protocol": "tcp",
-                    "service_name": "http",
-                    "target_url": "http://portal.example:80",
-                    "capture_engine": "EyeWitness",
-                }, handle)
+                json.dump(
+                    {
+                        "tool_id": "screenshooter",
+                        "filename": "203.0.113.44-80-screenshot.png",
+                        "host_ip": "203.0.113.44",
+                        "hostname": "portal.example",
+                        "port": "80",
+                        "protocol": "tcp",
+                        "service_name": "http",
+                        "target_url": "http://portal.example:80",
+                        "capture_engine": "EyeWitness",
+                    },
+                    handle,
+                )
 
             parsed = extract_tool_observations(
                 "screenshooter",
@@ -1559,9 +1567,15 @@ class ObservationParsersTest(unittest.TestCase):
             "|_    Named pipe: \\\\sql\\\\query\n"
         )
 
-        mysql_parsed = extract_tool_observations("mysql-info.nse", mysql_output, port="3306", protocol="tcp", service="mysql")
-        pgsql_parsed = extract_tool_observations("pgsql-info.nse", pgsql_output, port="5432", protocol="tcp", service="postgresql")
-        mssql_parsed = extract_tool_observations("ms-sql-info.nse", mssql_output, port="1433", protocol="tcp", service="ms-sql-s")
+        mysql_parsed = extract_tool_observations(
+            "mysql-info.nse", mysql_output, port="3306", protocol="tcp", service="mysql"
+        )
+        pgsql_parsed = extract_tool_observations(
+            "pgsql-info.nse", pgsql_output, port="5432", protocol="tcp", service="postgresql"
+        )
+        mssql_parsed = extract_tool_observations(
+            "ms-sql-info.nse", mssql_output, port="1433", protocol="tcp", service="ms-sql-s"
+        )
 
         mysql_tech = {str(item.get("name", "")).strip() for item in mysql_parsed["technologies"]}
         mysql_findings = {str(item.get("title", "")).strip() for item in mysql_parsed["findings"]}

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import datetime
-import hashlib
 import ipaddress
 import json
 from typing import Any, Dict, Iterable, List, Optional, Tuple
@@ -25,18 +24,10 @@ def _utc_now() -> str:
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
 
-def _ensure_column(session, table_name: str, column_name: str, column_type: str):
-    rows = session.execute(text(f"PRAGMA table_info({table_name})")).fetchall()
-    existing = {str(row[1]) for row in rows if len(row) > 1}
-    if str(column_name) in existing:
-        return
-    session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"))
+from db.schema import ensure_column as _ensure_column
 
 
-def _stable_id(prefix: str, payload: Dict[str, Any]) -> str:
-    rendered = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":"))
-    digest = hashlib.sha256(rendered.encode("utf-8")).hexdigest()
-    return f"{str(prefix or '').strip().lower()}-{digest[:16]}"
+from app.core.serialization import stable_id as _stable_id
 
 
 def _ensure_tables(session):
@@ -168,14 +159,7 @@ def _ensure_tables(session):
         _ensure_column(session, "graph_annotation", column_name, column_type)
 
 
-def _from_json(value: Any, fallback: Any):
-    raw = str(value or "").strip()
-    if not raw:
-        return fallback
-    try:
-        return json.loads(raw)
-    except Exception:
-        return fallback
+from app.core.serialization import decode_json as _from_json
 
 
 def _to_json(value: Any, fallback: Any) -> str:

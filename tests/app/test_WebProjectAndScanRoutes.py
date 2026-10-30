@@ -42,7 +42,9 @@ class _RouteRuntime:
         return {"interfaces": [{"name": "eth0"}], "default_interface": "eth0"}
 
     def start_passive_capture_scan_job(self, *, interface_name, duration_minutes, run_actions=False):
-        self.calls.append(("start_passive_capture_scan_job", str(interface_name), int(duration_minutes), bool(run_actions)))
+        self.calls.append(
+            ("start_passive_capture_scan_job", str(interface_name), int(duration_minutes), bool(run_actions))
+        )
         return {"id": 81}
 
     def start_host_rescan_job(self, host_id):

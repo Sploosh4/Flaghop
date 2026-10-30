@@ -3,7 +3,12 @@ import unittest
 
 class WebResponseSchemaTest(unittest.TestCase):
     def test_common_response_contracts_reject_wrong_shapes(self):
-        from app.web.response_schema import AcceptedJobResponse, ProjectListResponse, ProjectOkResponse, ScanHistoryResponse
+        from app.web.response_schema import (
+            AcceptedJobResponse,
+            ProjectListResponse,
+            ProjectOkResponse,
+            ScanHistoryResponse,
+        )
 
         with self.assertRaisesRegex(ValueError, "job must be an object"):
             AcceptedJobResponse.from_job(["not", "a", "job"])
@@ -15,7 +20,12 @@ class WebResponseSchemaTest(unittest.TestCase):
             ScanHistoryResponse.from_scans({"id": 1})
 
     def test_common_response_contracts_render_expected_envelopes(self):
-        from app.web.response_schema import AcceptedJobResponse, ProjectListResponse, ProjectOkResponse, ScanHistoryResponse
+        from app.web.response_schema import (
+            AcceptedJobResponse,
+            ProjectListResponse,
+            ProjectOkResponse,
+            ScanHistoryResponse,
+        )
 
         self.assertEqual(
             {"status": "accepted", "job": {"id": 7}},

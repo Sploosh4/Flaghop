@@ -21,37 +21,40 @@ class SchedulerAuditStoreTest(unittest.TestCase):
         repository_factory = RepositoryFactory(db_log)
         project_manager = ProjectManager(shell, repository_factory, app_log)
         nmap_exporter = DefaultNmapExporter(shell, app_log)
-        _tool_coordinator = ToolCoordinator(shell, nmap_exporter)
+        _ = ToolCoordinator(shell, nmap_exporter)
 
         project = project_manager.createNewProject(projectType="legion", isTemp=True)
         try:
             ensure_scheduler_audit_table(project.database)
-            log_scheduler_decision(project.database, {
-                "timestamp": "2026-02-17T00:00:00Z",
-                "host_ip": "10.0.0.5",
-                "port": "445",
-                "protocol": "tcp",
-                "service": "smb",
-                "scheduler_mode": "ai",
-                "goal_profile": "internal_asset_discovery",
-                "engagement_preset": "internal_pentest",
-                "tool_id": "smb-default",
-                "label": "SMB Bruteforce",
-                "command_family_id": "fam1",
-                "danger_categories": "credential_bruteforce",
-                "risk_tags": "credential_bruteforce,account_lockout_risk",
-                "requires_approval": "True",
-                "policy_decision": "approval_required",
-                "policy_reason": "requires approval under internal pentest",
-                "risk_summary": "Could lock or throttle real user accounts.",
-                "safer_alternative": "Prefer credential validation against known accounts or low-impact enumeration first.",
-                "family_policy_state": "",
-                "approved": "False",
-                "executed": "False",
-                "reason": "pending approval #77",
-                "rationale": "test",
-                "approval_id": "77",
-            })
+            log_scheduler_decision(
+                project.database,
+                {
+                    "timestamp": "2026-02-17T00:00:00Z",
+                    "host_ip": "10.0.0.5",
+                    "port": "445",
+                    "protocol": "tcp",
+                    "service": "smb",
+                    "scheduler_mode": "ai",
+                    "goal_profile": "internal_asset_discovery",
+                    "engagement_preset": "internal_pentest",
+                    "tool_id": "smb-default",
+                    "label": "SMB Bruteforce",
+                    "command_family_id": "fam1",
+                    "danger_categories": "credential_bruteforce",
+                    "risk_tags": "credential_bruteforce,account_lockout_risk",
+                    "requires_approval": "True",
+                    "policy_decision": "approval_required",
+                    "policy_reason": "requires approval under internal pentest",
+                    "risk_summary": "Could lock or throttle real user accounts.",
+                    "safer_alternative": "Prefer credential validation against known accounts or low-impact enumeration first.",
+                    "family_policy_state": "",
+                    "approved": "False",
+                    "executed": "False",
+                    "reason": "pending approval #77",
+                    "rationale": "test",
+                    "approval_id": "77",
+                },
+            )
 
             queued = update_scheduler_decision_for_approval(
                 project.database,
@@ -97,37 +100,40 @@ class SchedulerAuditStoreTest(unittest.TestCase):
         repository_factory = RepositoryFactory(db_log)
         project_manager = ProjectManager(shell, repository_factory, app_log)
         nmap_exporter = DefaultNmapExporter(shell, app_log)
-        _tool_coordinator = ToolCoordinator(shell, nmap_exporter)
+        _ = ToolCoordinator(shell, nmap_exporter)
 
         project = project_manager.createNewProject(projectType="legion", isTemp=True)
         try:
             ensure_scheduler_audit_table(project.database)
-            log_scheduler_decision(project.database, {
-                "timestamp": "2026-02-17T00:00:00Z",
-                "host_ip": "10.0.0.9",
-                "port": "22",
-                "protocol": "tcp",
-                "service": "ssh",
-                "scheduler_mode": "ai",
-                "goal_profile": "internal_asset_discovery",
-                "engagement_preset": "internal_recon",
-                "tool_id": "ssh-default-router",
-                "label": "SSH default router",
-                "command_family_id": "fam2",
-                "danger_categories": "credential_bruteforce",
-                "risk_tags": "credential_bruteforce,account_lockout_risk",
-                "requires_approval": "True",
-                "policy_decision": "blocked",
-                "policy_reason": "blocked under internal recon",
-                "risk_summary": "Could lock or throttle real user accounts.",
-                "safer_alternative": "Prefer credential validation against known accounts or low-impact enumeration first.",
-                "family_policy_state": "",
-                "approved": "False",
-                "executed": "False",
-                "reason": "pending approval #12",
-                "rationale": "legacy row without approval_id",
-                "approval_id": "",
-            })
+            log_scheduler_decision(
+                project.database,
+                {
+                    "timestamp": "2026-02-17T00:00:00Z",
+                    "host_ip": "10.0.0.9",
+                    "port": "22",
+                    "protocol": "tcp",
+                    "service": "ssh",
+                    "scheduler_mode": "ai",
+                    "goal_profile": "internal_asset_discovery",
+                    "engagement_preset": "internal_recon",
+                    "tool_id": "ssh-default-router",
+                    "label": "SSH default router",
+                    "command_family_id": "fam2",
+                    "danger_categories": "credential_bruteforce",
+                    "risk_tags": "credential_bruteforce,account_lockout_risk",
+                    "requires_approval": "True",
+                    "policy_decision": "blocked",
+                    "policy_reason": "blocked under internal recon",
+                    "risk_summary": "Could lock or throttle real user accounts.",
+                    "safer_alternative": "Prefer credential validation against known accounts or low-impact enumeration first.",
+                    "family_policy_state": "",
+                    "approved": "False",
+                    "executed": "False",
+                    "reason": "pending approval #12",
+                    "rationale": "legacy row without approval_id",
+                    "approval_id": "",
+                },
+            )
 
             queued = update_scheduler_decision_for_approval(
                 project.database,

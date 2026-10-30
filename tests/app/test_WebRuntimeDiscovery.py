@@ -9,9 +9,13 @@ class WebRuntimeDiscoveryTest(unittest.TestCase):
 
         runtime = WebRuntime.__new__(WebRuntime)
         runtime._lock = threading.RLock()
-        runtime._normalize_targets = lambda targets: [str(targets[0] or "").strip()] if str(targets[0] or "").strip() else []
+        runtime._normalize_targets = lambda targets: (
+            [str(targets[0] or "").strip()] if str(targets[0] or "").strip() else []
+        )
         runtime.create_new_temporary_project = MagicMock()
-        runtime._run_nmap_scan_and_import = MagicMock(return_value={"targets": ["10.0.0.5"], "xml_path": "/tmp/demo.xml"})
+        runtime._run_nmap_scan_and_import = MagicMock(
+            return_value={"targets": ["10.0.0.5"], "xml_path": "/tmp/demo.xml"}
+        )
         runtime.get_project_details = MagicMock(return_value={"name": "temp.legion"})
         runtime.get_workspace_hosts = MagicMock(return_value=[{"id": 1, "ip": "10.0.0.5"}])
         runtime.get_workspace_services = MagicMock(return_value=[{"service": "http"}])

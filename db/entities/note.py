@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import Column, Integer, ForeignKey, String
 
 from db.database import Base
@@ -22,8 +23,8 @@ from six import u as unicode
 
 
 class note(Base):
-    __tablename__ = 'note'
-    hostId = Column(Integer, ForeignKey('hostObj.id'))
+    __tablename__ = "note"
+    hostId = Column(Integer, ForeignKey("hostObj.id"))
     id = Column(Integer, primary_key=True)
     text = Column(String)
 

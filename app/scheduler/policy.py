@@ -4,7 +4,6 @@ from typing import Any, Dict, Optional
 
 from sqlalchemy import text
 
-
 VALID_ENGAGEMENT_PRESETS = {
     "external_recon",
     "external_pentest",
@@ -155,10 +154,10 @@ def preset_from_legacy_goal_profile(goal_profile: str) -> str:
 
 
 def legacy_goal_profile_from_policy(
-        preset: str,
-        *,
-        scope: str = "internal",
-        intent: str = "recon",
+    preset: str,
+    *,
+    scope: str = "internal",
+    intent: str = "recon",
 ) -> str:
     normalized_preset = _normalize_choice(preset, VALID_ENGAGEMENT_PRESETS, default="internal_recon")
     if normalized_preset in {"external_recon", "external_pentest"}:
@@ -167,7 +166,10 @@ def legacy_goal_profile_from_policy(
         return "internal_asset_discovery"
     if _normalize_text(scope, default="internal") == "external":
         return "external_pentest"
-    if _normalize_text(intent, default="recon") == "pentest" and _normalize_text(scope, default="internal") == "external":
+    if (
+        _normalize_text(intent, default="recon") == "pentest"
+        and _normalize_text(scope, default="internal") == "external"
+    ):
         return "external_pentest"
     return "internal_asset_discovery"
 
@@ -179,7 +181,14 @@ def list_engagement_presets() -> list:
             "name": ENGAGEMENT_PRESET_LABELS.get(preset_id, preset_id.replace("_", " ").title()),
             "description": ENGAGEMENT_PRESET_DESCRIPTIONS.get(preset_id, ""),
         }
-        for preset_id in ("external_recon", "external_pentest", "internal_quick_recon", "internal_recon", "internal_pentest", "custom")
+        for preset_id in (
+            "external_recon",
+            "external_pentest",
+            "internal_quick_recon",
+            "internal_recon",
+            "internal_pentest",
+            "custom",
+        )
     ]
 
 
@@ -224,17 +233,15 @@ class EngagementPolicy:
 
 
 def normalize_engagement_policy(
-        raw: Optional[Dict[str, Any]] = None,
-        *,
-        fallback_goal_profile: str = "internal_asset_discovery",
+    raw: Optional[Dict[str, Any]] = None,
+    *,
+    fallback_goal_profile: str = "internal_asset_discovery",
 ) -> EngagementPolicy:
     source = dict(raw or {}) if isinstance(raw, dict) else {}
     fallback_preset = preset_from_legacy_goal_profile(fallback_goal_profile)
     requested_preset = _normalize_text(source.get("preset"), default="")
     if requested_preset not in VALID_ENGAGEMENT_PRESETS:
-        requested_preset = preset_from_legacy_goal_profile(
-            str(source.get("goal_profile", "") or fallback_goal_profile)
-        )
+        requested_preset = preset_from_legacy_goal_profile(str(source.get("goal_profile", "") or fallback_goal_profile))
     base_preset = fallback_preset if requested_preset == "custom" else requested_preset
     base = dict(PRESET_DEFAULTS.get(base_preset, PRESET_DEFAULTS["internal_recon"]))
 
@@ -292,51 +299,48 @@ def normalize_engagement_policy(
     )
 
 
-def _ensure_column(session, table_name: str, column_name: str, column_type: str):
-    rows = session.execute(text(f"PRAGMA table_info({table_name})")).fetchall()
-    existing = {str(row[1]) for row in rows if len(row) > 1}
-    if column_name in existing:
-        return
-    session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"))
+from db.schema import ensure_column as _ensure_column
 
 
 def _ensure_table(session):
-    session.execute(text(
-        "CREATE TABLE IF NOT EXISTS scheduler_engagement_policy ("
-        "policy_id INTEGER PRIMARY KEY,"
-        "preset TEXT,"
-        "scope TEXT,"
-        "intent TEXT,"
-        "allow_exploitation TEXT,"
-        "allow_lateral_movement TEXT,"
-        "credential_attack_mode TEXT,"
-        "lockout_risk_mode TEXT,"
-        "stability_risk_mode TEXT,"
-        "detection_risk_mode TEXT,"
-        "approval_mode TEXT,"
-        "runner_preference TEXT,"
-        "noise_budget TEXT,"
-        "custom_overrides_json TEXT,"
-        "updated_at TEXT,"
-        "derived_from_goal_profile TEXT"
-        ")"
-    ))
+    session.execute(
+        text(
+            "CREATE TABLE IF NOT EXISTS scheduler_engagement_policy ("
+            "policy_id INTEGER PRIMARY KEY,"
+            "preset TEXT,"
+            "scope TEXT,"
+            "intent TEXT,"
+            "allow_exploitation TEXT,"
+            "allow_lateral_movement TEXT,"
+            "credential_attack_mode TEXT,"
+            "lockout_risk_mode TEXT,"
+            "stability_risk_mode TEXT,"
+            "detection_risk_mode TEXT,"
+            "approval_mode TEXT,"
+            "runner_preference TEXT,"
+            "noise_budget TEXT,"
+            "custom_overrides_json TEXT,"
+            "updated_at TEXT,"
+            "derived_from_goal_profile TEXT"
+            ")"
+        )
+    )
     for column_name, column_type in (
-            ("preset", "TEXT"),
-            ("scope", "TEXT"),
-            ("intent", "TEXT"),
-            ("allow_exploitation", "TEXT"),
-            ("allow_lateral_movement", "TEXT"),
-            ("credential_attack_mode", "TEXT"),
-            ("lockout_risk_mode", "TEXT"),
-            ("stability_risk_mode", "TEXT"),
-            ("detection_risk_mode", "TEXT"),
-            ("approval_mode", "TEXT"),
-            ("runner_preference", "TEXT"),
-            ("noise_budget", "TEXT"),
-            ("custom_overrides_json", "TEXT"),
-            ("updated_at", "TEXT"),
-            ("derived_from_goal_profile", "TEXT"),
+        ("preset", "TEXT"),
+        ("scope", "TEXT"),
+        ("intent", "TEXT"),
+        ("allow_exploitation", "TEXT"),
+        ("allow_lateral_movement", "TEXT"),
+        ("credential_attack_mode", "TEXT"),
+        ("lockout_risk_mode", "TEXT"),
+        ("stability_risk_mode", "TEXT"),
+        ("detection_risk_mode", "TEXT"),
+        ("approval_mode", "TEXT"),
+        ("runner_preference", "TEXT"),
+        ("noise_budget", "TEXT"),
+        ("custom_overrides_json", "TEXT"),
+        ("updated_at", "TEXT"),
+        ("derived_from_goal_profile", "TEXT"),
     ):
         _ensure_column(session, "scheduler_engagement_policy", column_name, column_type)
 
@@ -356,13 +360,15 @@ def get_project_engagement_policy(database) -> Optional[Dict[str, Any]]:
     session = database.session()
     try:
         _ensure_table(session)
-        result = session.execute(text(
-            "SELECT preset, scope, intent, allow_exploitation, allow_lateral_movement, "
-            "credential_attack_mode, lockout_risk_mode, stability_risk_mode, detection_risk_mode, "
-            "approval_mode, runner_preference, noise_budget, custom_overrides_json, updated_at, "
-            "derived_from_goal_profile "
-            "FROM scheduler_engagement_policy WHERE policy_id = 1 LIMIT 1"
-        ))
+        result = session.execute(
+            text(
+                "SELECT preset, scope, intent, allow_exploitation, allow_lateral_movement, "
+                "credential_attack_mode, lockout_risk_mode, stability_risk_mode, detection_risk_mode, "
+                "approval_mode, runner_preference, noise_budget, custom_overrides_json, updated_at, "
+                "derived_from_goal_profile "
+                "FROM scheduler_engagement_policy WHERE policy_id = 1 LIMIT 1"
+            )
+        )
         row = result.fetchone()
         if row is None:
             return None
@@ -378,10 +384,10 @@ def get_project_engagement_policy(database) -> Optional[Dict[str, Any]]:
 
 
 def upsert_project_engagement_policy(
-        database,
-        policy: Any,
-        *,
-        updated_at: str = "",
+    database,
+    policy: Any,
+    *,
+    updated_at: str = "",
 ) -> Dict[str, Any]:
     normalized = policy if isinstance(policy, EngagementPolicy) else normalize_engagement_policy(policy or {})
     payload = normalized.to_dict()
@@ -406,43 +412,49 @@ def upsert_project_engagement_policy(
     session = database.session()
     try:
         _ensure_table(session)
-        existing = session.execute(text(
-            "SELECT policy_id FROM scheduler_engagement_policy WHERE policy_id = 1 LIMIT 1"
-        )).fetchone()
+        existing = session.execute(
+            text("SELECT policy_id FROM scheduler_engagement_policy WHERE policy_id = 1 LIMIT 1")
+        ).fetchone()
         if existing is None:
-            session.execute(text(
-                "INSERT INTO scheduler_engagement_policy ("
-                "policy_id, preset, scope, intent, allow_exploitation, allow_lateral_movement, "
-                "credential_attack_mode, lockout_risk_mode, stability_risk_mode, detection_risk_mode, "
-                "approval_mode, runner_preference, noise_budget, custom_overrides_json, updated_at, "
-                "derived_from_goal_profile"
-                ") VALUES ("
-                ":policy_id, :preset, :scope, :intent, :allow_exploitation, :allow_lateral_movement, "
-                ":credential_attack_mode, :lockout_risk_mode, :stability_risk_mode, :detection_risk_mode, "
-                ":approval_mode, :runner_preference, :noise_budget, :custom_overrides_json, :updated_at, "
-                ":derived_from_goal_profile"
-                ")"
-            ), row)
+            session.execute(
+                text(
+                    "INSERT INTO scheduler_engagement_policy ("
+                    "policy_id, preset, scope, intent, allow_exploitation, allow_lateral_movement, "
+                    "credential_attack_mode, lockout_risk_mode, stability_risk_mode, detection_risk_mode, "
+                    "approval_mode, runner_preference, noise_budget, custom_overrides_json, updated_at, "
+                    "derived_from_goal_profile"
+                    ") VALUES ("
+                    ":policy_id, :preset, :scope, :intent, :allow_exploitation, :allow_lateral_movement, "
+                    ":credential_attack_mode, :lockout_risk_mode, :stability_risk_mode, :detection_risk_mode, "
+                    ":approval_mode, :runner_preference, :noise_budget, :custom_overrides_json, :updated_at, "
+                    ":derived_from_goal_profile"
+                    ")"
+                ),
+                row,
+            )
         else:
-            session.execute(text(
-                "UPDATE scheduler_engagement_policy SET "
-                "preset = :preset, "
-                "scope = :scope, "
-                "intent = :intent, "
-                "allow_exploitation = :allow_exploitation, "
-                "allow_lateral_movement = :allow_lateral_movement, "
-                "credential_attack_mode = :credential_attack_mode, "
-                "lockout_risk_mode = :lockout_risk_mode, "
-                "stability_risk_mode = :stability_risk_mode, "
-                "detection_risk_mode = :detection_risk_mode, "
-                "approval_mode = :approval_mode, "
-                "runner_preference = :runner_preference, "
-                "noise_budget = :noise_budget, "
-                "custom_overrides_json = :custom_overrides_json, "
-                "updated_at = :updated_at, "
-                "derived_from_goal_profile = :derived_from_goal_profile "
-                "WHERE policy_id = :policy_id"
-            ), row)
+            session.execute(
+                text(
+                    "UPDATE scheduler_engagement_policy SET "
+                    "preset = :preset, "
+                    "scope = :scope, "
+                    "intent = :intent, "
+                    "allow_exploitation = :allow_exploitation, "
+                    "allow_lateral_movement = :allow_lateral_movement, "
+                    "credential_attack_mode = :credential_attack_mode, "
+                    "lockout_risk_mode = :lockout_risk_mode, "
+                    "stability_risk_mode = :stability_risk_mode, "
+                    "detection_risk_mode = :detection_risk_mode, "
+                    "approval_mode = :approval_mode, "
+                    "runner_preference = :runner_preference, "
+                    "noise_budget = :noise_budget, "
+                    "custom_overrides_json = :custom_overrides_json, "
+                    "updated_at = :updated_at, "
+                    "derived_from_goal_profile = :derived_from_goal_profile "
+                    "WHERE policy_id = :policy_id"
+                ),
+                row,
+            )
         session.commit()
         return payload
     except Exception:

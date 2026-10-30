@@ -12,7 +12,6 @@ from app.web import runtime_scan_discovery as web_runtime_scan_discovery
 from app.web import runtime_scan_nmap as web_runtime_scan_nmap
 from app.web import runtime_scan_planning as web_runtime_scan_planning
 
-
 record_bool = web_runtime_scan_planning.record_bool
 normalize_targets = web_runtime_scan_planning.normalize_targets
 apply_engagement_scan_profile = web_runtime_scan_planning.apply_engagement_scan_profile
@@ -71,22 +70,22 @@ run_passive_capture_scan = web_runtime_scan_capture.run_passive_capture_scan
 
 
 def record_scan_submission(
-        runtime,
-        *,
-        submission_kind: str,
-        job_id: int,
-        targets: Optional[List[str]] = None,
-        source_path: str = "",
-        discovery: bool = False,
-        staged: bool = False,
-        run_actions: bool = False,
-        nmap_path: str = "",
-        nmap_args: str = "",
-        scan_mode: str = "",
-        scan_options: Optional[Dict[str, Any]] = None,
-        target_summary: str = "",
-        scope_summary: str = "",
-        result_summary: str = "",
+    runtime,
+    *,
+    submission_kind: str,
+    job_id: int,
+    targets: Optional[List[str]] = None,
+    source_path: str = "",
+    discovery: bool = False,
+    staged: bool = False,
+    run_actions: bool = False,
+    nmap_path: str = "",
+    nmap_args: str = "",
+    scan_mode: str = "",
+    scan_options: Optional[Dict[str, Any]] = None,
+    target_summary: str = "",
+    scope_summary: str = "",
+    result_summary: str = "",
 ) -> Optional[Dict[str, Any]]:
     with runtime._lock:
         project = getattr(runtime.logic, "activeProject", None)
@@ -94,33 +93,36 @@ def record_scan_submission(
             return None
         ensure_scan_submission_table(project.database)
         normalized_targets = [str(item or "").strip() for item in list(targets or []) if str(item or "").strip()]
-        record = db_record_scan_submission(project.database, {
-            "job_id": str(int(job_id or 0) or ""),
-            "submission_kind": str(submission_kind or ""),
-            "status": "submitted",
-            "target_summary": str(target_summary or compact_targets(normalized_targets)),
-            "scope_summary": str(scope_summary or summarize_scan_scope(normalized_targets)),
-            "targets": normalized_targets,
-            "source_path": str(source_path or ""),
-            "scan_mode": str(scan_mode or ""),
-            "discovery": bool(discovery),
-            "staged": bool(staged),
-            "run_actions": bool(run_actions),
-            "nmap_path": str(nmap_path or ""),
-            "nmap_args": str(nmap_args or ""),
-            "scan_options": dict(scan_options or {}),
-            "result_summary": str(result_summary or ""),
-        })
+        record = db_record_scan_submission(
+            project.database,
+            {
+                "job_id": str(int(job_id or 0) or ""),
+                "submission_kind": str(submission_kind or ""),
+                "status": "submitted",
+                "target_summary": str(target_summary or compact_targets(normalized_targets)),
+                "scope_summary": str(scope_summary or summarize_scan_scope(normalized_targets)),
+                "targets": normalized_targets,
+                "source_path": str(source_path or ""),
+                "scan_mode": str(scan_mode or ""),
+                "discovery": bool(discovery),
+                "staged": bool(staged),
+                "run_actions": bool(run_actions),
+                "nmap_path": str(nmap_path or ""),
+                "nmap_args": str(nmap_args or ""),
+                "scan_options": dict(scan_options or {}),
+                "result_summary": str(result_summary or ""),
+            },
+        )
     runtime._emit_ui_invalidation("scan_history")
     return record
 
 
 def update_scan_submission_status(
-        runtime,
-        *,
-        job_id: int,
-        status: str,
-        result_summary: str = "",
+    runtime,
+    *,
+    job_id: int,
+    status: str,
+    result_summary: str = "",
 ) -> Optional[Dict[str, Any]]:
     with runtime._lock:
         project = getattr(runtime.logic, "activeProject", None)

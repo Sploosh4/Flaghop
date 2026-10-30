@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import subprocess
 from logging import Logger
 
@@ -38,4 +39,4 @@ class DefaultNmapExporter(NmapExporter):
             self.shell.move(f"{fileName}.html", outputFolder)
         except:
             self.logger.error("nmap output export to html attempted, but failed.")
-            self.logger.error('Could not convert nmap XML to HTML. Try: apt-get install xsltproc')
+            self.logger.error("Could not convert nmap XML to HTML. Try: apt-get install xsltproc")

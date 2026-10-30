@@ -1,13 +1,6 @@
-/** Workspace graph viewport. */
 import { getGraphCanvasScrollNode, graphPropertyValue } from "./graph_common.js";
 import { GRAPH_GROUP_LABEL_MIN_ZOOM, GRAPH_NODE_LABEL_MIN_ZOOM, GRAPH_NODE_SIZE, GRAPH_NODE_TYPE_MIN_ZOOM, GRAPH_WORKSPACE_ZOOM_MAX_PERCENT, GRAPH_WORKSPACE_ZOOM_MIN_PERCENT, graphWorkspaceState, workspaceState } from "./state.js";
-
-export function graphFindEntity(kind, ref) {
-    if (kind === "edge") {
-        return (graphWorkspaceState.filtered.edges || []).find((item) => String(item?.edge_id || "") === String(ref || "")) || null;
-    }
-    return (graphWorkspaceState.filtered.nodes || []).find((item) => String(item?.node_id || "") === String(ref || "")) || null;
-}
+/** Workspace graph viewport. */
 
 
 export function graphFindGroup(groupKey) {

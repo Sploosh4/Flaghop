@@ -30,12 +30,12 @@ def is_web_screenshot_target(port: str, protocol: str, service_name: str) -> boo
         return False
     service_lower = str(service_name or "").strip().rstrip("?").lower()
     if (
-            service_lower in SchedulerPlanner.WEB_SERVICE_IDS
-            or service_lower.startswith("http")
-            or "https" in service_lower
-            or service_lower.endswith("http")
-            or service_lower.endswith("https")
-            or service_lower in {"soap", "ssl/http", "ssl|http", "webcache", "www"}
+        service_lower in SchedulerPlanner.WEB_SERVICE_IDS
+        or service_lower.startswith("http")
+        or "https" in service_lower
+        or service_lower.endswith("http")
+        or service_lower.endswith("https")
+        or service_lower in {"soap", "ssl/http", "ssl|http", "webcache", "www"}
     ):
         return True
     return str(port or "").strip() in {
@@ -72,9 +72,9 @@ def list_screenshots_for_host(runtime, project, host_ip: str) -> List[Dict[str, 
         if not filename.startswith(prefix):
             continue
         port = ""
-        stripped = filename[len(prefix):]
+        stripped = filename[len(prefix) :]
         if stripped.endswith("-screenshot.png"):
-            port = stripped[:-len("-screenshot.png")]
+            port = stripped[: -len("-screenshot.png")]
         screenshot_path = os.path.join(screenshot_dir, filename)
         metadata = load_screenshot_metadata(screenshot_path)
         row = {
@@ -127,10 +127,12 @@ def collect_host_screenshot_targets(runtime, host_id: int) -> List[Dict[str, str
         if dedupe_key in seen:
             continue
         seen.add(dedupe_key)
-        targets.append({
-            "port": port_value,
-            "protocol": protocol,
-            "service_name": service_name,
-        })
+        targets.append(
+            {
+                "port": port_value,
+                "protocol": protocol,
+                "service_name": service_name,
+            }
+        )
     targets.sort(key=lambda item: (port_sort_key(item.get("port", "")), item.get("protocol", "")))
     return targets

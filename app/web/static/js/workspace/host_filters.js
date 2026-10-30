@@ -1,10 +1,17 @@
-/** Workspace host filters. */
-import { closeRibbonMenus } from "./dialogs.js";
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let closeRibbonMenus, graphLoadSnapshot, loadHostDetail, loadWorkspaceHosts, loadWorkspaceServices, renderHosts, renderServices;
+export function connectHostFilters(callbacks) {
+    for (const name of ["closeRibbonMenus", "graphLoadSnapshot", "loadHostDetail", "loadWorkspaceHosts", "loadWorkspaceServices", "renderHosts", "renderServices"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing host_filters callback: ${name}`);
+    }
+    ({ closeRibbonMenus, graphLoadSnapshot, loadHostDetail, loadWorkspaceHosts, loadWorkspaceServices, renderHosts, renderServices } = callbacks);
+}
+
 import { setValue } from "./dom.js";
-import { graphLoadSnapshot } from "./graph_data.js";
+import { setServicesHostScope } from "./host_scope.js";
 import { workspaceState } from "./state.js";
-import { loadHostDetail, loadWorkspaceHosts, loadWorkspaceServices } from "./workspace_data.js";
-import { renderHosts, renderServices, setServicesHostScope } from "./workspace_view.js";
+/** Workspace host filters. */
 
 export function normalizeCategoryList(items) {
     if (!Array.isArray(items)) {

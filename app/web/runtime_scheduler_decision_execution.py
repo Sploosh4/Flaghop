@@ -16,20 +16,20 @@ from app.timing import getTimestamp
 
 
 def execute_scheduler_decision(
-        runtime,
-        decision: ScheduledAction,
-        *,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        service_name: str,
-        command_template: str,
-        timeout: int,
-        job_id: int = 0,
-        capture_metadata: bool = False,
-        approval_id: int = 0,
-        runner_preference: str = "",
-        runner_settings: Optional[Dict[str, Any]] = None,
+    runtime,
+    decision: ScheduledAction,
+    *,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    service_name: str,
+    command_template: str,
+    timeout: int,
+    job_id: int = 0,
+    capture_metadata: bool = False,
+    approval_id: int = 0,
+    runner_preference: str = "",
+    runner_settings: Optional[Dict[str, Any]] = None,
 ) -> Any:
     normalized_runner_settings = normalize_runner_settings(runner_settings or {})
     project = runtime._require_active_project()

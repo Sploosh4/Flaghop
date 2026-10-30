@@ -53,11 +53,11 @@ def host_target_item_matches_port(item: Any, port: str, protocol: str) -> bool:
 
 
 def delete_project_artifact_refs(
-        runtime,
-        project,
-        *,
-        screenshots: List[Dict[str, Any]],
-        artifacts: List[Dict[str, Any]],
+    runtime,
+    project,
+    *,
+    screenshots: List[Dict[str, Any]],
+    artifacts: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
     screenshot_dir = os.path.join(project.properties.outputFolder, "screenshots")
     candidate_paths: List[str] = []
@@ -109,22 +109,24 @@ def delete_project_artifact_refs(
 
 
 def prune_target_state_for_port(
-        runtime,
-        *,
-        project,
-        host_id: int,
-        host_ip: str,
-        hostname: str,
-        port: str,
-        protocol: str,
+    runtime,
+    *,
+    project,
+    host_id: int,
+    host_ip: str,
+    hostname: str,
+    port: str,
+    protocol: str,
 ) -> Dict[str, Any]:
     target_state = get_target_state(project.database, int(host_id or 0)) or {}
     filtered_service_inventory = [
-        dict(item) for item in list(target_state.get("service_inventory", []) or [])
+        dict(item)
+        for item in list(target_state.get("service_inventory", []) or [])
         if not host_target_item_matches_port(item, port, protocol)
     ]
     filtered_attempted_actions = [
-        dict(item) for item in list(target_state.get("attempted_actions", []) or [])
+        dict(item)
+        for item in list(target_state.get("attempted_actions", []) or [])
         if not host_target_item_matches_port(item, port, protocol)
     ]
     filtered_screenshots: List[Dict[str, Any]] = []
@@ -144,7 +146,8 @@ def prune_target_state_for_port(
         if isinstance(item, dict):
             filtered_artifacts.append(dict(item))
     preserved_urls = [
-        dict(item) for item in list(target_state.get("urls", []) or [])
+        dict(item)
+        for item in list(target_state.get("urls", []) or [])
         if not host_target_item_matches_port(item, port, protocol)
     ]
     rebuilt_urls = build_target_urls(str(host_ip or ""), str(hostname or ""), filtered_service_inventory)
@@ -198,13 +201,16 @@ def delete_workspace_port(runtime, *, host_id: int, port: str, protocol: str = "
         session = project.database.session()
         try:
             if service_id:
-                session.execute(text(
-                    "DELETE FROM serviceObj "
-                    "WHERE CAST(id AS TEXT) = :service_id "
-                    "AND CAST(id AS TEXT) NOT IN ("
-                    "SELECT DISTINCT CAST(serviceId AS TEXT) FROM portObj WHERE COALESCE(serviceId, '') <> ''"
-                    ")"
-                ), {"service_id": service_id})
+                session.execute(
+                    text(
+                        "DELETE FROM serviceObj "
+                        "WHERE CAST(id AS TEXT) = :service_id "
+                        "AND CAST(id AS TEXT) NOT IN ("
+                        "SELECT DISTINCT CAST(serviceId AS TEXT) FROM portObj WHERE COALESCE(serviceId, '') <> ''"
+                        ")"
+                    ),
+                    {"service_id": service_id},
+                )
             session.commit()
         except Exception:
             session.rollback()
@@ -242,12 +248,12 @@ def delete_workspace_port(runtime, *, host_id: int, port: str, protocol: str = "
 
 
 def delete_workspace_service(
-        runtime,
-        *,
-        host_id: int,
-        port: str,
-        protocol: str = "tcp",
-        service: str = "",
+    runtime,
+    *,
+    host_id: int,
+    port: str,
+    protocol: str = "tcp",
+    service: str = "",
 ) -> Dict[str, Any]:
     resolved_host_id = int(host_id or 0)
     resolved_port = str(port or "").strip()
@@ -266,19 +272,22 @@ def delete_workspace_service(
 
         session = project.database.session()
         try:
-            row = session.execute(text(
-                "SELECT p.id, COALESCE(CAST(p.serviceId AS TEXT), ''), COALESCE(s.name, '') "
-                "FROM portObj AS p "
-                "LEFT JOIN serviceObj AS s ON s.id = p.serviceId "
-                "WHERE p.hostId = :host_id "
-                "AND COALESCE(p.portId, '') = :port "
-                "AND LOWER(COALESCE(p.protocol, 'tcp')) = LOWER(:protocol) "
-                "ORDER BY p.id DESC LIMIT 1"
-            ), {
-                "host_id": str(getattr(host, "id", resolved_host_id) or resolved_host_id),
-                "port": resolved_port,
-                "protocol": resolved_protocol,
-            }).fetchone()
+            row = session.execute(
+                text(
+                    "SELECT p.id, COALESCE(CAST(p.serviceId AS TEXT), ''), COALESCE(s.name, '') "
+                    "FROM portObj AS p "
+                    "LEFT JOIN serviceObj AS s ON s.id = p.serviceId "
+                    "WHERE p.hostId = :host_id "
+                    "AND COALESCE(p.portId, '') = :port "
+                    "AND LOWER(COALESCE(p.protocol, 'tcp')) = LOWER(:protocol) "
+                    "ORDER BY p.id DESC LIMIT 1"
+                ),
+                {
+                    "host_id": str(getattr(host, "id", resolved_host_id) or resolved_host_id),
+                    "port": resolved_port,
+                    "protocol": resolved_protocol,
+                },
+            ).fetchone()
             if not row:
                 raise KeyError(f"Unknown port {resolved_port}/{resolved_protocol} for host {resolved_host_id}")
 
@@ -286,24 +295,29 @@ def delete_workspace_service(
             service_id = str(row[1] or "").strip()
             current_service = str(row[2] or "").strip()
             if not service_id and not current_service:
-                raise KeyError(f"No service is associated with {resolved_port}/{resolved_protocol} for host {resolved_host_id}")
+                raise KeyError(
+                    f"No service is associated with {resolved_port}/{resolved_protocol} for host {resolved_host_id}"
+                )
             current_service_normalized = current_service.rstrip("?").lower()
             if requested_service and current_service_normalized and requested_service != current_service_normalized:
                 raise ValueError(
                     f"Service mismatch for {resolved_port}/{resolved_protocol}: expected {requested_service}, found {current_service_normalized}"
                 )
 
-            session.execute(text(
-                "UPDATE portObj SET serviceId = NULL WHERE id = :port_row_id"
-            ), {"port_row_id": port_row_id})
+            session.execute(
+                text("UPDATE portObj SET serviceId = NULL WHERE id = :port_row_id"), {"port_row_id": port_row_id}
+            )
             if service_id:
-                session.execute(text(
-                    "DELETE FROM serviceObj "
-                    "WHERE CAST(id AS TEXT) = :service_id "
-                    "AND CAST(id AS TEXT) NOT IN ("
-                    "SELECT DISTINCT CAST(serviceId AS TEXT) FROM portObj WHERE COALESCE(serviceId, '') <> ''"
-                    ")"
-                ), {"service_id": service_id})
+                session.execute(
+                    text(
+                        "DELETE FROM serviceObj "
+                        "WHERE CAST(id AS TEXT) = :service_id "
+                        "AND CAST(id AS TEXT) NOT IN ("
+                        "SELECT DISTINCT CAST(serviceId AS TEXT) FROM portObj WHERE COALESCE(serviceId, '') <> ''"
+                        ")"
+                    ),
+                    {"service_id": service_id},
+                )
             session.commit()
         except Exception:
             session.rollback()
@@ -341,13 +355,13 @@ def delete_workspace_service(
 
 
 def delete_graph_screenshot(
-        runtime,
-        *,
-        host_id: int,
-        artifact_ref: str = "",
-        filename: str = "",
-        port: str = "",
-        protocol: str = "tcp",
+    runtime,
+    *,
+    host_id: int,
+    artifact_ref: str = "",
+    filename: str = "",
+    port: str = "",
+    protocol: str = "tcp",
 ) -> Dict[str, Any]:
     resolved_host_id = int(host_id or 0)
     if resolved_host_id <= 0:
@@ -408,7 +422,10 @@ def delete_graph_screenshot(
             item_name = os.path.basename(str(item.get("filename", "") or item_ref).strip())
             item_port = str(item.get("port", "") or "").strip()
             item_protocol = str(item.get("protocol", "tcp") or "tcp").strip().lower() or "tcp"
-            matches_ref = bool(resolved_artifact_ref and (item_ref == resolved_artifact_ref or os.path.basename(item_ref) == resolved_filename))
+            matches_ref = bool(
+                resolved_artifact_ref
+                and (item_ref == resolved_artifact_ref or os.path.basename(item_ref) == resolved_filename)
+            )
             matches_name = bool(resolved_filename and item_name == resolved_filename)
             matches_target = True
             if resolved_port:
@@ -426,7 +443,10 @@ def delete_graph_screenshot(
             item_ref = str(item.get("ref", "") or item.get("artifact_ref", "") or "").strip()
             item_kind = str(item.get("kind", "") or "").strip().lower()
             item_name = os.path.basename(item_ref)
-            matches_ref = bool(resolved_artifact_ref and (item_ref == resolved_artifact_ref or os.path.basename(item_ref) == resolved_filename))
+            matches_ref = bool(
+                resolved_artifact_ref
+                and (item_ref == resolved_artifact_ref or os.path.basename(item_ref) == resolved_filename)
+            )
             matches_name = bool(resolved_filename and item_name == resolved_filename)
             if item_kind == "screenshot" and (matches_ref or matches_name):
                 continue

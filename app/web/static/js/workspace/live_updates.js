@@ -1,14 +1,25 @@
-/** Workspace live updates. */
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let renderCredentialCapturePanel;
+export function connectLiveUpdates(callbacks) {
+    for (const name of ["renderCredentialCapturePanel"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing live_updates callback: ${name}`);
+    }
+    ({ renderCredentialCapturePanel } = callbacks);
+}
+
 import { loadDecisionHistory, loadJobs, loadProcesses, loadScanHistory, loadWorkspaceOverview, renderApprovals, renderDecisionRationaleFeed, renderDecisions, renderJobs, renderScanHistory } from "./activity.js";
 import { loadApprovals } from "./approvals.js";
-import { renderCredentialCapturePanel } from "./credential_capture.js";
 import { setText } from "./dom.js";
 import { graphLoadSnapshot, graphScheduleRefresh } from "./graph_data.js";
 import { selectedHostServiceFilters, syncHostFilterControls } from "./host_filters.js";
+import { notifyWorkspaceInvalidationWaiters } from "./invalidation_waiters.js";
 import { renderProcesses, renderSummary } from "./process_output.js";
-import { workspaceInvalidateState, workspaceInvalidationWaiters, workspaceState } from "./state.js";
+import { renderProject } from "./project_view.js";
+import { workspaceInvalidateState, workspaceState } from "./state.js";
 import { loadHostDetail, loadWorkspaceHosts, loadWorkspaceServices, loadWorkspaceTools } from "./workspace_data.js";
-import { hostMatchesServiceFilter, renderHosts, renderProject, renderServices, renderTools } from "./workspace_view.js";
+import { hostMatchesServiceFilter, renderHosts, renderServices, renderTools } from "./workspace_view.js";
+/** Workspace live updates. */
 
 export function renderSnapshot(snapshot) {
     if (!snapshot) {
@@ -101,50 +112,6 @@ export function setLiveChip(text, isError) {
 }
 
 
-export function notifyWorkspaceInvalidationWaiters(channels) {
-    const normalized = new Set((channels || []).map((item) => String(item || "").trim()).filter(Boolean));
-    if (!normalized.size || !workspaceInvalidationWaiters.length) {
-        return;
-    }
-    for (let index = workspaceInvalidationWaiters.length - 1; index >= 0; index -= 1) {
-        const waiter = workspaceInvalidationWaiters[index];
-        const matches = Array.from(waiter.channels || []).some((channel) => normalized.has(channel));
-        if (!matches) {
-            continue;
-        }
-        workspaceInvalidationWaiters.splice(index, 1);
-        if (waiter.timeoutId) {
-            window.clearTimeout(waiter.timeoutId);
-        }
-        try {
-            waiter.resolve(Array.from(normalized));
-        } catch (_err) {
-        }
-    }
-}
-
-
-export function waitForWorkspaceInvalidation(channels, timeoutMs = 5000) {
-    const normalized = new Set((channels || []).map((item) => String(item || "").trim()).filter(Boolean));
-    if (!normalized.size) {
-        return Promise.resolve([]);
-    }
-    return new Promise((resolve, reject) => {
-        const waiter = {
-            channels: normalized,
-            resolve,
-            timeoutId: 0,
-        };
-        waiter.timeoutId = window.setTimeout(() => {
-            const index = workspaceInvalidationWaiters.indexOf(waiter);
-            if (index >= 0) {
-                workspaceInvalidationWaiters.splice(index, 1);
-            }
-            reject(new Error("Timed out waiting for workspace update."));
-        }, Math.max(1, Number(timeoutMs) || 1));
-        workspaceInvalidationWaiters.push(waiter);
-    });
-}
 
 
 export async function handleWorkspaceInvalidation(channels) {

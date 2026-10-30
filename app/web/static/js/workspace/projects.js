@@ -1,12 +1,13 @@
-/** Workspace projects. */
 import { loadApprovals } from "./approvals.js";
 import { closeRibbonMenus } from "./dialogs.js";
 import { getChecked, getValue, setActionStatus, setChecked, setText, setValue, updateBodyModalState } from "./dom.js";
 import { fetchJson, postJson } from "./http.js";
 import { pollSnapshot } from "./live_updates.js";
+import { renderProject } from "./project_view.js";
 import { uiModalState, workspaceSwitchGuardState } from "./state.js";
 import { refreshWorkspace, waitForJobCompletion } from "./workspace_data.js";
-import { renderProject, resetWorkspaceDisplayForProjectSwitch } from "./workspace_view.js";
+import { resetWorkspaceDisplayForProjectSwitch } from "./workspace_view.js";
+/** Workspace projects. */
 
 export async function openWorkspaceFromRibbonAction() {
     closeRibbonMenus();

@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from typing import NamedTuple
 
 from app.core.common import Wordlist
@@ -37,8 +38,9 @@ class ProjectProperties(NamedTuple):
 
 
 class Project:
-    def __init__(self, projectProperties: ProjectProperties, repositoryContainer: RepositoryContainer,
-                 database: Database):
+    def __init__(
+        self, projectProperties: ProjectProperties, repositoryContainer: RepositoryContainer, database: Database
+    ):
         self.properties: ProjectProperties = projectProperties
         self.repositoryContainer: RepositoryContainer = repositoryContainer
         self.database = database

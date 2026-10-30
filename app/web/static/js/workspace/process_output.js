@@ -1,10 +1,18 @@
-/** Workspace process output. */
-import { setCredentialCaptureConfigModalOpen, setCredentialsModalOpen } from "./credential_capture.js";
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let pollSnapshot, setCredentialCaptureConfigModalOpen, setCredentialsModalOpen;
+export function connectProcessOutput(callbacks) {
+    for (const name of ["pollSnapshot", "setCredentialCaptureConfigModalOpen", "setCredentialsModalOpen"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing process_output callback: ${name}`);
+    }
+    ({ pollSnapshot, setCredentialCaptureConfigModalOpen, setCredentialsModalOpen } = callbacks);
+}
+
 import { makeCell, makeTruncatedCell, setText, setWorkspaceStatus, updateBodyModalState } from "./dom.js";
 import { fetchJson, postJson } from "./http.js";
-import { pollSnapshot } from "./live_updates.js";
 import { formatEtaSeconds, formatTargetLabel, getProcessStatusClass, isProcessRunning, renderAnsiOutput } from "./output_format.js";
 import { PROCESS_OUTPUT_REFRESH_MS, processOutputState, screenshotModalState, scriptOutputState } from "./state.js";
+/** Workspace process output. */
 
 export function renderProcesses(processes) {
     const body = document.getElementById("processes-body");

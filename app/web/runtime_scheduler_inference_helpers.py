@@ -103,7 +103,9 @@ def normalize_ai_technologies(runtime, items: Any) -> List[Dict[str, str]]:
         if quality < 20:
             continue
 
-        canonical = runtime._technology_canonical_key(name, cpe) or "|".join([name.lower(), version.lower(), cpe.lower()])
+        canonical = runtime._technology_canonical_key(name, cpe) or "|".join(
+            [name.lower(), version.lower(), cpe.lower()]
+        )
         candidate = {
             "name": name,
             "version": version,
@@ -138,23 +140,25 @@ def normalize_ai_technologies(runtime, items: Any) -> List[Dict[str, str]]:
     )
     trimmed: List[Dict[str, str]] = []
     for row in rows:
-        trimmed.append({
-            "name": str(row.get("name", "") or "")[:120],
-            "version": str(row.get("version", "") or "")[:120],
-            "cpe": str(row.get("cpe", "") or "")[:220],
-            "evidence": runtime._truncate_scheduler_text(row.get("evidence", ""), 520),
-        })
+        trimmed.append(
+            {
+                "name": str(row.get("name", "") or "")[:120],
+                "version": str(row.get("version", "") or "")[:120],
+                "cpe": str(row.get("cpe", "") or "")[:220],
+                "evidence": runtime._truncate_scheduler_text(row.get("evidence", ""), 520),
+            }
+        )
         if len(trimmed) >= 180:
             break
     return trimmed
 
 
 def merge_technologies(
-        runtime,
-        *,
-        existing: Any,
-        incoming: Any,
-        limit: int = 220,
+    runtime,
+    *,
+    existing: Any,
+    incoming: Any,
+    limit: int = 220,
 ) -> List[Dict[str, str]]:
     combined: List[Dict[str, Any]] = []
     if isinstance(incoming, list):
@@ -166,7 +170,7 @@ def merge_technologies(
             if isinstance(item, dict):
                 combined.append(dict(item))
     rows = normalize_ai_technologies(runtime, combined)
-    return rows[:int(limit)]
+    return rows[: int(limit)]
 
 
 def normalize_ai_findings(runtime, items: Any) -> List[Dict[str, Any]]:
@@ -194,19 +198,24 @@ def normalize_ai_findings(runtime, items: Any) -> List[Dict[str, Any]]:
         if not title and not cve_id:
             continue
         evidence_lower = str(evidence or "").strip().lower()
-        if REFERENCE_ONLY_FINDING_RE.match(title) or evidence_lower in {"previous scan result", "previous tls scan result"}:
+        if REFERENCE_ONLY_FINDING_RE.match(title) or evidence_lower in {
+            "previous scan result",
+            "previous tls scan result",
+        }:
             continue
         key = "|".join([title.lower(), cve_id.lower(), severity])
         if key in seen:
             continue
         seen.add(key)
-        rows.append({
-            "title": title or cve_id,
-            "severity": severity,
-            "cvss": cvss_value,
-            "cve": cve_id,
-            "evidence": evidence or title or cve_id,
-        })
+        rows.append(
+            {
+                "title": title or cve_id,
+                "severity": severity,
+                "cvss": cvss_value,
+                "cve": cve_id,
+                "evidence": evidence or title or cve_id,
+            }
+        )
         if len(rows) >= 220:
             break
     rows.sort(key=lambda row: runtime._finding_sort_key(row), reverse=True)
@@ -230,17 +239,21 @@ def normalize_ai_manual_tests(runtime, items: Any) -> List[Dict[str, str]]:
         if key in seen:
             continue
         seen.add(key)
-        rows.append({
-            "why": why,
-            "command": command,
-            "scope_note": scope_note,
-        })
+        rows.append(
+            {
+                "why": why,
+                "command": command,
+                "scope_note": scope_note,
+            }
+        )
         if len(rows) >= 160:
             break
     return rows
 
 
-def merge_ai_items(existing: List[Dict[str, Any]], incoming: List[Dict[str, Any]], *, key_fields: List[str], limit: int) -> List[Dict[str, Any]]:
+def merge_ai_items(
+    existing: List[Dict[str, Any]], incoming: List[Dict[str, Any]], *, key_fields: List[str], limit: int
+) -> List[Dict[str, Any]]:
     merged: List[Dict[str, Any]] = []
     seen = set()
     for source in (incoming, existing):

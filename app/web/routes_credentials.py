@@ -14,14 +14,6 @@ def _credential_service() -> CredentialService:
     return CredentialService(runtime_from_app())
 
 
-@credentials_bp.after_request
-def _disable_cache(response):
-    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
 @credentials_bp.get("/api/workspace/credential-capture")
 def workspace_credential_capture_state():
     service = _credential_service()

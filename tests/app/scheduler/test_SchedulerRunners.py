@@ -21,15 +21,17 @@ class SchedulerRunnersTest(unittest.TestCase):
     def test_container_runner_wraps_command_with_runtime_mounts_and_image(self, _mock_which):
         from app.scheduler.runners import ContainerRunner
 
-        runner = ContainerRunner({
-            "container": {
-                "enabled": True,
-                "runtime": "docker",
-                "image": "kalilinux/kali-rolling",
-                "network_mode": "host",
-                "mount_workspace_paths": False,
+        runner = ContainerRunner(
+            {
+                "container": {
+                    "enabled": True,
+                    "runtime": "docker",
+                    "image": "kalilinux/kali-rolling",
+                    "network_mode": "host",
+                    "mount_workspace_paths": False,
+                }
             }
-        })
+        )
         command, reason = runner.build_wrapped_command(
             "nmap -Pn -n 10.0.0.5 -oA /tmp/out",
             mount_paths=["/tmp", "/tmp"],

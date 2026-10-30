@@ -66,11 +66,11 @@ def resolve_eyewitness_executable() -> Optional[str]:
 
 
 def build_eyewitness_command(
-        url: str,
-        output_dir: str,
-        delay: int = 5,
-        use_xvfb: bool = True,
-        executable: Optional[str] = None,
+    url: str,
+    output_dir: str,
+    delay: int = 5,
+    use_xvfb: bool = True,
+    executable: Optional[str] = None,
 ) -> Tuple[Optional[List[str]], str]:
     executable = executable or resolve_eyewitness_executable()
     if not executable:
@@ -92,13 +92,18 @@ def build_eyewitness_command(
     else:
         command.append(executable)
 
-    command.extend([
-        "--single", str(url),
-        "--no-prompt",
-        "--web",
-        "--delay", str(int(delay)),
-        "-d", str(output_dir),
-    ])
+    command.extend(
+        [
+            "--single",
+            str(url),
+            "--no-prompt",
+            "--web",
+            "--delay",
+            str(int(delay)),
+            "-d",
+            str(output_dir),
+        ]
+    )
     return command, executable
 
 
@@ -255,10 +260,10 @@ def _find_latest_png(root_dir: str) -> Optional[str]:
 
 
 def _resolve_browser_screenshot_path(
-        *,
-        attempt_output_dir: str,
-        preferred_path: str,
-        wait_seconds: float = 2.0,
+    *,
+    attempt_output_dir: str,
+    preferred_path: str,
+    wait_seconds: float = 2.0,
 ) -> Optional[str]:
     deadline = time.monotonic() + max(0.0, float(wait_seconds))
     implicit_path = os.path.join(attempt_output_dir, "screenshot.png")
@@ -277,10 +282,10 @@ def _resolve_browser_screenshot_path(
 
 
 def _run_browser_cli_fallback_capture(
-        *,
-        url: str,
-        output_parent_dir: str,
-        timeout: int,
+    *,
+    url: str,
+    output_parent_dir: str,
+    timeout: int,
 ) -> Dict[str, Any]:
     executables = _resolve_browser_screenshot_executables()
     if not executables:
@@ -419,37 +424,43 @@ def _run_browser_cli_fallback_capture(
             error = "browser fallback did not create screenshot"
             if detail:
                 error = f"{error} ({detail})"
-            attempts.append({
-                "ok": False,
-                "executable": executable,
-                "output_dir": attempt_output_dir,
-                "command": command,
-                "error": error,
-                "returncode": int(getattr(completed, "returncode", 1) or 1),
-                "stdout": stdout,
-                "stderr": stderr,
-                "screenshot_path": None,
-            })
+            attempts.append(
+                {
+                    "ok": False,
+                    "executable": executable,
+                    "output_dir": attempt_output_dir,
+                    "command": command,
+                    "error": error,
+                    "returncode": int(getattr(completed, "returncode", 1) or 1),
+                    "stdout": stdout,
+                    "stderr": stderr,
+                    "screenshot_path": None,
+                }
+            )
 
-    return attempts[-1] if attempts else {
-        "ok": False,
-        "executable": "browser-cli-fallback",
-        "output_dir": "",
-        "command": [],
-        "error": "browser fallback failed",
-        "returncode": 1,
-        "stdout": "",
-        "stderr": "",
-        "screenshot_path": None,
-    }
+    return (
+        attempts[-1]
+        if attempts
+        else {
+            "ok": False,
+            "executable": "browser-cli-fallback",
+            "output_dir": "",
+            "command": [],
+            "error": "browser fallback failed",
+            "returncode": 1,
+            "stdout": "",
+            "stderr": "",
+            "screenshot_path": None,
+        }
+    )
 
 
 def _run_selenium_chromium_fallback_capture(
-        *,
-        url: str,
-        output_parent_dir: str,
-        delay: int,
-        timeout: int,
+    *,
+    url: str,
+    output_parent_dir: str,
+    delay: int,
+    timeout: int,
 ) -> Dict[str, Any]:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
     attempt_output_dir = os.path.join(
@@ -476,7 +487,7 @@ def _run_selenium_chromium_fallback_capture(
         "  ids=('details-button','proceed-link','advancedButton','exceptionDialogButton','acceptRiskButton')\n"
         "  for _ in range(8):\n"
         "    try:\n"
-        "      clicked=driver.execute_script(\"var ids=arguments[0]; for (var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]); if(el){el.click(); return true;}} return false;\", ids)\n"
+        '      clicked=driver.execute_script("var ids=arguments[0]; for (var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]); if(el){el.click(); return true;}} return false;", ids)\n'
         "    except Exception:\n"
         "      clicked=False\n"
         "    try:\n"
@@ -618,11 +629,11 @@ def _run_selenium_chromium_fallback_capture(
 
 
 def _run_selenium_fallback_capture(
-        *,
-        url: str,
-        output_parent_dir: str,
-        delay: int,
-        timeout: int,
+    *,
+    url: str,
+    output_parent_dir: str,
+    delay: int,
+    timeout: int,
 ) -> Dict[str, Any]:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
     attempt_output_dir = os.path.join(
@@ -649,7 +660,7 @@ def _run_selenium_fallback_capture(
         "  ids=('advancedButton','exceptionDialogButton','proceed-link','details-button','acceptRiskButton')\n"
         "  for _ in range(8):\n"
         "    try:\n"
-        "      clicked=driver.execute_script(\"var ids=arguments[0]; for (var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]); if(el){el.click(); return true;}} return false;\", ids)\n"
+        '      clicked=driver.execute_script("var ids=arguments[0]; for (var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]); if(el){el.click(); return true;}} return false;", ids)\n'
         "    except Exception:\n"
         "      clicked=False\n"
         "    try:\n"
@@ -773,12 +784,12 @@ def _run_selenium_fallback_capture(
 
 
 def run_eyewitness_capture(
-        *,
-        url: str,
-        output_parent_dir: str,
-        delay: int = 5,
-        use_xvfb: bool = True,
-        timeout: int = 180,
+    *,
+    url: str,
+    output_parent_dir: str,
+    delay: int = 5,
+    use_xvfb: bool = True,
+    timeout: int = 180,
 ) -> Dict[str, Any]:
     executables = resolve_eyewitness_executables()
     if not executables:
@@ -805,12 +816,14 @@ def run_eyewitness_capture(
             executable=executable,
         )
         if not command:
-            attempts.append({
-                "executable": executable,
-                "output_dir": attempt_output_dir,
-                "command": [],
-                "error": "eyewitness missing",
-            })
+            attempts.append(
+                {
+                    "executable": executable,
+                    "output_dir": attempt_output_dir,
+                    "command": [],
+                    "error": "eyewitness missing",
+                }
+            )
             continue
 
         try:
@@ -822,12 +835,14 @@ def run_eyewitness_capture(
                 env=build_eyewitness_env(),
             )
         except Exception as exc:
-            attempts.append({
-                "executable": resolved,
-                "output_dir": attempt_output_dir,
-                "command": command,
-                "error": str(exc),
-            })
+            attempts.append(
+                {
+                    "executable": resolved,
+                    "output_dir": attempt_output_dir,
+                    "command": command,
+                    "error": str(exc),
+                }
+            )
             continue
 
         screenshot_path = find_eyewitness_screenshot(attempt_output_dir)

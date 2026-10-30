@@ -26,10 +26,12 @@ def get_host_ai_report(runtime, host_id: int) -> Dict[str, Any]:
                 continue
             script_id = str(script.get("script_id", "")).strip()
             output_excerpt = runtime._truncate_scheduler_text(script.get("output", ""), 280)
-            script_rows.append({
-                "script_id": script_id,
-                "output_excerpt": output_excerpt,
-            })
+            script_rows.append(
+                {
+                    "script_id": script_id,
+                    "output_excerpt": output_excerpt,
+                }
+            )
             if not banner:
                 candidate = runtime._scheduler_banner_from_evidence(script_id, output_excerpt)
                 if candidate:
@@ -42,17 +44,19 @@ def get_host_ai_report(runtime, host_id: int) -> Dict[str, Any]:
                 extrainfo=str(service.get("extrainfo", "") or ""),
             )
 
-        port_rows.append({
-            "port": str(item.get("port", "") or ""),
-            "protocol": str(item.get("protocol", "") or ""),
-            "state": str(item.get("state", "") or ""),
-            "service": str(service.get("name", "") or ""),
-            "service_product": str(service.get("product", "") or ""),
-            "service_version": str(service.get("version", "") or ""),
-            "service_extrainfo": str(service.get("extrainfo", "") or ""),
-            "banner": banner,
-            "scripts": script_rows,
-        })
+        port_rows.append(
+            {
+                "port": str(item.get("port", "") or ""),
+                "protocol": str(item.get("protocol", "") or ""),
+                "state": str(item.get("state", "") or ""),
+                "service": str(service.get("name", "") or ""),
+                "service_product": str(service.get("product", "") or ""),
+                "service_version": str(service.get("version", "") or ""),
+                "service_extrainfo": str(service.get("extrainfo", "") or ""),
+                "banner": banner,
+                "scripts": script_rows,
+            }
+        )
 
     return {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -148,21 +152,23 @@ def render_project_ai_report_markdown(report: Dict[str, Any]) -> str:
         host_heading = host_ip
         if host_name:
             host_heading = f"{host_ip} ({host_name})".strip()
-        lines.extend([
-            f"### {host_heading}",
-            "",
-            f"- Host ID: {host.get('id', '')}",
-            f"- Status: {host.get('status', '')}",
-            f"- OS: {host.get('os', '')}",
-            f"- Open Services: {len(ports)}",
-            f"- CVEs: {len(cves)}",
-            f"- Provider: {ai.get('provider', '')}",
-            f"- Goal Profile: {ai.get('goal_profile', '')}",
-            f"- Updated: {ai.get('updated_at', '')}",
-            f"- Next Phase: {ai.get('next_phase', '')}",
-            "",
-            "#### Technologies",
-        ])
+        lines.extend(
+            [
+                f"### {host_heading}",
+                "",
+                f"- Host ID: {host.get('id', '')}",
+                f"- Status: {host.get('status', '')}",
+                f"- OS: {host.get('os', '')}",
+                f"- Open Services: {len(ports)}",
+                f"- CVEs: {len(cves)}",
+                f"- Provider: {ai.get('provider', '')}",
+                f"- Goal Profile: {ai.get('goal_profile', '')}",
+                f"- Updated: {ai.get('updated_at', '')}",
+                f"- Next Phase: {ai.get('next_phase', '')}",
+                "",
+                "#### Technologies",
+            ]
+        )
         if technologies:
             for tech in technologies:
                 if not isinstance(tech, dict):

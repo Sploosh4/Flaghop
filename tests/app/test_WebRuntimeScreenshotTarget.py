@@ -8,7 +8,6 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-
 for _name in ("Mapping", "MutableMapping", "Sequence", "Callable"):
     if not hasattr(collections, _name):
         setattr(collections, _name, getattr(collections.abc, _name))
@@ -59,13 +58,18 @@ class WebRuntimeScreenshotTargetTest(unittest.TestCase):
             )
             runtime._require_active_project = lambda: project
 
-            with patch("app.web.runtime_screenshots.choose_preferred_screenshot_host", return_value="bing.com") as mock_choose:
+            with patch(
+                "app.web.runtime_screenshots.choose_preferred_screenshot_host", return_value="bing.com"
+            ) as mock_choose:
                 with patch("app.web.runtime_screenshots.isHttps", return_value=False):
-                    with patch("app.web.runtime_screenshots.run_eyewitness_capture", return_value={
-                        "ok": True,
-                        "screenshot_path": src_path,
-                        "returncode": 0,
-                    }) as mock_capture:
+                    with patch(
+                        "app.web.runtime_screenshots.run_eyewitness_capture",
+                        return_value={
+                            "ok": True,
+                            "screenshot_path": src_path,
+                            "returncode": 0,
+                        },
+                    ) as mock_capture:
                         executed, reason = WebRuntime._take_screenshot(runtime, "203.0.113.44", "80", "http")
 
         self.assertTrue(executed)
@@ -96,11 +100,14 @@ class WebRuntimeScreenshotTargetTest(unittest.TestCase):
             runtime._require_active_project = lambda: project
 
             with patch("app.web.runtime_screenshots.isHttps", return_value=False):
-                with patch("app.web.runtime_screenshots.run_eyewitness_capture", return_value={
-                    "ok": True,
-                    "screenshot_path": src_path,
-                    "returncode": 0,
-                }) as mock_capture:
+                with patch(
+                    "app.web.runtime_screenshots.run_eyewitness_capture",
+                    return_value={
+                        "ok": True,
+                        "screenshot_path": src_path,
+                        "returncode": 0,
+                    },
+                ) as mock_capture:
                     executed, reason = WebRuntime._take_screenshot(runtime, "203.0.113.44", "80", "http")
 
         self.assertTrue(executed)
@@ -129,12 +136,15 @@ class WebRuntimeScreenshotTargetTest(unittest.TestCase):
 
             with patch("app.web.runtime_screenshots.choose_preferred_screenshot_host", return_value="portal.example"):
                 with patch("app.web.runtime_screenshots.isHttps", return_value=False):
-                    with patch("app.web.runtime_screenshots.run_eyewitness_capture", return_value={
-                        "ok": True,
-                        "screenshot_path": src_path,
-                        "returncode": 0,
-                        "executable": "/usr/local/bin/EyeWitness",
-                    }):
+                    with patch(
+                        "app.web.runtime_screenshots.run_eyewitness_capture",
+                        return_value={
+                            "ok": True,
+                            "screenshot_path": src_path,
+                            "returncode": 0,
+                            "executable": "/usr/local/bin/EyeWitness",
+                        },
+                    ):
                         executed, reason, artifact_refs = WebRuntime._take_screenshot(
                             runtime,
                             "203.0.113.44",
@@ -168,16 +178,19 @@ class WebRuntimeScreenshotTargetTest(unittest.TestCase):
             screenshot_path = os.path.join(screenshot_dir, "203.0.113.44-80-screenshot.png")
             with open(screenshot_path, "wb") as handle:
                 handle.write(b"png")
-            write_screenshot_metadata(screenshot_path, {
-                "tool_id": "screenshooter",
-                "filename": "203.0.113.44-80-screenshot.png",
-                "port": "80",
-                "protocol": "tcp",
-                "service_name": "http",
-                "target_url": "http://portal.example:80",
-                "capture_engine": "EyeWitness",
-                "captured_at": "2026-03-22T06:00:00+00:00",
-            })
+            write_screenshot_metadata(
+                screenshot_path,
+                {
+                    "tool_id": "screenshooter",
+                    "filename": "203.0.113.44-80-screenshot.png",
+                    "port": "80",
+                    "protocol": "tcp",
+                    "service_name": "http",
+                    "target_url": "http://portal.example:80",
+                    "capture_engine": "EyeWitness",
+                    "captured_at": "2026-03-22T06:00:00+00:00",
+                },
+            )
 
             project = SimpleNamespace(properties=SimpleNamespace(outputFolder=temp_dir))
             rows = WebRuntime._list_screenshots_for_host(runtime, project, "203.0.113.44")
@@ -196,21 +209,25 @@ class WebRuntimeScreenshotTargetTest(unittest.TestCase):
 
         project = SimpleNamespace(
             repositoryContainer=SimpleNamespace(
-                portRepository=_PortRepo([
-                    SimpleNamespace(portId="80", protocol="tcp", state="open", serviceId=1),
-                    SimpleNamespace(portId="443", protocol="tcp", state="open", serviceId=2),
-                    SimpleNamespace(portId="8443", protocol="tcp", state="open", serviceId=None),
-                    SimpleNamespace(portId="3389", protocol="tcp", state="open", serviceId=3),
-                    SimpleNamespace(portId="53", protocol="udp", state="open", serviceId=4),
-                    SimpleNamespace(portId="8080", protocol="tcp", state="closed", serviceId=5),
-                ]),
-                serviceRepository=_ServiceRepo({
-                    1: SimpleNamespace(name="http"),
-                    2: SimpleNamespace(name="https"),
-                    3: SimpleNamespace(name="rdp"),
-                    4: SimpleNamespace(name="domain"),
-                    5: SimpleNamespace(name="http-proxy"),
-                }),
+                portRepository=_PortRepo(
+                    [
+                        SimpleNamespace(portId="80", protocol="tcp", state="open", serviceId=1),
+                        SimpleNamespace(portId="443", protocol="tcp", state="open", serviceId=2),
+                        SimpleNamespace(portId="8443", protocol="tcp", state="open", serviceId=None),
+                        SimpleNamespace(portId="3389", protocol="tcp", state="open", serviceId=3),
+                        SimpleNamespace(portId="53", protocol="udp", state="open", serviceId=4),
+                        SimpleNamespace(portId="8080", protocol="tcp", state="closed", serviceId=5),
+                    ]
+                ),
+                serviceRepository=_ServiceRepo(
+                    {
+                        1: SimpleNamespace(name="http"),
+                        2: SimpleNamespace(name="https"),
+                        3: SimpleNamespace(name="rdp"),
+                        4: SimpleNamespace(name="domain"),
+                        5: SimpleNamespace(name="http-proxy"),
+                    }
+                ),
             ),
         )
         runtime._require_active_project = lambda: project

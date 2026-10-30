@@ -1,8 +1,8 @@
-/** Workspace host detail. */
 import { makeCell, setChecked, setText, setValue } from "./dom.js";
 import { normalizeCategoryList, renderCategoryChipList } from "./host_filters.js";
 import { extractBannerForPort } from "./output_format.js";
 import { workspaceState } from "./state.js";
+/** Workspace host detail. */
 
 export function renderHostDetail(payload) {
     workspaceState.hostDetail = payload || null;

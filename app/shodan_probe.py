@@ -11,7 +11,6 @@ from urllib.request import Request, urlopen
 
 from app.hostsfile import normalize_hostname_alias, registrable_root_domain
 
-
 API_BASE_URL = "https://api.shodan.io"
 
 
@@ -131,7 +130,9 @@ def run_shodan_probe(target: str, api_key: str, *, limit: int = 25, timeout: int
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Search Shodan for hostname or certificate matches related to an external hostname.")
+    parser = argparse.ArgumentParser(
+        description="Search Shodan for hostname or certificate matches related to an external hostname."
+    )
     parser.add_argument("--target", required=True, help="Input hostname or domain.")
     parser.add_argument("--api-key", required=True, help="Shodan API key.")
     parser.add_argument("--output", required=True, help="Output JSON file path.")

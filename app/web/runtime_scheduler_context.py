@@ -4,7 +4,6 @@ from app.web import runtime_scheduler_excerpt as web_runtime_scheduler_excerpt
 from app.web import runtime_scheduler_summary as web_runtime_scheduler_summary
 from app.web import runtime_scheduler_target_context as web_runtime_scheduler_target_context
 
-
 truncate_scheduler_text = web_runtime_scheduler_excerpt.truncate_scheduler_text
 scheduler_output_lines = web_runtime_scheduler_excerpt.scheduler_output_lines
 scheduler_line_signal_score = web_runtime_scheduler_excerpt.scheduler_line_signal_score

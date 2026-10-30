@@ -6,21 +6,21 @@ from app.scheduler.insights import ensure_scheduler_ai_state_table, get_host_ai_
 from app.timing import getTimestamp
 from app.web import runtime_scheduler_ai_host_updates as web_runtime_scheduler_ai_host_updates
 
-
 AI_HOST_UPDATE_MIN_CONFIDENCE = web_runtime_scheduler_ai_host_updates.AI_HOST_UPDATE_MIN_CONFIDENCE
 apply_ai_host_updates = web_runtime_scheduler_ai_host_updates.apply_ai_host_updates
 enrich_host_from_observed_results = web_runtime_scheduler_ai_host_updates.enrich_host_from_observed_results
 
+
 def persist_scheduler_ai_analysis(
-        runtime,
-        *,
-        host_id: int,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        service_name: str,
-        goal_profile: str,
-        provider_payload: Optional[Dict[str, Any]],
+    runtime,
+    *,
+    host_id: int,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    service_name: str,
+    goal_profile: str,
+    provider_payload: Optional[Dict[str, Any]],
 ):
     payload = provider_payload if isinstance(provider_payload, dict) else {}
 
@@ -29,8 +29,7 @@ def persist_scheduler_ai_analysis(
         host_updates_raw = {}
 
     provider_technologies = runtime._normalize_ai_technologies(
-        host_updates_raw.get("technologies", [])
-        or payload.get("technologies", [])
+        host_updates_raw.get("technologies", []) or payload.get("technologies", [])
     )
     findings = runtime._normalize_ai_findings(payload.get("findings", []))
     manual_tests = runtime._normalize_ai_manual_tests(payload.get("manual_tests", []))
@@ -67,14 +66,16 @@ def persist_scheduler_ai_analysis(
             key_fields=["title", "cve", "severity"],
             limit=260,
         )
-        if not any([
-            technologies,
-            findings_combined,
-            manual_tests,
-            hostname_candidate,
-            os_candidate,
-            next_phase,
-        ]):
+        if not any(
+            [
+                technologies,
+                findings_combined,
+                manual_tests,
+                hostname_candidate,
+                os_candidate,
+                next_phase,
+            ]
+        ):
             return
         ensure_scheduler_ai_state_table(project.database)
         existing = get_host_ai_state(project.database, int(host_id)) or {}
@@ -174,22 +175,24 @@ def persist_scheduler_ai_analysis(
 
 
 def persist_scheduler_reflection_analysis(
-        runtime,
-        *,
-        host_id: int,
-        host_ip: str,
-        port: str,
-        protocol: str,
-        service_name: str,
-        goal_profile: str,
-        reflection_payload: Optional[Dict[str, Any]],
+    runtime,
+    *,
+    host_id: int,
+    host_ip: str,
+    port: str,
+    protocol: str,
+    service_name: str,
+    goal_profile: str,
+    reflection_payload: Optional[Dict[str, Any]],
 ):
     payload = reflection_payload if isinstance(reflection_payload, dict) else {}
     reflection_state = str(payload.get("state", "") or "").strip().lower()
     reason = runtime._truncate_scheduler_text(payload.get("reason", ""), 320)
     priority_shift = str(payload.get("priority_shift", "") or "").strip().lower()[:64]
     trigger_reason = str(payload.get("trigger_reason", "") or "").strip().lower()[:64]
-    trigger_context_raw = payload.get("trigger_context", {}) if isinstance(payload.get("trigger_context", {}), dict) else {}
+    trigger_context_raw = (
+        payload.get("trigger_context", {}) if isinstance(payload.get("trigger_context", {}), dict) else {}
+    )
     trigger_context = {}
     for key in ("round_number", "current_phase", "previous_phase", "window_size", "repeated_selection_count"):
         value = trigger_context_raw.get(key, "")
@@ -215,7 +218,18 @@ def persist_scheduler_reflection_analysis(
     ]
     manual_tests = runtime._normalize_ai_manual_tests(payload.get("manual_tests", []))
 
-    if not any([reflection_state, reason, priority_shift, trigger_reason, trigger_context, promote_tool_ids, suppress_tool_ids, manual_tests]):
+    if not any(
+        [
+            reflection_state,
+            reason,
+            priority_shift,
+            trigger_reason,
+            trigger_context,
+            promote_tool_ids,
+            suppress_tool_ids,
+            manual_tests,
+        ]
+    ):
         return
 
     reflection_record = {

@@ -20,7 +20,6 @@ from app.shell.DefaultShell import DefaultShell
 from db.RepositoryFactory import RepositoryFactory
 from db.entities.cve import cve
 
-
 CORPUS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "fixtures", "scheduler-regression")
 )
@@ -73,10 +72,12 @@ class SchedulerRegressionCorpusTest(unittest.TestCase):
 
             with tempfile.TemporaryDirectory() as tmpdir:
                 manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-                manager.update_preferences({
-                    "mode": "deterministic",
-                    "engagement_policy": dict(case["engagement_policy"]),
-                })
+                manager.update_preferences(
+                    {
+                        "mode": "deterministic",
+                        "engagement_policy": dict(case["engagement_policy"]),
+                    }
+                )
                 planner = SchedulerPlanner(manager)
                 planner_settings = case["planner"]
                 steps = planner.plan_actions(
@@ -111,18 +112,20 @@ class SchedulerRegressionCorpusTest(unittest.TestCase):
 
             session = project.database.session()
             for item in list(case.get("cves", []) or []):
-                session.add(cve(
-                    name=item["name"],
-                    url=item["url"],
-                    product=item["product"],
-                    hostId=str(host_id),
-                    severity=item["severity"],
-                    source=item["source"],
-                    version=item["version"],
-                    exploitId=item["exploitId"],
-                    exploit=item["exploit"],
-                    exploitUrl=item["exploitUrl"],
-                ))
+                session.add(
+                    cve(
+                        name=item["name"],
+                        url=item["url"],
+                        product=item["product"],
+                        hostId=str(host_id),
+                        severity=item["severity"],
+                        source=item["source"],
+                        version=item["version"],
+                        exploitId=item["exploitId"],
+                        exploit=item["exploit"],
+                        exploitUrl=item["exploitUrl"],
+                    )
+                )
             session.commit()
             session.close()
 
@@ -197,10 +200,12 @@ class SchedulerRegressionCorpusTest(unittest.TestCase):
         try:
             with tempfile.TemporaryDirectory() as tmpdir:
                 manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-                manager.update_preferences({
-                    "mode": "deterministic",
-                    "engagement_policy": dict(case["engagement_policy"]),
-                })
+                manager.update_preferences(
+                    {
+                        "mode": "deterministic",
+                        "engagement_policy": dict(case["engagement_policy"]),
+                    }
+                )
                 planner = SchedulerPlanner(manager)
                 planner_settings = case["planner"]
                 steps = planner.plan_actions(
@@ -232,11 +237,13 @@ class SchedulerRegressionCorpusTest(unittest.TestCase):
         case = self._load_case("approval_required")
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = SchedulerConfigManager(config_path=os.path.join(tmpdir, "scheduler-ai.json"))
-            manager.update_preferences({
-                "mode": "ai",
-                "provider": "lm_studio",
-                "engagement_policy": dict(case["engagement_policy"]),
-            })
+            manager.update_preferences(
+                {
+                    "mode": "ai",
+                    "provider": "lm_studio",
+                    "engagement_policy": dict(case["engagement_policy"]),
+                }
+            )
             planner = SchedulerPlanner(manager)
             planner_settings = case["planner"]
             steps = planner.plan_actions(

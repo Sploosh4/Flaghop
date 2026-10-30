@@ -132,7 +132,9 @@ class ScreenshotTargetSelectionTest(unittest.TestCase):
         self.assertNotIn("portal.example 443", command)
 
     @patch("app.screenshot_targets.socket.getaddrinfo", side_effect=socket.gaierror("nope"))
-    def test_apply_preferred_target_placeholders_prefers_hostname_for_scanners_even_when_unresolved(self, _mock_getaddrinfo):
+    def test_apply_preferred_target_placeholders_prefers_hostname_for_scanners_even_when_unresolved(
+        self, _mock_getaddrinfo
+    ):
         from app.screenshot_targets import apply_preferred_target_placeholders, resolve_hostname_addresses
 
         resolve_hostname_addresses.cache_clear()

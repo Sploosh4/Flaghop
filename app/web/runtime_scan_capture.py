@@ -6,7 +6,6 @@ from typing import Any, Dict, List
 
 from app.web import runtime_scan_capture_analysis as web_runtime_scan_capture_analysis
 
-
 preferred_capture_interface_sort_key = web_runtime_scan_capture_analysis.preferred_capture_interface_sort_key
 list_capture_interfaces = web_runtime_scan_capture_analysis.list_capture_interfaces
 get_capture_interface_inventory = web_runtime_scan_capture_analysis.get_capture_interface_inventory
@@ -18,11 +17,11 @@ analyze_passive_capture = web_runtime_scan_capture_analysis.analyze_passive_capt
 
 
 def start_passive_capture_scan_job(
-        runtime,
-        *,
-        interface_name: str,
-        duration_minutes: int,
-        run_actions: bool = False,
+    runtime,
+    *,
+    interface_name: str,
+    duration_minutes: int,
+    run_actions: bool = False,
 ) -> Dict[str, Any]:
     with runtime._lock:
         engagement_policy = runtime._load_engagement_policy_locked(persist_if_missing=True)
@@ -30,10 +29,7 @@ def start_passive_capture_scan_job(
     if scope != "internal":
         raise ValueError("Passive capture is available only for internal engagement scopes.")
 
-    available_interfaces = {
-        str(item.get("name", "") or "").strip(): item
-        for item in runtime.list_capture_interfaces()
-    }
+    available_interfaces = {str(item.get("name", "") or "").strip(): item for item in runtime.list_capture_interfaces()}
     resolved_interface = str(interface_name or "").strip()
     if not resolved_interface:
         raise ValueError("Capture interface is required.")
@@ -86,12 +82,12 @@ def start_passive_capture_scan_job(
 
 
 def run_passive_capture_scan(
-        runtime,
-        *,
-        interface_name: str,
-        duration_minutes: int,
-        run_actions: bool,
-        job_id: int = 0,
+    runtime,
+    *,
+    interface_name: str,
+    duration_minutes: int,
+    run_actions: bool,
+    job_id: int = 0,
 ) -> Dict[str, Any]:
     resolved_job_id = int(job_id or 0)
     resolved_interface = str(interface_name or "").strip()
@@ -114,19 +110,21 @@ def run_passive_capture_scan(
     capture_path = f"{output_prefix}.pcapng"
     analysis_path = f"{output_prefix}.analysis.json"
     capture_seconds = max(300, int(resolved_duration * 60))
-    capture_command = runtime._join_shell_tokens([
-        "tshark",
-        "-i",
-        resolved_interface,
-        "-n",
-        "-q",
-        "-a",
-        f"duration:{capture_seconds}",
-        "-f",
-        passive_capture_filter(),
-        "-w",
-        capture_path,
-    ])
+    capture_command = runtime._join_shell_tokens(
+        [
+            "tshark",
+            "-i",
+            resolved_interface,
+            "-n",
+            "-q",
+            "-a",
+            f"duration:{capture_seconds}",
+            "-f",
+            passive_capture_filter(),
+            "-w",
+            capture_path,
+        ]
+    )
 
     executed, reason, process_id, metadata = runtime._run_command_with_tracking(
         tool_name="tshark-passive-capture",
@@ -155,21 +153,24 @@ def run_passive_capture_scan(
         analysis_path=analysis_path,
     )
     candidate_networks = list(analysis.get("candidate_networks", []) or [])
-    default_scan_options = runtime._apply_engagement_scan_profile({
-        "discovery": True,
-        "skip_dns": True,
-        "timing": "T3",
-        "top_ports": 1000,
-        "explicit_ports": "",
-        "service_detection": True,
-        "default_scripts": True,
-        "os_detection": False,
-        "aggressive": False,
-        "full_ports": False,
-        "vuln_scripts": False,
-        "host_discovery_only": False,
-        "arp_ping": False,
-    }, engagement_policy=engagement_policy)
+    default_scan_options = runtime._apply_engagement_scan_profile(
+        {
+            "discovery": True,
+            "skip_dns": True,
+            "timing": "T3",
+            "top_ports": 1000,
+            "explicit_ports": "",
+            "service_detection": True,
+            "default_scripts": True,
+            "os_detection": False,
+            "aggressive": False,
+            "full_ports": False,
+            "vuln_scripts": False,
+            "host_discovery_only": False,
+            "arp_ping": False,
+        },
+        engagement_policy=engagement_policy,
+    )
 
     queued_scans: List[Dict[str, Any]] = []
     for subnet in candidate_networks[:16]:
@@ -184,16 +185,20 @@ def run_passive_capture_scan(
                 scan_mode="easy",
                 scan_options=dict(default_scan_options),
             )
-            queued_scans.append({
-                "subnet": str(subnet),
-                "job_id": int(job.get("id", 0) or 0),
-            })
+            queued_scans.append(
+                {
+                    "subnet": str(subnet),
+                    "job_id": int(job.get("id", 0) or 0),
+                }
+            )
         except Exception as exc:
-            queued_scans.append({
-                "subnet": str(subnet),
-                "job_id": 0,
-                "error": str(exc),
-            })
+            queued_scans.append(
+                {
+                    "subnet": str(subnet),
+                    "job_id": 0,
+                    "error": str(exc),
+                }
+            )
 
     queued_count = len([item for item in queued_scans if int(item.get("job_id", 0) or 0) > 0])
     result_summary = (

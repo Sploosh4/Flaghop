@@ -45,7 +45,7 @@ from app.configuration.network_commands import NetworkCommands
 class AppSettings(ActionCatalog, Migrations, CommandNormalization, NmapCommands, WebCommands, NetworkCommands):
 
     def __init__(self):
-        config_dir = ensure_legion_home()
+        ensure_legion_home()
         config_path = get_legion_conf_path()
         if not os.path.exists(config_path):
             repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))

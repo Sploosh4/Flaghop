@@ -13,8 +13,7 @@ class NmapEnrichmentTest(unittest.TestCase):
         scripts = [
             (
                 "ssl-cert",
-                "Subject: commonName=unifi.local\n"
-                "Subject Alternative Name: DNS:unifi.local, DNS:localhost\n",
+                "Subject: commonName=unifi.local\n" "Subject Alternative Name: DNS:unifi.local, DNS:localhost\n",
             )
         ]
         inferred = infer_hostname_from_nmap_data("unknown", scripts)

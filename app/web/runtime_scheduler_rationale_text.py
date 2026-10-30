@@ -65,7 +65,7 @@ def manual_test_lines(runtime_or_cls, manual_tests: Any, *, limit: int = 2) -> L
     _ = runtime_or_cls
     lines: List[str] = []
     entries = [item for item in list(manual_tests or []) if isinstance(item, dict)]
-    for item in entries[:int(limit)]:
+    for item in entries[: int(limit)]:
         why = truncate_rationale_text(item.get("why", ""), 120)
         command = truncate_rationale_text(item.get("command", ""), 120)
         if why and command:

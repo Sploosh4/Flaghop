@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import String, Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -25,19 +26,19 @@ from db.entities.port import portObj
 
 
 class serviceObj(Base):
-    __tablename__ = 'serviceObj'
+    __tablename__ = "serviceObj"
     name = Column(String)
     id = Column(Integer, primary_key=True)
     product = Column(String)
     version = Column(String)
     extrainfo = Column(String)
     fingerprint = Column(String)
-    hostId = Column(String, ForeignKey('hostObj.id'))
+    hostId = Column(String, ForeignKey("hostObj.id"))
     port = relationship(portObj)
     cves = relationship(cve)
     application = relationship(appObj)
 
-    def __init__(self, name, host, product='', version='', extrainfo='', fingerprint=''):
+    def __init__(self, name, host, product="", version="", extrainfo="", fingerprint=""):
         self.name = name
         self.product = product
         self.version = version

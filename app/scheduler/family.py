@@ -11,10 +11,12 @@ def _normalize_template(value: str) -> str:
 
 
 def build_command_family_id(tool_id: str, protocol: str, command_template: str) -> str:
-    normalized = "|".join([
-        str(tool_id or "").strip().lower(),
-        str(protocol or "").strip().lower(),
-        _normalize_template(command_template),
-    ])
+    normalized = "|".join(
+        [
+            str(tool_id or "").strip().lower(),
+            str(protocol or "").strip().lower(),
+            _normalize_template(command_template),
+        ]
+    )
     digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
     return digest[:16]

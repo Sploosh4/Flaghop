@@ -1,4 +1,6 @@
 [flake8]
-select=F821,F822,E501,F811,F823,F831,F841,E502,E703,E704,E713,E741,E742,E743,W291,W601,W602
+select=F821,F822,F811,F823,F831,F841,E502,E703,E704,E713,E741,E742,E743,W291,W601,W602
 exclude=.git,.idea,.venv,.runtime,.tools,.state,.tmp,.cache,.artifacts,.desktop-profile,tmp,backup,log,images,venv
 max-line-length: 120
+
+# Black checks layout; it deliberately preserves unsplittable strings and URLs.

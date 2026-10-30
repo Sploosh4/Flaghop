@@ -29,6 +29,27 @@ class NmapImportRunnerTest(unittest.TestCase):
     def _create_project(self):
         return self.project_manager.createNewProject(projectType="legion", isTemp=True)
 
+    def test_cancelled_import_notifies_after_releasing_database_lock(self):
+        from app.importers.NmapImporter import NmapImporter
+
+        project = self._create_project()
+        importer = NmapImporter(None, project.repositoryContainer.hostRepository)
+        importer.setDB(project.database)
+        importer.setFilename("tests/parsers/nmap-fixtures/valid-nmap-report.xml")
+        lock_available = []
+
+        def on_done():
+            acquired = project.database.dbsemaphore.acquire(blocking=False)
+            lock_available.append(acquired)
+            if acquired:
+                project.database.dbsemaphore.release()
+
+        importer.done.connect(on_done)
+        importer.cancel()
+        importer.run()
+        self.assertEqual([True], lock_available)
+        self.assertEqual([], project.repositoryContainer.hostRepository.getAllHostObjs())
+
     def test_import_valid_fixture_populates_host_ports_and_services(self):
         project = self._create_project()
         xml_path = os.path.join("tests", "parsers", "nmap-fixtures", "valid-nmap-report.xml")

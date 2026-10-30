@@ -17,7 +17,7 @@ class DefaultShell(Shell):
         return os.path.exists(path)
 
     def get_current_working_directory(self) -> str:
-        return str(subprocess.check_output("echo $PWD", shell=True)[:-1].decode()) + '/'
+        return str(subprocess.check_output("echo $PWD", shell=True)[:-1].decode()) + "/"
 
     def create_directory_recursively(self, directory: str):
         os.makedirs(directory)

@@ -9,7 +9,6 @@ from app.web import runtime_scheduler_execution_handlers as web_runtime_schedule
 from app.web import runtime_scheduler_target_runner as web_runtime_scheduler_target_runner
 from app.web import runtime_scheduler_trace as web_runtime_scheduler_trace
 
-
 get_scheduler_execution_records = web_runtime_scheduler_trace.get_scheduler_execution_records
 read_text_excerpt = web_runtime_scheduler_trace.read_text_excerpt
 get_scheduler_execution_traces = web_runtime_scheduler_trace.get_scheduler_execution_traces
@@ -73,17 +72,14 @@ def start_host_dig_deeper_job(runtime, host_id: int) -> Dict[str, Any]:
 
 
 def run_scheduler_actions_web(
-        runtime,
-        *,
-        host_ids: Optional[set] = None,
-        dig_deeper: bool = False,
-        job_id: int = 0,
+    runtime,
+    *,
+    host_ids: Optional[set] = None,
+    dig_deeper: bool = False,
+    job_id: int = 0,
 ) -> Dict[str, Any]:
     resolved_job_id = int(job_id or 0)
-    normalized_host_ids = {
-        int(item) for item in list(host_ids or set())
-        if str(item).strip()
-    }
+    normalized_host_ids = {int(item) for item in list(host_ids or set()) if str(item).strip()}
 
     with runtime._lock:
         project = runtime._require_active_project()
@@ -101,7 +97,9 @@ def run_scheduler_actions_web(
             allowed_states={"open", "open|filtered"},
         )
         goal_profile = str(
-            engagement_policy.get("legacy_goal_profile", scheduler_prefs.get("goal_profile", "internal_asset_discovery"))
+            engagement_policy.get(
+                "legacy_goal_profile", scheduler_prefs.get("goal_profile", "internal_asset_discovery")
+            )
             or "internal_asset_discovery"
         )
         engagement_preset = str(
@@ -121,13 +119,13 @@ def run_scheduler_actions_web(
         )
 
     def _build_context(
-            *,
-            target,
-            attempted_tool_ids,
-            attempted_family_ids=None,
-            attempted_command_signatures=None,
-            recent_output_chars,
-            analysis_mode,
+        *,
+        target,
+        attempted_tool_ids,
+        attempted_family_ids=None,
+        attempted_command_signatures=None,
+        recent_output_chars,
+        analysis_mode,
     ):
         return runtime._build_scheduler_target_context(
             host_id=int(target.host_id or 0),
@@ -200,20 +198,22 @@ def run_scheduler_actions_web(
         runner_settings = normalize_runner_settings(scheduler_prefs.get("runners", {}))
         payload = []
         for task in list(tasks or []):
-            payload.append({
-                "decision": task.decision,
-                "tool_id": str(task.tool_id or ""),
-                "host_ip": str(task.host_ip or ""),
-                "port": str(task.port or ""),
-                "protocol": str(task.protocol or "tcp"),
-                "service_name": str(task.service_name or ""),
-                "command_template": str(task.command_template or ""),
-                "timeout": int(task.timeout or 300),
-                "job_id": int(task.job_id or 0),
-                "approval_id": int(task.approval_id or 0),
-                "runner_preference": str(task.runner_preference or ""),
-                "runner_settings": runner_settings,
-            })
+            payload.append(
+                {
+                    "decision": task.decision,
+                    "tool_id": str(task.tool_id or ""),
+                    "host_ip": str(task.host_ip or ""),
+                    "port": str(task.port or ""),
+                    "protocol": str(task.protocol or "tcp"),
+                    "service_name": str(task.service_name or ""),
+                    "command_template": str(task.command_template or ""),
+                    "timeout": int(task.timeout or 300),
+                    "job_id": int(task.job_id or 0),
+                    "approval_id": int(task.approval_id or 0),
+                    "runner_preference": str(task.runner_preference or ""),
+                    "runner_settings": runner_settings,
+                }
+            )
         return runtime._execute_scheduler_task_batch(payload, max_concurrency=max_concurrency)
 
     def _on_execution_result(*, target, decision, result):
@@ -240,4 +240,3 @@ def run_scheduler_actions_web(
         execute_batch=_execute_batch,
         on_execution_result=_on_execution_result,
     )
-

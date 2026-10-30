@@ -38,7 +38,6 @@ class WorkspaceService:
             "hosts": rows,
         }
 
-
     def get_workspace_overview(self) -> Dict[str, Any]:
         return self.runtime.get_workspace_overview()
 

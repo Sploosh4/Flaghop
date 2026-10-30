@@ -19,21 +19,24 @@ class ScanHistoryStoreTest(unittest.TestCase):
 
         try:
             ensure_scan_submission_table(project.database)
-            created = record_scan_submission(project.database, {
-                "job_id": "77",
-                "submission_kind": "nmap_scan",
-                "status": "submitted",
-                "target_summary": "10.0.0.0/24",
-                "scope_summary": "subnets: 10.0.0.0/24",
-                "targets": ["10.0.0.0/24"],
-                "scan_mode": "easy",
-                "discovery": True,
-                "staged": False,
-                "run_actions": False,
-                "nmap_path": "nmap",
-                "nmap_args": "-sV",
-                "scan_options": {"top_ports": 1000},
-            })
+            created = record_scan_submission(
+                project.database,
+                {
+                    "job_id": "77",
+                    "submission_kind": "nmap_scan",
+                    "status": "submitted",
+                    "target_summary": "10.0.0.0/24",
+                    "scope_summary": "subnets: 10.0.0.0/24",
+                    "targets": ["10.0.0.0/24"],
+                    "scan_mode": "easy",
+                    "discovery": True,
+                    "staged": False,
+                    "run_actions": False,
+                    "nmap_path": "nmap",
+                    "nmap_args": "-sV",
+                    "scan_options": {"top_ports": 1000},
+                },
+            )
 
             self.assertGreater(int(created.get("id", 0) or 0), 0)
 

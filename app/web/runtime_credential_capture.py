@@ -47,27 +47,37 @@ def normalize_credential_capture_config(value: Any) -> Dict[str, Any]:
     }
     responder = source.get("responder") if isinstance(source.get("responder"), dict) else {}
     relay = source.get("ntlmrelayx") if isinstance(source.get("ntlmrelayx"), dict) else {}
-    normalized["responder"].update({
-        "interface_name": str(responder.get("interface_name", defaults["responder"]["interface_name"]) or "").strip()[:120],
-        "mode": "passive" if str(responder.get("mode", defaults["responder"]["mode"]) or "").strip().lower() == "passive" else "active",
-        "wpad": bool(responder.get("wpad", defaults["responder"]["wpad"])),
-        "force_wpad_auth": bool(responder.get("force_wpad_auth", defaults["responder"]["force_wpad_auth"])),
-        "proxy_auth": bool(responder.get("proxy_auth", defaults["responder"]["proxy_auth"])),
-        "dhcp": bool(responder.get("dhcp", defaults["responder"]["dhcp"])),
-        "dhcp_dns": bool(responder.get("dhcp_dns", defaults["responder"]["dhcp_dns"])),
-        "basic_auth": bool(responder.get("basic_auth", defaults["responder"]["basic_auth"])),
-        "extra_args": str(responder.get("extra_args", defaults["responder"]["extra_args"]) or "").strip(),
-    })
-    normalized["ntlmrelayx"].update({
-        "target": str(relay.get("target", defaults["ntlmrelayx"]["target"]) or "").strip()[:320],
-        "targets_file": str(relay.get("targets_file", defaults["ntlmrelayx"]["targets_file"]) or "").strip()[:512],
-        "smb2support": bool(relay.get("smb2support", defaults["ntlmrelayx"]["smb2support"])),
-        "interactive": bool(relay.get("interactive", defaults["ntlmrelayx"]["interactive"])),
-        "socks": bool(relay.get("socks", defaults["ntlmrelayx"]["socks"])),
-        "interface_ip": str(relay.get("interface_ip", defaults["ntlmrelayx"]["interface_ip"]) or "").strip()[:120],
-        "output_hashes": bool(relay.get("output_hashes", defaults["ntlmrelayx"]["output_hashes"])),
-        "extra_args": str(relay.get("extra_args", defaults["ntlmrelayx"]["extra_args"]) or "").strip(),
-    })
+    normalized["responder"].update(
+        {
+            "interface_name": str(
+                responder.get("interface_name", defaults["responder"]["interface_name"]) or ""
+            ).strip()[:120],
+            "mode": (
+                "passive"
+                if str(responder.get("mode", defaults["responder"]["mode"]) or "").strip().lower() == "passive"
+                else "active"
+            ),
+            "wpad": bool(responder.get("wpad", defaults["responder"]["wpad"])),
+            "force_wpad_auth": bool(responder.get("force_wpad_auth", defaults["responder"]["force_wpad_auth"])),
+            "proxy_auth": bool(responder.get("proxy_auth", defaults["responder"]["proxy_auth"])),
+            "dhcp": bool(responder.get("dhcp", defaults["responder"]["dhcp"])),
+            "dhcp_dns": bool(responder.get("dhcp_dns", defaults["responder"]["dhcp_dns"])),
+            "basic_auth": bool(responder.get("basic_auth", defaults["responder"]["basic_auth"])),
+            "extra_args": str(responder.get("extra_args", defaults["responder"]["extra_args"]) or "").strip(),
+        }
+    )
+    normalized["ntlmrelayx"].update(
+        {
+            "target": str(relay.get("target", defaults["ntlmrelayx"]["target"]) or "").strip()[:320],
+            "targets_file": str(relay.get("targets_file", defaults["ntlmrelayx"]["targets_file"]) or "").strip()[:512],
+            "smb2support": bool(relay.get("smb2support", defaults["ntlmrelayx"]["smb2support"])),
+            "interactive": bool(relay.get("interactive", defaults["ntlmrelayx"]["interactive"])),
+            "socks": bool(relay.get("socks", defaults["ntlmrelayx"]["socks"])),
+            "interface_ip": str(relay.get("interface_ip", defaults["ntlmrelayx"]["interface_ip"]) or "").strip()[:120],
+            "output_hashes": bool(relay.get("output_hashes", defaults["ntlmrelayx"]["output_hashes"])),
+            "extra_args": str(relay.get("extra_args", defaults["ntlmrelayx"]["extra_args"]) or "").strip(),
+        }
+    )
     return normalized
 
 
@@ -172,18 +182,21 @@ def latest_credential_capture_session_locked(runtime, tool_name: str) -> Dict[st
     runtime._ensure_process_tables()
     session = project.database.session()
     try:
-        result = session.execute(text(
-            "SELECT p.id, COALESCE(p.name, '') AS name, COALESCE(p.status, '') AS status, "
-            "COALESCE(p.startTime, '') AS startTime, COALESCE(p.endTime, '') AS endTime, "
-            "COALESCE(p.command, '') AS command, COALESCE(p.outputfile, '') AS outputfile, "
-            "COALESCE(p.percent, '') AS percent, p.estimatedRemaining AS estimatedRemaining, "
-            "COALESCE(p.elapsed, 0) AS elapsed, COALESCE(p.progressMessage, '') AS progressMessage, "
-            "COALESCE(p.progressSource, '') AS progressSource, COALESCE(p.progressUpdatedAt, '') AS progressUpdatedAt, "
-            "COALESCE(p.hostIp, '') AS hostIp, COALESCE(p.port, '') AS port, COALESCE(p.protocol, '') AS protocol "
-            "FROM process AS p "
-            "WHERE LOWER(COALESCE(p.name, '')) = LOWER(:tool_name) "
-            "ORDER BY p.id DESC LIMIT 1"
-        ), {"tool_name": str(tool_name or "")})
+        result = session.execute(
+            text(
+                "SELECT p.id, COALESCE(p.name, '') AS name, COALESCE(p.status, '') AS status, "
+                "COALESCE(p.startTime, '') AS startTime, COALESCE(p.endTime, '') AS endTime, "
+                "COALESCE(p.command, '') AS command, COALESCE(p.outputfile, '') AS outputfile, "
+                "COALESCE(p.percent, '') AS percent, p.estimatedRemaining AS estimatedRemaining, "
+                "COALESCE(p.elapsed, 0) AS elapsed, COALESCE(p.progressMessage, '') AS progressMessage, "
+                "COALESCE(p.progressSource, '') AS progressSource, COALESCE(p.progressUpdatedAt, '') AS progressUpdatedAt, "
+                "COALESCE(p.hostIp, '') AS hostIp, COALESCE(p.port, '') AS port, COALESCE(p.protocol, '') AS protocol "
+                "FROM process AS p "
+                "WHERE LOWER(COALESCE(p.name, '')) = LOWER(:tool_name) "
+                "ORDER BY p.id DESC LIMIT 1"
+            ),
+            {"tool_name": str(tool_name or "")},
+        )
         row = result.fetchone()
         if row is None:
             return {}
@@ -215,9 +228,13 @@ def latest_credential_capture_session_locked(runtime, tool_name: str) -> Dict[st
 def credential_capture_state_locked(runtime, *, include_captures: bool = False) -> Dict[str, Any]:
     project = getattr(runtime.logic, "activeProject", None)
     captures: List[Dict[str, Any]] = []
-    config = normalize_credential_capture_config(
-        runtime._get_workspace_setting_locked("credential_capture_config", default_credential_capture_config())
-    ) if project else default_credential_capture_config()
+    config = (
+        normalize_credential_capture_config(
+            runtime._get_workspace_setting_locked("credential_capture_config", default_credential_capture_config())
+        )
+        if project
+        else default_credential_capture_config()
+    )
     if project is not None:
         repo = getattr(getattr(project, "repositoryContainer", None), "credentialRepository", None)
         if repo is not None:
@@ -227,7 +244,9 @@ def credential_capture_state_locked(runtime, *, include_captures: bool = False) 
                 captures = []
     deduped_hashes = dedupe_credential_hashes(captures)
     recent_captures = captures[:8]
-    panel_enabled = bool(runtime._scheduler_preferences().get("feature_flags", {}).get("credential_capture_panel", True))
+    panel_enabled = bool(
+        runtime._scheduler_preferences().get("feature_flags", {}).get("credential_capture_panel", True)
+    )
     responder_session = latest_credential_capture_session_locked(runtime, "responder") if project else {}
     relay_session = latest_credential_capture_session_locked(runtime, "ntlmrelayx") if project else {}
     state = {
@@ -336,7 +355,9 @@ def get_credential_capture_log_payload(runtime, tool_id: str) -> Dict[str, Any]:
             if not next_chunk:
                 break
             text_value += next_chunk
-            next_offset = int(next_payload.get("next_offset", next_offset + len(next_chunk)) or (next_offset + len(next_chunk)))
+            next_offset = int(
+                next_payload.get("next_offset", next_offset + len(next_chunk)) or (next_offset + len(next_chunk))
+            )
     return {
         "tool": normalized_tool,
         "process_id": process_id,
@@ -387,7 +408,9 @@ def build_credential_capture_command(runtime, tool_id: str, config: Dict[str, An
         if not interface_name:
             raise ValueError("Responder requires a capture interface.")
         outputfile = os.path.join(running_dir, f"{timestamp}-responder.log")
-        tool_path = shlex.quote(str(getattr(runtime._get_settings(), "tools_path_responder", "responder") or "responder"))
+        tool_path = shlex.quote(
+            str(getattr(runtime._get_settings(), "tools_path_responder", "responder") or "responder")
+        )
         command_parts = [tool_path, "-I", shlex.quote(interface_name)]
         if str(config.get("mode", "active") or "").strip().lower() == "passive":
             command_parts.append("-A")
@@ -415,7 +438,11 @@ def build_credential_capture_command(runtime, tool_id: str, config: Dict[str, An
             raise ValueError("ntlmrelayx requires a relay target or targets file.")
         output_base = os.path.join(running_dir, f"{timestamp}-ntlmrelayx")
         outputfile = f"{output_base}.log"
-        tool_path = shlex.quote(str(getattr(runtime._get_settings(), "tools_path_ntlmrelay", "impacket-ntlmrelayx") or "impacket-ntlmrelayx"))
+        tool_path = shlex.quote(
+            str(
+                getattr(runtime._get_settings(), "tools_path_ntlmrelay", "impacket-ntlmrelayx") or "impacket-ntlmrelayx"
+            )
+        )
         command_parts = [tool_path]
         if target:
             command_parts.extend(["-t", shlex.quote(target)])

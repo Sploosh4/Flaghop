@@ -1,10 +1,10 @@
-/** Workspace interface settings. */
 import { closeRibbonMenus, setAppSettingsModalOpen } from "./dialogs.js";
 import { getChecked, setChecked, updateBodyModalState } from "./dom.js";
 import { fetchJson, postJson } from "./http.js";
 import { applySchedulerPreferences, normalizeSchedulerFeatureFlags } from "./scheduler_preferences.js";
 import { uiModalState } from "./state.js";
 import { applyColorfulAsciiBackgroundEnabled, refreshToolAuditAction, setInterfaceSettingsStatus } from "./tool_settings.js";
+/** Workspace interface settings. */
 
 export function setInterfaceSettingsModalOpen(open) {
     const overlay = document.getElementById("interface-settings-modal");

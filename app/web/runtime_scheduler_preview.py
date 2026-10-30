@@ -41,16 +41,16 @@ def serialize_plan_step_preview(step: Any) -> Dict[str, Any]:
 
 
 def get_scheduler_plan_preview(
-        runtime,
-        *,
-        host_id: int = 0,
-        host_ip: str = "",
-        service: str = "",
-        port: str = "",
-        protocol: str = "tcp",
-        mode: str = "compare",
-        limit_targets: int = 20,
-        limit_actions: int = 6,
+    runtime,
+    *,
+    host_id: int = 0,
+    host_ip: str = "",
+    service: str = "",
+    port: str = "",
+    protocol: str = "tcp",
+    mode: str = "compare",
+    limit_targets: int = 20,
+    limit_actions: int = 6,
 ) -> Dict[str, Any]:
     with runtime._lock:
         project = runtime._require_active_project()
@@ -58,7 +58,9 @@ def get_scheduler_plan_preview(
         engagement_policy = runtime._load_engagement_policy_locked(persist_if_missing=True)
         settings = runtime._get_settings()
         goal_profile = str(
-            engagement_policy.get("legacy_goal_profile", scheduler_prefs.get("goal_profile", "internal_asset_discovery"))
+            engagement_policy.get(
+                "legacy_goal_profile", scheduler_prefs.get("goal_profile", "internal_asset_discovery")
+            )
             or "internal_asset_discovery"
         )
         targets = runtime.scheduler_orchestrator.collect_project_targets(
@@ -78,7 +80,8 @@ def get_scheduler_plan_preview(
     max_actions = max(1, min(int(limit_actions or 6), 32))
     current_mode = str(scheduler_prefs.get("mode", "deterministic") or "deterministic").strip().lower()
     recent_output_chars = int(
-        runtime.scheduler_orchestrator._scheduler_feedback_config(scheduler_prefs).get("recent_output_chars", 900) or 900
+        runtime.scheduler_orchestrator._scheduler_feedback_config(scheduler_prefs).get("recent_output_chars", 900)
+        or 900
     )
 
     filtered_targets: List[Any] = []
@@ -168,21 +171,25 @@ def get_scheduler_plan_preview(
                 for item in list(ai_preview.get("steps", []) or [])
                 if str(item.get("tool_id", "") or "").strip()
             }
-            preview.update({
-                "mode": "compare",
-                "deterministic": deterministic_preview,
-                "ai": ai_preview,
-                "agreement": sorted(deterministic_tool_ids & ai_tool_ids),
-                "deterministic_only": sorted(deterministic_tool_ids - ai_tool_ids),
-                "ai_only": sorted(ai_tool_ids - deterministic_tool_ids),
-            })
+            preview.update(
+                {
+                    "mode": "compare",
+                    "deterministic": deterministic_preview,
+                    "ai": ai_preview,
+                    "agreement": sorted(deterministic_tool_ids & ai_tool_ids),
+                    "deterministic_only": sorted(deterministic_tool_ids - ai_tool_ids),
+                    "ai_only": sorted(ai_tool_ids - deterministic_tool_ids),
+                }
+            )
         else:
             selected_mode = current_mode if requested_mode == "current" else requested_mode
-            preview.update({
-                "mode": requested_mode,
-                "selected_mode": selected_mode,
-                "plan": _preview_for_mode(selected_mode),
-            })
+            preview.update(
+                {
+                    "mode": requested_mode,
+                    "selected_mode": selected_mode,
+                    "plan": _preview_for_mode(selected_mode),
+                }
+            )
         previews.append(preview)
 
     return {

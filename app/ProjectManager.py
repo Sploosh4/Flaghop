@@ -45,14 +45,13 @@ class ProjectManager:
         workingDirectory = self.shell.get_current_working_directory()
 
         # to store tool output of finished processes
-        outputFolder = self.shell.create_temporary_directory(prefix="legion-", suffix="-tool-output",
-                                                             directory=tempDirectory)
+        outputFolder = self.shell.create_temporary_directory(
+            prefix="legion-", suffix="-tool-output", directory=tempDirectory
+        )
 
         # to store tool output of running processes
         runningFolder = self.shell.create_temporary_directory(
-            prefix="legion-",
-            suffix="-running",
-            directory=tempDirectory
+            prefix="legion-", suffix="-running", directory=tempDirectory
         )
 
         self.shell.create_directory_recursively(f"{outputFolder}/screenshots")  # to store screenshots
@@ -60,13 +59,20 @@ class ProjectManager:
         self.shell.create_directory_recursively(f"{runningFolder}/hydra")  # to store hydra output
         self.shell.create_directory_recursively(f"{runningFolder}/dnsmap")  # to store dnsmap output
 
-        (usernameWordList, passwordWordList) = self.__createUsernameAndPasswordWordLists(outputFolder)
+        usernameWordList, passwordWordList = self.__createUsernameAndPasswordWordLists(outputFolder)
         repositoryContainer = self.repositoryFactory.buildRepositories(database)
 
         projectName = database.name
         projectProperties = ProjectProperties(
-            projectName, workingDirectory, projectType, isTemp, outputFolder, runningFolder, usernameWordList,
-            passwordWordList, storeWordListsOnExit=True
+            projectName,
+            workingDirectory,
+            projectType,
+            isTemp,
+            outputFolder,
+            runningFolder,
+            usernameWordList,
+            passwordWordList,
+            storeWordListsOnExit=True,
         )
         return Project(projectProperties, repositoryContainer, database)
 
@@ -80,18 +86,25 @@ class ProjectManager:
             raise
         workingDirectory = f"{ntpath.dirname(projectName)}/"
         outputFolder, _ = self.__determineOutputFolder(projectName, projectType)
-        runningFolder = self.shell.create_temporary_directory(suffix="-running", prefix=projectType + '-',
-                                                              directory=tempDirectory)
+        runningFolder = self.shell.create_temporary_directory(
+            suffix="-running", prefix=projectType + "-", directory=tempDirectory
+        )
         os.makedirs(outputFolder, exist_ok=True)
         os.makedirs(f"{outputFolder}/screenshots", exist_ok=True)
         self.shell.create_directory_recursively(getNmapRunningFolder(runningFolder))
         self.shell.create_directory_recursively(f"{runningFolder}/hydra")
         self.shell.create_directory_recursively(f"{runningFolder}/dnsmap")
-        (usernameWordList, passwordWordList) = self.__createUsernameAndPasswordWordLists(outputFolder)
+        usernameWordList, passwordWordList = self.__createUsernameAndPasswordWordLists(outputFolder)
         projectProperties = ProjectProperties(
-            projectName=projectName, workingDirectory=workingDirectory, projectType=projectType, isTemporary=False,
-            outputFolder=outputFolder, runningFolder=runningFolder, usernamesWordList=usernameWordList,
-            passwordWordList=passwordWordList, storeWordListsOnExit=True
+            projectName=projectName,
+            workingDirectory=workingDirectory,
+            projectType=projectType,
+            isTemporary=False,
+            outputFolder=outputFolder,
+            runningFolder=runningFolder,
+            usernamesWordList=usernameWordList,
+            passwordWordList=passwordWordList,
+            storeWordListsOnExit=True,
         )
         try:
             repositoryContainer = self.repositoryFactory.buildRepositories(database)
@@ -110,18 +123,18 @@ class ProjectManager:
         try:
             if not projectProperties.isTemporary:
                 if not projectProperties.storeWordListsOnExit:
-                    self.logger.info('Removing wordlist files.')
+                    self.logger.info("Removing wordlist files.")
                     self.shell.remove_file(projectProperties.usernamesWordList.filename)
                     self.shell.remove_file(projectProperties.passwordWordList.filename)
             else:
-                self.logger.info('Removing temporary files and folders...')
+                self.logger.info("Removing temporary files and folders...")
                 self.shell.remove_file(projectProperties.projectName)
                 self.shell.remove_directory(projectProperties.outputFolder)
 
-            self.logger.info('Removing running folder at close...')
+            self.logger.info("Removing running folder at close...")
             self.shell.remove_directory(projectProperties.runningFolder)
         except:
-            self.logger.info('Something went wrong removing temporary files and folders..')
+            self.logger.info("Something went wrong removing temporary files and folders..")
             self.logger.info("Unexpected error: {0}".format(sys.exc_info()[0]))
 
     # this function copies the current project files and folder to a new location
@@ -202,21 +215,22 @@ class ProjectManager:
             return Database(projectName)
 
         databaseFile = self.shell.create_named_temporary_file(
-            suffix=".legion",
-            prefix="legion-",
-            directory=tempDirectory,
-            delete_on_close=False
+            suffix=".legion", prefix="legion-", directory=tempDirectory, delete_on_close=False
         )  # to store the db file
         return Database(databaseFile.name)
 
     @staticmethod
     def setStoreWordListsOnExit(project: Project, storeWordListsOnExit: bool) -> None:
         projectProperties = ProjectProperties(
-            projectName=project.properties.projectName, workingDirectory=project.properties.workingDirectory,
-            projectType=project.properties.projectType, isTemporary=project.properties.isTemporary,
-            outputFolder=project.properties.outputFolder, runningFolder=project.properties.runningFolder,
+            projectName=project.properties.projectName,
+            workingDirectory=project.properties.workingDirectory,
+            projectType=project.properties.projectType,
+            isTemporary=project.properties.isTemporary,
+            outputFolder=project.properties.outputFolder,
+            runningFolder=project.properties.runningFolder,
             usernamesWordList=project.properties.usernamesWordList,
-            passwordWordList=project.properties.passwordWordList, storeWordListsOnExit=storeWordListsOnExit
+            passwordWordList=project.properties.passwordWordList,
+            storeWordListsOnExit=storeWordListsOnExit,
         )
         project.properties = projectProperties
 

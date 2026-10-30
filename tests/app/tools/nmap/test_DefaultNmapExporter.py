@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -22,6 +23,7 @@ from unittest.mock import MagicMock, patch
 class DefaultNmapExporterTest(unittest.TestCase):
     def setUp(self) -> None:
         from app.tools.nmap.DefaultNmapExporter import DefaultNmapExporter
+
         self.log = MagicMock()
         self.mockShell = MagicMock()
         self.nmapExporter = DefaultNmapExporter(self.mockShell, self.log)

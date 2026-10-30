@@ -5,7 +5,6 @@ import re
 import tempfile
 from typing import Optional
 
-
 _DEFAULT_LEGION_HOME = "~/.local/share/legion"
 _warned_fallback_home = False
 log = logging.getLogger(__name__)

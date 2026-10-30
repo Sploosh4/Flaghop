@@ -62,7 +62,7 @@ DEFAULT_INTEGRATIONS = {
     },
     "shodan": {
         "api_key": "",
-    }
+    },
 }
 DEFAULT_DEVICE_CATEGORIES: List[Dict[str, Any]] = []
 
@@ -146,9 +146,7 @@ def normalize_tool_execution_profiles(raw: Any) -> Dict[str, Dict[str, Any]]:
 def normalize_integrations(raw: Any) -> Dict[str, Dict[str, str]]:
     source = raw if isinstance(raw, dict) else {}
     integrations: Dict[str, Dict[str, str]] = {
-        str(name): dict(config)
-        for name, config in DEFAULT_INTEGRATIONS.items()
-        if isinstance(config, dict)
+        str(name): dict(config) for name, config in DEFAULT_INTEGRATIONS.items() if isinstance(config, dict)
     }
 
     for integration_name, integration_cfg in source.items():
@@ -212,9 +210,7 @@ DEFAULT_SCHEDULER_CONFIG = {
     },
     "integrations": normalize_integrations(DEFAULT_INTEGRATIONS),
     "device_categories": normalize_device_categories(DEFAULT_DEVICE_CATEGORIES),
-    "cloud_notice": (
-        "Cloud AI mode may send host/service metadata to third-party providers."
-    ),
+    "cloud_notice": ("Cloud AI mode may send host/service metadata to third-party providers."),
     "feature_flags": normalize_feature_flags({}),
     "disabled_tool_ids": normalize_disabled_tool_ids(DEFAULT_DISABLED_TOOL_IDS),
     "tool_execution_profiles": normalize_tool_execution_profiles(DEFAULT_TOOL_EXECUTION_PROFILES),
@@ -390,10 +386,10 @@ class SchedulerConfigManager:
             json.dump(config, handle, indent=2, sort_keys=True)
 
     def _hydrate_config_secrets(
-            self,
-            config: Dict[str, Any],
-            *,
-            allow_plaintext_fallback: bool,
+        self,
+        config: Dict[str, Any],
+        *,
+        allow_plaintext_fallback: bool,
     ) -> Dict[str, Any]:
         hydrated = dict(config)
         previous_legacy_secret_values = dict(self._legacy_plaintext_secret_values)
@@ -416,7 +412,9 @@ class SchedulerConfigManager:
         for integration_name, integration_cfg in dict(hydrated.get("integrations", {}) or {}).items():
             integrations[integration_name] = self._hydrate_secret_entry(
                 integration_cfg,
-                secret_ref=str(integration_cfg.get("api_key_secret_ref", "") or _integration_secret_ref(integration_name)),
+                secret_ref=str(
+                    integration_cfg.get("api_key_secret_ref", "") or _integration_secret_ref(integration_name)
+                ),
                 default_env_var=SecretStore.integration_env_var(integration_name),
                 allow_plaintext_fallback=allow_plaintext_fallback,
                 previous_legacy_secret_values=previous_legacy_secret_values,
@@ -425,13 +423,13 @@ class SchedulerConfigManager:
         return hydrated
 
     def _hydrate_secret_entry(
-            self,
-            entry: Any,
-            *,
-            secret_ref: str,
-            default_env_var: str = "",
-            allow_plaintext_fallback: bool,
-            previous_legacy_secret_values: Dict[str, str],
+        self,
+        entry: Any,
+        *,
+        secret_ref: str,
+        default_env_var: str = "",
+        allow_plaintext_fallback: bool,
+        previous_legacy_secret_values: Dict[str, str],
     ) -> Dict[str, Any]:
         value = dict(entry or {}) if isinstance(entry, dict) else {}
         resolved_secret_ref = str(value.get("api_key_secret_ref", "") or secret_ref or "").strip()
@@ -451,8 +449,7 @@ class SchedulerConfigManager:
             else:
                 legacy_value = str(previous_legacy_secret_values.get(resolved_secret_ref, "") or "")
                 preserve_existing_legacy = bool(
-                    resolved_secret_ref in previous_legacy_secret_values
-                    and raw_secret == legacy_value
+                    resolved_secret_ref in previous_legacy_secret_values and raw_secret == legacy_value
                 )
                 if not allow_plaintext_fallback and not preserve_existing_legacy:
                     raise SecretStoreError(
@@ -486,18 +483,20 @@ class SchedulerConfigManager:
         for integration_name, integration_cfg in dict(sanitized.get("integrations", {}) or {}).items():
             integrations[integration_name] = self._sanitize_secret_entry(
                 integration_cfg,
-                secret_ref=str(integration_cfg.get("api_key_secret_ref", "") or _integration_secret_ref(integration_name)),
+                secret_ref=str(
+                    integration_cfg.get("api_key_secret_ref", "") or _integration_secret_ref(integration_name)
+                ),
                 default_env_var=SecretStore.integration_env_var(integration_name),
             )
         sanitized["integrations"] = integrations
         return sanitized
 
     def _sanitize_secret_entry(
-            self,
-            entry: Any,
-            *,
-            secret_ref: str,
-            default_env_var: str = "",
+        self,
+        entry: Any,
+        *,
+        secret_ref: str,
+        default_env_var: str = "",
     ) -> Dict[str, Any]:
         value = dict(entry or {}) if isinstance(entry, dict) else {}
         resolved_secret_ref = str(value.get("api_key_secret_ref", "") or secret_ref or "").strip()
@@ -591,12 +590,12 @@ class SchedulerConfigManager:
         return state
 
     def set_family_policy(
-            self,
-            family_id: str,
-            metadata: Dict[str, Any],
-            policy_state: str,
-            *,
-            reason: str = "",
+        self,
+        family_id: str,
+        metadata: Dict[str, Any],
+        policy_state: str,
+        *,
+        reason: str = "",
     ) -> Dict[str, Any]:
         family_key = str(family_id or "").strip()
         normalized_state = str(policy_state or "").strip().lower()
@@ -655,7 +654,9 @@ class SchedulerConfigManager:
             mode = "deterministic"
         config["mode"] = mode
 
-        goal_profile = str(raw.get("goal_profile", config.get("goal_profile", "internal_asset_discovery"))).strip().lower()
+        goal_profile = (
+            str(raw.get("goal_profile", config.get("goal_profile", "internal_asset_discovery"))).strip().lower()
+        )
         if goal_profile not in VALID_GOAL_PROFILES:
             goal_profile = "internal_asset_discovery"
 
@@ -710,7 +711,9 @@ class SchedulerConfigManager:
             providers["openai"] = openai_provider
         config["providers"] = providers
         config["integrations"] = normalize_integrations(raw.get("integrations", config.get("integrations", {})))
-        config["device_categories"] = normalize_device_categories(raw.get("device_categories", config.get("device_categories", [])))
+        config["device_categories"] = normalize_device_categories(
+            raw.get("device_categories", config.get("device_categories", []))
+        )
         config["feature_flags"] = normalize_feature_flags(raw.get("feature_flags", config.get("feature_flags", {})))
         config["runners"] = normalize_runner_settings(raw.get("runners", config.get("runners", {})))
         config["disabled_tool_ids"] = normalize_disabled_tool_ids(
@@ -735,21 +738,23 @@ class SchedulerConfigManager:
             family_id = str(item.get("family_id", "")).strip()
             if not family_id:
                 continue
-            normalized_families.append({
-                "family_id": family_id,
-                "approved_at": str(item.get("approved_at", "")),
-                "tool_id": str(item.get("tool_id", "")),
-                "label": str(item.get("label", "")),
-                "danger_categories": item.get("danger_categories", []),
-                "approval_scope": str(item.get("approval_scope", "family")),
-                "policy_state": (
-                    str(item.get("policy_state", "allowed")).strip().lower()
-                    if str(item.get("policy_state", "allowed")).strip().lower() in VALID_FAMILY_POLICY_STATES
-                    else "allowed"
-                ),
-                "risk_tags": item.get("risk_tags", []),
-                "reason": str(item.get("reason", "")),
-            })
+            normalized_families.append(
+                {
+                    "family_id": family_id,
+                    "approved_at": str(item.get("approved_at", "")),
+                    "tool_id": str(item.get("tool_id", "")),
+                    "label": str(item.get("label", "")),
+                    "danger_categories": item.get("danger_categories", []),
+                    "approval_scope": str(item.get("approval_scope", "family")),
+                    "policy_state": (
+                        str(item.get("policy_state", "allowed")).strip().lower()
+                        if str(item.get("policy_state", "allowed")).strip().lower() in VALID_FAMILY_POLICY_STATES
+                        else "allowed"
+                    ),
+                    "risk_tags": item.get("risk_tags", []),
+                    "reason": str(item.get("reason", "")),
+                }
+            )
         config["preapproved_command_families"] = normalized_families
 
         feedback_defaults = dict(DEFAULT_SCHEDULER_CONFIG["ai_feedback"])
@@ -768,12 +773,12 @@ class SchedulerConfigManager:
             "max_reflections_per_target": 1,
         }
         for key in (
-                "max_rounds_per_target",
-                "max_actions_per_round",
-                "recent_output_chars",
-                "stall_rounds_without_progress",
-                "stall_repeat_selection_threshold",
-                "max_reflections_per_target",
+            "max_rounds_per_target",
+            "max_actions_per_round",
+            "recent_output_chars",
+            "stall_rounds_without_progress",
+            "stall_repeat_selection_threshold",
+            "max_reflections_per_target",
         ):
             try:
                 feedback[key] = int(feedback_defaults.get(key, feedback[key]))

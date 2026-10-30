@@ -24,46 +24,101 @@ class SchedulerTargetStateStoreTest(unittest.TestCase):
         project_manager, project = self._create_project()
         try:
             ensure_scheduler_target_state_table(project.database)
-            upsert_target_state(project.database, 11, {
-                "host_ip": "10.0.0.5",
-                "last_mode": "deterministic",
-                "goal_profile": "internal_asset_discovery",
-                "engagement_preset": "internal_recon",
-                "last_port": "443",
-                "last_protocol": "tcp",
-                "last_service": "https",
-                "hostname": "portal.local",
-                "hostname_confidence": 96,
-                "os_match": "Linux",
-                "os_confidence": 80,
-                "next_phase": "targeted_checks",
-                "technologies": [{"name": "nginx", "version": "1.25", "cpe": "cpe:/a:nginx:nginx:1.25", "evidence": "banner"}],
-                "findings": [{"title": "Admin panel exposed", "severity": "medium", "cvss": 5.0, "cve": "", "evidence": "/admin"}],
-                "manual_tests": [{"why": "validate auth", "command": "curl -k https://10.0.0.5/admin", "scope_note": "safe"}],
-                "service_inventory": [{"port": "443", "protocol": "tcp", "state": "open", "service": "https", "service_product": "nginx"}],
-                "urls": [
-                    {"url": "https://10.0.0.5:443/", "port": "443", "protocol": "tcp", "service": "https"},
-                    {"url": "https://10.0.0.5", "port": "", "protocol": "tcp", "service": "https"},
-                    {"url": "http://10.0.0.5:8080/", "port": "8080", "protocol": "tcp", "service": "http"},
-                ],
-                "coverage_gaps": [{"gap_id": "missing_nikto", "description": "missing nikto", "recommended_tool_ids": ["nikto"]}],
-                "attempted_actions": [{"tool_id": "nuclei-web", "status": "executed", "attempted_at": "2026-03-17T01:00:00Z", "port": "443", "protocol": "tcp", "service": "https"}],
-                "credentials": [{"username": "svc-web", "realm": "local", "type": "password", "evidence": "manual note"}],
-                "sessions": [{"session_type": "shell", "username": "svc-web", "host": "10.0.0.5", "port": "443", "protocol": "tcp"}],
-                "screenshots": [{
-                    "artifact_ref": "/tmp/10.0.0.5-443-screenshot.png",
-                    "filename": "10.0.0.5-443-screenshot.png",
-                    "port": "443",
-                    "protocol": "tcp",
-                    "target_url": "https://portal.local:443",
-                    "capture_engine": "EyeWitness",
-                    "captured_at": "2026-03-22T06:00:00+00:00",
-                    "service_name": "https",
+            upsert_target_state(
+                project.database,
+                11,
+                {
+                    "host_ip": "10.0.0.5",
+                    "last_mode": "deterministic",
+                    "goal_profile": "internal_asset_discovery",
+                    "engagement_preset": "internal_recon",
+                    "last_port": "443",
+                    "last_protocol": "tcp",
+                    "last_service": "https",
                     "hostname": "portal.local",
-                }],
-                "artifacts": [{"ref": "/tmp/scan.txt", "kind": "artifact", "tool_id": "nuclei-web", "port": "443", "protocol": "tcp"}],
-                "raw": {"source": "test"},
-            })
+                    "hostname_confidence": 96,
+                    "os_match": "Linux",
+                    "os_confidence": 80,
+                    "next_phase": "targeted_checks",
+                    "technologies": [
+                        {"name": "nginx", "version": "1.25", "cpe": "cpe:/a:nginx:nginx:1.25", "evidence": "banner"}
+                    ],
+                    "findings": [
+                        {
+                            "title": "Admin panel exposed",
+                            "severity": "medium",
+                            "cvss": 5.0,
+                            "cve": "",
+                            "evidence": "/admin",
+                        }
+                    ],
+                    "manual_tests": [
+                        {"why": "validate auth", "command": "curl -k https://10.0.0.5/admin", "scope_note": "safe"}
+                    ],
+                    "service_inventory": [
+                        {
+                            "port": "443",
+                            "protocol": "tcp",
+                            "state": "open",
+                            "service": "https",
+                            "service_product": "nginx",
+                        }
+                    ],
+                    "urls": [
+                        {"url": "https://10.0.0.5:443/", "port": "443", "protocol": "tcp", "service": "https"},
+                        {"url": "https://10.0.0.5", "port": "", "protocol": "tcp", "service": "https"},
+                        {"url": "http://10.0.0.5:8080/", "port": "8080", "protocol": "tcp", "service": "http"},
+                    ],
+                    "coverage_gaps": [
+                        {"gap_id": "missing_nikto", "description": "missing nikto", "recommended_tool_ids": ["nikto"]}
+                    ],
+                    "attempted_actions": [
+                        {
+                            "tool_id": "nuclei-web",
+                            "status": "executed",
+                            "attempted_at": "2026-03-17T01:00:00Z",
+                            "port": "443",
+                            "protocol": "tcp",
+                            "service": "https",
+                        }
+                    ],
+                    "credentials": [
+                        {"username": "svc-web", "realm": "local", "type": "password", "evidence": "manual note"}
+                    ],
+                    "sessions": [
+                        {
+                            "session_type": "shell",
+                            "username": "svc-web",
+                            "host": "10.0.0.5",
+                            "port": "443",
+                            "protocol": "tcp",
+                        }
+                    ],
+                    "screenshots": [
+                        {
+                            "artifact_ref": "/tmp/10.0.0.5-443-screenshot.png",
+                            "filename": "10.0.0.5-443-screenshot.png",
+                            "port": "443",
+                            "protocol": "tcp",
+                            "target_url": "https://portal.local:443",
+                            "capture_engine": "EyeWitness",
+                            "captured_at": "2026-03-22T06:00:00+00:00",
+                            "service_name": "https",
+                            "hostname": "portal.local",
+                        }
+                    ],
+                    "artifacts": [
+                        {
+                            "ref": "/tmp/scan.txt",
+                            "kind": "artifact",
+                            "tool_id": "nuclei-web",
+                            "port": "443",
+                            "protocol": "tcp",
+                        }
+                    ],
+                    "raw": {"source": "test"},
+                },
+            )
 
             loaded = get_target_state(project.database, 11)
             self.assertIsNotNone(loaded)
@@ -91,23 +146,39 @@ class SchedulerTargetStateStoreTest(unittest.TestCase):
     def test_legacy_ai_state_migrates_into_target_state_and_legacy_reads_from_target_state(self):
         project_manager, project = self._create_project()
         try:
-            upsert_host_ai_state(project.database, 22, {
-                "host_ip": "10.0.0.22",
-                "provider": "openai",
-                "goal_profile": "internal_asset_discovery",
-                "last_port": "445",
-                "last_protocol": "tcp",
-                "last_service": "smb",
-                "hostname": "dc01.local",
-                "hostname_confidence": 93,
-                "os_match": "Windows",
-                "os_confidence": 88,
-                "next_phase": "safe_followup",
-                "technologies": [{"name": "samba", "version": "4.x", "cpe": "cpe:/a:samba:samba:4", "evidence": "service"}],
-                "findings": [{"title": "SMB signing not required", "severity": "high", "cvss": 7.5, "cve": "", "evidence": "smb-security-mode"}],
-                "manual_tests": [{"why": "validate relay", "command": "ntlmrelayx.py -tf targets.txt", "scope_note": "approval"}],
-                "raw": {"actions": [{"tool_id": "smb-enum-users.nse"}]},
-            })
+            upsert_host_ai_state(
+                project.database,
+                22,
+                {
+                    "host_ip": "10.0.0.22",
+                    "provider": "openai",
+                    "goal_profile": "internal_asset_discovery",
+                    "last_port": "445",
+                    "last_protocol": "tcp",
+                    "last_service": "smb",
+                    "hostname": "dc01.local",
+                    "hostname_confidence": 93,
+                    "os_match": "Windows",
+                    "os_confidence": 88,
+                    "next_phase": "safe_followup",
+                    "technologies": [
+                        {"name": "samba", "version": "4.x", "cpe": "cpe:/a:samba:samba:4", "evidence": "service"}
+                    ],
+                    "findings": [
+                        {
+                            "title": "SMB signing not required",
+                            "severity": "high",
+                            "cvss": 7.5,
+                            "cve": "",
+                            "evidence": "smb-security-mode",
+                        }
+                    ],
+                    "manual_tests": [
+                        {"why": "validate relay", "command": "ntlmrelayx.py -tf targets.txt", "scope_note": "approval"}
+                    ],
+                    "raw": {"actions": [{"tool_id": "smb-enum-users.nse"}]},
+                },
+            )
 
             target_state = get_target_state(project.database, 22)
             self.assertIsNotNone(target_state)
@@ -128,32 +199,36 @@ class SchedulerTargetStateStoreTest(unittest.TestCase):
         project_manager, project = self._create_project()
         try:
             ensure_scheduler_target_state_table(project.database)
-            upsert_target_state(project.database, 33, {
-                "host_ip": "10.0.0.33",
-                "last_port": "443",
-                "last_protocol": "tcp",
-                "last_service": "https",
-                "findings": [
-                    {
-                        "title": "//cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-3192",
-                        "severity": "medium",
-                        "cve": "CVE-2011-3192",
-                        "evidence": "//cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-3192",
-                    },
-                    {
-                        "title": "Slowloris DOS attack",
-                        "severity": "medium",
-                        "cve": "CVE-2007-6750",
-                        "evidence": "previous scan result",
-                    },
-                    {
-                        "title": "Apache byterange filter DoS",
-                        "severity": "medium",
-                        "cve": "CVE-2011-3192",
-                        "evidence": "IDs: CVE:CVE-2011-3192",
-                    },
-                ],
-            })
+            upsert_target_state(
+                project.database,
+                33,
+                {
+                    "host_ip": "10.0.0.33",
+                    "last_port": "443",
+                    "last_protocol": "tcp",
+                    "last_service": "https",
+                    "findings": [
+                        {
+                            "title": "//cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-3192",
+                            "severity": "medium",
+                            "cve": "CVE-2011-3192",
+                            "evidence": "//cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-3192",
+                        },
+                        {
+                            "title": "Slowloris DOS attack",
+                            "severity": "medium",
+                            "cve": "CVE-2007-6750",
+                            "evidence": "previous scan result",
+                        },
+                        {
+                            "title": "Apache byterange filter DoS",
+                            "severity": "medium",
+                            "cve": "CVE-2011-3192",
+                            "evidence": "IDs: CVE:CVE-2011-3192",
+                        },
+                    ],
+                },
+            )
 
             loaded = get_target_state(project.database, 33)
             titles = {str(item.get("title", "")).strip() for item in loaded.get("findings", [])}
@@ -168,41 +243,49 @@ class SchedulerTargetStateStoreTest(unittest.TestCase):
         project_manager, project = self._create_project()
         try:
             ensure_scheduler_target_state_table(project.database)
-            upsert_target_state(project.database, 44, {
-                "host_ip": "10.0.0.44",
-                "last_port": "443",
-                "last_protocol": "tcp",
-                "last_service": "https",
-                "raw": {"source": "initial-observation"},
-            })
+            upsert_target_state(
+                project.database,
+                44,
+                {
+                    "host_ip": "10.0.0.44",
+                    "last_port": "443",
+                    "last_protocol": "tcp",
+                    "last_service": "https",
+                    "raw": {"source": "initial-observation"},
+                },
+            )
 
-            upsert_target_state(project.database, 44, {
-                "host_ip": "10.0.0.44",
-                "last_port": "443",
-                "last_protocol": "tcp",
-                "last_service": "https",
-                "findings": [
-                    {
-                        "title": "Reflected debug endpoint",
-                        "severity": "info",
-                        "evidence": "request payload reflected in response",
-                        "quality_action": "downgraded",
-                        "quality_reason": "reflection_only_response",
-                        "severity_before": "high",
-                    }
-                ],
-                "finding_quality_events": [
-                    {
-                        "title": "CVE-2026-2222",
-                        "cve": "CVE-2026-2222",
-                        "action": "suppressed",
-                        "reason": "waf_block_page",
-                        "severity_before": "critical",
-                        "evidence": "Attention Required! Cloudflare - Sorry, you have been blocked",
-                        "matched_url": "https://portal.example/login",
-                    }
-                ],
-            })
+            upsert_target_state(
+                project.database,
+                44,
+                {
+                    "host_ip": "10.0.0.44",
+                    "last_port": "443",
+                    "last_protocol": "tcp",
+                    "last_service": "https",
+                    "findings": [
+                        {
+                            "title": "Reflected debug endpoint",
+                            "severity": "info",
+                            "evidence": "request payload reflected in response",
+                            "quality_action": "downgraded",
+                            "quality_reason": "reflection_only_response",
+                            "severity_before": "high",
+                        }
+                    ],
+                    "finding_quality_events": [
+                        {
+                            "title": "CVE-2026-2222",
+                            "cve": "CVE-2026-2222",
+                            "action": "suppressed",
+                            "reason": "waf_block_page",
+                            "severity_before": "critical",
+                            "evidence": "Attention Required! Cloudflare - Sorry, you have been blocked",
+                            "matched_url": "https://portal.example/login",
+                        }
+                    ],
+                },
+            )
 
             loaded = get_target_state(project.database, 44)
             self.assertEqual("initial-observation", loaded["raw"]["source"])
@@ -224,20 +307,42 @@ class SchedulerTargetStateStoreTest(unittest.TestCase):
         project_manager, project = self._create_project()
         try:
             ensure_scheduler_target_state_table(project.database)
-            upsert_target_state(project.database, 55, {
-                "host_ip": "10.0.0.55",
-                "hostname": "dc01.local",
-                "os_match": "Microsoft Windows Server 2022",
-                "service_inventory": [
-                    {"port": "135", "protocol": "tcp", "state": "open", "service": "msrpc", "service_product": "Microsoft Windows RPC"},
-                    {"port": "445", "protocol": "tcp", "state": "open", "service": "microsoft-ds", "service_product": "Microsoft Directory Services"},
-                    {"port": "443", "protocol": "tcp", "state": "open", "service": "https", "service_product": "Microsoft IIS httpd"},
-                ],
-                "technologies": [
-                    {"name": "windows", "cpe": "cpe:/o:microsoft:windows", "evidence": "service detection"},
-                    {"name": "Microsoft IIS httpd", "version": "10.0", "evidence": "banner"},
-                ],
-            })
+            upsert_target_state(
+                project.database,
+                55,
+                {
+                    "host_ip": "10.0.0.55",
+                    "hostname": "dc01.local",
+                    "os_match": "Microsoft Windows Server 2022",
+                    "service_inventory": [
+                        {
+                            "port": "135",
+                            "protocol": "tcp",
+                            "state": "open",
+                            "service": "msrpc",
+                            "service_product": "Microsoft Windows RPC",
+                        },
+                        {
+                            "port": "445",
+                            "protocol": "tcp",
+                            "state": "open",
+                            "service": "microsoft-ds",
+                            "service_product": "Microsoft Directory Services",
+                        },
+                        {
+                            "port": "443",
+                            "protocol": "tcp",
+                            "state": "open",
+                            "service": "https",
+                            "service_product": "Microsoft IIS httpd",
+                        },
+                    ],
+                    "technologies": [
+                        {"name": "windows", "cpe": "cpe:/o:microsoft:windows", "evidence": "service detection"},
+                        {"name": "Microsoft IIS httpd", "version": "10.0", "evidence": "banner"},
+                    ],
+                },
+            )
 
             loaded = get_target_state(project.database, 55)
             category_names = {str(item.get("name", "")) for item in loaded.get("device_categories", [])}
@@ -245,15 +350,23 @@ class SchedulerTargetStateStoreTest(unittest.TestCase):
             self.assertIn("Server", category_names)
             self.assertFalse(bool(loaded.get("device_category_override", False)))
 
-            upsert_target_state(project.database, 55, {
-                "host_ip": "10.0.0.55",
-                "manual_device_categories": ["Database"],
-                "device_category_override": True,
-            })
+            upsert_target_state(
+                project.database,
+                55,
+                {
+                    "host_ip": "10.0.0.55",
+                    "manual_device_categories": ["Database"],
+                    "device_category_override": True,
+                },
+            )
             overridden = get_target_state(project.database, 55)
             self.assertTrue(bool(overridden.get("device_category_override", False)))
-            self.assertEqual(["Database"], [str(item.get("name", "")) for item in overridden.get("device_categories", [])])
-            self.assertEqual(["Database"], [str(item.get("name", "")) for item in overridden.get("manual_device_categories", [])])
+            self.assertEqual(
+                ["Database"], [str(item.get("name", "")) for item in overridden.get("device_categories", [])]
+            )
+            self.assertEqual(
+                ["Database"], [str(item.get("name", "")) for item in overridden.get("manual_device_categories", [])]
+            )
         finally:
             project_manager.closeProject(project)
 

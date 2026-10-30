@@ -10,12 +10,12 @@ from app.web.runtime_workspace_identity import resolve_host_device_categories
 
 
 def get_workspace_services(
-        runtime,
-        limit: int = 300,
-        host_id: int = 0,
-        category: str = "",
-        *,
-        load_target_state_cache_func,
+    runtime,
+    limit: int = 300,
+    host_id: int = 0,
+    category: str = "",
+    *,
+    load_target_state_cache_func,
 ) -> List[Dict[str, Any]]:
     with runtime._lock:
         project = getattr(runtime.logic, "activeProject", None)
@@ -52,23 +52,28 @@ def get_workspace_services(
                 current_host_id = int(payload.get("host_id", 0) or 0)
                 if current_host_id <= 0:
                     continue
-                host_row = grouped_by_host.setdefault(current_host_id, {
-                    "host": SimpleNamespace(
-                        id=current_host_id,
-                        hostname=str(payload.get("hostname", "") or ""),
-                        osMatch=str(payload.get("os_match", "") or ""),
-                    ),
-                    "service_inventory": [],
-                })
-                host_row["service_inventory"].append({
-                    "port": str(payload.get("port", "") or "").strip(),
-                    "protocol": str(payload.get("protocol", "tcp") or "tcp").strip().lower(),
-                    "state": str(payload.get("state", "") or "").strip(),
-                    "service": str(payload.get("service", "") or "").strip(),
-                    "service_product": str(payload.get("service_product", "") or "").strip(),
-                    "service_version": str(payload.get("service_version", "") or "").strip(),
-                    "service_extrainfo": str(payload.get("service_extrainfo", "") or "").strip(),
-                })
+                host_row = grouped_by_host.setdefault(
+                    current_host_id,
+                    {
+                        "host": SimpleNamespace(
+                            id=current_host_id,
+                            hostname=str(payload.get("hostname", "") or ""),
+                            osMatch=str(payload.get("os_match", "") or ""),
+                        ),
+                        "service_inventory": [],
+                    },
+                )
+                host_row["service_inventory"].append(
+                    {
+                        "port": str(payload.get("port", "") or "").strip(),
+                        "protocol": str(payload.get("protocol", "tcp") or "tcp").strip().lower(),
+                        "state": str(payload.get("state", "") or "").strip(),
+                        "service": str(payload.get("service", "") or "").strip(),
+                        "service_product": str(payload.get("service_product", "") or "").strip(),
+                        "service_version": str(payload.get("service_version", "") or "").strip(),
+                        "service_extrainfo": str(payload.get("service_extrainfo", "") or "").strip(),
+                    }
+                )
         except Exception:
             return []
         finally:
@@ -86,19 +91,24 @@ def get_workspace_services(
                 service_inventory=service_inventory,
             )
             host_categories = category_names(category_state.get("device_categories", []))
-            if category_filter and not any(str(item or "").strip().lower() == category_filter for item in host_categories):
+            if category_filter and not any(
+                str(item or "").strip().lower() == category_filter for item in host_categories
+            ):
                 continue
             for item in service_inventory:
                 service_name = str(item.get("service", "") or "unknown").strip() or "unknown"
                 key = service_name.lower()
-                row = grouped.setdefault(key, {
-                    "service": service_name,
-                    "port_count": 0,
-                    "host_ids": set(),
-                    "ports": set(),
-                    "protocols": set(),
-                    "categories": set(),
-                })
+                row = grouped.setdefault(
+                    key,
+                    {
+                        "service": service_name,
+                        "port_count": 0,
+                        "host_ids": set(),
+                        "ports": set(),
+                        "protocols": set(),
+                        "categories": set(),
+                    },
+                )
                 row["port_count"] += 1
                 row["host_ids"].add(current_host_id)
                 port_value = str(item.get("port", "") or "").strip()
@@ -109,16 +119,24 @@ def get_workspace_services(
                     row["categories"].add(str(category_name or "").strip())
         rows = []
         for item in grouped.values():
-            rows.append({
-                "service": str(item.get("service", "") or ""),
-                "port_count": int(item.get("port_count", 0) or 0),
-                "host_count": len(item.get("host_ids", set()) or set()),
-                "ports": sorted(
-                    [entry for entry in list(item.get("ports", set()) or set()) if entry],
-                    key=lambda value: (0, int(value)) if str(value).isdigit() else (1, str(value)),
-                ),
-                "protocols": sorted([entry for entry in list(item.get("protocols", set()) or set()) if entry]),
-                "categories": sorted([entry for entry in list(item.get("categories", set()) or set()) if entry]),
-            })
-        rows.sort(key=lambda row: (-int(row.get("host_count", 0) or 0), -int(row.get("port_count", 0) or 0), str(row.get("service", "") or "").lower()))
+            rows.append(
+                {
+                    "service": str(item.get("service", "") or ""),
+                    "port_count": int(item.get("port_count", 0) or 0),
+                    "host_count": len(item.get("host_ids", set()) or set()),
+                    "ports": sorted(
+                        [entry for entry in list(item.get("ports", set()) or set()) if entry],
+                        key=lambda value: (0, int(value)) if str(value).isdigit() else (1, str(value)),
+                    ),
+                    "protocols": sorted([entry for entry in list(item.get("protocols", set()) or set()) if entry]),
+                    "categories": sorted([entry for entry in list(item.get("categories", set()) or set()) if entry]),
+                }
+            )
+        rows.sort(
+            key=lambda row: (
+                -int(row.get("host_count", 0) or 0),
+                -int(row.get("port_count", 0) or 0),
+                str(row.get("service", "") or "").lower(),
+            )
+        )
         return rows[: max(1, min(int(limit), 2000))]

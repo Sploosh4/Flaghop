@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from db.RepositoryContainer import RepositoryContainer
 from db.SqliteDbAdapter import Database
 from db.repositories.CVERepository import CVERepository
@@ -40,6 +41,13 @@ class RepositoryFactory:
         noteRepository: NoteRepository = NoteRepository(database, self.logger)
         scriptRepository: ScriptRepository = ScriptRepository(database)
         credentialRepository: CredentialRepository = CredentialRepository(database)
-        return RepositoryContainer(serviceRepository, processRepository, hostRepository,
-                                   portRepository, cveRepository, noteRepository, scriptRepository,
-                                   credentialRepository)
+        return RepositoryContainer(
+            serviceRepository,
+            processRepository,
+            hostRepository,
+            portRepository,
+            cveRepository,
+            noteRepository,
+            scriptRepository,
+            credentialRepository,
+        )

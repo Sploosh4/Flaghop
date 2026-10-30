@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from db.validation import sanitise
 
 
@@ -24,35 +25,40 @@ def applyFilters(filters):
     query_filter += applyPortFilters(filters)
     return query_filter
 
+
 def _get_filter(filters, key, default=None):
     if isinstance(filters, dict):
         return filters.get(key, default)
     return getattr(filters, key, default)
 
+
 def applyHostsFilters(filters):
     query_filter = ""
-    if not _get_filter(filters, 'down'):
+    if not _get_filter(filters, "down"):
         query_filter += " AND hosts.status != 'down'"
-    if not _get_filter(filters, 'up'):
+    if not _get_filter(filters, "up"):
         query_filter += " AND hosts.status != 'up'"
-    if not _get_filter(filters, 'checked'):
+    if not _get_filter(filters, "checked"):
         query_filter += " AND hosts.checked != 'True'"
-    for word in _get_filter(filters, 'keywords', []):
-        query_filter += (f" AND (hosts.ip LIKE '%{sanitise(word)}%'"
-                         f" OR hosts.osMatch LIKE '%{sanitise(word)}%'"
-                         f" OR hosts.hostname LIKE '%{sanitise(word)}%')")
+    for word in _get_filter(filters, "keywords", []):
+        query_filter += (
+            f" AND (hosts.ip LIKE '%{sanitise(word)}%'"
+            f" OR hosts.osMatch LIKE '%{sanitise(word)}%'"
+            f" OR hosts.hostname LIKE '%{sanitise(word)}%')"
+        )
     return query_filter
+
 
 def applyPortFilters(filters):
     query_filter = ""
-    if not _get_filter(filters, 'portopen'):
+    if not _get_filter(filters, "portopen"):
         query_filter += " AND ports.state != 'open' AND ports.state != 'open|filtered'"
-    if not _get_filter(filters, 'portclosed'):
+    if not _get_filter(filters, "portclosed"):
         query_filter += " AND ports.state != 'closed'"
-    if not _get_filter(filters, 'portfiltered'):
+    if not _get_filter(filters, "portfiltered"):
         query_filter += " AND ports.state != 'filtered' AND ports.state != 'open|filtered'"
-    if not _get_filter(filters, 'tcp'):
+    if not _get_filter(filters, "tcp"):
         query_filter += " AND ports.protocol != 'tcp'"
-    if not _get_filter(filters, 'udp'):
+    if not _get_filter(filters, "udp"):
         query_filter += " AND ports.protocol != 'udp'"
     return query_filter

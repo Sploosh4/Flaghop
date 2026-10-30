@@ -44,8 +44,14 @@ class ProcessRepository:
     # to speed up the queries we replace the columns we don't need by zeros (the reason we need all the columns is
     # we are using the same model to display process information everywhere)
 
-    def getProcesses(self, filters, showProcesses: Union[str, bool] = 'noNmap', sort: str = 'desc', ncol: str = 'id',
-                     status_filter=None):
+    def getProcesses(
+        self,
+        filters,
+        showProcesses: Union[str, bool] = "noNmap",
+        sort: str = "desc",
+        ncol: str = "id",
+        status_filter=None,
+    ):
         # Modified: return consistent column aliases across all query paths so UI models can rely on keys.
         now = time.monotonic()
         if self._db_unavailable_until and now < self._db_unavailable_until:
@@ -59,11 +65,11 @@ class ProcessRepository:
                     return []
                 if isinstance(filter_value, str):
                     mapping = {
-                        'All': [],
-                        'Running': ['Running', 'Waiting'],
-                        'Finished': ['Finished'],
-                        'Failed': ['Crashed', 'Cancelled', 'Killed', 'Failed'],
-                        'Queued': ['Waiting']
+                        "All": [],
+                        "Running": ["Running", "Waiting"],
+                        "Finished": ["Finished"],
+                        "Failed": ["Crashed", "Cancelled", "Killed", "Failed"],
+                        "Queued": ["Waiting"],
                     }
                     values = mapping.get(filter_value, [filter_value])
                 else:
@@ -91,13 +97,13 @@ class ProcessRepository:
             status_values = normalize_status_filter(status_filter)
             status_clause, status_params = build_status_clause(status_values)
             params = dict(status_params)
-            if showProcesses == 'noNmap':
+            if showProcesses == "noNmap":
                 base_query = (
-                    'SELECT '
-                    '0 AS progress, '
+                    "SELECT "
+                    "0 AS progress, "
                     'COALESCE(process.display, "False") AS display, '
-                    'COALESCE(process.elapsed, 0) AS elapsed, '
-                    'process.estimatedRemaining AS estimatedRemaining, '
+                    "COALESCE(process.elapsed, 0) AS elapsed, "
+                    "process.estimatedRemaining AS estimatedRemaining, "
                     'COALESCE(process.percent, "") AS percent, '
                     'COALESCE(process.progressMessage, "") AS progressMessage, '
                     'COALESCE(process.progressSource, "") AS progressSource, '
@@ -115,19 +121,19 @@ class ProcessRepository:
                     '"" AS output, '
                     'COALESCE(process.status, "") AS status, '
                     'COALESCE(process.closed, "") AS closed, '
-                    'process.id AS id '
-                    'FROM process AS process '
+                    "process.id AS id "
+                    "FROM process AS process "
                     'WHERE process.closed = "False"'
                 )
-                query = text(base_query + status_clause + ' ORDER BY process.id DESC')
+                query = text(base_query + status_clause + " ORDER BY process.id DESC")
                 result = session.execute(query, params)
             elif not showProcesses:
                 base_query = (
-                    'SELECT '
-                    '0 AS progress, '
-                    'process.display AS display, '
-                    'COALESCE(process.elapsed, 0) AS elapsed, '
-                    'process.estimatedRemaining AS estimatedRemaining, '
+                    "SELECT "
+                    "0 AS progress, "
+                    "process.display AS display, "
+                    "COALESCE(process.elapsed, 0) AS elapsed, "
+                    "process.estimatedRemaining AS estimatedRemaining, "
                     'COALESCE(process.percent, "") AS percent, '
                     'COALESCE(process.progressMessage, "") AS progressMessage, '
                     'COALESCE(process.progressSource, "") AS progressSource, '
@@ -145,21 +151,21 @@ class ProcessRepository:
                     'COALESCE(output.output, "") AS output, '
                     'COALESCE(process.status, "") AS status, '
                     'COALESCE(process.closed, "") AS closed, '
-                    'process.id AS id '
-                    'FROM process AS process '
-                    'INNER JOIN process_output AS output ON process.id = output.processId '
+                    "process.id AS id "
+                    "FROM process AS process "
+                    "INNER JOIN process_output AS output ON process.id = output.processId "
                     'WHERE process.display = :display AND process.closed = "False"'
                 )
-                params['display'] = str(showProcesses)
-                query = text(base_query + status_clause + ' ORDER BY process.id DESC')
+                params["display"] = str(showProcesses)
+                query = text(base_query + status_clause + " ORDER BY process.id DESC")
                 result = session.execute(query, params)
             else:
                 base_query = (
-                    'SELECT '
-                    '0 AS progress, '
-                    'process.display AS display, '
-                    'COALESCE(process.elapsed, 0) AS elapsed, '
-                    'process.estimatedRemaining AS estimatedRemaining, '
+                    "SELECT "
+                    "0 AS progress, "
+                    "process.display AS display, "
+                    "COALESCE(process.elapsed, 0) AS elapsed, "
+                    "process.estimatedRemaining AS estimatedRemaining, "
                     'COALESCE(process.percent, "") AS percent, '
                     'COALESCE(process.progressMessage, "") AS progressMessage, '
                     'COALESCE(process.progressSource, "") AS progressSource, '
@@ -180,12 +186,12 @@ class ProcessRepository:
                     '"" AS output, '
                     'COALESCE(process.status, "") AS status, '
                     'COALESCE(process.closed, "") AS closed, '
-                    'process.id AS id '
-                    'FROM process AS process '
-                    'WHERE process.display=:display'
+                    "process.id AS id "
+                    "FROM process AS process "
+                    "WHERE process.display=:display"
                 )
-                params['display'] = str(showProcesses)
-                order_clause = f' ORDER BY {ncol} {sort}'
+                params["display"] = str(showProcesses)
+                order_clause = f" ORDER BY {ncol} {sort}"
                 query = text(base_query + status_clause + order_clause)
                 result = session.execute(query, params)
             rows = result.fetchall()
@@ -220,12 +226,24 @@ class ProcessRepository:
     def storeProcess(self, proc):
         session = self.dbAdapter.session()
         p_output = process_output()
-       
-        #p = process(str(proc.processId()), str(proc.name), str(proc.tabTitle),
-        p = process(str(proc.processId()), str(proc.name), str(proc.tabTitle),
-                    str(proc.hostIp), str(proc.port), str(proc.protocol),
-                    unicode(proc.command), proc.startTime, "", str(proc.outputfile),
-                    'Waiting', [p_output], None, 0)
+
+        # p = process(str(proc.processId()), str(proc.name), str(proc.tabTitle),
+        p = process(
+            str(proc.processId()),
+            str(proc.name),
+            str(proc.tabTitle),
+            str(proc.hostIp),
+            str(proc.port),
+            str(proc.protocol),
+            unicode(proc.command),
+            proc.startTime,
+            "",
+            str(proc.outputfile),
+            "Waiting",
+            [p_output],
+            None,
+            0,
+        )
 
         self.log.info(f"Adding process: {p}")
         session.add(p)
@@ -259,7 +277,7 @@ class ProcessRepository:
             proc.estimatedRemaining = None
 
             if proc.status not in {"Killed", "Cancelled", "Crashed", "Problem"}:
-                proc.status = 'Finished'
+                proc.status = "Finished"
                 proc.percent = "100"
             session.add(proc)
             session.commit()
@@ -287,20 +305,20 @@ class ProcessRepository:
     def getFieldByProcessId(self, field_name: str, process_id: str):
         session = self.dbAdapter.session()
         query = text("SELECT process.{0} FROM process AS process WHERE process.id=:process_id".format(field_name))
-        p = session.execute(query, {'process_id': str(process_id)}).fetchall()
+        p = session.execute(query, {"process_id": str(process_id)}).fetchall()
         result = p[0][0] if p else -1
         session.close()
         return result
 
     def getHostsByToolName(self, toolName: str, closed: str = "False"):
         session = self.dbAdapter.session()
-        if closed == 'FetchAll':
+        if closed == "FetchAll":
             query = text(
-                'SELECT '
-                '0 AS progress, '
-                'process.display AS display, '
-                'COALESCE(process.elapsed, 0) AS elapsed, '
-                'process.estimatedRemaining AS estimatedRemaining, '
+                "SELECT "
+                "0 AS progress, "
+                "process.display AS display, "
+                "COALESCE(process.elapsed, 0) AS elapsed, "
+                "process.estimatedRemaining AS estimatedRemaining, "
                 'COALESCE(process.percent, "") AS percent, '
                 'COALESCE(process.progressMessage, "") AS progressMessage, '
                 'COALESCE(process.progressSource, "") AS progressSource, '
@@ -318,19 +336,19 @@ class ProcessRepository:
                 'COALESCE(output.output, "") AS output, '
                 'COALESCE(process.status, "") AS status, '
                 'COALESCE(process.closed, "") AS closed, '
-                'process.id AS id '
-                'FROM process AS process '
-                'LEFT JOIN process_output AS output ON process.id = output.processId '
-                'WHERE process.name=:toolName'
+                "process.id AS id "
+                "FROM process AS process "
+                "LEFT JOIN process_output AS output ON process.id = output.processId "
+                "WHERE process.name=:toolName"
             )
-            result = session.execute(query, {'toolName': str(toolName)})
+            result = session.execute(query, {"toolName": str(toolName)})
         else:
             query = text(
-                'SELECT '
-                '0 AS progress, '
-                'process.display AS display, '
-                'COALESCE(process.elapsed, 0) AS elapsed, '
-                'process.estimatedRemaining AS estimatedRemaining, '
+                "SELECT "
+                "0 AS progress, "
+                "process.display AS display, "
+                "COALESCE(process.elapsed, 0) AS elapsed, "
+                "process.estimatedRemaining AS estimatedRemaining, "
                 'COALESCE(process.percent, "") AS percent, '
                 'COALESCE(process.progressMessage, "") AS progressMessage, '
                 'COALESCE(process.progressSource, "") AS progressSource, '
@@ -348,12 +366,12 @@ class ProcessRepository:
                 'COALESCE(output.output, "") AS output, '
                 'COALESCE(process.status, "") AS status, '
                 'COALESCE(process.closed, "") AS closed, '
-                'process.id AS id '
-                'FROM process AS process '
-                'LEFT JOIN process_output AS output ON process.id = output.processId '
-                'WHERE process.name=:toolName AND process.closed=:closed'
+                "process.id AS id "
+                "FROM process AS process "
+                "LEFT JOIN process_output AS output ON process.id = output.processId "
+                "WHERE process.name=:toolName AND process.closed=:closed"
             )
-            result = session.execute(query, {'toolName': str(toolName), 'closed': str(closed)})
+            result = session.execute(query, {"toolName": str(toolName), "closed": str(closed)})
         rows = result.fetchall()
         keys = result.keys()
         session.close()
@@ -366,16 +384,16 @@ class ProcessRepository:
             if not proc:
                 return None
             data = {
-                'id': proc.id,
-                'name': (proc.name or '').strip(),
-                'tabTitle': (proc.tabTitle or '').strip(),
-                'hostIp': (proc.hostIp or '').strip(),
-                'port': (proc.port or '').strip(),
-                'protocol': (proc.protocol or '').strip(),
-                'command': (proc.command or '').strip(),
-                'outputfile': (proc.outputfile or '').strip(),
-                'status': (proc.status or '').strip(),
-                'display': (proc.display or '').strip(),
+                "id": proc.id,
+                "name": (proc.name or "").strip(),
+                "tabTitle": (proc.tabTitle or "").strip(),
+                "hostIp": (proc.hostIp or "").strip(),
+                "port": (proc.port or "").strip(),
+                "protocol": (proc.protocol or "").strip(),
+                "command": (proc.command or "").strip(),
+                "outputfile": (proc.outputfile or "").strip(),
+                "status": (proc.status or "").strip(),
+                "display": (proc.display or "").strip(),
             }
             return data
         finally:
@@ -384,16 +402,16 @@ class ProcessRepository:
     def getProcessesForRestore(self):
         session = self.dbAdapter.session()
         query = text(
-            'SELECT '
-            'process.id AS id, '
+            "SELECT "
+            "process.id AS id, "
             'COALESCE(process.hostIp, "") AS hostIp, '
             'COALESCE(process.tabTitle, "") AS tabTitle, '
             'COALESCE(process.outputfile, "") AS outputfile, '
             'COALESCE(output.output, "") AS output '
-            'FROM process AS process '
-            'LEFT JOIN process_output AS output ON process.id = output.processId '
+            "FROM process AS process "
+            "LEFT JOIN process_output AS output ON process.id = output.processId "
             'WHERE process.closed = "False" '
-            'ORDER BY process.id ASC'
+            "ORDER BY process.id ASC"
         )
         result = session.execute(query)
         rows = result.fetchall()
@@ -404,8 +422,8 @@ class ProcessRepository:
     def storeProcessCrashStatus(self, processId: str):
         session = self.dbAdapter.session()
         proc = session.query(process).filter_by(id=processId).first()
-        if proc and not proc.status == 'Killed' and not proc.status == 'Cancelled':
-            proc.status = 'Crashed'
+        if proc and not proc.status == "Killed" and not proc.status == "Cancelled":
+            proc.status = "Crashed"
             proc.endTime = getTimestamp(True)
             proc.estimatedRemaining = None
             session.add(proc)
@@ -415,8 +433,8 @@ class ProcessRepository:
     def storeProcessProblemStatus(self, processId: str):
         session = self.dbAdapter.session()
         proc = session.query(process).filter_by(id=processId).first()
-        if proc and not proc.status == 'Killed' and not proc.status == 'Cancelled':
-            proc.status = 'Problem'
+        if proc and not proc.status == "Killed" and not proc.status == "Cancelled":
+            proc.status = "Problem"
             proc.endTime = getTimestamp(True)
             proc.estimatedRemaining = None
             session.add(proc)
@@ -427,7 +445,7 @@ class ProcessRepository:
         session = self.dbAdapter.session()
         proc = session.query(process).filter_by(id=processId).first()
         if proc:
-            proc.status = 'Cancelled'
+            proc.status = "Cancelled"
             proc.endTime = getTimestamp(True)
             proc.estimatedRemaining = None
             session.add(proc)
@@ -437,8 +455,8 @@ class ProcessRepository:
     def storeProcessKillStatus(self, processId: str):
         session = self.dbAdapter.session()
         proc = session.query(process).filter_by(id=processId).first()
-        if proc and not proc.status == 'Finished':
-            proc.status = 'Killed'
+        if proc and not proc.status == "Finished":
+            proc.status = "Killed"
             proc.endTime = getTimestamp(True)
             proc.estimatedRemaining = None
             session.add(proc)
@@ -449,7 +467,7 @@ class ProcessRepository:
         session = self.dbAdapter.session()
         proc = session.query(process).filter_by(id=processId).first()
         if proc:
-            proc.status = 'Running'
+            proc.status = "Running"
             proc.pid = str(pid)
             session.add(proc)
             session.commit()
@@ -474,13 +492,13 @@ class ProcessRepository:
         self.storeProcessProgress(processId, estimated_remaining=estimated_remaining)
 
     def storeProcessProgress(
-            self,
-            processId: str,
-            percent=Ellipsis,
-            estimated_remaining=Ellipsis,
-            progress_message=Ellipsis,
-            progress_source=Ellipsis,
-            progress_updated_at=Ellipsis,
+        self,
+        processId: str,
+        percent=Ellipsis,
+        estimated_remaining=Ellipsis,
+        progress_message=Ellipsis,
+        progress_source=Ellipsis,
+        progress_updated_at=Ellipsis,
     ):
         session = self.dbAdapter.session()
         try:
@@ -501,13 +519,13 @@ class ProcessRepository:
                         proc.estimatedRemaining = None
 
             if progress_message is not Ellipsis:
-                proc.progressMessage = '' if progress_message in (None, '') else str(progress_message)
+                proc.progressMessage = "" if progress_message in (None, "") else str(progress_message)
 
             if progress_source is not Ellipsis:
-                proc.progressSource = '' if progress_source in (None, '') else str(progress_source)
+                proc.progressSource = "" if progress_source in (None, "") else str(progress_source)
 
             if progress_updated_at is not Ellipsis:
-                proc.progressUpdatedAt = '' if progress_updated_at in (None, '') else str(progress_updated_at)
+                proc.progressUpdatedAt = "" if progress_updated_at in (None, "") else str(progress_updated_at)
 
             session.add(proc)
             session.commit()
@@ -518,15 +536,29 @@ class ProcessRepository:
         session = self.dbAdapter.session()
         proc = session.query(process).filter_by(id=processId).first()
         if proc:
-            proc.closed = 'True'
+            proc.closed = "True"
             session.add(proc)
             session.commit()
         session.close()
 
     def storeScreenshot(self, ip: str, port: str, filename: str):
         session = self.dbAdapter.session()
-        p = process(0, "screenshooter", "screenshot (" + str(port) + "/tcp)", str(ip), str(port), "tcp", "",
-                    getTimestamp(True), getTimestamp(True), str(filename), "Finished", [process_output()], None, 0)
+        p = process(
+            0,
+            "screenshooter",
+            "screenshot (" + str(port) + "/tcp)",
+            str(ip),
+            str(port),
+            "tcp",
+            "",
+            getTimestamp(True),
+            getTimestamp(True),
+            str(filename),
+            "Finished",
+            [process_output()],
+            None,
+            0,
+        )
         if p:
             session.add(p)
             session.commit()
@@ -536,7 +568,7 @@ class ProcessRepository:
 
     def toggleProcessDisplayStatus(self, resetAll=False):
         session = self.dbAdapter.session()
-        proc = session.query(process).filter_by(display='True').all()
+        proc = session.query(process).filter_by(display="True").all()
         for p in proc:
             session.add(self.toggleProcessStatusField(p, resetAll))
         session.commit()
@@ -544,19 +576,19 @@ class ProcessRepository:
 
     @staticmethod
     def toggleProcessStatusField(p, reset_all):
-        not_running = p.status != 'Running'
-        not_waiting = p.status != 'Waiting'
+        not_running = p.status != "Running"
+        not_waiting = p.status != "Waiting"
 
         if (reset_all and not_running) or (not_running and not_waiting):
-            p.display = 'False'
+            p.display = "False"
 
         return p
 
     def resetDisplayStatusForOpenProcesses(self):
         session = self.dbAdapter.session()
         try:
-            session.query(process).filter_by(closed='False').update(
-                {process.display: 'True'}, synchronize_session=False
+            session.query(process).filter_by(closed="False").update(
+                {process.display: "True"}, synchronize_session=False
             )
             session.commit()
         finally:

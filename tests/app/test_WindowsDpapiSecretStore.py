@@ -14,10 +14,13 @@ class WindowsDpapiSecretBackendTest(unittest.TestCase):
             storage_path = os.path.join(tmpdir, "secrets.dpapi.json")
             backend = WindowsDpapiSecretBackend("powershell.exe", storage_path)
 
-            with patch.object(backend, "_encrypt", side_effect=lambda value: f"encrypted:{value[::-1]}"), patch.object(
+            with (
+                patch.object(backend, "_encrypt", side_effect=lambda value: f"encrypted:{value[::-1]}"),
+                patch.object(
                     backend,
                     "_decrypt",
                     side_effect=lambda value: value.removeprefix("encrypted:")[::-1],
+                ),
             ):
                 backend.set_secret("scheduler.providers.openai.api_key", "sk-test-openai")
                 self.assertEqual(
@@ -35,10 +38,14 @@ class WindowsDpapiSecretBackendTest(unittest.TestCase):
     def test_backend_is_not_selected_outside_wsl(self):
         from app.core.windows_dpapi_secret_store import WindowsDpapiSecretBackend
 
-        with patch.dict(os.environ, {"WSL_DISTRO_NAME": ""}, clear=False), patch(
+        with (
+            patch.dict(os.environ, {"WSL_DISTRO_NAME": ""}, clear=False),
+            patch(
                 "app.core.windows_dpapi_secret_store.platform.release",
                 return_value="6.8.0-linux",
-        ), patch("app.core.windows_dpapi_secret_store.shutil.which") as which:
+            ),
+            patch("app.core.windows_dpapi_secret_store.shutil.which") as which,
+        ):
             self.assertIsNone(WindowsDpapiSecretBackend.create_if_available())
             which.assert_not_called()
 

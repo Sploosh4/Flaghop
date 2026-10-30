@@ -14,6 +14,7 @@ Copyright (c) 2025 Shane William Scott
     If not, see <http://www.gnu.org/licenses/>.
 
 """
+
 import sys
 
 import xml
@@ -23,21 +24,21 @@ from parsers.Host import Host
 
 log = getAppLogger()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    dom = xml.dom.minidom.parse('/tmp/test_pwn01.xml')
-    hostNodes = dom.getElementsByTagName('host')
+    dom = xml.dom.minidom.parse("/tmp/test_pwn01.xml")
+    hostNodes = dom.getElementsByTagName("host")
 
     if len(hostNodes) == 0:
-        sys.exit( )
+        sys.exit()
 
-    hostNode = dom.getElementsByTagName('host')[0]
+    hostNode = dom.getElementsByTagName("host")[0]
 
-    h = Host( hostNode )
-    log.info('host status: ' + h.status)
-    log.info('host ip: ' + h.ip)
+    h = Host(hostNode)
+    log.info("host status: " + h.status)
+    log.info("host ip: " + h.ip)
 
-    for port in h.getPorts( 'tcp', 'open' ):
+    for port in h.getPorts("tcp", "open"):
         log.info(port + " is open")
 
     log.info("script output:")
@@ -47,7 +48,7 @@ if __name__ == '__main__':
         log.info(scr.output)
 
     log.info("service of tcp port 80:")
-    s = h.getService( 'tcp', '80' )
+    s = h.getService("tcp", "80")
     if s is None:
         log.info("\tno service")
 

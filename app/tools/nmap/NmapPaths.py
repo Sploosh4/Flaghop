@@ -16,11 +16,12 @@ Copyright (c) 2025 Shane William Scott
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
 
-
 import os
+
 
 def getNmapRunningFolder(projectRunningFolder: str) -> str:
     return os.path.normpath(os.path.join(projectRunningFolder, "nmap"))
+
 
 def getNmapOutputFolder(projectOutputFolder: str) -> str:
     return os.path.normpath(os.path.join(projectOutputFolder, "nmap"))

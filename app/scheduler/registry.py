@@ -40,11 +40,13 @@ def _extract_parameter_schema(command_template: str) -> Dict[str, Any]:
 
 
 def _infer_runner_type(tool_id: str, service_scope: List[str], command_template: str) -> str:
-    tool_text = " ".join([
-        str(tool_id or ""),
-        str(command_template or ""),
-        " ".join(str(item or "") for item in list(service_scope or [])),
-    ]).lower()
+    tool_text = " ".join(
+        [
+            str(tool_id or ""),
+            str(command_template or ""),
+            " ".join(str(item or "") for item in list(service_scope or [])),
+        ]
+    ).lower()
     normalized_tool = str(tool_id or "").strip().lower()
     if normalized_tool in {"screenshooter", "x11screen"}:
         return "browser"
@@ -89,7 +91,9 @@ def _infer_noise_level(tool_id: str, command_template: str, risk_tags: List[str]
         return "high"
     if {"credential_bruteforce", "password_spray", "high_detection_likelihood"} & tag_set:
         return "medium"
-    if any(token in tool_text for token in ["gobuster", "feroxbuster", "nikto", "nuclei", "whatweb", "sslscan", "testssl"]):
+    if any(
+        token in tool_text for token in ["gobuster", "feroxbuster", "nikto", "nuclei", "whatweb", "sslscan", "testssl"]
+    ):
         return "medium"
     return "low"
 
@@ -98,7 +102,9 @@ def _infer_default_timeout(tool_id: str, command_template: str) -> int:
     tool_text = " ".join([str(tool_id or ""), str(command_template or "")]).lower()
     if str(tool_id or "").strip().lower() in {"screenshooter", "x11screen"}:
         return 180
-    if any(token in tool_text for token in ["nmap", "nuclei", "gobuster", "feroxbuster", "nikto", "testssl", "sslscan"]):
+    if any(
+        token in tool_text for token in ["nmap", "nuclei", "gobuster", "feroxbuster", "nikto", "testssl", "sslscan"]
+    ):
         return 600
     return 300
 
@@ -107,7 +113,9 @@ def _infer_methodology_tags(tool_id: str, service_scope: List[str], risk_tags: L
     tool_text = str(tool_id or "").strip().lower()
     service_set = {str(item or "").strip().lower() for item in list(service_scope or [])}
     tags = []
-    if service_set & WEB_SERVICE_IDS or any(token in tool_text for token in ["http", "ssl", "tls", "web", "nikto", "whatweb", "nuclei"]):
+    if service_set & WEB_SERVICE_IDS or any(
+        token in tool_text for token in ["http", "ssl", "tls", "web", "nikto", "whatweb", "nuclei"]
+    ):
         tags.append("web")
     if any(token in tool_text for token in ["enum", "discover", "info", "banner"]):
         tags.append("enumeration")
@@ -122,10 +130,10 @@ def _infer_methodology_tags(tool_id: str, service_scope: List[str], risk_tags: L
 
 
 def _infer_pack_tags(
-        tool_id: str,
-        service_scope: List[str],
-        risk_tags: List[str],
-        methodology_tags: List[str],
+    tool_id: str,
+    service_scope: List[str],
+    risk_tags: List[str],
+    methodology_tags: List[str],
 ) -> List[str]:
     service_set = {str(item or "").strip().lower() for item in list(service_scope or [])}
     tool_text = str(tool_id or "").strip().lower()
@@ -136,31 +144,33 @@ def _infer_pack_tags(
         tags.append("web_app_api")
         tags.append("external_surface")
     if service_set & {"http", "https", "ssl", "http-alt", "https-alt"} or any(
-            token in tool_text for token in ("ssl", "tls", "waf", "certificate", "cert")
+        token in tool_text for token in ("ssl", "tls", "waf", "certificate", "cert")
     ):
         tags.append("tls_and_exposure")
     if service_set & {"smb", "ldap", "kerberos", "msrpc", "rdp", "ms-wbt-server"}:
         tags.append("internal_network")
     if (
-            service_set & {"smb", "ldap", "kerberos", "msrpc", "winrm", "microsoft-ds", "netbios-ssn"}
-            or {"credential_access"} & methodology_set
-            or {
-                "credential_bruteforce",
-                "password_spray",
-                "account_lockout_risk",
-                "credential_capture_side_effect",
-            } & risk_set
-            or any(token in tool_text for token in ("relay", "responder", "ntlm", "kerberos", "ldap", "smb"))
+        service_set & {"smb", "ldap", "kerberos", "msrpc", "winrm", "microsoft-ds", "netbios-ssn"}
+        or {"credential_access"} & methodology_set
+        or {
+            "credential_bruteforce",
+            "password_spray",
+            "account_lockout_risk",
+            "credential_capture_side_effect",
+        }
+        & risk_set
+        or any(token in tool_text for token in ("relay", "responder", "ntlm", "kerberos", "ldap", "smb"))
     ):
         tags.append("credentials_and_relay")
     if (
-            {"validation", "exploitation"} & methodology_set
-            or {
-                "exploit_execution",
-                "service_instability",
-                "high_detection_likelihood",
-            } & risk_set
-            or any(token in tool_text for token in ("vuln", "cve", "exploit", "nikto", "nuclei"))
+        {"validation", "exploitation"} & methodology_set
+        or {
+            "exploit_execution",
+            "service_instability",
+            "high_detection_likelihood",
+        }
+        & risk_set
+        or any(token in tool_text for token in ("vuln", "cve", "exploit", "nikto", "nuclei"))
     ):
         tags.append("vuln_validation")
     deduped = []
@@ -264,13 +274,15 @@ class ActionRegistry:
 
     def for_deterministic(self, service: str, protocol: str) -> List[ActionSpec]:
         return [
-            spec for spec in self._specs
+            spec
+            for spec in self._specs
             if spec.supports_deterministic and self._matches_scope(spec, service=service, protocol=protocol)
         ]
 
     def for_ai_selection(self, service: str, protocol: str) -> List[ActionSpec]:
         return [
-            spec for spec in self._specs
+            spec
+            for spec in self._specs
             if spec.supports_ai_selection and self._matches_scope(spec, service=service, protocol=protocol)
         ]
 
@@ -279,7 +291,9 @@ class ActionRegistry:
         service_name = str(service or "").strip().rstrip("?")
         protocol_name = str(protocol or "tcp").strip().lower()
         service_scope = {str(item or "").strip() for item in list(spec.service_scope or []) if str(item or "").strip()}
-        protocol_scope = {str(item or "").strip().lower() for item in list(spec.protocol_scope or []) if str(item or "").strip()}
+        protocol_scope = {
+            str(item or "").strip().lower() for item in list(spec.protocol_scope or []) if str(item or "").strip()
+        }
         service_match = not service_scope or service_name in service_scope or "*" in service_scope
         protocol_match = not protocol_scope or protocol_name in protocol_scope or "*" in protocol_scope
         return bool(service_match and protocol_match)

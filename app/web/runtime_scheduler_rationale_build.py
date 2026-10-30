@@ -26,11 +26,11 @@ from app.web.runtime_scheduler_rationale_text import (
 
 
 def build_provider_rationale_entry(
-        runtime_or_cls,
-        log_row: Dict[str, Any],
-        *,
-        decision_index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]],
-        execution_index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]],
+    runtime_or_cls,
+    log_row: Dict[str, Any],
+    *,
+    decision_index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]],
+    execution_index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]],
 ) -> Optional[Dict[str, Any]]:
     prompt_metadata = log_row.get("prompt_metadata", {}) if isinstance(log_row.get("prompt_metadata", {}), dict) else {}
     prompt_type = str(prompt_metadata.get("prompt_type", "") or "").strip().lower()
@@ -62,11 +62,13 @@ def build_provider_rationale_entry(
             tool_id = str(item.get("tool_id", "") or "").strip()
             if not tool_id:
                 continue
-            actions_all.append({
-                "tool_id": tool_id,
-                "score": int(item.get("score", 0) or 0),
-                "rationale": truncate_rationale_text(item.get("rationale", ""), 180),
-            })
+            actions_all.append(
+                {
+                    "tool_id": tool_id,
+                    "score": int(item.get("score", 0) or 0),
+                    "rationale": truncate_rationale_text(item.get("rationale", ""), 180),
+                }
+            )
         filtered_actions = []
         for item in actions_all:
             if visible_tool_ids and item["tool_id"] not in visible_tool_ids:
@@ -77,8 +79,8 @@ def build_provider_rationale_entry(
         headline = rationale_list_text(selected_tool_ids, limit=3) or "No action selected"
         summary = (
             filtered_actions[0].get("rationale", "")
-            if filtered_actions else
-            truncate_rationale_text("Provider recommended manual review instead of a safe automated action.", 180)
+            if filtered_actions
+            else truncate_rationale_text("Provider recommended manual review instead of a safe automated action.", 180)
         )
         if selected_tool_ids:
             details.append(f"Selected: {rationale_list_text(selected_tool_ids, limit=4)}")
@@ -149,14 +151,23 @@ def build_provider_rationale_entry(
     if outcome_line:
         details.insert(0, outcome_line)
 
-    tags = dedupe_text_tokens([
-        rationale_tag_label(prompt_type),
-        rationale_tag_label(prompt_metadata.get("current_phase", "")),
-        rationale_tag_label(prompt_metadata.get("prompt_profile", "")),
-        rationale_tag_label(response_payload.get("focus", "") if prompt_type == "web_followup" else response_payload.get("priority_shift", "")),
-    ], limit=5)
+    tags = dedupe_text_tokens(
+        [
+            rationale_tag_label(prompt_type),
+            rationale_tag_label(prompt_metadata.get("current_phase", "")),
+            rationale_tag_label(prompt_metadata.get("prompt_profile", "")),
+            rationale_tag_label(
+                response_payload.get("focus", "")
+                if prompt_type == "web_followup"
+                else response_payload.get("priority_shift", "")
+            ),
+        ],
+        limit=5,
+    )
 
-    normalized_timestamp = runtime_or_cls._normalize_process_timestamp_to_utc(log_row.get("timestamp", "")) or str(log_row.get("timestamp", "") or "")
+    normalized_timestamp = runtime_or_cls._normalize_process_timestamp_to_utc(log_row.get("timestamp", "")) or str(
+        log_row.get("timestamp", "") or ""
+    )
     return {
         "id": f"provider:{prompt_type}:{normalized_timestamp}:{host_ip}:{port}:{headline}",
         "timestamp": normalized_timestamp,
@@ -175,21 +186,27 @@ def build_provider_rationale_entry(
 
 
 def build_audit_rationale_entry(
-        runtime_or_cls,
-        decision_row: Dict[str, Any],
-        *,
-        execution_index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]],
+    runtime_or_cls,
+    decision_row: Dict[str, Any],
+    *,
+    execution_index: Dict[Tuple[str, str, str, str], List[Dict[str, Any]]],
 ) -> Optional[Dict[str, Any]]:
     tool_id = str(decision_row.get("tool_id", "") or decision_row.get("label", "") or "").strip()
     if not tool_id:
         return None
     event_ts = float(decision_row.get("_sort_ts", 0.0) or 0.0)
-    execution = nearest_scheduler_row(execution_index.get((
-        str(decision_row.get("host_ip", "") or "").strip(),
-        str(decision_row.get("port", "") or "").strip(),
-        str(decision_row.get("protocol", "") or "").strip(),
-        tool_id,
-    ), []), event_ts)
+    execution = nearest_scheduler_row(
+        execution_index.get(
+            (
+                str(decision_row.get("host_ip", "") or "").strip(),
+                str(decision_row.get("port", "") or "").strip(),
+                str(decision_row.get("protocol", "") or "").strip(),
+                tool_id,
+            ),
+            [],
+        ),
+        event_ts,
+    )
 
     details: List[str] = []
     approval_state = str(decision_row.get("requires_approval", "") or "").strip().lower()
@@ -221,7 +238,9 @@ def build_audit_rationale_entry(
         elif execution_id:
             details.append(f"Execution: {execution_id}")
 
-    normalized_timestamp = runtime_or_cls._normalize_process_timestamp_to_utc(decision_row.get("timestamp", "")) or str(decision_row.get("timestamp", "") or "")
+    normalized_timestamp = runtime_or_cls._normalize_process_timestamp_to_utc(decision_row.get("timestamp", "")) or str(
+        decision_row.get("timestamp", "") or ""
+    )
     return {
         "id": f"audit:{decision_row.get('id', '')}:{tool_id}",
         "timestamp": normalized_timestamp,
@@ -236,22 +255,25 @@ def build_audit_rationale_entry(
             200,
         ),
         "details": [line for line in details if str(line or "").strip()],
-        "tags": dedupe_text_tokens([
-            "Decision",
-            rationale_tag_label(decision_row.get("scheduler_mode", "")),
-            rationale_tag_label(decision_row.get("service", "")),
-        ], limit=4),
+        "tags": dedupe_text_tokens(
+            [
+                "Decision",
+                rationale_tag_label(decision_row.get("scheduler_mode", "")),
+                rationale_tag_label(decision_row.get("service", "")),
+            ],
+            limit=4,
+        ),
         "_sort_ts": event_ts,
     }
 
 
 def build_scheduler_rationale_feed_items(
-        runtime_or_cls,
-        provider_logs: List[Dict[str, Any]],
-        decisions: List[Dict[str, Any]],
-        executions: List[Dict[str, Any]],
-        *,
-        limit: int = 18,
+    runtime_or_cls,
+    provider_logs: List[Dict[str, Any]],
+    decisions: List[Dict[str, Any]],
+    executions: List[Dict[str, Any]],
+    *,
+    limit: int = 18,
 ) -> List[Dict[str, Any]]:
     resolved_limit = max(1, min(int(limit or 18), 48))
     normalized_decisions = [dict(item) for item in list(decisions or []) if isinstance(item, dict)]
@@ -259,10 +281,16 @@ def build_scheduler_rationale_feed_items(
     for item in normalized_decisions:
         item["_sort_ts"] = scheduler_event_timestamp_epoch(runtime_or_cls, item.get("timestamp", ""))
     for item in normalized_executions:
-        item["_sort_ts"] = scheduler_event_timestamp_epoch(runtime_or_cls, item.get("started_at", "") or item.get("finished_at", ""))
+        item["_sort_ts"] = scheduler_event_timestamp_epoch(
+            runtime_or_cls, item.get("started_at", "") or item.get("finished_at", "")
+        )
 
-    decision_index = index_scheduler_rows_by_target_tool(runtime_or_cls, normalized_decisions, timestamp_field="timestamp")
-    execution_index = index_scheduler_rows_by_target_tool(runtime_or_cls, normalized_executions, timestamp_field="started_at")
+    decision_index = index_scheduler_rows_by_target_tool(
+        runtime_or_cls, normalized_decisions, timestamp_field="timestamp"
+    )
+    execution_index = index_scheduler_rows_by_target_tool(
+        runtime_or_cls, normalized_executions, timestamp_field="started_at"
+    )
 
     entries: List[Dict[str, Any]] = []
     matched_decision_ids = set()
@@ -278,7 +306,9 @@ def build_scheduler_rationale_feed_items(
         )
         if not isinstance(entry, dict):
             continue
-        matched_decision_ids.update(int(item) for item in list(entry.pop("_matched_decision_ids", []) or []) if int(item or 0) > 0)
+        matched_decision_ids.update(
+            int(item) for item in list(entry.pop("_matched_decision_ids", []) or []) if int(item or 0) > 0
+        )
         entries.append(entry)
 
     for decision_row in normalized_decisions:

@@ -30,8 +30,18 @@ class SchedulerProvidersTest(unittest.TestCase):
 
         candidates = [
             {"tool_id": "banner", "label": "Banner", "command_template": "nc [IP] [PORT]", "service_scope": "http"},
-            {"tool_id": "nmap-vuln.nse", "label": "nmap-vuln.nse", "command_template": "nmap --script vuln [IP] -p [PORT]", "service_scope": "http"},
-            {"tool_id": "screenshooter", "label": "Capture screenshot", "command_template": "screenshooter [WEB_URL]", "service_scope": "http"},
+            {
+                "tool_id": "nmap-vuln.nse",
+                "label": "nmap-vuln.nse",
+                "command_template": "nmap --script vuln [IP] -p [PORT]",
+                "service_scope": "http",
+            },
+            {
+                "tool_id": "screenshooter",
+                "label": "Capture screenshot",
+                "command_template": "screenshooter [WEB_URL]",
+                "service_scope": "http",
+            },
         ]
 
         prompt_package = _build_ranking_prompt_package(
@@ -159,7 +169,14 @@ class SchedulerProvidersTest(unittest.TestCase):
             "internal_asset_discovery",
             "http",
             "tcp",
-            [{"tool_id": "nuclei-web", "label": "nuclei", "command_template": "nuclei -u [IP]", "service_scope": "http"}],
+            [
+                {
+                    "tool_id": "nuclei-web",
+                    "label": "nuclei",
+                    "command_template": "nuclei -u [IP]",
+                    "service_scope": "http",
+                }
+            ],
             context={
                 "context_summary": {
                     "confirmed_facts": ["hostname: edge.local"],
@@ -210,9 +227,13 @@ class SchedulerProvidersTest(unittest.TestCase):
                 }
             },
         }
-        ranked = rank_actions_with_provider(config, "external_pentest", "http", "tcp", [
-            {"tool_id": "whatweb", "label": "whatweb", "command_template": "whatweb [IP]", "service_scope": "http"}
-        ])
+        ranked = rank_actions_with_provider(
+            config,
+            "external_pentest",
+            "http",
+            "tcp",
+            [{"tool_id": "whatweb", "label": "whatweb", "command_template": "whatweb [IP]", "service_scope": "http"}],
+        )
         self.assertEqual(1, len(ranked))
         self.assertEqual("whatweb", ranked[0]["tool_id"])
         self.assertEqual(88, ranked[0]["score"])
@@ -240,15 +261,11 @@ class SchedulerProvidersTest(unittest.TestCase):
 
         response = MagicMock()
         response.status_code = 200
-        response.text = '{"choices":[{"message":{"content":"{\\"actions\\":[{\\"tool_id\\":\\"whatweb\\",\\"score\\":80}]}"}}]}'
+        response.text = (
+            '{"choices":[{"message":{"content":"{\\"actions\\":[{\\"tool_id\\":\\"whatweb\\",\\"score\\":80}]}"}}]}'
+        )
         response.json.return_value = {
-            "choices": [
-                {
-                    "message": {
-                        "content": '{"actions":[{"tool_id":"whatweb","score":80,"rationale":"ok"}]}'
-                    }
-                }
-            ]
+            "choices": [{"message": {"content": '{"actions":[{"tool_id":"whatweb","score":80,"rationale":"ok"}]}'}}]
         }
         mock_post.return_value = response
 
@@ -340,13 +357,7 @@ class SchedulerProvidersTest(unittest.TestCase):
         response = MagicMock()
         response.status_code = 200
         response.json.return_value = {
-            "choices": [
-                {
-                    "message": {
-                        "content": '{"actions":[{"tool_id":"whatweb","score":80,"rationale":"ok"}]}'
-                    }
-                }
-            ]
+            "choices": [{"message": {"content": '{"actions":[{"tool_id":"whatweb","score":80,"rationale":"ok"}]}'}}]
         }
         mock_post.return_value = response
 
@@ -392,11 +403,7 @@ class SchedulerProvidersTest(unittest.TestCase):
         second_response.status_code = 200
         second_response.json.return_value = {
             "choices": [
-                {
-                    "message": {
-                        "content": '{"actions":[{"tool_id":"whatweb","score":84,"rationale":"fallback ok"}]}'
-                    }
-                }
+                {"message": {"content": '{"actions":[{"tool_id":"whatweb","score":84,"rationale":"fallback ok"}]}'}}
             ]
         }
         mock_post.side_effect = [first_response, second_response]
@@ -522,9 +529,7 @@ class SchedulerProvidersTest(unittest.TestCase):
         first_response.json.return_value = {
             "choices": [
                 {
-                    "message": {
-                        "content": '{"actions":[{"tool_id":"whatweb","score":90,"rationale":"partial'
-                    },
+                    "message": {"content": '{"actions":[{"tool_id":"whatweb","score":90,"rationale":"partial'},
                     "finish_reason": "length",
                 }
             ]
@@ -641,7 +646,14 @@ class SchedulerProvidersTest(unittest.TestCase):
             "internal_asset_discovery",
             "http",
             "tcp",
-            [{"tool_id": "nmap-vuln.nse", "label": "nmap-vuln.nse", "command_template": "nmap [IP]", "service_scope": "http"}],
+            [
+                {
+                    "tool_id": "nmap-vuln.nse",
+                    "label": "nmap-vuln.nse",
+                    "command_template": "nmap [IP]",
+                    "service_scope": "http",
+                }
+            ],
             context={
                 "coverage": {"missing": ["missing_nmap_vuln"]},
                 "context_summary": {
@@ -660,7 +672,9 @@ class SchedulerProvidersTest(unittest.TestCase):
         self.assertNotIn('"current_phase":"complete"', prompt)
 
     @patch("app.scheduler.providers.requests.post")
-    def test_provider_payload_filters_missing_tool_manual_tests_sanitizes_versions_and_clamps_next_phase(self, mock_post):
+    def test_provider_payload_filters_missing_tool_manual_tests_sanitizes_versions_and_clamps_next_phase(
+        self, mock_post
+    ):
         from app.scheduler.providers import get_last_provider_payload, rank_actions_with_provider
 
         response = MagicMock()
@@ -675,12 +689,12 @@ class SchedulerProvidersTest(unittest.TestCase):
                             '"technologies":['
                             '{"name":"nginx","version":"7.80","cpe":"cpe:/a:nginx:nginx:7.80","evidence":"http-headers.nse output fingerprint"},'
                             '{"name":"Apache HTTP Server","version":"7.80","cpe":"cpe:/a:apache:http_server:7.80","evidence":"http-vuln-cve2011-3192.nse output fingerprint"}'
-                            ']},'
+                            "]},"
                             '"findings":[],'
                             '"manual_tests":['
                             '{"why":"bad","command":"dirsearch -u http://unifi.local -e php","scope_note":"skip"},'
                             '{"why":"check availability","command":"which whatweb","scope_note":"allowed"}'
-                            '],'
+                            "],"
                             '"next_phase":"broad_vuln"}'
                         )
                     }
@@ -705,7 +719,14 @@ class SchedulerProvidersTest(unittest.TestCase):
             "internal_asset_discovery",
             "http",
             "tcp",
-            [{"tool_id": "banner", "label": "Grab banner", "command_template": "nc [IP] [PORT]", "service_scope": "http"}],
+            [
+                {
+                    "tool_id": "banner",
+                    "label": "Grab banner",
+                    "command_template": "nc [IP] [PORT]",
+                    "service_scope": "http",
+                }
+            ],
             context={
                 "signals": {
                     "web_service": True,
@@ -725,10 +746,7 @@ class SchedulerProvidersTest(unittest.TestCase):
         self.assertEqual(1, len(payload["manual_tests"]))
         self.assertEqual("which whatweb", payload["manual_tests"][0]["command"])
 
-        tech_by_name = {
-            str(item.get("name", "")).strip().lower(): item
-            for item in payload["technologies"]
-        }
+        tech_by_name = {str(item.get("name", "")).strip().lower(): item for item in payload["technologies"]}
         self.assertEqual("", str(tech_by_name["nginx"]["version"]))
         self.assertEqual("cpe:/a:nginx:nginx", str(tech_by_name["nginx"]["cpe"]))
         self.assertEqual("", str(tech_by_name["apache http server"]["version"]))
@@ -748,7 +766,7 @@ class SchedulerProvidersTest(unittest.TestCase):
             '\\"manual_tests\\":['
             '{\\"why\\":\\"scan\\",\\"command\\":\\"nikto -host https://192.168.3.1:443\\",\\"scope_note\\":\\"skip\\"},'
             '{\\"why\\":\\"headers\\",\\"command\\":\\"curl -k -I https://192.168.3.1:443\\",\\"scope_note\\":\\"keep\\"}'
-            '],'
+            "],"
             '\\"next_phase\\":\\"deep_web\\"'
             '"}}]}'
         )
@@ -763,7 +781,7 @@ class SchedulerProvidersTest(unittest.TestCase):
                             '"manual_tests":['
                             '{"why":"scan","command":"nikto -host https://192.168.3.1:443","scope_note":"skip"},'
                             '{"why":"headers","command":"curl -k -I https://192.168.3.1:443","scope_note":"keep"}'
-                            '],'
+                            "],"
                             '"next_phase":"deep_web"}'
                         )
                     }
@@ -788,7 +806,14 @@ class SchedulerProvidersTest(unittest.TestCase):
             "internal_asset_discovery",
             "http",
             "tcp",
-            [{"tool_id": "banner", "label": "Grab banner", "command_template": "nc [IP] [PORT]", "service_scope": "http"}],
+            [
+                {
+                    "tool_id": "banner",
+                    "label": "Grab banner",
+                    "command_template": "nc [IP] [PORT]",
+                    "service_scope": "http",
+                }
+            ],
             context={
                 "signals": {
                     "web_service": True,
@@ -818,7 +843,7 @@ class SchedulerProvidersTest(unittest.TestCase):
             '\\"findings\\":[],'
             '\\"manual_tests\\":['
             '{\\"why\\":\\"fingerprint\\",\\"command\\":\\"whatweb http://192.168.3.1:80\\",\\"scope_note\\":\\"keep\\"}'
-            '],'
+            "],"
             '\\"next_phase\\":\\"deep_web\\"'
             '"}}]}'
         )
@@ -855,7 +880,14 @@ class SchedulerProvidersTest(unittest.TestCase):
             "internal_asset_discovery",
             "http",
             "tcp",
-            [{"tool_id": "banner", "label": "Grab banner", "command_template": "nc [IP] [PORT]", "service_scope": "http"}],
+            [
+                {
+                    "tool_id": "banner",
+                    "label": "Grab banner",
+                    "command_template": "nc [IP] [PORT]",
+                    "service_scope": "http",
+                }
+            ],
             context={
                 "recent_processes": [
                     {
@@ -891,19 +923,10 @@ class SchedulerProvidersTest(unittest.TestCase):
 
         second_response = MagicMock()
         second_response.status_code = 200
-        second_response.text = (
-            '{"choices":[{"message":{"content":"{\\"actions\\":[{\\"tool_id\\":\\"healthcheck\\",\\"score\\":100}]}"}}]}'
-        )
+        second_response.text = '{"choices":[{"message":{"content":"{\\"actions\\":[{\\"tool_id\\":\\"healthcheck\\",\\"score\\":100}]}"}}]}'
         second_response.json.return_value = {
             "choices": [
-                {
-                    "message": {
-                        "content": (
-                            '{"actions":[{"tool_id":"healthcheck","score":100,'
-                            '"rationale":"ok"}]}'
-                        )
-                    }
-                }
+                {"message": {"content": ('{"actions":[{"tool_id":"healthcheck","score":100,' '"rationale":"ok"}]}')}}
             ]
         }
 
@@ -934,16 +957,10 @@ class SchedulerProvidersTest(unittest.TestCase):
 
         response = MagicMock()
         response.status_code = 200
-        response.text = (
-            '{"choices":[{"message":{"content":"{\\"actions\\":[{\\"tool_id\\":\\"healthcheck\\",\\"score\\":100}]}"}}]}'
-        )
+        response.text = '{"choices":[{"message":{"content":"{\\"actions\\":[{\\"tool_id\\":\\"healthcheck\\",\\"score\\":100}]}"}}]}'
         response.json.return_value = {
             "choices": [
-                {
-                    "message": {
-                        "content": '{"actions":[{"tool_id":"healthcheck","score":100,"rationale":"ok"}]}'
-                    }
-                }
+                {"message": {"content": '{"actions":[{"tool_id":"healthcheck","score":100,"rationale":"ok"}]}'}}
             ]
         }
         mock_post.return_value = response
@@ -979,16 +996,10 @@ class SchedulerProvidersTest(unittest.TestCase):
 
         second_response = MagicMock()
         second_response.status_code = 200
-        second_response.text = (
-            '{"choices":[{"message":{"content":"{\\"actions\\":[{\\"tool_id\\":\\"healthcheck\\",\\"score\\":100}]}"}}]}'
-        )
+        second_response.text = '{"choices":[{"message":{"content":"{\\"actions\\":[{\\"tool_id\\":\\"healthcheck\\",\\"score\\":100}]}"}}]}'
         second_response.json.return_value = {
             "choices": [
-                {
-                    "message": {
-                        "content": '{"actions":[{"tool_id":"healthcheck","score":100,"rationale":"ok"}]}'
-                    }
-                }
+                {"message": {"content": '{"actions":[{"tool_id":"healthcheck","score":100,"rationale":"ok"}]}'}}
             ]
         }
         mock_post.side_effect = [first_response, second_response]
@@ -1043,9 +1054,13 @@ class SchedulerProvidersTest(unittest.TestCase):
                 }
             },
         }
-        ranked = rank_actions_with_provider(config, "external_pentest", "http", "tcp", [
-            {"tool_id": "nikto", "label": "nikto", "command_template": "nikto -h [IP]", "service_scope": "http"}
-        ])
+        ranked = rank_actions_with_provider(
+            config,
+            "external_pentest",
+            "http",
+            "tcp",
+            [{"tool_id": "nikto", "label": "nikto", "command_template": "nikto -h [IP]", "service_scope": "http"}],
+        )
         self.assertEqual(1, len(ranked))
         self.assertEqual("nikto", ranked[0]["tool_id"])
         payload = mock_post.call_args.kwargs["json"]
@@ -1097,8 +1112,18 @@ class SchedulerProvidersTest(unittest.TestCase):
                 "signals": {"web_service": True, "tls_detected": True},
             },
             recent_rounds=[
-                {"round": 1, "decision_tool_ids": ["nuclei-web"], "coverage_missing": ["missing_nmap_vuln"], "progress_score": 0},
-                {"round": 2, "decision_tool_ids": ["nikto"], "coverage_missing": ["missing_nmap_vuln"], "progress_score": 0},
+                {
+                    "round": 1,
+                    "decision_tool_ids": ["nuclei-web"],
+                    "coverage_missing": ["missing_nmap_vuln"],
+                    "progress_score": 0,
+                },
+                {
+                    "round": 2,
+                    "decision_tool_ids": ["nikto"],
+                    "coverage_missing": ["missing_nmap_vuln"],
+                    "progress_score": 0,
+                },
             ],
             trigger_reason="phase_transition",
             trigger_context={
@@ -1165,8 +1190,18 @@ class SchedulerProvidersTest(unittest.TestCase):
             "http",
             "tcp",
             [
-                {"tool_id": "dirsearch", "label": "Dirsearch", "command_template": "dirsearch -u https://[IP]:[PORT]", "service_scope": "http"},
-                {"tool_id": "curl-headers", "label": "cURL headers", "command_template": "curl -k -I https://[IP]:[PORT]", "service_scope": "http"},
+                {
+                    "tool_id": "dirsearch",
+                    "label": "Dirsearch",
+                    "command_template": "dirsearch -u https://[IP]:[PORT]",
+                    "service_scope": "http",
+                },
+                {
+                    "tool_id": "curl-headers",
+                    "label": "cURL headers",
+                    "command_template": "curl -k -I https://[IP]:[PORT]",
+                    "service_scope": "http",
+                },
             ],
             context={
                 "signals": {"web_service": True, "vuln_hits": 1},
@@ -1234,7 +1269,12 @@ class SchedulerProvidersTest(unittest.TestCase):
             "tcp",
             engagement_preset="external_recon",
             candidates=[
-                {"tool_id": "curl-headers", "label": "cURL headers", "command_template": "curl -k -I https://[IP]:[PORT]", "service_scope": "http"},
+                {
+                    "tool_id": "curl-headers",
+                    "label": "cURL headers",
+                    "command_template": "curl -k -I https://[IP]:[PORT]",
+                    "service_scope": "http",
+                },
             ],
             context={"signals": {"web_service": True}},
         )
@@ -1279,8 +1319,18 @@ class SchedulerProvidersTest(unittest.TestCase):
             "external_pentest",
             "https",
             "tcp",
-            [{"tool_id": "nuclei-cves", "label": "nuclei CVEs", "command_template": "nuclei -u https://[IP]:[PORT] -tags cves", "service_scope": "https"}],
-            context={"signals": {"web_service": True, "vuln_hits": 1}, "coverage": {"missing": ["missing_cpe_cve_enrichment"]}},
+            [
+                {
+                    "tool_id": "nuclei-cves",
+                    "label": "nuclei CVEs",
+                    "command_template": "nuclei -u https://[IP]:[PORT] -tags cves",
+                    "service_scope": "https",
+                }
+            ],
+            context={
+                "signals": {"web_service": True, "vuln_hits": 1},
+                "coverage": {"missing": ["missing_cpe_cve_enrichment"]},
+            },
         )
 
         self.assertEqual("vuln_followup", payload["focus"])
@@ -1332,9 +1382,13 @@ class SchedulerProvidersTest(unittest.TestCase):
                 }
             },
         }
-        ranked = rank_actions_with_provider(config, "external_pentest", "http", "tcp", [
-            {"tool_id": "whatweb", "label": "whatweb", "command_template": "whatweb [IP]", "service_scope": "http"}
-        ])
+        ranked = rank_actions_with_provider(
+            config,
+            "external_pentest",
+            "http",
+            "tcp",
+            [{"tool_id": "whatweb", "label": "whatweb", "command_template": "whatweb [IP]", "service_scope": "http"}],
+        )
         self.assertEqual(1, len(ranked))
         self.assertEqual("whatweb", ranked[0]["tool_id"])
         self.assertEqual(91, ranked[0]["score"])
@@ -1406,8 +1460,7 @@ class SchedulerProvidersTest(unittest.TestCase):
                 {
                     "message": {
                         "content": (
-                            '{"actions":[{"tool_id":"tool-0","score":81,'
-                            '"rationale":"bounded prompt test"}]}'
+                            '{"actions":[{"tool_id":"tool-0","score":81,' '"rationale":"bounded prompt test"}]}'
                         )
                     }
                 }
@@ -1417,12 +1470,14 @@ class SchedulerProvidersTest(unittest.TestCase):
 
         candidates = []
         for i in range(200):
-            candidates.append({
-                "tool_id": f"tool-{i}",
-                "label": f"Tool Label {i}",
-                "command_template": "very-long-command " + ("x" * 500),
-                "service_scope": "http",
-            })
+            candidates.append(
+                {
+                    "tool_id": f"tool-{i}",
+                    "label": f"Tool Label {i}",
+                    "command_template": "very-long-command " + ("x" * 500),
+                    "service_scope": "http",
+                }
+            )
 
         config = {
             "provider": "openai",
@@ -1467,12 +1522,14 @@ class SchedulerProvidersTest(unittest.TestCase):
 
         candidates = []
         for i in range(40):
-            candidates.append({
-                "tool_id": f"tool-{i}",
-                "label": f"Tool Label {i}",
-                "command_template": "very-long-command " + ("x" * 500),
-                "service_scope": "http",
-            })
+            candidates.append(
+                {
+                    "tool_id": f"tool-{i}",
+                    "label": f"Tool Label {i}",
+                    "command_template": "very-long-command " + ("x" * 500),
+                    "service_scope": "http",
+                }
+            )
 
         config = {
             "provider": "openai",
@@ -1491,7 +1548,9 @@ class SchedulerProvidersTest(unittest.TestCase):
 
         self.assertEqual([{"tool_id": "tool-0", "score": 91.0, "rationale": "visible candidate"}], ranked)
         payload = mock_post.call_args.kwargs["json"]
-        enum_values = payload["response_format"]["json_schema"]["schema"]["properties"]["actions"]["items"]["properties"]["tool_id"]["enum"]
+        enum_values = payload["response_format"]["json_schema"]["schema"]["properties"]["actions"]["items"][
+            "properties"
+        ]["tool_id"]["enum"]
         self.assertIn("tool-0", enum_values)
         self.assertNotIn("tool-39", enum_values)
         metadata = get_last_provider_payload(clear=True)
@@ -1509,8 +1568,7 @@ class SchedulerProvidersTest(unittest.TestCase):
                 {
                     "message": {
                         "content": (
-                            '{"actions":[{"tool_id":"nuclei-web","score":92,'
-                            '"rationale":"context-aware ranking"}]}'
+                            '{"actions":[{"tool_id":"nuclei-web","score":92,' '"rationale":"context-aware ranking"}]}'
                         )
                     }
                 }
@@ -1534,7 +1592,14 @@ class SchedulerProvidersTest(unittest.TestCase):
             "external_pentest",
             "http",
             "tcp",
-            [{"tool_id": "nuclei-web", "label": "nuclei", "command_template": "nuclei -u [IP]", "service_scope": "http"}],
+            [
+                {
+                    "tool_id": "nuclei-web",
+                    "label": "nuclei",
+                    "command_template": "nuclei -u [IP]",
+                    "service_scope": "http",
+                }
+            ],
             context={
                 "context_summary": {
                     "focus": {
@@ -1581,7 +1646,12 @@ class SchedulerProvidersTest(unittest.TestCase):
                     }
                 ],
                 "inferred_technologies": [
-                    {"name": "Jetty", "version": "10.0.13", "cpe": "cpe:/a:eclipse:jetty:10.0.13", "evidence": "service 8082/tcp"},
+                    {
+                        "name": "Jetty",
+                        "version": "10.0.13",
+                        "cpe": "cpe:/a:eclipse:jetty:10.0.13",
+                        "evidence": "service 8082/tcp",
+                    },
                 ],
                 "host_cves": [
                     {"name": "CVE-2025-9999", "severity": "high", "product": "nginx", "version": "1.20"},
@@ -1596,22 +1666,35 @@ class SchedulerProvidersTest(unittest.TestCase):
                     "has": {"discovery": True, "nmap_vuln": False, "nuclei_auto": False},
                 },
                 "scripts": [{"script_id": "ssl-cert", "port": "443", "protocol": "tcp", "excerpt": "CN=portal.local"}],
-                "recent_processes": [{
-                    "tool_id": "whatweb",
-                    "status": "Finished",
-                    "port": "80",
-                    "protocol": "tcp",
-                    "command_excerpt": "whatweb 10.0.0.5:80",
-                    "output_excerpt": "Apache, jQuery",
-                }],
+                "recent_processes": [
+                    {
+                        "tool_id": "whatweb",
+                        "status": "Finished",
+                        "port": "80",
+                        "protocol": "tcp",
+                        "command_excerpt": "whatweb 10.0.0.5:80",
+                        "output_excerpt": "Apache, jQuery",
+                    }
+                ],
                 "host_ai_state": {
                     "provider": "openai",
                     "goal_profile": "internal_asset_discovery",
                     "next_phase": "targeted_checks",
                     "host_updates": {"hostname": "edge.local", "os": "linux"},
-                    "technologies": [{"name": "nginx", "version": "1.20", "cpe": "cpe:/a:nginx:nginx:1.20", "evidence": "server header"}],
-                    "findings": [{"title": "Open admin endpoint", "severity": "medium", "cve": "", "evidence": "/admin"}],
-                    "manual_tests": [{"why": "validate auth", "command": "curl -k https://10.0.0.5/admin", "scope_note": "safe"}],
+                    "technologies": [
+                        {
+                            "name": "nginx",
+                            "version": "1.20",
+                            "cpe": "cpe:/a:nginx:nginx:1.20",
+                            "evidence": "server header",
+                        }
+                    ],
+                    "findings": [
+                        {"title": "Open admin endpoint", "severity": "medium", "cve": "", "evidence": "/admin"}
+                    ],
+                    "manual_tests": [
+                        {"why": "validate auth", "command": "curl -k https://10.0.0.5/admin", "scope_note": "safe"}
+                    ],
                     "reflection": {
                         "state": "stalled",
                         "priority_shift": "manual_validation",
@@ -1655,12 +1738,14 @@ class SchedulerProvidersTest(unittest.TestCase):
 
         candidates = []
         for i in range(12):
-            candidates.append({
-                "tool_id": f"tool-{i}",
-                "label": f"Tool Label {i}",
-                "command_template": "very-long-command " + ("x" * 500),
-                "service_scope": "http,https,ssl",
-            })
+            candidates.append(
+                {
+                    "tool_id": f"tool-{i}",
+                    "label": f"Tool Label {i}",
+                    "command_template": "very-long-command " + ("x" * 500),
+                    "service_scope": "http,https,ssl",
+                }
+            )
 
         block, omitted, visible = _build_candidate_block(
             candidates,
@@ -1704,12 +1789,14 @@ class SchedulerProvidersTest(unittest.TestCase):
 
         candidates = []
         for i in range(12):
-            candidates.append({
-                "tool_id": f"tool-{i}",
-                "label": f"Tool Label {i}",
-                "command_template": "tool-runner " + ("x" * 500),
-                "service_scope": "http",
-            })
+            candidates.append(
+                {
+                    "tool_id": f"tool-{i}",
+                    "label": f"Tool Label {i}",
+                    "command_template": "tool-runner " + ("x" * 500),
+                    "service_scope": "http",
+                }
+            )
 
         config = {
             "provider": "openai",
@@ -1779,14 +1866,7 @@ class SchedulerProvidersTest(unittest.TestCase):
         completion_response.status_code = 200
         completion_response.json.return_value = {
             "choices": [
-                {
-                    "message": {
-                        "content": (
-                            '{"actions":[{"tool_id":"healthcheck","score":100,'
-                            '"rationale":"ok"}]}'
-                        )
-                    }
-                }
+                {"message": {"content": ('{"actions":[{"tool_id":"healthcheck","score":100,' '"rationale":"ok"}]}')}}
             ]
         }
         mock_post.return_value = completion_response

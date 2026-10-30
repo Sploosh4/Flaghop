@@ -6,65 +6,62 @@ from sqlalchemy import text
 from app.scheduler.models import ExecutionRecord, PlanStep
 
 
-def _ensure_column(session, table_name: str, column_name: str, column_type: str):
-    rows = session.execute(text(f"PRAGMA table_info({table_name})")).fetchall()
-    existing = {str(row[1]) for row in rows if len(row) > 1}
-    if str(column_name) in existing:
-        return
-    session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"))
+from db.schema import ensure_column as _ensure_column
 
 
 def _ensure_table(session):
-    session.execute(text(
-        "CREATE TABLE IF NOT EXISTS scheduler_execution_record ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "execution_id TEXT UNIQUE,"
-        "step_id TEXT,"
-        "action_id TEXT,"
-        "tool_id TEXT,"
-        "label TEXT,"
-        "scheduler_mode TEXT,"
-        "goal_profile TEXT,"
-        "host_ip TEXT,"
-        "port TEXT,"
-        "protocol TEXT,"
-        "service TEXT,"
-        "started_at TEXT,"
-        "finished_at TEXT,"
-        "runner_type TEXT,"
-        "exit_status TEXT,"
-        "stdout_ref TEXT,"
-        "stderr_ref TEXT,"
-        "artifact_refs_json TEXT,"
-        "approval_id TEXT,"
-        "observations_created_json TEXT,"
-        "graph_mutations_json TEXT,"
-        "operator_notes TEXT"
-        ")"
-    ))
+    session.execute(
+        text(
+            "CREATE TABLE IF NOT EXISTS scheduler_execution_record ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "execution_id TEXT UNIQUE,"
+            "step_id TEXT,"
+            "action_id TEXT,"
+            "tool_id TEXT,"
+            "label TEXT,"
+            "scheduler_mode TEXT,"
+            "goal_profile TEXT,"
+            "host_ip TEXT,"
+            "port TEXT,"
+            "protocol TEXT,"
+            "service TEXT,"
+            "started_at TEXT,"
+            "finished_at TEXT,"
+            "runner_type TEXT,"
+            "exit_status TEXT,"
+            "stdout_ref TEXT,"
+            "stderr_ref TEXT,"
+            "artifact_refs_json TEXT,"
+            "approval_id TEXT,"
+            "observations_created_json TEXT,"
+            "graph_mutations_json TEXT,"
+            "operator_notes TEXT"
+            ")"
+        )
+    )
     for column_name, column_type in (
-            ("execution_id", "TEXT"),
-            ("step_id", "TEXT"),
-            ("action_id", "TEXT"),
-            ("tool_id", "TEXT"),
-            ("label", "TEXT"),
-            ("scheduler_mode", "TEXT"),
-            ("goal_profile", "TEXT"),
-            ("host_ip", "TEXT"),
-            ("port", "TEXT"),
-            ("protocol", "TEXT"),
-            ("service", "TEXT"),
-            ("started_at", "TEXT"),
-            ("finished_at", "TEXT"),
-            ("runner_type", "TEXT"),
-            ("exit_status", "TEXT"),
-            ("stdout_ref", "TEXT"),
-            ("stderr_ref", "TEXT"),
-            ("artifact_refs_json", "TEXT"),
-            ("approval_id", "TEXT"),
-            ("observations_created_json", "TEXT"),
-            ("graph_mutations_json", "TEXT"),
-            ("operator_notes", "TEXT"),
+        ("execution_id", "TEXT"),
+        ("step_id", "TEXT"),
+        ("action_id", "TEXT"),
+        ("tool_id", "TEXT"),
+        ("label", "TEXT"),
+        ("scheduler_mode", "TEXT"),
+        ("goal_profile", "TEXT"),
+        ("host_ip", "TEXT"),
+        ("port", "TEXT"),
+        ("protocol", "TEXT"),
+        ("service", "TEXT"),
+        ("started_at", "TEXT"),
+        ("finished_at", "TEXT"),
+        ("runner_type", "TEXT"),
+        ("exit_status", "TEXT"),
+        ("stdout_ref", "TEXT"),
+        ("stderr_ref", "TEXT"),
+        ("artifact_refs_json", "TEXT"),
+        ("approval_id", "TEXT"),
+        ("observations_created_json", "TEXT"),
+        ("graph_mutations_json", "TEXT"),
+        ("operator_notes", "TEXT"),
     ):
         _ensure_column(session, "scheduler_execution_record", column_name, column_type)
 
@@ -99,14 +96,14 @@ def ensure_scheduler_execution_table(database):
 
 
 def store_execution_record(
-        database,
-        record: ExecutionRecord,
-        *,
-        step: Optional[PlanStep] = None,
-        host_ip: str = "",
-        port: str = "",
-        protocol: str = "",
-        service: str = "",
+    database,
+    record: ExecutionRecord,
+    *,
+    step: Optional[PlanStep] = None,
+    host_ip: str = "",
+    port: str = "",
+    protocol: str = "",
+    service: str = "",
 ) -> Dict[str, Any]:
     session = database.session()
     payload: Dict[str, Any] = {}
@@ -138,50 +135,57 @@ def store_execution_record(
             "operator_notes": str(record.operator_notes or ""),
         }
 
-        existing = session.execute(text(
-            "SELECT id FROM scheduler_execution_record WHERE execution_id = :execution_id LIMIT 1"
-        ), {"execution_id": payload["execution_id"]}).fetchone()
+        existing = session.execute(
+            text("SELECT id FROM scheduler_execution_record WHERE execution_id = :execution_id LIMIT 1"),
+            {"execution_id": payload["execution_id"]},
+        ).fetchone()
 
         if existing is None:
-            session.execute(text(
-                "INSERT INTO scheduler_execution_record ("
-                "execution_id, step_id, action_id, tool_id, label, scheduler_mode, goal_profile, "
-                "host_ip, port, protocol, service, started_at, finished_at, runner_type, exit_status, "
-                "stdout_ref, stderr_ref, artifact_refs_json, approval_id, observations_created_json, "
-                "graph_mutations_json, operator_notes"
-                ") VALUES ("
-                ":execution_id, :step_id, :action_id, :tool_id, :label, :scheduler_mode, :goal_profile, "
-                ":host_ip, :port, :protocol, :service, :started_at, :finished_at, :runner_type, :exit_status, "
-                ":stdout_ref, :stderr_ref, :artifact_refs_json, :approval_id, :observations_created_json, "
-                ":graph_mutations_json, :operator_notes"
-                ")"
-            ), payload)
+            session.execute(
+                text(
+                    "INSERT INTO scheduler_execution_record ("
+                    "execution_id, step_id, action_id, tool_id, label, scheduler_mode, goal_profile, "
+                    "host_ip, port, protocol, service, started_at, finished_at, runner_type, exit_status, "
+                    "stdout_ref, stderr_ref, artifact_refs_json, approval_id, observations_created_json, "
+                    "graph_mutations_json, operator_notes"
+                    ") VALUES ("
+                    ":execution_id, :step_id, :action_id, :tool_id, :label, :scheduler_mode, :goal_profile, "
+                    ":host_ip, :port, :protocol, :service, :started_at, :finished_at, :runner_type, :exit_status, "
+                    ":stdout_ref, :stderr_ref, :artifact_refs_json, :approval_id, :observations_created_json, "
+                    ":graph_mutations_json, :operator_notes"
+                    ")"
+                ),
+                payload,
+            )
         else:
-            session.execute(text(
-                "UPDATE scheduler_execution_record SET "
-                "step_id = :step_id, "
-                "action_id = :action_id, "
-                "tool_id = :tool_id, "
-                "label = :label, "
-                "scheduler_mode = :scheduler_mode, "
-                "goal_profile = :goal_profile, "
-                "host_ip = :host_ip, "
-                "port = :port, "
-                "protocol = :protocol, "
-                "service = :service, "
-                "started_at = :started_at, "
-                "finished_at = :finished_at, "
-                "runner_type = :runner_type, "
-                "exit_status = :exit_status, "
-                "stdout_ref = :stdout_ref, "
-                "stderr_ref = :stderr_ref, "
-                "artifact_refs_json = :artifact_refs_json, "
-                "approval_id = :approval_id, "
-                "observations_created_json = :observations_created_json, "
-                "graph_mutations_json = :graph_mutations_json, "
-                "operator_notes = :operator_notes "
-                "WHERE execution_id = :execution_id"
-            ), payload)
+            session.execute(
+                text(
+                    "UPDATE scheduler_execution_record SET "
+                    "step_id = :step_id, "
+                    "action_id = :action_id, "
+                    "tool_id = :tool_id, "
+                    "label = :label, "
+                    "scheduler_mode = :scheduler_mode, "
+                    "goal_profile = :goal_profile, "
+                    "host_ip = :host_ip, "
+                    "port = :port, "
+                    "protocol = :protocol, "
+                    "service = :service, "
+                    "started_at = :started_at, "
+                    "finished_at = :finished_at, "
+                    "runner_type = :runner_type, "
+                    "exit_status = :exit_status, "
+                    "stdout_ref = :stdout_ref, "
+                    "stderr_ref = :stderr_ref, "
+                    "artifact_refs_json = :artifact_refs_json, "
+                    "approval_id = :approval_id, "
+                    "observations_created_json = :observations_created_json, "
+                    "graph_mutations_json = :graph_mutations_json, "
+                    "operator_notes = :operator_notes "
+                    "WHERE execution_id = :execution_id"
+                ),
+                payload,
+            )
 
         session.commit()
     except Exception:
@@ -208,13 +212,16 @@ def store_execution_record(
             patch_session = database.session()
             try:
                 _ensure_table(patch_session)
-                patch_session.execute(text(
-                    "UPDATE scheduler_execution_record SET graph_mutations_json = :graph_mutations_json "
-                    "WHERE execution_id = :execution_id"
-                ), {
-                    "graph_mutations_json": payload["graph_mutations_json"],
-                    "execution_id": payload["execution_id"],
-                })
+                patch_session.execute(
+                    text(
+                        "UPDATE scheduler_execution_record SET graph_mutations_json = :graph_mutations_json "
+                        "WHERE execution_id = :execution_id"
+                    ),
+                    {
+                        "graph_mutations_json": payload["graph_mutations_json"],
+                        "execution_id": payload["execution_id"],
+                    },
+                )
                 patch_session.commit()
             except Exception:
                 patch_session.rollback()
@@ -230,13 +237,16 @@ def list_execution_records(database, limit: int = 200) -> List[Dict[str, Any]]:
     try:
         _ensure_table(session)
         max_items = max(1, min(int(limit), 1000))
-        result = session.execute(text(
-            "SELECT execution_id, step_id, action_id, tool_id, label, scheduler_mode, goal_profile, "
-            "host_ip, port, protocol, service, started_at, finished_at, runner_type, exit_status, "
-            "stdout_ref, stderr_ref, artifact_refs_json, approval_id, observations_created_json, "
-            "graph_mutations_json, operator_notes "
-            "FROM scheduler_execution_record ORDER BY id DESC LIMIT :limit"
-        ), {"limit": max_items})
+        result = session.execute(
+            text(
+                "SELECT execution_id, step_id, action_id, tool_id, label, scheduler_mode, goal_profile, "
+                "host_ip, port, protocol, service, started_at, finished_at, runner_type, exit_status, "
+                "stdout_ref, stderr_ref, artifact_refs_json, approval_id, observations_created_json, "
+                "graph_mutations_json, operator_notes "
+                "FROM scheduler_execution_record ORDER BY id DESC LIMIT :limit"
+            ),
+            {"limit": max_items},
+        )
         rows = result.fetchall()
         keys = result.keys()
         payload = []
@@ -255,13 +265,16 @@ def get_execution_record(database, execution_id: str) -> Optional[Dict[str, Any]
     session = database.session()
     try:
         _ensure_table(session)
-        result = session.execute(text(
-            "SELECT execution_id, step_id, action_id, tool_id, label, scheduler_mode, goal_profile, "
-            "host_ip, port, protocol, service, started_at, finished_at, runner_type, exit_status, "
-            "stdout_ref, stderr_ref, artifact_refs_json, approval_id, observations_created_json, "
-            "graph_mutations_json, operator_notes "
-            "FROM scheduler_execution_record WHERE execution_id = :execution_id LIMIT 1"
-        ), {"execution_id": str(execution_id or "")})
+        result = session.execute(
+            text(
+                "SELECT execution_id, step_id, action_id, tool_id, label, scheduler_mode, goal_profile, "
+                "host_ip, port, protocol, service, started_at, finished_at, runner_type, exit_status, "
+                "stdout_ref, stderr_ref, artifact_refs_json, approval_id, observations_created_json, "
+                "graph_mutations_json, operator_notes "
+                "FROM scheduler_execution_record WHERE execution_id = :execution_id LIMIT 1"
+            ),
+            {"execution_id": str(execution_id or "")},
+        )
         row = result.fetchone()
         if row is None:
             return None

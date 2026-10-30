@@ -39,22 +39,24 @@ class _ConfigStore:
 class _ReportRuntime:
     def __init__(self):
         self._lock = threading.RLock()
-        self.scheduler_config = _ConfigStore({
-            "project_report_delivery": {
-                "provider_name": "siem",
-                "endpoint": "",
-                "method": "POST",
-                "format": "json",
-                "headers": {},
-                "timeout_seconds": 30,
-                "mtls": {
-                    "enabled": False,
-                    "client_cert_path": "",
-                    "client_key_path": "",
-                    "ca_cert_path": "",
-                },
+        self.scheduler_config = _ConfigStore(
+            {
+                "project_report_delivery": {
+                    "provider_name": "siem",
+                    "endpoint": "",
+                    "method": "POST",
+                    "format": "json",
+                    "headers": {},
+                    "timeout_seconds": 30,
+                    "mtls": {
+                        "enabled": False,
+                        "client_cert_path": "",
+                        "client_key_path": "",
+                        "ca_cert_path": "",
+                    },
+                }
             }
-        })
+        )
         self.request_call = None
 
     def _project_report_delivery_config(self, preferences=None):
@@ -82,11 +84,7 @@ class _ReportRuntime:
     @staticmethod
     def _normalize_project_report_headers(headers):
         source = headers if isinstance(headers, dict) else {}
-        return {
-            str(name or "").strip(): str(value or "")
-            for name, value in source.items()
-            if str(name or "").strip()
-        }
+        return {str(name or "").strip(): str(value or "") for name, value in source.items() if str(name or "").strip()}
 
 
 class _ToolQueryResult:
@@ -121,9 +119,7 @@ class _ToolDatabase:
 class _ToolRuntime:
     def __init__(self):
         self._lock = threading.RLock()
-        self.scheduler_config = SimpleNamespace(
-            get_dangerous_categories=lambda: ["credential_access"]
-        )
+        self.scheduler_config = SimpleNamespace(get_dangerous_categories=lambda: ["credential_access"])
         self.settings = SimpleNamespace(
             portActions=[
                 ("Run SMBMap", "smbmap", "smbmap -H [TARGET_HOST] -P [PORT]", "smb"),
@@ -137,28 +133,30 @@ class _ToolRuntime:
         )
         self.logic = SimpleNamespace(
             activeProject=SimpleNamespace(
-                database=_ToolDatabase([
-                    {
-                        "host_id": 11,
-                        "host_ip": "10.0.0.5",
-                        "hostname": "dc01.local",
-                        "port": "445",
-                        "protocol": "tcp",
-                        "service": "smb",
-                        "service_product": "samba",
-                        "service_version": "4.x",
-                    },
-                    {
-                        "host_id": 11,
-                        "host_ip": "10.0.0.5",
-                        "hostname": "dc01.local",
-                        "port": "80",
-                        "protocol": "tcp",
-                        "service": "http",
-                        "service_product": "nginx",
-                        "service_version": "1.24",
-                    },
-                ])
+                database=_ToolDatabase(
+                    [
+                        {
+                            "host_id": 11,
+                            "host_ip": "10.0.0.5",
+                            "hostname": "dc01.local",
+                            "port": "445",
+                            "protocol": "tcp",
+                            "service": "smb",
+                            "service_product": "samba",
+                            "service_version": "4.x",
+                        },
+                        {
+                            "host_id": 11,
+                            "host_ip": "10.0.0.5",
+                            "hostname": "dc01.local",
+                            "port": "80",
+                            "protocol": "tcp",
+                            "service": "http",
+                            "service_product": "nginx",
+                            "service_version": "1.24",
+                        },
+                    ]
+                )
             )
         )
         self.started_job = None
@@ -197,6 +195,7 @@ class _ToolRuntime:
             if str(action[1]) == str(tool_id):
                 return action
         from app.pipettes import find_pipette
+
         pipette = find_pipette(str(tool_id))
         if pipette is not None:
             return pipette.as_port_action()
@@ -346,7 +345,18 @@ class _WorkspaceLookupSession:
                         "",
                     )
                 ],
-                keys=["id", "name", "severity", "product", "version", "url", "source", "exploitId", "exploit", "exploitUrl"],
+                keys=[
+                    "id",
+                    "name",
+                    "severity",
+                    "product",
+                    "version",
+                    "url",
+                    "source",
+                    "exploitId",
+                    "exploit",
+                    "exploitUrl",
+                ],
             )
         if "FROM portObj AS p" in sql:
             if int(payload.get("host_id", 0) or 0) == 11 and str(payload.get("port", "")) == "80":
@@ -553,20 +563,20 @@ class _SchedulerDomainRuntime:
         }
 
     def _execute_scheduler_decision(
-            self,
-            decision,
-            *,
-            host_ip: str,
-            port: str,
-            protocol: str,
-            service_name: str,
-            command_template: str,
-            timeout: int,
-            job_id: int = 0,
-            capture_metadata: bool = False,
-            approval_id: int = 0,
-            runner_preference: str = "",
-            runner_settings=None,
+        self,
+        decision,
+        *,
+        host_ip: str,
+        port: str,
+        protocol: str,
+        service_name: str,
+        command_template: str,
+        timeout: int,
+        job_id: int = 0,
+        capture_metadata: bool = False,
+        approval_id: int = 0,
+        runner_preference: str = "",
+        runner_settings=None,
     ):
         self.execute_call = {
             "decision": decision,
@@ -703,9 +713,12 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
             ],
         }
 
-        with mock.patch("app.web.runtime_graph.ensure_scheduler_graph_tables"), mock.patch(
-            "app.web.runtime_graph.query_evidence_graph",
-            return_value=snapshot,
+        with (
+            mock.patch("app.web.runtime_graph.ensure_scheduler_graph_tables"),
+            mock.patch(
+                "app.web.runtime_graph.query_evidence_graph",
+                return_value=snapshot,
+            ),
         ):
             related = runtime_graph.get_graph_related_content(runtime, "finding-1")
             self.assertEqual(1, related["entry_count"])
@@ -770,7 +783,9 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
 
         targets = runtime_tools.get_workspace_tool_targets(runtime, host_id="11", service="http", limit=77)
 
-        self.assertEqual({"host_id": 11, "service": "http", "limit": 77}, runtime.logic.activeProject.database.last_params)
+        self.assertEqual(
+            {"host_id": 11, "service": "http", "limit": 77}, runtime.logic.activeProject.database.last_params
+        )
         self.assertEqual(["80", "445"], [item["port"] for item in targets])
         self.assertEqual("10.0.0.5 | dc01.local | http | 80/tcp", targets[0]["label"])
 
@@ -887,9 +902,11 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
                 ],
             }
 
-            with mock.patch("app.web.runtime_artifacts.get_target_state", return_value=target_state), mock.patch(
-                "app.web.runtime_artifacts.upsert_target_state"
-            ) as mocked_upsert, mock.patch("app.web.runtime_artifacts.rebuild_evidence_graph") as mocked_rebuild:
+            with (
+                mock.patch("app.web.runtime_artifacts.get_target_state", return_value=target_state),
+                mock.patch("app.web.runtime_artifacts.upsert_target_state") as mocked_upsert,
+                mock.patch("app.web.runtime_artifacts.rebuild_evidence_graph") as mocked_rebuild,
+            ):
                 result = runtime_artifacts.delete_graph_screenshot(
                     runtime,
                     host_id=11,
@@ -913,11 +930,14 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
 
         runtime = _WorkspaceMutationRuntime()
 
-        with mock.patch("app.web.runtime_workspace.upsert_target_state", return_value={
-            "device_categories": ["server"],
-            "manual_device_categories": ["server"],
-            "device_category_override": True,
-        }) as mocked_upsert:
+        with mock.patch(
+            "app.web.runtime_workspace.upsert_target_state",
+            return_value={
+                "device_categories": ["server"],
+                "manual_device_categories": ["server"],
+                "device_category_override": True,
+            },
+        ) as mocked_upsert:
             result = runtime_workspace.update_host_categories(
                 runtime,
                 11,
@@ -1189,15 +1209,17 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
     def test_runtime_scheduler_config_module_normalizes_worker_and_report_delivery_settings(self):
         from app.web import runtime_scheduler_config
 
-        delivery = runtime_scheduler_config.project_report_delivery_config({
-            "project_report_delivery": {
-                "method": "get",
-                "format": "markdown",
-                "headers": "{\"X-Test\": 1, \"\": \"skip\"}",
-                "timeout_seconds": "999",
-                "mtls": {"enabled": True, "client_cert_path": "/tmp/cert.pem"},
+        delivery = runtime_scheduler_config.project_report_delivery_config(
+            {
+                "project_report_delivery": {
+                    "method": "get",
+                    "format": "markdown",
+                    "headers": '{"X-Test": 1, "": "skip"}',
+                    "timeout_seconds": "999",
+                    "mtls": {"enabled": True, "client_cert_path": "/tmp/cert.pem"},
+                }
             }
-        })
+        )
 
         self.assertEqual(8, runtime_scheduler_config.job_worker_count({"max_concurrency": "99"}))
         self.assertEqual("POST", delivery["method"])
@@ -1229,16 +1251,20 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
             "whatweb http://10.0.0.5 > /tmp/run-a",
             "tcp",
         )
-        targets = runtime_scheduler_target_state.scan_history_targets({
-            "targets_json": "[\"10.0.0.5\", \"svc.example.com\"]",
-        })
-        gaps = runtime_scheduler_target_state.coverage_gaps_from_summary({
-            "missing": ["http_metadata", "tls_inventory"],
-            "recommended_tool_ids": ["httpx", "sslscan"],
-            "analysis_mode": "ai",
-            "stage": "enumeration",
-            "host_cve_count": 2,
-        })
+        targets = runtime_scheduler_target_state.scan_history_targets(
+            {
+                "targets_json": '["10.0.0.5", "svc.example.com"]',
+            }
+        )
+        gaps = runtime_scheduler_target_state.coverage_gaps_from_summary(
+            {
+                "missing": ["http_metadata", "tls_inventory"],
+                "recommended_tool_ids": ["httpx", "sslscan"],
+                "analysis_mode": "ai",
+                "stage": "enumeration",
+                "host_cve_count": 2,
+            }
+        )
 
         self.assertTrue(signature)
         self.assertEqual(["10.0.0.5", "svc.example.com"], targets)
@@ -1449,9 +1475,7 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
     def test_runtime_process_history_module_normalizes_iso_timestamp(self):
         from app.web import runtime_process_history
 
-        normalized = runtime_process_history.normalize_process_timestamp_to_utc(
-            "2026-04-21T10:00:00Z"
-        )
+        normalized = runtime_process_history.normalize_process_timestamp_to_utc("2026-04-21T10:00:00Z")
 
         self.assertEqual("2026-04-21T10:00:00+00:00", normalized)
 
@@ -1492,15 +1516,17 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
         runtime = SimpleNamespace()
         urls = runtime_scheduler_observation_inference.infer_urls_from_observations(
             runtime,
-            script_records=[{
-                "script_id": "curl-headers",
-                "analysis_excerpt": "GET /admin HTTP/1.1\nLocation: https://example.test/admin",
-                "port": "443",
-                "protocol": "tcp",
-                "service": "https",
-                "host_ip": "10.0.0.5",
-                "hostname": "example.test",
-            }],
+            script_records=[
+                {
+                    "script_id": "curl-headers",
+                    "analysis_excerpt": "GET /admin HTTP/1.1\nLocation: https://example.test/admin",
+                    "port": "443",
+                    "protocol": "tcp",
+                    "service": "https",
+                    "host_ip": "10.0.0.5",
+                    "hostname": "example.test",
+                }
+            ],
             process_records=[],
             limit=20,
         )
@@ -1741,7 +1767,8 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
                 get_project_details=mock.MagicMock(return_value={}),
             )
 
-            with mock.patch.object(
+            with (
+                mock.patch.object(
                     runtime_project_bundle_restore.web_runtime_project_bundle_archive,
                     "extract_project_bundle_zip",
                     return_value={
@@ -1751,10 +1778,12 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
                         "output_folder": os.path.join(tmpdir, "output"),
                         "running_folder": restored_running_folder,
                     },
-            ), mock.patch.object(
+                ),
+                mock.patch.object(
                     runtime_project_bundle_restore.web_runtime_project_bundle_rebase,
                     "rebase_restored_project_paths",
                     return_value=None,
+                ),
             ):
                 with self.assertRaisesRegex(RuntimeError, "schema init failed"):
                     runtime_project_bundle_restore.restore_project_bundle_zip_impl(runtime, bundle_path)
@@ -1836,12 +1865,14 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
         from app.web import runtime_scheduler_config
 
         runtime = SimpleNamespace(
-            scheduler_config=SimpleNamespace(load=lambda: {
-                "integrations": {
-                    "shodan": {"api_key": "shodan-secret"},
-                    "grayhatwarfare": {"api_key": "grayhat-secret"},
+            scheduler_config=SimpleNamespace(
+                load=lambda: {
+                    "integrations": {
+                        "shodan": {"api_key": "shodan-secret"},
+                        "grayhatwarfare": {"api_key": "grayhat-secret"},
+                    }
                 }
-            })
+            )
         )
 
         self.assertTrue(runtime_scheduler_config.shodan_integration_enabled(runtime))
@@ -1858,10 +1889,12 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
         signals = runtime_scheduler_signals.extract_scheduler_signals(
             runtime,
             service_name="http",
-            scripts=[{
-                "script_id": "http-headers",
-                "analysis_excerpt": "Server: Microsoft-IIS/10.0\r\nAllow: OPTIONS, PROPFIND",
-            }],
+            scripts=[
+                {
+                    "script_id": "http-headers",
+                    "analysis_excerpt": "Server: Microsoft-IIS/10.0\r\nAllow: OPTIONS, PROPFIND",
+                }
+            ],
             recent_processes=[],
             target={
                 "hostname": "web01.local",

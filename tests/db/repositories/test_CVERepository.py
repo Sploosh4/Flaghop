@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import unittest
 from unittest.mock import MagicMock
 
@@ -25,6 +26,7 @@ class CVERepositoryTest(unittest.TestCase):
 
     def test_getCVEsByHostIP_WhenProvidedAHostIp_ReturnsCVEs(self):
         from db.repositories.CVERepository import CVERepository
+
         result = MagicMock()
         result.fetchall.return_value = [
             ("cve1", "high"),
@@ -34,16 +36,21 @@ class CVERepositoryTest(unittest.TestCase):
         session = MagicMock()
         session.execute.return_value = result
         self.mock_db_adapter.session.return_value = session
-        expected_query = ("SELECT cves.name, cves.severity, cves.product, cves.version, cves.url, cves.source, "
-                          "cves.exploitId, cves.exploit, cves.exploitUrl FROM cve AS cves "
-                          "INNER JOIN hostObj AS hosts ON hosts.id = cves.hostId "
-                          "WHERE hosts.ip = :hostIP")
+        expected_query = (
+            "SELECT cves.name, cves.severity, cves.product, cves.version, cves.url, cves.source, "
+            "cves.exploitId, cves.exploit, cves.exploitUrl FROM cve AS cves "
+            "INNER JOIN hostObj AS hosts ON hosts.id = cves.hostId "
+            "WHERE hosts.ip = :hostIP"
+        )
         cveRepository = CVERepository(self.mock_db_adapter)
         cves = cveRepository.getCVEsByHostIP("some_host")
-        self.assertEqual([
-            {"name": "cve1", "severity": "high"},
-            {"name": "cve2", "severity": "medium"},
-        ], cves)
+        self.assertEqual(
+            [
+                {"name": "cve1", "severity": "high"},
+                {"name": "cve2", "severity": "medium"},
+            ],
+            cves,
+        )
         query, params = session.execute.call_args.args
         self.assertEqual(expected_query, str(query))
         self.assertEqual({"hostIP": "some_host"}, params)

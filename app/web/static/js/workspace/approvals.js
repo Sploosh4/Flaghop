@@ -1,8 +1,17 @@
-/** Workspace approvals. */
+
+/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
+let pollSnapshot;
+export function connectApprovals(callbacks) {
+    for (const name of ["pollSnapshot"]) {
+        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing approvals callback: ${name}`);
+    }
+    ({ pollSnapshot } = callbacks);
+}
+
 import { renderApprovals } from "./activity.js";
 import { setWorkspaceStatus } from "./dom.js";
 import { fetchJson, postJson } from "./http.js";
-import { pollSnapshot } from "./live_updates.js";
+/** Workspace approvals. */
 
 export async function loadApprovals() {
     try {

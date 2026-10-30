@@ -1,12 +1,13 @@
-/** Workspace graph events. */
 import { setValue } from "./dom.js";
 import { graphApplyLayoutById, graphResetLayoutAction, graphToggleExpandSelectionAction } from "./graph_actions.js";
 import { graphHasActiveSelection, graphPropertyValue, graphRenderLayoutOptions, graphSvgPoint, graphUpdateConfidenceLabel, graphUpdateHostFilterOptions, graphUpdateZoomLabel, graphWorkspaceEnabled, setGraphStatus } from "./graph_common.js";
 import { graphLoadSnapshot, graphSelectEntity } from "./graph_data.js";
 import { graphDismissSelection, graphSyncDetailPresentation } from "./graph_detail.js";
 import { graphRenderWorkspace } from "./graph_render.js";
-import { graphClampViewportCenter, graphFindEntity, graphFindGroup, graphUpdateViewport } from "./graph_viewport.js";
+import { graphFindEntity } from "./graph_selection.js";
+import { graphClampViewportCenter, graphFindGroup, graphUpdateViewport } from "./graph_viewport.js";
 import { GRAPH_VIEW_PRESETS, graphWorkspaceState } from "./state.js";
+/** Workspace graph events. */
 
 export function graphHandlePointerMove(event) {
     if (!graphWorkspaceState.drag) {

@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import unittest
 import os.path
 from unittest.mock import patch
@@ -23,6 +24,7 @@ from unittest.mock import patch
 class DefaultShellTest(unittest.TestCase):
     def setUp(self) -> None:
         from app.shell.DefaultShell import DefaultShell
+
         self.shell = DefaultShell()
 
     def test_isDirectory_whenProvidedADirectory_ReturnsTrue(self):

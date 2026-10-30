@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 from sqlalchemy import Column, String, Integer, ForeignKey
 
 from db.database import Base
@@ -22,12 +23,12 @@ from six import u as unicode
 
 
 class l1ScriptObj(Base):
-    __tablename__ = 'l1ScriptObj'
+    __tablename__ = "l1ScriptObj"
     scriptId = Column(String)
     id = Column(Integer, primary_key=True)
     output = Column(String)
-    portId = Column(String, ForeignKey('portObj.id'))
-    hostId = Column(String, ForeignKey('hostObj.id'))
+    portId = Column(String, ForeignKey("portObj.id"))
+    hostId = Column(String, ForeignKey("hostObj.id"))
 
     def __init__(self, scriptId, output, portId, hostId):
         self.scriptId = scriptId

@@ -141,9 +141,7 @@ class WebRuntimeNucleiBuildCommandTest(unittest.TestCase):
         runtime._require_active_project = lambda: SimpleNamespace(
             properties=SimpleNamespace(runningFolder="/tmp/legion-test-running"),
             repositoryContainer=SimpleNamespace(
-                hostRepository=SimpleNamespace(
-                    getHostByIP=lambda _ip: SimpleNamespace(hostname="bing.com")
-                )
+                hostRepository=SimpleNamespace(getHostByIP=lambda _ip: SimpleNamespace(hostname="bing.com"))
             ),
         )
 
@@ -166,9 +164,7 @@ class WebRuntimeNucleiBuildCommandTest(unittest.TestCase):
         runtime._require_active_project = lambda: SimpleNamespace(
             properties=SimpleNamespace(runningFolder="/tmp/legion-test-running"),
             repositoryContainer=SimpleNamespace(
-                hostRepository=SimpleNamespace(
-                    getHostByIP=lambda _ip: SimpleNamespace(hostname="portal.example")
-                )
+                hostRepository=SimpleNamespace(getHostByIP=lambda _ip: SimpleNamespace(hostname="portal.example"))
             ),
         )
 
@@ -213,9 +209,7 @@ class WebRuntimeNucleiBuildCommandTest(unittest.TestCase):
         self.assertEqual(
             command,
             AppSettings._ensure_nmap_output_argument(
-                AppSettings._ensure_nmap_stats_every(
-                    template.replace("[IP]", "192.168.3.1").replace("[PORT]", "443")
-                ),
+                AppSettings._ensure_nmap_stats_every(template.replace("[IP]", "192.168.3.1").replace("[PORT]", "443")),
                 outputfile,
             ),
         )

@@ -77,9 +77,9 @@ def start_graph_screenshot_refresh_job(runtime, host_id: int, port: str, protoco
         service_name = runtime._service_name_for_target(host_ip, resolved_port, resolved_protocol)
         normalized_service = str(service_name or "").strip().rstrip("?").lower()
         if not (
-                is_web_screenshot_target(resolved_port, resolved_protocol, normalized_service)
-                or is_rdp_service(normalized_service)
-                or is_vnc_service(normalized_service)
+            is_web_screenshot_target(resolved_port, resolved_protocol, normalized_service)
+            or is_rdp_service(normalized_service)
+            or is_vnc_service(normalized_service)
         ):
             raise ValueError("Target does not support screenshot refresh.")
 
@@ -137,14 +137,16 @@ def run_host_screenshot_refresh(runtime, *, host_id: int, job_id: int = 0) -> Di
         )
         if executed:
             completed += 1
-        results.append({
-            "port": str(target.get("port", "") or ""),
-            "protocol": str(target.get("protocol", "tcp") or "tcp"),
-            "service_name": str(target.get("service_name", "") or ""),
-            "executed": bool(executed),
-            "reason": str(reason or ""),
-            "artifact_refs": list(artifact_refs or []),
-        })
+        results.append(
+            {
+                "port": str(target.get("port", "") or ""),
+                "protocol": str(target.get("protocol", "tcp") or "tcp"),
+                "service_name": str(target.get("service_name", "") or ""),
+                "executed": bool(executed),
+                "reason": str(reason or ""),
+                "artifact_refs": list(artifact_refs or []),
+            }
+        )
 
     with runtime._lock:
         project = runtime._require_active_project()
@@ -169,12 +171,12 @@ def run_host_screenshot_refresh(runtime, *, host_id: int, job_id: int = 0) -> Di
 
 
 def run_graph_screenshot_refresh(
-        runtime,
-        *,
-        host_id: int,
-        port: str,
-        protocol: str = "tcp",
-        job_id: int = 0,
+    runtime,
+    *,
+    host_id: int,
+    port: str,
+    protocol: str = "tcp",
+    job_id: int = 0,
 ) -> Dict[str, Any]:
     resolved_host_id = int(host_id or 0)
     resolved_port = str(port or "").strip()

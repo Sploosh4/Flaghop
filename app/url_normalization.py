@@ -4,7 +4,6 @@ import re
 from typing import Any
 from urllib.parse import urlparse, urlunparse
 
-
 _HTTP_SCHEMES = {"http", "https"}
 _DEFAULT_PORTS = {
     "http": 80,
@@ -20,8 +19,8 @@ def normalize_discovered_url(value: Any) -> str:
     text = text.rstrip(".,;)]}>\"'")
     scheme_marker = text.find("://")
     if scheme_marker > 0:
-        prefix = text[:scheme_marker + 3]
-        suffix = text[scheme_marker + 3:].rstrip("/:")
+        prefix = text[: scheme_marker + 3]
+        suffix = text[scheme_marker + 3 :].rstrip("/:")
         text = f"{prefix}{suffix}"
 
     try:

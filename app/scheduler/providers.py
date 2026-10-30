@@ -13,7 +13,6 @@ from app.scheduler.provider_support.claude import (
 from app.scheduler.provider_support.constants import (
     MAX_PROVIDER_REFLECTION_RESPONSE_TOKENS,
     MAX_PROVIDER_SPECIALIST_RESPONSE_TOKENS,
-    ProviderError,
     SCHEDULER_REFLECTION_PROMPT_VERSION,
     SCHEDULER_WEB_FOLLOWUP_PROMPT_VERSION,
 )
@@ -33,11 +32,7 @@ from app.scheduler.provider_support.payloads import (
     _parse_reflection_payload,
     _parse_web_followup_payload,
 )
-from app.scheduler.provider_support.prompts import (
-    _build_ranking_prompt_package,
-    _build_reflection_prompt_package,
-    _build_web_followup_prompt_package,
-)
+from app.scheduler.provider_support.prompts import _build_reflection_prompt_package, _build_web_followup_prompt_package
 from app.scheduler.provider_support.constants import ProviderError as ProviderError
 from app.scheduler.provider_support.prompts import _build_candidate_block as _build_candidate_block
 from app.scheduler.provider_support.prompts import _build_ranking_prompt_package as _build_ranking_prompt_package

@@ -6,23 +6,21 @@ from typing import Any, Dict, List
 
 
 def run_rfc1918_chunked_scan_and_import(
-        runtime,
-        *,
-        targets: List[str],
-        discovery: bool,
-        run_actions: bool,
-        nmap_path: str,
-        nmap_args: str,
-        scan_options: Dict[str, Any],
-        job_id: int,
-        output_prefix: str,
-        host_count_before: int,
+    runtime,
+    *,
+    targets: List[str],
+    discovery: bool,
+    run_actions: bool,
+    nmap_path: str,
+    nmap_args: str,
+    scan_options: Dict[str, Any],
+    job_id: int,
+    output_prefix: str,
+    host_count_before: int,
 ) -> Dict[str, Any]:
     resolved_job_id = int(job_id or 0)
     normalized_scan_options = dict(scan_options or {})
-    chunk_concurrency = runtime._normalize_rfc_chunk_concurrency(
-        normalized_scan_options.get("chunk_concurrency", 1)
-    )
+    chunk_concurrency = runtime._normalize_rfc_chunk_concurrency(normalized_scan_options.get("chunk_concurrency", 1))
     normalized_scan_options["chunk_concurrency"] = chunk_concurrency
 
     batches = list(runtime._iter_rfc1918_scan_batches(targets))

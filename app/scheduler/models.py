@@ -1,5 +1,3 @@
-import hashlib
-import json
 import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
@@ -7,14 +5,10 @@ from typing import Any, Dict, List, Optional
 from app.scheduler.policy import legacy_goal_profile_from_policy
 from app.scheduler.risk import risk_tags_to_legacy_categories
 
-
 WEB_SERVICE_IDS = {"http", "https", "ssl", "soap", "http-proxy", "http-alt", "https-alt"}
 
 
-def _stable_id(prefix: str, payload: Dict[str, Any]) -> str:
-    rendered = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":"))
-    digest = hashlib.sha256(rendered.encode("utf-8")).hexdigest()
-    return f"{str(prefix or '').strip().lower()}-{digest[:16]}"
+from app.core.serialization import stable_id as _stable_id
 
 
 def _normalize_protocol(value: Any) -> str:
@@ -114,49 +108,52 @@ class PlanStep:
 
     @classmethod
     def from_action_spec(
-            cls,
-            action: ActionSpec,
-            *,
-            origin_mode: str,
-            origin_planner: str,
-            engagement_preset: str,
-            policy_snapshot_hash: str,
-            target_ref: Optional[Dict[str, Any]] = None,
-            parameters: Optional[Dict[str, Any]] = None,
-            rationale: str = "",
-            preconditions: Optional[List[str]] = None,
-            success_criteria: Optional[List[str]] = None,
-            approval_required: bool = False,
-            status: str = "planned",
-            selection_score: float = 0.0,
-            family_id: str = "",
-            risk_tags: Optional[List[str]] = None,
-            pack_ids: Optional[List[str]] = None,
-            coverage_gap: str = "",
-            coverage_notes: str = "",
-            evidence_expectations: Optional[List[str]] = None,
-            linked_evidence_refs: Optional[List[str]] = None,
-            linked_graph_nodes: Optional[List[str]] = None,
-            linked_graph_edges: Optional[List[str]] = None,
-            approval_state: Optional[str] = None,
-            policy_reason: str = "",
-            risk_summary: str = "",
-            safer_alternative: str = "",
-            family_policy_state: str = "",
+        cls,
+        action: ActionSpec,
+        *,
+        origin_mode: str,
+        origin_planner: str,
+        engagement_preset: str,
+        policy_snapshot_hash: str,
+        target_ref: Optional[Dict[str, Any]] = None,
+        parameters: Optional[Dict[str, Any]] = None,
+        rationale: str = "",
+        preconditions: Optional[List[str]] = None,
+        success_criteria: Optional[List[str]] = None,
+        approval_required: bool = False,
+        status: str = "planned",
+        selection_score: float = 0.0,
+        family_id: str = "",
+        risk_tags: Optional[List[str]] = None,
+        pack_ids: Optional[List[str]] = None,
+        coverage_gap: str = "",
+        coverage_notes: str = "",
+        evidence_expectations: Optional[List[str]] = None,
+        linked_evidence_refs: Optional[List[str]] = None,
+        linked_graph_nodes: Optional[List[str]] = None,
+        linked_graph_edges: Optional[List[str]] = None,
+        approval_state: Optional[str] = None,
+        policy_reason: str = "",
+        risk_summary: str = "",
+        safer_alternative: str = "",
+        family_policy_state: str = "",
     ) -> "PlanStep":
         resolved_target = dict(target_ref or {})
         resolved_parameters = dict(parameters or {})
         resolved_risk_tags = list(risk_tags if risk_tags is not None else action.risk_tags)
         resolved_family_id = str(family_id or action.family_id or "")
-        resolved_step_id = _stable_id("step", {
-            "action_id": action.action_id,
-            "origin_mode": str(origin_mode or ""),
-            "origin_planner": str(origin_planner or ""),
-            "engagement_preset": str(engagement_preset or ""),
-            "target_ref": resolved_target,
-            "parameters": resolved_parameters,
-            "family_id": resolved_family_id,
-        })
+        resolved_step_id = _stable_id(
+            "step",
+            {
+                "action_id": action.action_id,
+                "origin_mode": str(origin_mode or ""),
+                "origin_planner": str(origin_planner or ""),
+                "engagement_preset": str(engagement_preset or ""),
+                "target_ref": resolved_target,
+                "parameters": resolved_parameters,
+                "family_id": resolved_family_id,
+            },
+        )
         return cls(
             step_id=resolved_step_id,
             action=action,
@@ -192,30 +189,30 @@ class PlanStep:
 
     @classmethod
     def from_legacy_fields(
-            cls,
-            *,
-            tool_id: str,
-            label: str,
-            command_template: str,
-            protocol: str,
-            score: float,
-            rationale: str,
-            mode: str,
-            goal_profile: str,
-            family_id: str,
-            danger_categories: Optional[List[str]] = None,
-            requires_approval: bool = False,
-            target_ref: Optional[Dict[str, Any]] = None,
-            parameters: Optional[Dict[str, Any]] = None,
-            pack_ids: Optional[List[str]] = None,
-            coverage_gap: str = "",
-            coverage_notes: str = "",
-            evidence_expectations: Optional[List[str]] = None,
-            approval_state: Optional[str] = None,
-            policy_reason: str = "",
-            risk_summary: str = "",
-            safer_alternative: str = "",
-            family_policy_state: str = "",
+        cls,
+        *,
+        tool_id: str,
+        label: str,
+        command_template: str,
+        protocol: str,
+        score: float,
+        rationale: str,
+        mode: str,
+        goal_profile: str,
+        family_id: str,
+        danger_categories: Optional[List[str]] = None,
+        requires_approval: bool = False,
+        target_ref: Optional[Dict[str, Any]] = None,
+        parameters: Optional[Dict[str, Any]] = None,
+        pack_ids: Optional[List[str]] = None,
+        coverage_gap: str = "",
+        coverage_notes: str = "",
+        evidence_expectations: Optional[List[str]] = None,
+        approval_state: Optional[str] = None,
+        policy_reason: str = "",
+        risk_summary: str = "",
+        safer_alternative: str = "",
+        family_policy_state: str = "",
     ) -> "PlanStep":
         protocol_name = _normalize_protocol(protocol)
         service_scope = _normalize_text_list((target_ref or {}).get("service"))
@@ -294,9 +291,7 @@ class PlanStep:
     @property
     def protocol(self) -> str:
         return _normalize_protocol(
-            self.parameters.get("protocol")
-            or self.target_ref.get("protocol")
-            or self.action.primary_protocol
+            self.parameters.get("protocol") or self.target_ref.get("protocol") or self.action.primary_protocol
         )
 
     @property
@@ -358,20 +353,20 @@ class ExecutionRecord:
 
     @classmethod
     def from_plan_step(
-            cls,
-            step: PlanStep,
-            *,
-            started_at: str,
-            finished_at: str,
-            exit_status: str,
-            runner_type: str = "",
-            stdout_ref: str = "",
-            stderr_ref: str = "",
-            artifact_refs: Optional[List[str]] = None,
-            approval_id: str = "",
-            observations_created: Optional[List[str]] = None,
-            graph_mutations: Optional[List[str]] = None,
-            operator_notes: str = "",
+        cls,
+        step: PlanStep,
+        *,
+        started_at: str,
+        finished_at: str,
+        exit_status: str,
+        runner_type: str = "",
+        stdout_ref: str = "",
+        stderr_ref: str = "",
+        artifact_refs: Optional[List[str]] = None,
+        approval_id: str = "",
+        observations_created: Optional[List[str]] = None,
+        graph_mutations: Optional[List[str]] = None,
+        operator_notes: str = "",
     ) -> "ExecutionRecord":
         payload = {
             "step_id": str(step.step_id),

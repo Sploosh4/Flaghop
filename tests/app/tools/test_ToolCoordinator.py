@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import unittest
 from unittest import mock
 from unittest.mock import MagicMock, patch
@@ -23,6 +24,7 @@ from unittest.mock import MagicMock, patch
 class ToolCoordinatorTest(unittest.TestCase):
     def setUp(self) -> None:
         from app.tools.ToolCoordinator import ToolCoordinator
+
         self.mockShell = MagicMock()
         self.mockNmapExporter = MagicMock()
         self.nmapFileExists_patcher = patch("app.tools.ToolCoordinator.nmapFileExists")
@@ -53,11 +55,13 @@ class ToolCoordinatorTest(unittest.TestCase):
             "running/nmap/some-output-nmap-file",
             "some-output-folder/nmap",
         )
-        self.mockShell.move.assert_has_calls([
-            mock.call("running/nmap/some-output-nmap-file.xml", "some-output-folder/nmap"),
-            mock.call("running/nmap/some-output-nmap-file.nmap", "some-output-folder/nmap"),
-            mock.call("running/nmap/some-output-nmap-file.gnmap", "some-output-folder/nmap"),
-        ])
+        self.mockShell.move.assert_has_calls(
+            [
+                mock.call("running/nmap/some-output-nmap-file.xml", "some-output-folder/nmap"),
+                mock.call("running/nmap/some-output-nmap-file.nmap", "some-output-folder/nmap"),
+                mock.call("running/nmap/some-output-nmap-file.gnmap", "some-output-folder/nmap"),
+            ]
+        )
 
     def test_saveToolOutput_WhenGivenProjectOutputDirAndGenericFileNameToSaveOutputIn_SavesOutputSuccessfully(self):
         fileName = "some-output-file"

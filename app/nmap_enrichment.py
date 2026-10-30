@@ -31,7 +31,13 @@ _OS_PATTERNS = (
 _TRUSTED_HOSTNAME_SCRIPT_TOKENS = ("ssl-cert", "rdp-ntlm-info", "nbstat", "smb-os-discovery")
 _TRUSTED_OS_SCRIPT_TOKENS = ("smb-os-discovery", "smb-system-info", "rdp-ntlm-info", "nmap")
 _SERVICE_OS_PATTERNS = (
-    (re.compile(r"\b(?:microsoft\s+windows|windows\s+rpc|microsoft-ds|ms-wbt-server|msrpc|netbios|smb|cifs|ntlm|rdp|vmrdp|termsrv|winrm)\b", re.IGNORECASE), "Windows"),
+    (
+        re.compile(
+            r"\b(?:microsoft\s+windows|windows\s+rpc|microsoft-ds|ms-wbt-server|msrpc|netbios|smb|cifs|ntlm|rdp|vmrdp|termsrv|winrm)\b",
+            re.IGNORECASE,
+        ),
+        "Windows",
+    ),
     (re.compile(r"\b(?:openssh|linux|ubuntu|debian|centos|fedora|red\s*hat|rhel)\b", re.IGNORECASE), "Linux"),
     (re.compile(r"\b(?:solaris|sunos)\b", re.IGNORECASE), "Solaris"),
     (re.compile(r"\b(?:mac\s?os|os\s?x|macos|darwin)\b", re.IGNORECASE), "Darwin"),
@@ -116,12 +122,14 @@ def infer_os_from_service_inventory(service_records: Iterable[Tuple[str, str, st
     ranked: List[Tuple[int, str]] = []
 
     for service_name, product, version, extrainfo in service_records:
-        service_text = " ".join([
-            str(service_name or ""),
-            str(product or ""),
-            str(version or ""),
-            str(extrainfo or ""),
-        ]).strip()
+        service_text = " ".join(
+            [
+                str(service_name or ""),
+                str(product or ""),
+                str(version or ""),
+                str(extrainfo or ""),
+            ]
+        ).strip()
         if not service_text:
             continue
 
@@ -129,7 +137,9 @@ def infer_os_from_service_inventory(service_records: Iterable[Tuple[str, str, st
         for pattern, label in _SERVICE_OS_PATTERNS:
             if pattern.search(service_text):
                 score = 75
-                if label == "Windows" and any(token in lowered for token in ("msrpc", "microsoft", "windows", "vmrdp", "rdp")):
+                if label == "Windows" and any(
+                    token in lowered for token in ("msrpc", "microsoft", "windows", "vmrdp", "rdp")
+                ):
                     score += 15
                 elif label == "Linux" and any(token in lowered for token in ("openssh", "linux", "ubuntu", "debian")):
                     score += 10

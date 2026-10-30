@@ -11,7 +11,17 @@ class SchedulerToolPromptRegistryTest(unittest.TestCase):
             tool_ids_for_prompt_group("web_baseline"),
         )
         self.assertEqual(
-            ["whatweb", "whatweb-http", "whatweb-https", "httpx", "nikto", "web-content-discovery", "katana", "dirsearch", "ffuf"],
+            [
+                "whatweb",
+                "whatweb-http",
+                "whatweb-https",
+                "httpx",
+                "nikto",
+                "web-content-discovery",
+                "katana",
+                "dirsearch",
+                "ffuf",
+            ],
             tool_ids_for_prompt_group("web_deep"),
         )
         self.assertIn("wafw00f", tool_ids_for_prompt_group("web_specialist_followup"))

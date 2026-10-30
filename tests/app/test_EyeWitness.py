@@ -72,12 +72,16 @@ class EyeWitnessHelpersTest(unittest.TestCase):
     def test_summarize_failure_uses_last_stdout_line(self):
         from app.eyewitness import summarize_eyewitness_failure
 
-        summary = summarize_eyewitness_failure([{
-            "executable": "/usr/bin/eyewitness",
-            "stdout": "banner line\nWebDriver.__init__() got an unexpected keyword argument 'capabilities'\n",
-            "stderr": "",
-            "error": "",
-        }])
+        summary = summarize_eyewitness_failure(
+            [
+                {
+                    "executable": "/usr/bin/eyewitness",
+                    "stdout": "banner line\nWebDriver.__init__() got an unexpected keyword argument 'capabilities'\n",
+                    "stderr": "",
+                    "error": "",
+                }
+            ]
+        )
         self.assertIn("unexpected keyword argument", summary)
 
     @patch("app.eyewitness.resolve_eyewitness_executables")
@@ -151,12 +155,12 @@ class EyeWitnessHelpersTest(unittest.TestCase):
     @patch("app.eyewitness.resolve_eyewitness_executables")
     @patch("app.eyewitness.subprocess.run")
     def test_run_eyewitness_capture_uses_selenium_fallback(
-            self,
-            mock_run,
-            mock_resolve,
-            mock_browser_fallback,
-            mock_chromium_fallback,
-            mock_fallback,
+        self,
+        mock_run,
+        mock_resolve,
+        mock_browser_fallback,
+        mock_chromium_fallback,
+        mock_fallback,
     ):
         from app.eyewitness import run_eyewitness_capture
 
@@ -225,12 +229,12 @@ class EyeWitnessHelpersTest(unittest.TestCase):
     @patch("app.eyewitness.resolve_eyewitness_executables")
     @patch("app.eyewitness.subprocess.run")
     def test_run_eyewitness_capture_uses_browser_fallback_after_selenium_chromium_failure(
-            self,
-            mock_run,
-            mock_resolve,
-            mock_browser_fallback,
-            mock_chromium_fallback,
-            mock_selenium_fallback,
+        self,
+        mock_run,
+        mock_resolve,
+        mock_browser_fallback,
+        mock_chromium_fallback,
+        mock_selenium_fallback,
     ):
         from app.eyewitness import run_eyewitness_capture
 
@@ -283,10 +287,10 @@ class EyeWitnessHelpersTest(unittest.TestCase):
     @patch("app.eyewitness._resolve_browser_screenshot_path")
     @patch("app.eyewitness.subprocess.run")
     def test_browser_cli_fallback_includes_tls_bypass_flags(
-            self,
-            mock_run,
-            mock_resolve_path,
-            mock_resolve_execs,
+        self,
+        mock_run,
+        mock_resolve_path,
+        mock_resolve_execs,
     ):
         from app.eyewitness import _run_browser_cli_fallback_capture
 
@@ -375,9 +379,9 @@ class EyeWitnessHelpersTest(unittest.TestCase):
     @patch("app.eyewitness._resolve_browser_screenshot_executables")
     @patch("app.eyewitness.subprocess.run")
     def test_browser_cli_fallback_detects_implicit_png_even_when_explicit_path_ignored(
-            self,
-            mock_run,
-            mock_resolve,
+        self,
+        mock_run,
+        mock_resolve,
     ):
         from app.eyewitness import _run_browser_cli_fallback_capture
 

@@ -15,6 +15,7 @@ Copyright (c) 2025 Shane William Scott
 
 Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@gmail.com)
 """
+
 import unittest
 from unittest.mock import MagicMock
 
@@ -25,6 +26,7 @@ from tests.db.helpers.db_helpers import mockQueryWithFilterBy, mockFirstByReturn
 class NoteRepositoryTest(unittest.TestCase):
     def setUp(self) -> None:
         from db.entities.note import note
+
         self.mockDbAdapter = MagicMock()
         self.mockDbSession = MagicMock()
         self.mockDbAdapter.session.return_value = self.mockDbSession

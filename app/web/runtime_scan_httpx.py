@@ -12,11 +12,7 @@ from app.timing import getTimestamp
 
 
 def start_httpx_bootstrap_job(runtime, targets: List[str]) -> Dict[str, Any]:
-    normalized_targets = [
-        str(item or "").strip()
-        for item in list(targets or [])
-        if str(item or "").strip()
-    ]
+    normalized_targets = [str(item or "").strip() for item in list(targets or []) if str(item or "").strip()]
     if not normalized_targets:
         return {}
     return runtime._start_job(
@@ -41,11 +37,7 @@ def httpx_bootstrap_command(targets_file: str, output_prefix: str) -> str:
 
 def run_httpx_bootstrap(runtime, targets: List[str], *, job_id: int = 0) -> Dict[str, Any]:
     resolved_job_id = int(job_id or 0)
-    normalized_targets = [
-        str(item or "").strip()
-        for item in list(targets or [])
-        if str(item or "").strip()
-    ]
+    normalized_targets = [str(item or "").strip() for item in list(targets or []) if str(item or "").strip()]
     if not normalized_targets:
         return {"targets": [], "results": [], "materialized_hosts": [], "scheduler_followup": {}}
 
@@ -126,14 +118,16 @@ def run_httpx_bootstrap(runtime, targets: List[str], *, job_id: int = 0) -> Dict
                 materialized_targets=materialized_targets,
             )
 
-        results.append({
-            "host": str(host_token),
-            "executed": bool(executed),
-            "reason": str(reason or ""),
-            "process_id": int(process_id or 0),
-            "artifact_refs": artifact_refs,
-            "materialized_targets": materialized_targets,
-        })
+        results.append(
+            {
+                "host": str(host_token),
+                "executed": bool(executed),
+                "reason": str(reason or ""),
+                "process_id": int(process_id or 0),
+                "artifact_refs": artifact_refs,
+                "materialized_targets": materialized_targets,
+            }
+        )
 
     scheduler_followup = {}
     if materialized_host_ids:
@@ -151,17 +145,17 @@ def run_httpx_bootstrap(runtime, targets: List[str], *, job_id: int = 0) -> Dict
 
 
 def _persist_httpx_observations(
-        runtime,
-        *,
-        host_id: int,
-        host_ip: str,
-        hostname: str,
-        command: str,
-        executed: bool,
-        reason: str,
-        artifact_refs: List[str],
-        observed_payload: Dict[str, Any],
-        materialized_targets: List[Dict[str, Any]],
+    runtime,
+    *,
+    host_id: int,
+    host_ip: str,
+    hostname: str,
+    command: str,
+    executed: bool,
+    reason: str,
+    artifact_refs: List[str],
+    observed_payload: Dict[str, Any],
+    materialized_targets: List[Dict[str, Any]],
 ) -> None:
     decision = SimpleNamespace(
         tool_id="httpx",

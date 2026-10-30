@@ -90,9 +90,8 @@ def is_tshark_passive_capture_command(tool_name: str, command: str) -> bool:
     command_text = str(command or "").strip().lower()
     if not command_text:
         return False
-    return (
-        (" tshark " in f" {command_text} " or command_text.startswith("tshark "))
-        and bool(_TSHARK_DURATION_RE.search(command_text))
+    return (" tshark " in f" {command_text} " or command_text.startswith("tshark ")) and bool(
+        _TSHARK_DURATION_RE.search(command_text)
     )
 
 
@@ -143,8 +142,8 @@ def sample_process_tree_activity(proc) -> Optional[Tuple[float, int]]:
 
 
 def process_tree_activity_changed(
-        previous: Optional[Tuple[float, int]],
-        current: Optional[Tuple[float, int]],
+    previous: Optional[Tuple[float, int]],
+    current: Optional[Tuple[float, int]],
 ) -> bool:
     if previous is None or current is None:
         return False

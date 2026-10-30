@@ -9,7 +9,6 @@ from app.scheduler.risk import (
     summarize_risk_tags,
 )
 
-
 VALID_POLICY_DECISIONS = {"allowed", "approval_required", "blocked"}
 VALID_FAMILY_POLICY_STATES = {"allowed", "approval_required", "suppressed", "blocked"}
 
@@ -113,10 +112,10 @@ def _decision_for_tag(tag: str, policy: EngagementPolicy) -> str:
 
 
 def _policy_reason(
-        state: str,
-        risk_tags: List[str],
-        policy: EngagementPolicy,
-        family_policy_state: str,
+    state: str,
+    risk_tags: List[str],
+    policy: EngagementPolicy,
+    family_policy_state: str,
 ) -> str:
     if family_policy_state == "blocked":
         return "Blocked by a project family policy override."
@@ -129,9 +128,7 @@ def _policy_reason(
         if not risk_tags:
             return f"Blocked by engagement preset {policy.preset}."
         return (
-            f"Engagement preset {policy.preset} blocks this action because of risk tags: "
-            + ", ".join(risk_tags)
-            + "."
+            f"Engagement preset {policy.preset} blocks this action because of risk tags: " + ", ".join(risk_tags) + "."
         )
     if state == "approval_required":
         if policy.approval_mode == "always":
@@ -149,15 +146,19 @@ def _policy_reason(
 
 
 def evaluate_policy_for_risk_tags(
-        risk_tags: Optional[Iterable[str]],
-        policy,
-        *,
-        family_policy_state: str = "",
+    risk_tags: Optional[Iterable[str]],
+    policy,
+    *,
+    family_policy_state: str = "",
 ) -> PolicyDecision:
-    resolved_policy = normalize_engagement_policy(
-        policy if isinstance(policy, dict) else getattr(policy, "to_dict", lambda: {})(),
-        fallback_goal_profile=getattr(policy, "legacy_goal_profile", "internal_asset_discovery"),
-    ) if not isinstance(policy, EngagementPolicy) else policy
+    resolved_policy = (
+        normalize_engagement_policy(
+            policy if isinstance(policy, dict) else getattr(policy, "to_dict", lambda: {})(),
+            fallback_goal_profile=getattr(policy, "legacy_goal_profile", "internal_asset_discovery"),
+        )
+        if not isinstance(policy, EngagementPolicy)
+        else policy
+    )
     resolved_tags = normalize_risk_tags(risk_tags)
     state = "allowed"
     for tag in resolved_tags:
@@ -174,9 +175,9 @@ def evaluate_policy_for_risk_tags(
     elif normalized_family_policy == "approval_required" and state != "blocked":
         state = "approval_required"
     elif (
-            normalized_family_policy == "allowed"
-            and state == "approval_required"
-            and resolved_policy.approval_mode != "always"
+        normalized_family_policy == "allowed"
+        and state == "approval_required"
+        and resolved_policy.approval_mode != "always"
     ):
         state = "allowed"
 
