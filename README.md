@@ -2,7 +2,7 @@
 
 ## T3-inspired desktop fork
 
-This public fork of [Hackman238/legion](https://github.com/Hackman238/legion) adds a near-black workspace, searchable navigation (`Ctrl K`), resizable host/detail panes, compact original menus, and a bottom status bar. Hosts, services, graph/matrix views, jobs, scheduler rationale, credentials/relay, approvals, settings, dialogs and exports retain their upstream controls and handlers. The optional native Qt WebEngine window uses this same interface and local backend without a browser tab. This fork is not affiliated with T3 Code.
+This public fork of [Hackman238/legion](https://github.com/Hackman238/legion) adds a near-black workspace, searchable navigation (`Ctrl K`), resizable host/detail panes, compact original menus, and a bottom status bar. The CTF workspace keeps hosts, services, graph/matrix views, jobs, scheduler rationale, credentials/relay, approvals, essential settings and workspace ZIP backup/restore. The optional native Qt WebEngine window uses this same interface and local backend without a browser tab. This fork is not affiliated with T3 Code.
 
 Click the workspace title to rename it with its current name selected; Enter or clicking away saves, and Escape cancels. Names travel with the project through save/open and ZIP export/restore. Right-click the sidebar workspace (or press Shift F10 while it is focused) for rename, save, export and details actions. Sidebar Rename edits the name in place in the sidebar; clicking the top title edits it at the top. Both names stay synchronized. The graph fits visible content at its default zoom, with minus/percentage/plus controls in its top-right corner; click the percentage to reset.
 
@@ -45,9 +45,9 @@ After upgrading, review tool paths and provider settings under `Settings`, espec
 
 Legion is a local-first, operator-guided reconnaissance and penetration testing platform with deterministic and AI-assisted orchestration.
 
-It is MCP-enabled and supports governed deterministic and AI-assisted orchestration, project-based persistence, explicit approval gates, shared target state, evidence graphing, graph-backed reporting, and a web-first workflow for Kali and Ubuntu operators. AI providers supported include OpenAI, Claude and LM Studio. It also supports any local server that implements the OpenAI API.
+It supports governed deterministic and AI-assisted orchestration, project-based persistence, explicit approval gates, shared target state, evidence graphing, and a desktop and local web workflow for Kali and Ubuntu operators. AI providers supported include OpenAI, Claude and LM Studio. It also supports any local server that implements the OpenAI API.
 
-The web interface is now the primary interface. Qt remains in-tree for compatibility, but the main product direction is the shared web, headless, and MCP workflow built on the same orchestration core.
+The web interface is now the primary interface. Qt remains in-tree for compatibility, but the main product direction is the standalone desktop and local web workspace built on the same orchestration core.
 
 ## 🖥 Web Interface (Primary)
 
@@ -69,14 +69,14 @@ python3 legion.py --web --web-port 5000 --web-opaque-ui
 
 The web interface includes:
 
-- project create/open/save/export workflows
+- project create/open/save and workspace ZIP backup/restore workflows
 - target import, Nmap XML import, and scan submission
 - governed scheduler settings and AI/provider configuration
 - live processes, retries, output viewing, and background jobs
 - host and service workspace views
-- host detail with notes, scripts, CVEs, screenshots, and contextual actions
-- graph workspace with filters, exports, layout management, floating/docked detail inspector, and contextual node actions
-- approval queue, submitted scans, scheduler decision history, and graph-backed reports
+- host detail with notes, scripts, screenshots, and contextual actions
+- graph workspace with filters, layout management, floating/docked detail inspector, and contextual node actions
+- approval queue, submitted scans, and scheduler decision history
 - tool audit visibility for checking whether Legion can resolve the external tools it depends on
 
 ## 🍿 What Legion Does
@@ -86,17 +86,17 @@ The web interface includes:
 - Runs governed deterministic and AI-assisted follow-up actions from the same action model.
 - Applies engagement policy, risk classification, approval gates, and audit logging before risky execution.
 - Keeps operator-visible evidence, artifacts, screenshots, execution history, and graph annotations in-project.
-- Exposes the same orchestration path through the web UI, headless CLI, and MCP/API surfaces.
+- Provides targets, scans, tools, results, notes and an interactive graph in the desktop and local web workspace.
 
 ## 🚀 0.7.0 Highlights
 
 - Domain route modules, service wrappers, typed schemas, and focused runtime modules continue the migration away from a monolithic web/runtime surface.
-- High-risk execution paths are stricter: bind-all behavior, public tool execution, approval idempotency, MCP state contracts, and provider secret storage were hardened.
+- High-risk execution paths are stricter: bind-all behavior, public tool execution, approval idempotency and provider secret storage were hardened.
 - Project bundle export/restore now preserves artifact fidelity more reliably, stages restored projects before swapping the active workspace, and rebases restored paths more consistently.
 - Workspace filtering now supports service/open-port filters, host-filtered graph views, service port visibility, improved host/service sync, and stronger OS/category enrichment for phones, Windows systems, and out-of-band management devices.
 - Bundled pipettes add repeatable aggregate checks for Cisco Smart Install, internal SMTP/SPF review, Windows SMB/RDP discovery, and IPMI/iDRAC/iLO discovery.
 - Runtime reliability improved across Nmap output isolation, screenshots, artifact cleanup, process/tool execution paths, and Responder/NTLMRelay workspaces.
-- Regression coverage expanded across routes, schemas, bundles, scheduler/approval flows, MCP, graph/reporting, workspace filters, pipettes, and tooling.
+- Regression coverage expanded across routes, schemas, bundles, scheduler/approval flows, graph/reporting, workspace filters, pipettes, and tooling.
 
 ## 🧰 Action And Tooling Coverage
 
@@ -156,24 +156,6 @@ flowchart TD
 ```
 
 ## 🔌 Other Interfaces
-
-### Headless CLI
-
-Legion can also run headless for automation:
-
-```shell
-python3 legion.py --headless --input-file targets.txt --staged-scan --run-actions --output-file results.json
-```
-
-### MCP Server
-
-Legion can expose governed functionality over MCP:
-
-```shell
-python3 legion.py --mcp-server
-```
-
-The MCP surface covers project access, planning, approvals, graph queries, findings, state queries, execution traces, and report export through the same governed core used by the web interface.
 
 ### Qt Compatibility
 
@@ -255,21 +237,16 @@ python legion.py --web
 | `--web-bind-all` | Bind the web interface to `0.0.0.0` instead of `127.0.0.1`. |
 | `--web-opaque-ui` | Disable transparent UI effects for better responsiveness on slower hosts. |
 | `--tool-audit` | Print an external tool availability audit and exit. |
-| `--headless` | Run Legion in headless CLI mode. |
-| `--mcp-server` | Start the MCP server for external automation / AI integration. |
-| `--input-file` | Path to a text file of targets for headless mode. |
-| `--discovery` | Enable host discovery in headless mode. |
-| `--staged-scan` | Run staged Nmap scanning in headless mode. |
-| `--output-file` | Export headless results to `.legion` or `.json`. |
-| `--run-actions` | Run configured scripted actions / automated attacks after scan or import in headless mode. |
 
 ### Configuration Notes
+
+The CTF workspace keeps normal `.legion` Save/Save As/Open and workspace ZIP backup/restore. Data/report downloads, graph exports, the setup wizard and manual CVE controls have been removed. Existing findings and CVE records remain available to the interactive graph and scheduler.
 
 - Legion stores its runtime data under `${LEGION_HOME:-~/.local/share/legion}`.
 - Scheduler AI preferences live at `${LEGION_HOME:-~/.local/share/legion}/scheduler-ai.json`, but provider and integration API keys are stored outside that JSON via the local secret store when available.
 - Supported secret inputs can also come from environment variables such as `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `SHODAN_API_KEY`, `CHAOS_API_KEY`, and `GRAYHATWARFARE_API_KEY`.
 - The checked-in action mappings still live in `legion.conf`.
-- Tool paths, providers, and runtime behavior can be reviewed from the web UI under `Settings`.
+- Tool availability and resolved paths, providers, and interface options can be reviewed under `Settings`. The raw configuration editor is not exposed in the app.
 
 To modify the action mappings directly:
 

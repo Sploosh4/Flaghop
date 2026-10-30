@@ -124,10 +124,15 @@ body.workspace-ui .ribbon-stat-value { color: #aaa; font-size: 11px; font-weight
 .workspace-content { flex: 1; min-width: 0; min-height: 0; }
 body.workspace-ui #workspace-views { display: block; height: 100%; min-height: 0; }
 .workspace-view { height: 100%; min-width: 0; min-height: 0; overflow: auto; }
-body.workspace-ui .panel, body.workspace-ui .graph-canvas-panel, body.workspace-ui .graph-detail-panel,
-body.workspace-ui .ribbon-group, body.workspace-ui .credential-capture-card,
-body.workspace-ui .device-category-panel, body.workspace-ui .settings-display-panel,
-body.workspace-ui .settings-tool-audit, body.workspace-ui .action-block, body.workspace-ui .startup-step,
+body.workspace-ui .panel,
+body.workspace-ui .graph-canvas-panel,
+body.workspace-ui .graph-detail-panel,
+body.workspace-ui .ribbon-group,
+body.workspace-ui .credential-capture-card,
+body.workspace-ui .device-category-panel,
+body.workspace-ui .settings-display-panel,
+body.workspace-ui .settings-tool-audit,
+body.workspace-ui .action-block,
 body.workspace-ui .graph-annotation-card {
     background: #0c0c0c; border-color: #252525; backdrop-filter: none; box-shadow: none;
 }
@@ -222,17 +227,18 @@ body.workspace-ui .graph-toolbar label { font-size: 10px; }
 body.workspace-ui .graph-workspace-footer { border-color: #252525; background: transparent; }
 body.workspace-ui .graph-group-background { fill: #121212; stroke: #292929; }
 body.workspace-ui .graph-badge { background: #252229; color: #bdb5c6; border-color: #3a343f; }
-body.workspace-ui .legion-modal-overlay, body.workspace-ui .startup-wizard-overlay { background: #0009; backdrop-filter: blur(3px); }
-body.workspace-ui .legion-modal, body.workspace-ui .startup-wizard, body.workspace-ui .startup-wizard-dialog { background: #121212; border-color: #303030; border-radius: 13px; box-shadow: 0 24px 80px #0009; padding: 22px; }
+body.workspace-ui .legion-modal-overlay { background: #0009; backdrop-filter: blur(3px); }
+body.workspace-ui .legion-modal { background: #121212; border-color: #303030; border-radius: 13px; box-shadow: 0 24px 80px #0009; padding: 22px; }
 body.workspace-ui .modal-header { border-color: #292929; padding-bottom: 14px; }
 body.workspace-ui .modal-header h2 { font-size: 16px; }
 body.workspace-ui .modal-actions { gap: 8px; }
-body.workspace-ui .nmap-wizard, body.workspace-ui .startup-step, body.workspace-ui .action-block { background: #101010; border-color: #292929; }
+body.workspace-ui .nmap-wizard,
+body.workspace-ui .action-block { background: #101010; border-color: #292929; }
 body.workspace-ui .wizard-step.is-active { background: #302b35; border-color: #514759; color: #eee; }
 body.workspace-ui :is(button.graph-icon-button, button.icon-btn, button.panel-menu-button) { background: #191919; border-color: #303030; box-shadow: none; color: #bbb; }
 body.workspace-ui .graph-resize-handle::before { background: #444; box-shadow: none; }
-body.workspace-ui .startup-step-indicator, body.workspace-ui .nmap-step-indicator { background: #1d1d1d; color: #888; border-color: #333; }
-body.workspace-ui .startup-step-indicator.is-active, body.workspace-ui .nmap-step-indicator.is-active { background: #302a37; color: #e0d7ec; border-color: #4e415e; }
+body.workspace-ui .nmap-step-indicator { background: #1d1d1d; color: #888; border-color: #333; }
+body.workspace-ui .nmap-step-indicator.is-active { background: #302a37; color: #e0d7ec; border-color: #4e415e; }
 body.workspace-ui .command-preview, body.workspace-ui .process-output, body.workspace-ui .output-text, body.workspace-ui .output-console { background: #080808; border-color: #292929; color: #c7c7c7; }
 .workspace-search-overlay { position: fixed; inset: 0; z-index: 100; background: #0009; display: flex; align-items: flex-start; justify-content: center; padding: 12vh 18px 20px; backdrop-filter: blur(3px); }
 .workspace-search-dialog { width: min(560px,100%); max-height: 70vh; background: #161616; border: 1px solid #333; border-radius: 12px; box-shadow: 0 24px 80px #0009; padding: 15px; display: flex; flex-direction: column; }

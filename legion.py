@@ -19,7 +19,6 @@ Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@
 import os
 import re
 import shutil
-import subprocess
 import sys
 import logging
 from typing import Optional
@@ -229,8 +228,6 @@ def build_arg_parser():
 
     parser = argparse.ArgumentParser(description="Start Legion")
     audit_group = parser.add_mutually_exclusive_group()
-    parser.add_argument("--mcp-server", action="store_true", help="Start MCP server for AI integration")
-    parser.add_argument("--headless", action="store_true", help="Run Legion in headless (CLI) mode")
     parser.add_argument("--web", action="store_true", help="Run Legion with the local Flask web interface")
     audit_group.add_argument("--tool-audit", action="store_true", help="Print a tool availability audit and exit")
     audit_group.add_argument(
@@ -258,15 +255,6 @@ def build_arg_parser():
         "--web-opaque-ui",
         action="store_true",
         help=argparse.SUPPRESS,
-    )
-    parser.add_argument("--input-file", type=str, help="Text file with targets (hostnames, subnets, IPs, etc.)")
-    parser.add_argument("--discovery", action="store_true", help="Enable host discovery (default: enabled)")
-    parser.add_argument("--staged-scan", action="store_true", help="Enable staged scan")
-    parser.add_argument("--output-file", type=str, help="Output file (.legion or .json)")
-    parser.add_argument(
-        "--run-actions",
-        action="store_true",
-        help="Run scripted actions/automated attacks after scan/import"
     )
     return parser
 
@@ -304,15 +292,6 @@ if __name__ == "__main__":
     from app.logic import Logic
 
     startupLog = getStartupLogger()
-
-    if args.mcp_server:
-        # Start MCP server as a subprocess (separate stdio)
-        mcp_proc = subprocess.Popen(
-            [sys.executable, "app/mcpServer.py"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            stdin=subprocess.DEVNULL,
-        )
 
     from colorama import init
     from termcolor import cprint
@@ -389,166 +368,6 @@ if __name__ == "__main__":
         web_app.config["LEGION_WEB_BIND_LABEL"] = describe_web_bind_host(web_bind_host)
         web_app.config["LEGION_UI_OPAQUE"] = resolve_web_opaque_ui(args)
         web_app.run(host=web_bind_host, port=args.web_port, debug=False, use_reloader=False)
-        sys.exit(0)
-
-    if args.headless:
-        # --- HEADLESS CLI MODE ---
-        from app.cli_utils import import_targets_from_textfile, run_nmap_scan
-        from app.importers.nmap_runner import import_nmap_xml_into_project
-        import time
-
-        shell = DefaultShell()
-        dbLog = getDbLogger()
-        appLogger = getAppLogger()
-        repositoryFactory = RepositoryFactory(dbLog)
-        projectManager = ProjectManager(shell, repositoryFactory, appLogger)
-        nmapExporter = DefaultNmapExporter(shell, appLogger)
-        toolCoordinator = ToolCoordinator(shell, nmapExporter)
-        logic = Logic(shell, projectManager, toolCoordinator)
-        startupLog.info("Creating temporary project for headless mode...")
-        logic.createNewTemporaryProject()
-
-        # Import targets from input file
-        if not args.input_file or not os.path.isfile(args.input_file):
-            print("Error: --input-file is required and must exist in headless mode.", file=sys.stderr)
-            sys.exit(1)
-        session = logic.activeProject.database.session()
-        hostRepository = logic.activeProject.repositoryContainer.hostRepository
-        import_targets_from_textfile(session, hostRepository, args.input_file)
-
-        # Run nmap scan if requested
-        nmap_xml = None
-        if args.staged_scan or args.discovery:
-            # Build targets string for nmap (space-separated)
-            targets = []
-            with open(args.input_file, "r") as f:
-                for line in f:
-                    t = line.strip()
-                    if t and not t.startswith("#"):
-                        targets.append(t)
-            targets_str = " ".join(targets)
-            output_prefix = os.path.join(logic.activeProject.properties.runningFolder, f"cli-nmap-{int(time.time())}")
-            nmap_xml = run_nmap_scan(
-                targets_str,
-                output_prefix,
-                discovery=args.discovery,
-                staged=args.staged_scan
-            )
-            # Import nmap XML results into the project
-            import_nmap_xml_into_project(
-                project=logic.activeProject,
-                xml_path=nmap_xml,
-                output="",
-                update_progress_observable=None,
-                host_repository=hostRepository,
-            )
-
-        # Run scripted actions/automated attacks if requested
-        if args.run_actions:
-            # Placeholder: will call logic.run_scripted_actions() after implementation
-            print("Running scripted actions/automated attacks (CLI)...")
-            logic.run_scripted_actions()
-
-        # Export results
-        if args.output_file:
-            if args.output_file.endswith(".json"):
-                # Export directly from the current activeProject (no temp .legion file)
-                import json
-                import base64
-                hostRepository = logic.activeProject.repositoryContainer.hostRepository
-                hosts = hostRepository.getAllHostObjs()
-                hosts_data = []
-                for host in hosts:
-                    host_dict = host.__dict__.copy()
-                    host_dict.pop('_sa_instance_state', None)
-                    # Ports/services for this host
-                    try:
-                        ports = logic.activeProject.repositoryContainer.portRepository.getPortsByHostId(host.id)
-                    except Exception:
-                        ports = []
-                    ports_data = []
-                    for port in ports:
-                        port_dict = port.__dict__.copy()
-                        port_dict.pop('_sa_instance_state', None)
-                        # Service for this port
-                        try:
-                            service = (
-                                logic.activeProject.repositoryContainer.serviceRepository.getServiceById(port.serviceId)
-                                if hasattr(port, 'serviceId') and port.serviceId
-                                else None
-                            )
-                        except Exception:
-                            service = None
-                        if service:
-                            service_dict = service.__dict__.copy()
-                            service_dict.pop('_sa_instance_state', None)
-                            port_dict['service'] = service_dict
-                        # Scripts for this port
-                        try:
-                            scripts = (
-                                logic.activeProject.repositoryContainer.scriptRepository.getScriptsByPortId(port.id)
-                                if hasattr(logic.activeProject.repositoryContainer, 'scriptRepository')
-                                else []
-                            )
-                        except Exception:
-                            scripts = []
-                        scripts_data = []
-                        for script in scripts:
-                            script_dict = script.__dict__.copy()
-                            script_dict.pop('_sa_instance_state', None)
-                            scripts_data.append(script_dict)
-                        port_dict['scripts'] = scripts_data
-                        ports_data.append(port_dict)
-                    host_dict['ports'] = ports_data
-                    # Notes for this host
-                    try:
-                        note = logic.activeProject.repositoryContainer.noteRepository.getNoteByHostId(host.id)
-                        host_dict['note'] = note.text if note else ""
-                    except Exception:
-                        host_dict['note'] = ""
-                    # CVEs for this host
-                    try:
-                        cves = logic.activeProject.repositoryContainer.cveRepository.getCVEsByHostIP(host.ip)
-                    except Exception:
-                        cves = []
-                    cves_data = []
-                    for cve in cves:
-                        cve_dict = cve.__dict__.copy()
-                        cve_dict.pop('_sa_instance_state', None)
-                        cves_data.append(cve_dict)
-                    host_dict['cves'] = cves_data
-                    hosts_data.append(host_dict)
-                # Gather screenshots
-                screenshots_dir = os.path.join(logic.activeProject.properties.outputFolder, "screenshots")
-                screenshots_data = {}
-                if os.path.isdir(screenshots_dir):
-                    for fname in os.listdir(screenshots_dir):
-                        if fname.lower().endswith(".png"):
-                            fpath = os.path.join(screenshots_dir, fname)
-                            try:
-                                with open(fpath, "rb") as f:
-                                    b64 = base64.b64encode(f.read()).decode("utf-8")
-                                screenshots_data[fname] = b64
-                            except Exception as e:
-                                screenshots_data[fname] = f"ERROR: {e}"
-                export = {
-                    "hosts": hosts_data,
-                    "screenshots": screenshots_data
-                }
-                with open(args.output_file, "w", encoding="utf-8") as f:
-                    json.dump(export, f, indent=2)
-                print(f"Exported results as JSON to {args.output_file}")
-            elif args.output_file.endswith(".legion"):
-                # Save project as .legion file
-                projectManager.saveProjectAs(logic.activeProject, args.output_file, replace=1, projectType="legion")
-                print(f"Exported project as .legion to {args.output_file}")
-            else:
-                print("Error: --output-file must end with .json or .legion", file=sys.stderr)
-                sys.exit(1)
-        else:
-            print("No --output-file specified, skipping export.")
-
-        print("Headless Legion run complete.")
         sys.exit(0)
 
     # --- GUI MODE ---

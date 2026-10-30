@@ -129,6 +129,9 @@ fixname.sh
 ghostdriver.log
 huge_nmap.xml
 *.xml
+# Version synthetic Nmap test inputs; real scan output remains ignored.
+!tests/parsers/nmap-fixtures/*.xml
+!tests/fixtures/scheduler-regression/*.xml
 
 legion.code-workspace
 docs/

@@ -11,6 +11,8 @@ import zipfile
 
 from sqlalchemy import text
 
+from tests.timezone import local_timezone
+
 
 for _name in ("Mapping", "MutableMapping", "Sequence", "Callable"):
     if not hasattr(collections, _name):
@@ -513,6 +515,8 @@ class WebRuntimeProjectRestoreTest(unittest.TestCase):
             if active_project is not None:
                 runtime._close_active_project()
 
+    # UTC-05 makes the legacy local start appear later than the aware UTC end.
+    @local_timezone("EST5")
     def test_project_bundle_reconciles_reversed_mixed_process_timestamps(self):
         project_manager, logic, runtime = self._create_runtime()
         project = project_manager.createNewProject(projectType="legion", isTemp=True)

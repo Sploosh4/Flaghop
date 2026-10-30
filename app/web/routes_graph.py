@@ -30,30 +30,6 @@ def evidence_graph_rebuild():
         return json_error(str(exc), 500)
 
 
-@graph_bp.get("/api/graph/export/json")
-def evidence_graph_export_json():
-    service = _graph_service()
-    try:
-        payload = service.export_json(request.args)
-        response = current_app.response_class(payload["body"], mimetype=payload["mimetype"])
-        response.headers["Content-Disposition"] = f'attachment; filename="{payload["filename"]}"'
-        return response
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
-@graph_bp.get("/api/graph/export/graphml")
-def evidence_graph_export_graphml():
-    service = _graph_service()
-    try:
-        payload = service.export_graphml(request.args)
-        response = current_app.response_class(payload["body"], mimetype=payload["mimetype"])
-        response.headers["Content-Disposition"] = f'attachment; filename="{payload["filename"]}"'
-        return response
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
 @graph_bp.get("/api/graph/nodes/<path:node_id>/content")
 def evidence_graph_node_content(node_id: str):
     service = _graph_service()

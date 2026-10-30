@@ -262,16 +262,6 @@ class WebWorkspaceRoutesTest(unittest.TestCase):
         self.assertEqual(["smb", "http"], multi_service_hosts.json["services"])
         self.assertEqual({"10.0.0.5", "10.0.0.7"}, {item["ip"] for item in multi_service_hosts.json["hosts"]})
 
-        hosts_csv = self.client.get("/api/export/hosts-csv?service=http")
-        self.assertEqual(200, hosts_csv.status_code)
-        self.assertIn("attachment; filename=", hosts_csv.headers.get("Content-Disposition", ""))
-        self.assertIn("10.0.0.7", hosts_csv.get_data(as_text=True))
-
-        hosts_json = self.client.get("/api/export/hosts-json?filter=show_all")
-        self.assertEqual(200, hosts_json.status_code)
-        self.assertIn("attachment; filename=", hosts_json.headers.get("Content-Disposition", ""))
-        self.assertEqual(3, hosts_json.get_json()["host_count"])
-
         overview = self.client.get("/api/workspace/overview")
         self.assertEqual(200, overview.status_code)
         self.assertEqual("10.0.0.5", overview.json["scheduler_rationale_feed"][0]["host_ip"])
@@ -402,17 +392,6 @@ class WebWorkspaceRoutesTest(unittest.TestCase):
         script_output = self.client.get("/api/workspace/scripts/501/output?offset=2&max_chars=32")
         self.assertEqual(200, script_output.status_code)
         self.assertEqual("script output", script_output.json["output"])
-
-        cve_create = self.client.post(
-            "/api/workspace/hosts/11/cves",
-            json={"name": "CVE-2026-9999", "severity": "high"},
-        )
-        self.assertEqual(200, cve_create.status_code)
-        self.assertEqual("CVE-2026-9999", cve_create.json["cve"]["name"])
-
-        cve_delete = self.client.delete("/api/workspace/cves/601")
-        self.assertEqual(200, cve_delete.status_code)
-        self.assertTrue(cve_delete.json["deleted"])
 
         dig = self.client.post("/api/workspace/hosts/11/dig-deeper", json={})
         self.assertEqual(202, dig.status_code)

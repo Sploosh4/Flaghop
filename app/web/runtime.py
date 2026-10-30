@@ -411,11 +411,6 @@ class WebRuntime:
     def rebuild_evidence_graph(self, host_id: Optional[int] = None) -> Dict[str, Any]:
         return web_runtime_graph.rebuild_evidence_graph_for_runtime(self, host_id)
 
-    def export_evidence_graph_json(self, *, rebuild: bool = False) -> Dict[str, Any]:
-        return web_runtime_graph.export_evidence_graph_json_for_runtime(self, rebuild=rebuild)
-
-    def export_evidence_graph_graphml(self, *, rebuild: bool = False) -> str:
-        return web_runtime_graph.export_evidence_graph_graphml_for_runtime(self, rebuild=rebuild)
 
     def get_evidence_graph_layouts(self) -> List[Dict[str, Any]]:
         return web_runtime_graph.get_evidence_graph_layouts(self)
@@ -950,17 +945,10 @@ class WebRuntime:
     def get_host_ai_report(self, host_id: int) -> Dict[str, Any]:
         return web_runtime_reports.get_host_ai_report(self, host_id)
 
-    def render_host_ai_report_markdown(self, report: Dict[str, Any]) -> str:
-        return web_runtime_reports.render_host_ai_report_markdown(report)
 
     def get_host_report(self, host_id: int) -> Dict[str, Any]:
         return web_runtime_reports.get_host_report(self, host_id)
 
-    def render_host_report_markdown(self, report: Dict[str, Any]) -> str:
-        return web_runtime_reports.render_host_report_markdown(report)
-
-    def build_host_ai_reports_zip(self) -> Tuple[str, str]:
-        return web_runtime_reports.build_host_ai_reports_zip(self)
 
     def get_project_ai_report(self) -> Dict[str, Any]:
         return web_runtime_reports.get_project_ai_report(self)

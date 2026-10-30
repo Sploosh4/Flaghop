@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import io
-
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, jsonify, request
 
 from app.web.http_utils import json_error, runtime_from_app
 from app.web.services.workspace_service import WorkspaceService
@@ -20,40 +18,6 @@ def _disable_cache(response):
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
     return response
-
-
-@workspace_bp.get("/api/export/hosts-csv")
-def export_hosts_csv():
-    service = _workspace_service()
-    try:
-        payload = service.export_workspace_hosts_csv(request.args)
-        buffer = io.BytesIO(payload["body"])
-        buffer.seek(0)
-        return send_file(
-            buffer,
-            mimetype=payload["mimetype"],
-            as_attachment=True,
-            download_name=payload["filename"],
-        )
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
-@workspace_bp.get("/api/export/hosts-json")
-def export_hosts_json():
-    service = _workspace_service()
-    try:
-        payload = service.export_workspace_hosts_json(request.args)
-        buffer = io.BytesIO(payload["body"])
-        buffer.seek(0)
-        return send_file(
-            buffer,
-            mimetype=payload["mimetype"],
-            as_attachment=True,
-            download_name=payload["filename"],
-        )
-    except Exception as exc:
-        return json_error(str(exc), 500)
 
 
 @workspace_bp.get("/api/workspace/hosts")
@@ -114,4 +78,3 @@ def workspace_findings():
         return json_error(str(exc), 404)
     except Exception as exc:
         return json_error(str(exc), 500)
-

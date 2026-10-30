@@ -51,7 +51,7 @@ class PathsTest(unittest.TestCase):
                     return True
                 return True
 
-            with patch.dict(os.environ, {}, clear=False):
+            with patch.dict(os.environ, {"LEGION_HOME": ""}, clear=False):
                 with patch("app.paths.tempfile.gettempdir", return_value=tmpdir):
                     with patch("app.paths._current_user_token", return_value="fallback-user"):
                         with patch("app.paths._is_writable_directory", side_effect=fake_is_writable):

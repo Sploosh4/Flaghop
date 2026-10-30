@@ -1,6 +1,4 @@
-import tempfile
 import unittest
-import zipfile
 
 
 class _GraphReportRuntime:
@@ -15,13 +13,6 @@ class _GraphReportRuntime:
         self.calls.append(("rebuild_evidence_graph", host_id))
         return {"host_id": host_id}
 
-    def export_evidence_graph_json(self, rebuild=False):
-        self.calls.append(("export_evidence_graph_json", bool(rebuild)))
-        return {"nodes": [{"id": "host-1"}]}
-
-    def export_evidence_graph_graphml(self, rebuild=False):
-        self.calls.append(("export_evidence_graph_graphml", bool(rebuild)))
-        return "<graphml />"
 
     def get_graph_related_content(self, node_id, max_chars=12000):
         self.calls.append(("get_graph_related_content", str(node_id), int(max_chars)))
@@ -71,45 +62,6 @@ class _GraphReportRuntime:
         )
         return {"annotation_id": annotation_id or "annotation-1", "body": body, "target_ref": target_ref}
 
-    def get_host_ai_report(self, host_id):
-        self.calls.append(("get_host_ai_report", int(host_id)))
-        return {"host": {"id": int(host_id), "ip": "10.0.0.5"}, "ai_analysis": {"provider": "demo"}}
-
-    def render_host_ai_report_markdown(self, report):
-        self.calls.append(("render_host_ai_report_markdown", dict(report or {})))
-        return "# Legion Host AI Report\n"
-
-    def get_host_report(self, host_id):
-        self.calls.append(("get_host_report", int(host_id)))
-        return {"host": {"id": int(host_id), "ip": "10.0.0.5"}, "validated_findings": {"count": 1}}
-
-    def render_host_report_markdown(self, report):
-        self.calls.append(("render_host_report_markdown", dict(report or {})))
-        return "# Legion Host Report\n"
-
-    def build_host_ai_reports_zip(self):
-        self.calls.append(("build_host_ai_reports_zip",))
-        handle = tempfile.NamedTemporaryFile(prefix="legion-report-bundle-", suffix=".zip", delete=False)
-        handle.close()
-        with zipfile.ZipFile(handle.name, "w") as archive:
-            archive.writestr("reports/host-1.md", "# Legion Host AI Report\n")
-        return handle.name, "legion-ai-reports.zip"
-
-    def get_project_ai_report(self):
-        self.calls.append(("get_project_ai_report",))
-        return {"project": {"name": "demo.legion"}, "host_count": 1}
-
-    def render_project_ai_report_markdown(self, report):
-        self.calls.append(("render_project_ai_report_markdown", dict(report or {})))
-        return "# Legion Project AI Report\n"
-
-    def get_project_report(self):
-        self.calls.append(("get_project_report",))
-        return {"project": {"name": "demo.legion"}, "summary_of_discovered_assets": {"host_count": 1}}
-
-    def render_project_report_markdown(self, report):
-        self.calls.append(("render_project_report_markdown", dict(report or {})))
-        return "# Legion Project Report\n"
 
     def push_project_ai_report(self, overrides=None):
         self.calls.append(("push_project_ai_report", dict(overrides or {})))
@@ -137,15 +89,6 @@ class WebGraphAndReportRoutesTest(unittest.TestCase):
         rebuild = self.client.post("/api/graph/rebuild", json={"host_id": 11})
         self.assertEqual(200, rebuild.status_code)
         self.assertEqual("ok", rebuild.json["status"])
-
-        export_json = self.client.get("/api/graph/export/json?rebuild=true")
-        self.assertEqual(200, export_json.status_code)
-        self.assertIn("application/json", str(export_json.content_type))
-        self.assertIn("attachment; filename=", export_json.headers.get("Content-Disposition", ""))
-
-        export_graphml = self.client.get("/api/graph/export/graphml")
-        self.assertEqual(200, export_graphml.status_code)
-        self.assertIn("application/graphml+xml", str(export_graphml.content_type))
 
         node_content = self.client.get("/api/graph/nodes/host-1/content?max_chars=42")
         self.assertEqual(200, node_content.status_code)
@@ -178,24 +121,6 @@ class WebGraphAndReportRoutesTest(unittest.TestCase):
         self.assertEqual("focus this node", saved_annotation.json["annotation"]["body"])
 
     def test_report_routes_delegate_to_report_service(self):
-        host_ai_json = self.client.get("/api/workspace/hosts/11/ai-report?format=json")
-        self.assertEqual(200, host_ai_json.status_code)
-        self.assertIn("application/json", str(host_ai_json.content_type))
-        self.assertIn("attachment; filename=", host_ai_json.headers.get("Content-Disposition", ""))
-
-        host_report_md = self.client.get("/api/workspace/hosts/11/report?format=md")
-        self.assertEqual(200, host_report_md.status_code)
-        self.assertIn("text/markdown", str(host_report_md.content_type))
-        self.assertIn("# Legion Host Report", host_report_md.get_data(as_text=True))
-
-        project_ai_report = self.client.get("/api/workspace/project-ai-report?format=md")
-        self.assertEqual(200, project_ai_report.status_code)
-        self.assertIn("# Legion Project AI Report", project_ai_report.get_data(as_text=True))
-
-        project_report = self.client.get("/api/workspace/project-report?format=json")
-        self.assertEqual(200, project_report.status_code)
-        self.assertIn("summary_of_discovered_assets", project_report.get_data(as_text=True))
-
         push_ai = self.client.post(
             "/api/workspace/project-ai-report/push",
             json={"project_report_delivery": {"endpoint": "https://example.local/ai", "method": "POST"}},
@@ -209,13 +134,6 @@ class WebGraphAndReportRoutesTest(unittest.TestCase):
         )
         self.assertEqual(200, push_report.status_code)
         self.assertEqual("ok", push_report.json["status"])
-
-        bundle = self.client.get("/api/workspace/ai-reports/download-zip")
-        self.assertEqual(200, bundle.status_code)
-        self.assertIn("application/zip", str(bundle.content_type))
-        bundle.get_data()
-        bundle.close()
-        self.assertIn(("build_host_ai_reports_zip",), self.runtime.calls)
 
 
 if __name__ == "__main__":

@@ -1376,13 +1376,6 @@ class DummyRuntime:
             "target_state": dict(self.workspace_host_detail.get("target_state", {})),
         }
 
-    def render_host_ai_report_markdown(self, report):
-        host = report.get("host", {}) if isinstance(report, dict) else {}
-        return (
-            "# Legion Host AI Report\n\n"
-            f"- Host ID: {host.get('id', '')}\n"
-            f"- Host IP: {host.get('ip', '')}\n"
-        )
 
     def get_host_report(self, host_id):
         if int(host_id) != 11:
@@ -1432,24 +1425,6 @@ class DummyRuntime:
             "operator_conclusions": [{"label": "Note #1", "summary": "host note"}],
         }
 
-    def render_host_report_markdown(self, report):
-        host = report.get("host", {}) if isinstance(report, dict) else {}
-        return (
-            "# Legion Host Report\n\n"
-            f"- Host ID: {host.get('id', '')}\n"
-            "## Scope and Policy\n"
-        )
-
-    def build_host_ai_reports_zip(self):
-        handle = tempfile.NamedTemporaryFile(prefix="test-host-ai-reports-", suffix=".zip", delete=False)
-        path = handle.name
-        handle.close()
-        with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED, allowZip64=True) as archive:
-            report = self.get_host_ai_report(11)
-            archive.writestr("bundle/hosts/host-11.json", json.dumps(report))
-            archive.writestr("bundle/hosts/host-11.md", self.render_host_ai_report_markdown(report))
-            archive.writestr("bundle/manifest.json", json.dumps({"host_count": 1}))
-        return path, os.path.basename(path)
 
     def get_project_ai_report(self):
         return {
@@ -1856,13 +1831,6 @@ class DummyRuntime:
             "host_id": host_id,
         }
 
-    def export_evidence_graph_json(self, rebuild=False):
-        _ = rebuild
-        return dict(self.graph_snapshot)
-
-    def export_evidence_graph_graphml(self, rebuild=False):
-        _ = rebuild
-        return "<graphml><graph id='demo-graph'></graph></graphml>"
 
     def get_evidence_graph_layouts(self):
         return list(self.graph_layouts)
@@ -2063,8 +2031,8 @@ class WebAppTest(unittest.TestCase):
         self.assertIn('id="graph-filters-panel" class="graph-filters-panel" hidden', body)
         self.assertIn("graph-layout-tidy-button", body)
         self.assertIn("graph-layout-save-button", body)
-        self.assertIn("graph-export-svg-button", body)
-        self.assertIn("graph-export-png-button", body)
+        self.assertNotIn("graph-export-svg-button", body)
+        self.assertNotIn("graph-export-png-button", body)
         self.assertIn("graph-render-mode-select", body)
         self.assertIn("graph-focus-depth-select", body)
         self.assertIn('aria-label="Refresh Graph"', body)
@@ -2124,7 +2092,7 @@ class WebAppTest(unittest.TestCase):
         self.assertIn('id="graph-panel-body"', body)
         self.assertIn('id="graph-zoom-slider" type="range" min="10"', body)
         self.assertIn('id="graph-resize-handle"', body)
-        self.assertIn('id="startup-wizard-overlay" class="startup-wizard-overlay" aria-hidden="true"', body)
+        self.assertNotIn('id="startup-wizard-overlay"', body)
         self.assertIn("graph-footer-separator", body)
         self.assertNotIn("graph-legend-footer", body)
         self.assertNotIn("drag nodes or groups to reposition them", body)
@@ -2135,11 +2103,9 @@ class WebAppTest(unittest.TestCase):
         self.assertNotIn("<h2>Scheduler Decisions</h2>", body)
         self.assertIn("<h2>Decision Rationale</h2>", body)
         self.assertNotIn('class="logo-watermark"', body)
-        self.assertLess(body.index('id="ribbon-launch-wizard-button"'), body.index("<h2>Project</h2>"))
         self.assertLess(body.index("<h2>Project</h2>"), body.index("<h2>Decision Rationale</h2>"))
         self.assertLess(body.index("<h2>Decision Rationale</h2>"), body.index('id="stat-hosts"'))
         self.assertLess(body.index('id="ribbon-logging-menu-button"'), body.index('id="ribbon-settings-menu-button"'))
-        self.assertLess(body.index('id="ribbon-launch-wizard-button"'), body.index("<h2>Graph Workspace</h2>"))
         self.assertLess(body.index('id="graph-workspace-shell"'), body.index('id="graph-refresh-button"'))
         self.assertLess(body.index('id="graph-layout-select"'), body.index('id="graph-focus-depth-select"'))
         self.assertLess(body.index('id="graph-refresh-button"'), body.index('id="graph-resize-handle"'))
@@ -2218,16 +2184,6 @@ class WebAppTest(unittest.TestCase):
         self.assertIn('id="engagement-custom-intent-label"', body)
         self.assertIn('value="internal_quick_recon"', body)
 
-    def test_index_renders_simplified_startup_wizard_scheduler_profile(self):
-        response = self.client.get("/")
-        self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
-        self.assertIn('id="startup-scheduler-goal"', body)
-        self.assertIn('id="startup-engagement-preset-summary"', body)
-        self.assertIn('id="startup-engagement-derived-policy"', body)
-        self.assertIn('id="startup-engagement-custom-scope-label"', body)
-        self.assertIn('id="startup-engagement-custom-intent-label"', body)
-        self.assertIn('value="internal_quick_recon"', body)
 
     def test_index_renders_nmap_scan_engagement_step(self):
         response = self.client.get("/")
@@ -2288,7 +2244,7 @@ class WebAppTest(unittest.TestCase):
         body = response.get_data(as_text=True)
         self.assertIn("hosts-reset-filter-button", body)
         self.assertIn("hosts-panel-menu-button", body)
-        self.assertIn("hosts-export-json-button", body)
+        self.assertNotIn("hosts-export-json-button", body)
         self.assertIn("hosts-filter-hide-down-button", body)
         self.assertIn("fa-filter-circle-xmark", body)
 
@@ -2352,40 +2308,6 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual("accepted", response.json.get("status"))
         self.assertEqual("project-restore-zip", response.json["job"]["type"])
 
-    def test_export_hosts_csv_endpoint(self):
-        response = self.client.get("/api/export/hosts-csv")
-        self.assertEqual(200, response.status_code)
-        self.assertIn("attachment; filename=", response.headers.get("Content-Disposition", ""))
-        csv_text = response.get_data(as_text=True)
-        self.assertIn("id,ip,hostname,status,os,open_ports,total_ports,services", csv_text)
-        self.assertIn("10.0.0.5", csv_text)
-        self.assertIn("kerberos; smb", csv_text)
-        self.assertNotIn("10.0.0.6", csv_text)
-        self.assertNotIn("scheduler_mode", csv_text)
-
-    def test_export_hosts_csv_endpoint_show_all_includes_down_hosts(self):
-        response = self.client.get("/api/export/hosts-csv?filter=show_all")
-        self.assertEqual(200, response.status_code)
-        csv_text = response.get_data(as_text=True)
-        self.assertIn("10.0.0.6", csv_text)
-
-    def test_export_hosts_csv_endpoint_service_filter(self):
-        response = self.client.get("/api/export/hosts-csv?service=http")
-        self.assertEqual(200, response.status_code)
-        csv_text = response.get_data(as_text=True)
-        self.assertIn("10.0.0.7", csv_text)
-        self.assertNotIn("10.0.0.5", csv_text)
-
-    def test_export_hosts_json_endpoint(self):
-        response = self.client.get("/api/export/hosts-json")
-        self.assertEqual(200, response.status_code)
-        self.assertIn("attachment; filename=", response.headers.get("Content-Disposition", ""))
-        payload = response.get_json()
-        self.assertEqual("hide_down", payload["filter"])
-        self.assertEqual("", payload["service"])
-        self.assertEqual(2, payload["host_count"])
-        self.assertEqual(["kerberos", "smb"], payload["hosts"][0]["services"])
-        self.assertFalse(any(item["ip"] == "10.0.0.6" for item in payload["hosts"]))
 
     def test_workspace_hosts_endpoint_service_filter(self):
         response = self.client.get("/api/workspace/hosts?service=http")
@@ -2696,16 +2618,6 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual("ok", rebuild.json["status"])
         self.assertEqual(2, rebuild.json["mutation_count"])
 
-        export_json = self.client.get("/api/graph/export/json?rebuild=true")
-        self.assertEqual(200, export_json.status_code)
-        self.assertIn("attachment; filename=", export_json.headers.get("Content-Disposition", ""))
-        self.assertIn("graph-node-host", export_json.get_data(as_text=True))
-
-        export_graphml = self.client.get("/api/graph/export/graphml")
-        self.assertEqual(200, export_graphml.status_code)
-        self.assertIn(".graphml", export_graphml.headers.get("Content-Disposition", ""))
-        self.assertIn("<graphml>", export_graphml.get_data(as_text=True))
-
         layouts = self.client.get("/api/graph/layouts")
         self.assertEqual(200, layouts.status_code)
         self.assertEqual("attack_surface", layouts.json["layouts"][0]["view_id"])
@@ -2957,48 +2869,6 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual(1, findings.json["count"])
         self.assertEqual("SMB signing not required", findings.json["findings"][0]["title"])
 
-        ai_report_json = self.client.get("/api/workspace/hosts/11/ai-report?format=json")
-        self.assertEqual(200, ai_report_json.status_code)
-        self.assertIn("application/json", str(ai_report_json.content_type))
-        self.assertIn("attachment; filename=", ai_report_json.headers.get("Content-Disposition", ""))
-        self.assertIn("ai_analysis", ai_report_json.get_data(as_text=True))
-        self.assertIn("target_state", ai_report_json.get_data(as_text=True))
-
-        ai_report_md = self.client.get("/api/workspace/hosts/11/ai-report?format=md")
-        self.assertEqual(200, ai_report_md.status_code)
-        self.assertIn("text/markdown", str(ai_report_md.content_type))
-        self.assertIn("# Legion Host AI Report", ai_report_md.get_data(as_text=True))
-
-        host_report_json = self.client.get("/api/workspace/hosts/11/report?format=json")
-        self.assertEqual(200, host_report_json.status_code)
-        self.assertIn("application/json", str(host_report_json.content_type))
-        self.assertIn("validated_findings", host_report_json.get_data(as_text=True))
-
-        host_report_md = self.client.get("/api/workspace/hosts/11/report?format=md")
-        self.assertEqual(200, host_report_md.status_code)
-        self.assertIn("text/markdown", str(host_report_md.content_type))
-        self.assertIn("# Legion Host Report", host_report_md.get_data(as_text=True))
-
-        project_ai_report_json = self.client.get("/api/workspace/project-ai-report?format=json")
-        self.assertEqual(200, project_ai_report_json.status_code)
-        self.assertIn("application/json", str(project_ai_report_json.content_type))
-        self.assertIn("host_count", project_ai_report_json.get_data(as_text=True))
-
-        project_ai_report_md = self.client.get("/api/workspace/project-ai-report?format=md")
-        self.assertEqual(200, project_ai_report_md.status_code)
-        self.assertIn("text/markdown", str(project_ai_report_md.content_type))
-        self.assertIn("# Legion Project AI Report", project_ai_report_md.get_data(as_text=True))
-
-        project_report_json = self.client.get("/api/workspace/project-report?format=json")
-        self.assertEqual(200, project_report_json.status_code)
-        self.assertIn("application/json", str(project_report_json.content_type))
-        self.assertIn("summary_of_discovered_assets", project_report_json.get_data(as_text=True))
-
-        project_report_md = self.client.get("/api/workspace/project-report?format=md")
-        self.assertEqual(200, project_report_md.status_code)
-        self.assertIn("text/markdown", str(project_report_md.content_type))
-        self.assertIn("# Legion Project Report", project_report_md.get_data(as_text=True))
-
         project_push_missing_endpoint = self.client.post("/api/workspace/project-ai-report/push", json={})
         self.assertEqual(400, project_push_missing_endpoint.status_code)
 
@@ -3029,11 +2899,6 @@ class WebAppTest(unittest.TestCase):
         )
         self.assertEqual(200, project_report_push.status_code)
         self.assertEqual("ok", project_report_push.json.get("status"))
-
-        ai_report_zip = self.client.get("/api/workspace/ai-reports/download-zip")
-        self.assertEqual(200, ai_report_zip.status_code)
-        self.assertIn("application/zip", str(ai_report_zip.content_type))
-        self.assertIn("attachment; filename=", ai_report_zip.headers.get("Content-Disposition", ""))
 
         host_rescan = self.client.post("/api/workspace/hosts/11/rescan", json={})
         self.assertEqual(202, host_rescan.status_code)
@@ -3104,14 +2969,6 @@ class WebAppTest(unittest.TestCase):
         script_output = self.client.get("/api/workspace/scripts/100/output")
         self.assertEqual(200, script_output.status_code)
         self.assertEqual("script process output", script_output.json["output"])
-
-        cve_add = self.client.post("/api/workspace/hosts/11/cves", json={"name": "CVE-2025-1111"})
-        self.assertEqual(200, cve_add.status_code)
-        self.assertEqual("CVE-2025-1111", cve_add.json["cve"]["name"])
-
-        cve_delete = self.client.delete("/api/workspace/cves/50")
-        self.assertEqual(200, cve_delete.status_code)
-        self.assertTrue(cve_delete.json["deleted"])
 
         tool_run = self.client.post(
             "/api/workspace/tools/run",

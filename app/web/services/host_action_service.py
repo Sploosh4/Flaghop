@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from app.web.host_action_schema import (
-    CveCreateRequest,
     HostCategoriesRequest,
     HostNoteRequest,
     ScriptCreateRequest,
@@ -65,26 +64,6 @@ class HostActionService:
         query = ScriptOutputQuery.from_args(args)
         return self.runtime.get_script_output(script_id, offset=query.offset, max_chars=query.max_chars)
 
-    def create_cve_entry(self, host_id: int, payload: Any) -> Dict[str, Any]:
-        request = CveCreateRequest.from_payload(payload)
-        if not request.name:
-            raise ValueError("name is required.")
-        row = self.runtime.create_cve_entry(
-            host_id=host_id,
-            name=request.name,
-            url=request.url,
-            severity=request.severity,
-            source=request.source,
-            product=request.product,
-            version=request.version,
-            exploit_id=request.exploit_id,
-            exploit=request.exploit,
-            exploit_url=request.exploit_url,
-        )
-        return {"status": "ok", "cve": row}
-
-    def delete_cve_entry(self, cve_id: int) -> Dict[str, Any]:
-        return self.runtime.delete_cve_entry(cve_id)
 
     def start_host_dig_deeper(self, host_id: int) -> Dict[str, Any]:
         job = self.runtime.start_host_dig_deeper_job(int(host_id))

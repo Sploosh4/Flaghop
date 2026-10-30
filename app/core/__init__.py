@@ -1,2 +1,1 @@
-"""Qt-free core helpers used by web/headless/mcp paths."""
-
+"""Qt-free core helpers used by the desktop/web workspace and shared execution paths."""

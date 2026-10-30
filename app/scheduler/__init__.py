@@ -7,8 +7,6 @@ from app.scheduler.execution import (
 )
 from app.scheduler.graph import (
     ensure_scheduler_graph_tables,
-    export_evidence_graph_graphml,
-    export_evidence_graph_json,
     get_evidence_graph_snapshot,
     list_graph_annotations,
     list_graph_layout_states,
@@ -109,8 +107,6 @@ __all__ = [
     "ensure_scheduler_graph_tables",
     "ensure_scheduler_target_state_table",
     "evaluate_action_strategy",
-    "export_evidence_graph_graphml",
-    "export_evidence_graph_json",
     "build_artifact_entries",
     "build_attempted_action_entry",
     "build_host_report",

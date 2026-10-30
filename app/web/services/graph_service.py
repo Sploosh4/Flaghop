@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import datetime
-import json
 from typing import Any, Dict
 
 from app.web.graph_schema import (
     GraphAnnotationQuery,
     GraphAnnotationSaveRequest,
     GraphContentQuery,
-    GraphExportQuery,
     GraphLayoutSaveRequest,
     GraphQuery,
     GraphRebuildRequest,
@@ -28,25 +25,6 @@ class GraphService:
         result = self.runtime.rebuild_evidence_graph(host_id=request.host_id or None)
         return {"status": "ok", **result}
 
-    def export_json(self, args) -> Dict[str, Any]:
-        query = GraphExportQuery.from_args(args)
-        payload = json.dumps(self.runtime.export_evidence_graph_json(rebuild=query.rebuild), indent=2, default=str)
-        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d-%H%M%SZ")
-        return {
-            "body": payload,
-            "mimetype": "application/json",
-            "filename": f"legion-evidence-graph-{timestamp}.json",
-        }
-
-    def export_graphml(self, args) -> Dict[str, Any]:
-        query = GraphExportQuery.from_args(args)
-        payload = self.runtime.export_evidence_graph_graphml(rebuild=query.rebuild)
-        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d-%H%M%SZ")
-        return {
-            "body": payload,
-            "mimetype": "application/graphml+xml",
-            "filename": f"legion-evidence-graph-{timestamp}.graphml",
-        }
 
     def get_node_content(self, node_id: str, args) -> Dict[str, Any]:
         query = GraphContentQuery.from_args(args)

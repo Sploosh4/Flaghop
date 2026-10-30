@@ -150,7 +150,7 @@ class SettingsMigrationTest(unittest.TestCase):
             with open(config_path, "w", encoding="utf-8") as handle:
                 handle.write(fixture_content)
 
-            with patch.dict(os.environ, {"HOME": tmpdir}, clear=False):
+            with patch.dict(os.environ, {"LEGION_HOME": config_dir}, clear=False):
                 from app.settings import AppSettings
 
                 first_settings = AppSettings()
@@ -201,7 +201,7 @@ class SettingsMigrationTest(unittest.TestCase):
             with open(config_path, "w", encoding="utf-8") as handle:
                 handle.write(LEGACY_CONFIG)
 
-            with patch.dict(os.environ, {"HOME": tmpdir}, clear=False):
+            with patch.dict(os.environ, {"LEGION_HOME": config_dir}, clear=False):
                 from app.settings import AppSettings
 
                 app_settings = AppSettings()
@@ -572,7 +572,7 @@ class SettingsMigrationTest(unittest.TestCase):
             with open(config_path, "w", encoding="utf-8") as handle:
                 handle.write(LEGACY_WEB_CONTENT_CONFIG)
 
-            with patch.dict(os.environ, {"HOME": tmpdir}, clear=False):
+            with patch.dict(os.environ, {"LEGION_HOME": config_dir}, clear=False):
                 from app.settings import AppSettings
 
                 app_settings = AppSettings()
@@ -593,7 +593,7 @@ class SettingsMigrationTest(unittest.TestCase):
             with open(config_path, "w", encoding="utf-8") as handle:
                 handle.write(LEGACY_WAPITI_CONFIG)
 
-            with patch.dict(os.environ, {"HOME": tmpdir}, clear=False):
+            with patch.dict(os.environ, {"LEGION_HOME": config_dir}, clear=False):
                 from app.settings import AppSettings
 
                 app_settings = AppSettings()
@@ -619,7 +619,7 @@ class SettingsMigrationTest(unittest.TestCase):
             with open(config_path, "w", encoding="utf-8") as handle:
                 handle.write(LEGACY_VULN_AND_SCREENSHOT_CONFIG)
 
-            with patch.dict(os.environ, {"HOME": tmpdir}, clear=False):
+            with patch.dict(os.environ, {"LEGION_HOME": config_dir}, clear=False):
                 from app.settings import AppSettings
 
                 app_settings = AppSettings()
@@ -692,7 +692,7 @@ class SettingsMigrationTest(unittest.TestCase):
             with open(config_path, "w", encoding="utf-8") as handle:
                 handle.write(LEGACY_SMB_ACTIONS_CONFIG)
 
-            with patch.dict(os.environ, {"HOME": tmpdir}, clear=False):
+            with patch.dict(os.environ, {"LEGION_HOME": config_dir}, clear=False):
                 from app.settings import AppSettings
 
                 app_settings = AppSettings()
@@ -721,7 +721,7 @@ class SettingsMigrationTest(unittest.TestCase):
             with open(config_path, "w", encoding="utf-8") as handle:
                 handle.write(LEGACY_SHELL_WRAPPER_CONFIG)
 
-            with patch.dict(os.environ, {"HOME": tmpdir}, clear=False):
+            with patch.dict(os.environ, {"LEGION_HOME": config_dir}, clear=False):
                 from app.settings import AppSettings
 
                 app_settings = AppSettings()
@@ -745,7 +745,7 @@ class SettingsMigrationTest(unittest.TestCase):
             with open(config_path, "w", encoding="utf-8") as handle:
                 handle.write(LEGACY_DISABLED_ACTIONS_CONFIG)
 
-            with patch.dict(os.environ, {"HOME": tmpdir}, clear=False):
+            with patch.dict(os.environ, {"LEGION_HOME": config_dir}, clear=False):
                 from app.settings import AppSettings
 
                 app_settings = AppSettings()
@@ -765,7 +765,7 @@ class SettingsMigrationTest(unittest.TestCase):
             with open(config_path, "w", encoding="utf-8") as handle:
                 handle.write(LEGACY_STRUCTURED_SETTINGS_CONFIG)
 
-            with patch.dict(os.environ, {"HOME": tmpdir}, clear=False):
+            with patch.dict(os.environ, {"LEGION_HOME": config_dir}, clear=False):
                 with patch("app.settings.log") as mocked_log:
                     from app.settings import AppSettings, Settings
 

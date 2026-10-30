@@ -287,17 +287,6 @@ const nmapWizardState = {
 
 const PROCESS_OUTPUT_REFRESH_MS = 2000;
 
-const startupWizardState = {
-    open: false,
-    step: 1,
-    busy: false,
-    summary: {
-        project: "",
-        imports: "",
-        scheduler: "",
-    },
-};
-
 const workspaceSwitchGuardState = {
     modalOpen: false,
     busy: false,
@@ -331,14 +320,12 @@ const ribbonMenuState = {
     openMenuId: null,
 };
 
-const STARTUP_WIZARD_SESSION_KEY = "legion_startup_wizard_done";
 
 function updateBodyModalState() {
     const anyModalOpen = Boolean(
         processOutputState.modalOpen
         || scriptOutputState.modalOpen
         || screenshotModalState.modalOpen
-        || startupWizardState.open
         || uiModalState.schedulerOpen
         || uiModalState.interfaceSettingsOpen
         || uiModalState.deviceCategorySettingsOpen
@@ -1322,15 +1309,6 @@ function setWorkspaceStatus(text, isError = false) {
     node.style.color = isError ? "#ff9b9b" : "";
 }
 
-function setStartupWizardStatus(text, isError = false) {
-    const node = document.getElementById("startup-wizard-status");
-    if (!node) {
-        return;
-    }
-    node.textContent = text || "";
-    node.style.color = isError ? "#ff9b9b" : "";
-}
-
 function renderProject(project) {
     setText("project-name", project.name || "");
     const projectName = document.getElementById("project-name");
@@ -1365,9 +1343,7 @@ function clearHostDetailView({resetForms = true} = {}) {
     [
         "host-detail-ports",
         "host-detail-scripts",
-        "host-detail-cves",
         "host-detail-ai-technologies",
-        "host-detail-ai-findings",
         "host-detail-ai-manual-tests",
         "host-detail-screenshots",
     ].forEach((id) => {
@@ -1379,7 +1355,6 @@ function clearHostDetailView({resetForms = true} = {}) {
 
     setText("host-ai-analysis-status", "");
     setText("host-ai-tech-count", 0);
-    setText("host-ai-finding-count", 0);
     setText("host-ai-manual-count", 0);
     setText("host-screenshot-count", 0);
 }
@@ -1922,20 +1897,6 @@ function setScriptOutputCommand(text) {
     setText("script-output-command", text || "");
 }
 
-function getStartupProjectAction() {
-    const node = document.querySelector("input[name='startup-project-action']:checked");
-    return node ? String(node.value || "new") : "new";
-}
-
-function syncStartupSchedulerFromMain() {
-    setValue("startup-scheduler-mode", getValue("scheduler-mode-select") || "deterministic");
-    setValue("startup-scheduler-goal", getValue("scheduler-goal-select") || "internal_recon");
-    setValue("startup-engagement-scope-select", getValue("engagement-scope-select") || "internal");
-    setValue("startup-engagement-intent-select", getValue("engagement-intent-select") || "recon");
-    setValue("startup-scheduler-provider", getValue("scheduler-provider-select") || "none");
-    syncStartupEngagementPresetControls();
-}
-
 function engagementPresetSummaryText(preset, isCustom) {
     if (isCustom) {
         return "Custom lets you override scope and intent manually. Use the standard presets unless you need a non-standard combination.";
@@ -2102,130 +2063,6 @@ async function loadPassiveCaptureInterfaces() {
     }
 }
 
-function syncStartupEngagementPresetControls() {
-    const preset = String(getValue("startup-scheduler-goal") || "internal_recon").trim().toLowerCase();
-    const isCustom = preset === "custom";
-    const derivedPolicy = isCustom
-        ? {
-            scope: getValue("startup-engagement-scope-select") || "internal",
-            intent: getValue("startup-engagement-intent-select") || "recon",
-        }
-        : defaultEngagementPolicyForPreset(preset);
-
-    if (!isCustom) {
-        setValue("startup-engagement-scope-select", derivedPolicy.scope || "internal");
-        setValue("startup-engagement-intent-select", derivedPolicy.intent || "recon");
-    }
-
-    setText("startup-engagement-derived-scope", derivedPolicy.scope || "internal");
-    setText("startup-engagement-derived-intent", derivedPolicy.intent || "recon");
-
-    const summaryNode = document.getElementById("startup-engagement-preset-summary");
-    if (summaryNode) {
-        summaryNode.textContent = engagementPresetSummaryText(preset, isCustom);
-    }
-
-    const customScopeLabel = document.getElementById("startup-engagement-custom-scope-label");
-    const customIntentLabel = document.getElementById("startup-engagement-custom-intent-label");
-    const customNote = document.getElementById("startup-engagement-custom-note");
-    const scopeSelect = document.getElementById("startup-engagement-scope-select");
-    const intentSelect = document.getElementById("startup-engagement-intent-select");
-
-    [customScopeLabel, customIntentLabel, customNote].forEach((node) => {
-        if (node) {
-            node.hidden = !isCustom;
-        }
-    });
-
-    if (scopeSelect) {
-        scopeSelect.disabled = !isCustom;
-    }
-    if (intentSelect) {
-        intentSelect.disabled = !isCustom;
-    }
-}
-
-function updateStartupSummary() {
-    const summaryNode = document.getElementById("startup-summary");
-    if (!summaryNode) {
-        return;
-    }
-    const lines = [
-        `Project: ${startupWizardState.summary.project || "not configured"}`,
-        `Imports: ${startupWizardState.summary.imports || "none"}`,
-        `Scheduler: ${startupWizardState.summary.scheduler || "not configured"}`,
-    ];
-    summaryNode.textContent = lines.join("\n");
-}
-
-function setStartupWizardOpen(open) {
-    const overlay = document.getElementById("startup-wizard-overlay");
-    if (!overlay) {
-        return;
-    }
-    startupWizardState.open = Boolean(open);
-    overlay.classList.toggle("is-open", Boolean(open));
-    overlay.setAttribute("aria-hidden", open ? "false" : "true");
-    updateBodyModalState();
-}
-
-function setStartupWizardStep(step) {
-    const nextStep = Math.max(1, Math.min(4, parseInt(step, 10) || 1));
-    startupWizardState.step = nextStep;
-
-    [1, 2, 3, 4].forEach((index) => {
-        const section = document.getElementById(`startup-step-${index}`);
-        if (section) {
-            section.classList.toggle("is-active", index === nextStep);
-        }
-    });
-
-    setText("startup-wizard-meta", `Step ${nextStep} of 4`);
-    const back = document.getElementById("startup-wizard-back");
-    const next = document.getElementById("startup-wizard-next");
-    if (back) {
-        back.disabled = nextStep <= 1 || startupWizardState.busy;
-    }
-    if (next) {
-        next.disabled = startupWizardState.busy;
-        next.textContent = nextStep === 4 ? "Go to Workspace" : "Continue";
-    }
-    if (nextStep === 4) {
-        updateStartupSummary();
-    }
-}
-
-function setStartupWizardBusy(busy) {
-    startupWizardState.busy = Boolean(busy);
-    const back = document.getElementById("startup-wizard-back");
-    const next = document.getElementById("startup-wizard-next");
-    const skip = document.getElementById("startup-wizard-skip");
-    if (back) {
-        back.disabled = Boolean(busy) || startupWizardState.step <= 1;
-    }
-    if (next) {
-        next.disabled = Boolean(busy);
-    }
-    if (skip) {
-        skip.disabled = Boolean(busy);
-    }
-}
-
-function markStartupWizardDone() {
-    try {
-        window.sessionStorage.setItem(STARTUP_WIZARD_SESSION_KEY, "1");
-    } catch (_err) {
-    }
-}
-
-function shouldShowStartupWizard() {
-    try {
-        return window.sessionStorage.getItem(STARTUP_WIZARD_SESSION_KEY) !== "1";
-    } catch (_err) {
-        return true;
-    }
-}
-
 function focusRunNmapScan() {
     setNmapScanModalOpen(true);
     resetNmapScanWizardState({scrollIntoView: false, focusPreset: true});
@@ -2268,188 +2105,6 @@ function resetNmapScanWizardState({scrollIntoView = false, focusPreset = false, 
             }, 220);
         }
     }
-}
-
-async function applyStartupProjectStep() {
-    const action = getStartupProjectAction();
-    if (action === "open") {
-        const path = getValue("startup-project-open-path").trim();
-        if (!path) {
-            throw new Error("Existing project path is required.");
-        }
-        const body = await postJson("/api/project/open", {path});
-        resetWorkspaceDisplayForProjectSwitch({clearProjectPaths: false});
-        setValue("project-save-path", "");
-        renderProject(body?.project || {});
-        setValue("project-open-path", path);
-        startupWizardState.summary.project = `opened ${path}`;
-    } else {
-        const body = await postJson("/api/project/new-temp", {});
-        resetWorkspaceDisplayForProjectSwitch({clearProjectPaths: true});
-        renderProject(body?.project || {});
-        startupWizardState.summary.project = "created new temporary project";
-    }
-    await Promise.all([pollSnapshot(), refreshWorkspace(), loadApprovals()]);
-}
-
-async function applyStartupImportsStep() {
-    const importActions = [];
-
-    if (getChecked("startup-import-targets-enabled")) {
-        const targetsPath = getValue("startup-import-targets-path").trim();
-        if (!targetsPath) {
-            throw new Error("Targets file path is required when targets import is enabled.");
-        }
-        const body = await postJson("/api/targets/import-file", {path: targetsPath});
-        setValue("targets-file-path", targetsPath);
-        const jobId = body?.job?.id;
-        importActions.push(`targets file (${jobId ? `job ${jobId}` : "queued"})`);
-    }
-
-    if (getChecked("startup-import-xml-enabled")) {
-        const xmlPath = getValue("startup-import-xml-path").trim();
-        if (!xmlPath) {
-            throw new Error("Nmap XML path is required when XML import is enabled.");
-        }
-        const runActions = getChecked("startup-import-xml-run-actions");
-        const body = await postJson("/api/nmap/import-xml", {path: xmlPath, run_actions: runActions});
-        setValue("nmap-xml-path", xmlPath);
-        setChecked("nmap-xml-run-actions", runActions);
-        const jobId = body?.job?.id;
-        importActions.push(`nmap xml (${jobId ? `job ${jobId}` : "queued"})`);
-    }
-
-    startupWizardState.summary.imports = importActions.length ? importActions.join(", ") : "none";
-    await pollSnapshot();
-}
-
-async function applyStartupSchedulerStep() {
-    const mode = getValue("startup-scheduler-mode") || "deterministic";
-    const preset = String(getValue("startup-scheduler-goal") || "internal_recon").trim().toLowerCase();
-    const presetDefaults = defaultEngagementPolicyForPreset(preset);
-    const provider = getValue("startup-scheduler-provider") || "none";
-    const engagementPolicy = normalizeEngagementPolicyPayload(
-        {
-            preset,
-            scope: preset === "custom"
-                ? getValue("startup-engagement-scope-select")
-                : presetDefaults.scope,
-            intent: preset === "custom"
-                ? getValue("startup-engagement-intent-select")
-                : presetDefaults.intent,
-            custom_overrides: {},
-        },
-        preset,
-    );
-    const updates = {
-        mode,
-        goal_profile: legacyGoalProfileFromEngagementPolicy(engagementPolicy),
-        engagement_policy: engagementPolicy,
-        provider,
-    };
-
-    if (provider === "lm_studio") {
-        const baseUrl = getValue("provider-lmstudio-baseurl").trim() || "http://127.0.0.1:1234/v1";
-        const model = getValue("provider-lmstudio-model").trim() || "o3-7b";
-        updates.providers = {
-            lm_studio: {
-                enabled: true,
-                base_url: baseUrl,
-                model,
-            },
-        };
-    } else if (provider === "openai") {
-        updates.providers = {
-            openai: {
-                enabled: true,
-                base_url: getValue("provider-openai-baseurl").trim() || "https://api.openai.com/v1",
-                model: getValue("provider-openai-model").trim(),
-            },
-        };
-    } else if (provider === "claude") {
-        updates.providers = {
-            claude: {
-                enabled: true,
-                base_url: getValue("provider-claude-baseurl").trim() || "https://api.anthropic.com",
-                model: getValue("provider-claude-model").trim(),
-            },
-        };
-    }
-
-    await postJson("/api/scheduler/preferences", updates);
-
-    setValue("scheduler-mode-select", mode);
-    setValue("scheduler-goal-select", engagementPolicy.preset || preset);
-    setValue("engagement-scope-select", engagementPolicy.scope || "internal");
-    setValue("engagement-intent-select", engagementPolicy.intent || "recon");
-    syncEngagementPresetControls();
-    setValue("scheduler-provider-select", provider);
-    startupWizardState.summary.scheduler = `${mode} / ${engagementPolicy.preset || preset} (${engagementPolicy.scope}/${engagementPolicy.intent}) / provider=${provider}`;
-    await loadSchedulerPreferences();
-}
-
-async function startupWizardNextAction() {
-    if (startupWizardState.busy) {
-        return;
-    }
-    setStartupWizardStatus("", false);
-
-    if (startupWizardState.step === 4) {
-        markStartupWizardDone();
-        setStartupWizardOpen(false);
-        setActionStatus("Setup complete. Opened Scans > Add Scan.");
-        focusRunNmapScan();
-        return;
-    }
-
-    try {
-        setStartupWizardBusy(true);
-        if (startupWizardState.step === 1) {
-            setStartupWizardStatus("Applying project setup...");
-            await applyStartupProjectStep();
-            setStartupWizardStatus("Project step complete.");
-        } else if (startupWizardState.step === 2) {
-            setStartupWizardStatus("Applying import setup...");
-            await applyStartupImportsStep();
-            setStartupWizardStatus("Import step complete.");
-        } else if (startupWizardState.step === 3) {
-            setStartupWizardStatus("Applying scheduler setup...");
-            await applyStartupSchedulerStep();
-            setStartupWizardStatus("Scheduler step complete.");
-        }
-        setStartupWizardStep(startupWizardState.step + 1);
-    } catch (err) {
-        setStartupWizardStatus(`Setup error: ${err.message}`, true);
-    } finally {
-        setStartupWizardBusy(false);
-    }
-}
-
-function startupWizardBackAction() {
-    if (startupWizardState.busy) {
-        return;
-    }
-    setStartupWizardStep(startupWizardState.step - 1);
-    setStartupWizardStatus("", false);
-}
-
-function startupWizardSkipAction() {
-    markStartupWizardDone();
-    setStartupWizardOpen(false);
-    setActionStatus("Setup wizard skipped. Opened Scans > Add Scan.");
-    focusRunNmapScan();
-}
-
-function initializeStartupWizard() {
-    syncStartupSchedulerFromMain();
-    startupWizardState.summary = {
-        project: "",
-        imports: "",
-        scheduler: "",
-    };
-    setStartupWizardStatus("", false);
-    setStartupWizardStep(1);
-    setStartupWizardOpen(false);
 }
 
 function setNmapScanModalOpen(open) {
@@ -3020,15 +2675,6 @@ function setAppSettingsModalOpen(open) {
     updateBodyModalState();
 }
 
-function setConfigSettingsStatus(text, isError = false) {
-    const node = document.getElementById("settings-config-status");
-    if (!node) {
-        return;
-    }
-    node.textContent = text || "";
-    node.style.color = isError ? "#ff9b9b" : "";
-}
-
 function setToolAuditStatus(text, isError = false) {
     const node = document.getElementById("settings-tool-audit-status");
     if (!node) {
@@ -3322,13 +2968,6 @@ async function startToolInstallAction() {
     }
 }
 
-function launchStartupWizardAction() {
-    syncStartupSchedulerFromMain();
-    setStartupWizardStatus("", false);
-    setStartupWizardStep(1);
-    setStartupWizardOpen(true);
-}
-
 function setRibbonMenuOpen(menuId, open) {
     const nextOpen = Boolean(open) ? String(menuId || "").trim() : "";
     ribbonMenuState.openMenuId = nextOpen || null;
@@ -3499,16 +3138,6 @@ async function importTargetsFromRibbonAction() {
     await importTargetsFile();
 }
 
-function exportWorkspaceJsonAction() {
-    closeRibbonMenus();
-    window.location.assign(`/api/export/json?t=${Date.now()}`);
-}
-
-function exportWorkspaceCsvAction() {
-    closeRibbonMenus();
-    window.location.assign(`/api/export/csv?t=${Date.now()}`);
-}
-
 function currentHostFilterQuery() {
     const params = new URLSearchParams();
     const filter = String(workspaceState.hostFilter || "hide_down").trim().toLowerCase() === "show_all"
@@ -3536,16 +3165,6 @@ function currentServicesFilterQuery() {
         params.set("category", category);
     }
     return params.toString();
-}
-
-function exportHostsJsonAction() {
-    closeRibbonMenus();
-    window.location.assign(`/api/export/hosts-json?${currentHostFilterQuery()}&t=${Date.now()}`);
-}
-
-function exportHostsCsvAction() {
-    closeRibbonMenus();
-    window.location.assign(`/api/export/hosts-csv?${currentHostFilterQuery()}&t=${Date.now()}`);
 }
 
 function syncHostFilterControls() {
@@ -3680,27 +3299,6 @@ async function resetHostFiltersAction() {
     await graphLoadSnapshot({background: false}).catch(() => {});
 }
 
-function exportProjectAiReportAction(format = "json") {
-    closeRibbonMenus();
-    const normalized = String(format || "json").toLowerCase() === "md" ? "md" : "json";
-    window.location.assign(`/api/workspace/project-ai-report?format=${normalized}&t=${Date.now()}`);
-}
-
-function exportAllHostAiReportsZipAction() {
-    closeRibbonMenus();
-    window.location.assign(`/api/workspace/ai-reports/download-zip?t=${Date.now()}`);
-}
-
-function exportSelectedHostAiReportAction(format = "json") {
-    const hostId = Number(workspaceState.selectedHostId || 0);
-    if (!Number.isFinite(hostId) || hostId <= 0) {
-        setWorkspaceStatus("Select a host first to export report.", true);
-        return;
-    }
-    const normalized = String(format || "json").toLowerCase() === "md" ? "md" : "json";
-    window.location.assign(`/api/workspace/hosts/${hostId}/ai-report?format=${normalized}&t=${Date.now()}`);
-}
-
 async function pushProjectAiReportAction(event) {
     if (event) {
         event.preventDefault();
@@ -3762,18 +3360,6 @@ function openReportProviderAction() {
 
 function closeReportProviderModalAction() {
     setReportProviderModalOpen(false);
-}
-
-async function refreshAppSettingsConfigAction() {
-    setConfigSettingsStatus("Loading config...");
-    try {
-        const body = await fetchJson("/api/settings/legion-conf");
-        setText("settings-config-path", body.path || "legion.conf");
-        setValue("settings-config-text", body.text || "");
-        setConfigSettingsStatus("Config loaded");
-    } catch (err) {
-        setConfigSettingsStatus(`Load failed: ${err.message}`, true);
-    }
 }
 
 async function refreshDisplaySettingsAction() {
@@ -3855,23 +3441,10 @@ async function saveInterfaceSettingsAction() {
     }
 }
 
-async function saveAppSettingsConfigAction() {
-    const text = getValue("settings-config-text");
-    setConfigSettingsStatus("Saving config...");
-    try {
-        const body = await postJson("/api/settings/legion-conf", {text});
-        setText("settings-config-path", body.path || "legion.conf");
-        setConfigSettingsStatus("Config saved");
-    } catch (err) {
-        setConfigSettingsStatus(`Save failed: ${err.message}`, true);
-    }
-}
-
 async function openAppSettingsAction() {
     closeRibbonMenus();
     setAppSettingsModalOpen(true);
     await Promise.allSettled([
-        refreshAppSettingsConfigAction(),
         refreshToolAuditAction(),
     ]);
 }
@@ -5428,12 +5001,10 @@ function renderHostDetail(payload) {
     workspaceState.hostDetail = payload || null;
     const host = payload?.host || {};
     const ports = payload?.ports || [];
-    const cves = payload?.cves || [];
     const screenshots = payload?.screenshots || [];
     const aiAnalysis = payload?.ai_analysis || {};
     const targetState = payload?.target_state || {};
     const aiTechnologies = Array.isArray(aiAnalysis?.technologies) ? aiAnalysis.technologies : [];
-    const aiFindings = Array.isArray(aiAnalysis?.findings) ? aiAnalysis.findings : [];
     const aiManualTests = Array.isArray(aiAnalysis?.manual_tests) ? aiAnalysis.manual_tests : [];
     const aiHostUpdates = aiAnalysis?.host_updates || {};
     const stateAttemptedActions = Array.isArray(targetState?.attempted_actions) ? targetState.attempted_actions : [];
@@ -5523,26 +5094,6 @@ function renderHostDetail(payload) {
         });
     }
 
-    const cvesBody = document.getElementById("host-detail-cves");
-    if (cvesBody) {
-        cvesBody.innerHTML = "";
-        cves.forEach((item) => {
-            const tr = document.createElement("tr");
-            tr.appendChild(makeCell(item.id || ""));
-            tr.appendChild(makeCell(item.name || ""));
-            tr.appendChild(makeCell(item.severity || ""));
-            tr.appendChild(makeCell(item.product || ""));
-            tr.appendChild(makeCell(item.url || ""));
-            const actions = document.createElement("td");
-            const del = document.createElement("button");
-            del.type = "button";
-            del.textContent = "Delete";
-            del.dataset.cveDeleteId = String(item.id || "");
-            actions.appendChild(del);
-            tr.appendChild(actions);
-            cvesBody.appendChild(tr);
-        });
-    }
 
     const aiTechBody = document.getElementById("host-detail-ai-technologies");
     if (aiTechBody) {
@@ -5554,20 +5105,6 @@ function renderHostDetail(payload) {
             tr.appendChild(makeCell(item.cpe || ""));
             tr.appendChild(makeCell(item.evidence || ""));
             aiTechBody.appendChild(tr);
-        });
-    }
-
-    const aiFindingsBody = document.getElementById("host-detail-ai-findings");
-    if (aiFindingsBody) {
-        aiFindingsBody.innerHTML = "";
-        aiFindings.forEach((item) => {
-            const tr = document.createElement("tr");
-            tr.appendChild(makeCell(item.severity || ""));
-            tr.appendChild(makeCell(item.title || ""));
-            tr.appendChild(makeCell(item.cve || ""));
-            tr.appendChild(makeCell(item.cvss ?? ""));
-            tr.appendChild(makeCell(item.evidence || ""));
-            aiFindingsBody.appendChild(tr);
         });
     }
 
@@ -5616,7 +5153,6 @@ function renderHostDetail(payload) {
     }
     setText("host-ai-analysis-status", statusBits.join(" | "));
     setText("host-ai-tech-count", aiTechnologies.length);
-    setText("host-ai-finding-count", aiFindings.length);
     setText("host-ai-manual-count", aiManualTests.length);
     renderCategoryChipList("host-detail-categories", stateDeviceCategories, "Uncategorized");
     setText("host-device-category-count", normalizeCategoryList(stateDeviceCategories).length);
@@ -9538,120 +9074,6 @@ async function graphRebuildAction() {
     }
 }
 
-function graphExportAction(format) {
-    const normalized = String(format || "json").trim().toLowerCase();
-    if (normalized === "graphml") {
-        window.location.assign(`/api/graph/export/graphml?t=${Date.now()}`);
-        return;
-    }
-    window.location.assign(`/api/graph/export/json?t=${Date.now()}`);
-}
-
-function graphDownloadBlob(blob, filename) {
-    const objectUrl = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = objectUrl;
-    anchor.download = String(filename || "graph-export").replace(/[^a-zA-Z0-9._-]+/g, "-");
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-}
-
-function graphExportFilename(extension) {
-    const viewId = String(getValue("graph-view-select") || graphWorkspaceState.viewId || "attack_surface").trim() || "attack_surface";
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    return `legion-graph-${viewId}-${stamp}.${String(extension || "txt").replace(/^\./, "")}`;
-}
-
-function graphBuildExportSvgString() {
-    if (graphWorkspaceState.filtered?.renderKind === "matrix") {
-        throw new Error("Switch Density Mode to graph or summary before exporting SVG or PNG.");
-    }
-    const svg = document.getElementById("graph-workspace-canvas");
-    if (!svg) {
-        throw new Error("Graph canvas is unavailable.");
-    }
-    const clone = svg.cloneNode(true);
-    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-    const fullWidth = Math.max(1, Number(graphWorkspaceState.filtered.width || 1600));
-    const fullHeight = Math.max(1, Number(graphWorkspaceState.filtered.height || 900));
-    clone.setAttribute("viewBox", `0 0 ${fullWidth} ${fullHeight}`);
-    const viewBox = clone.getAttribute("viewBox") || `0 0 ${fullWidth} ${fullHeight}`;
-    const parts = viewBox.split(/\s+/).map((value) => Number(value || 0));
-    const width = Math.max(1, Math.round(parts[2] || fullWidth));
-    const height = Math.max(1, Math.round(parts[3] || fullHeight));
-    clone.setAttribute("width", String(width));
-    clone.setAttribute("height", String(height));
-
-    const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    background.setAttribute("x", "0");
-    background.setAttribute("y", "0");
-    background.setAttribute("width", String(width));
-    background.setAttribute("height", String(height));
-    background.setAttribute("fill", "#080808");
-    clone.insertBefore(background, clone.firstChild);
-
-    const styleNode = document.createElementNS("http://www.w3.org/2000/svg", "style");
-    styleNode.textContent = [
-        ".graph-group-label{fill:rgba(180,187,221,0.84);font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-family:system-ui,sans-serif;}",
-        ".graph-node-type{fill:rgba(180,187,221,0.92);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-family:system-ui,sans-serif;}",
-        ".graph-node-label{fill:#eef1ff;font-size:12px;font-weight:600;font-family:system-ui,sans-serif;}",
-    ].join("");
-    clone.insertBefore(styleNode, clone.firstChild);
-    return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
-}
-
-function graphExportSvgAction() {
-    try {
-        const svgString = graphBuildExportSvgString();
-        graphDownloadBlob(new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}), graphExportFilename("svg"));
-        setGraphStatus("Workspace SVG exported");
-    } catch (err) {
-        setGraphStatus(`SVG export failed: ${err.message}`, true);
-    }
-}
-
-async function graphExportPngAction() {
-    try {
-        const svgString = graphBuildExportSvgString();
-        const svgBlob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
-        const svgUrl = URL.createObjectURL(svgBlob);
-        const image = new Image();
-        image.decoding = "async";
-        const loadPromise = new Promise((resolve, reject) => {
-            image.onload = resolve;
-            image.onerror = () => reject(new Error("Unable to rasterize graph SVG."));
-        });
-        image.src = svgUrl;
-        await loadPromise;
-        const width = Math.max(1, Number(graphWorkspaceState.filtered.width || 1600));
-        const height = Math.max(1, Number(graphWorkspaceState.filtered.height || 900));
-        const scale = Math.min(1, 12000 / Math.max(width, height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(width * scale));
-        canvas.height = Math.max(1, Math.round(height * scale));
-        const context = canvas.getContext("2d");
-        if (!context) {
-            throw new Error("Canvas export is unavailable.");
-        }
-        context.fillStyle = "#080808";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.setTransform(scale, 0, 0, scale, 0, 0);
-        context.drawImage(image, 0, 0);
-        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-        window.setTimeout(() => URL.revokeObjectURL(svgUrl), 1000);
-        if (!blob) {
-            throw new Error("PNG export failed.");
-        }
-        graphDownloadBlob(blob, graphExportFilename("png"));
-        setGraphStatus("Workspace PNG exported");
-    } catch (err) {
-        setGraphStatus(`PNG export failed: ${err.message}`, true);
-    }
-}
-
 function graphApplyLayoutById(layoutId) {
     const selected = (graphWorkspaceState.layouts || []).find((item) => String(item?.layout_id || "") === String(layoutId || ""));
     graphWorkspaceState.activeLayoutId = String(selected?.layout_id || "");
@@ -10469,26 +9891,6 @@ async function addScriptEntry() {
     }
 }
 
-async function addCveEntry() {
-    const hostId = workspaceState.selectedHostId;
-    const name = getValue("workspace-cve-name").trim();
-    const severity = getValue("workspace-cve-severity").trim();
-    if (!hostId || !name) {
-        setWorkspaceStatus("select host and provide CVE name", true);
-        return;
-    }
-    try {
-        await postJson(`/api/workspace/hosts/${hostId}/cves`, {
-            name,
-            severity,
-        });
-        setWorkspaceStatus("CVE saved");
-        await loadHostDetail(hostId);
-    } catch (err) {
-        setWorkspaceStatus(`Add CVE failed: ${err.message}`, true);
-    }
-}
-
 async function deleteScript(scriptId) {
     try {
         const response = await fetch(`/api/workspace/scripts/${scriptId}`, {method: "DELETE"});
@@ -10501,21 +9903,6 @@ async function deleteScript(scriptId) {
         }
     } catch (err) {
         setWorkspaceStatus(`Delete script failed: ${err.message}`, true);
-    }
-}
-
-async function deleteCve(cveId) {
-    try {
-        const response = await fetch(`/api/workspace/cves/${cveId}`, {method: "DELETE"});
-        if (!response.ok) {
-            throw new Error(`Request failed (${response.status})`);
-        }
-        setWorkspaceStatus("CVE deleted");
-        if (workspaceState.selectedHostId) {
-            await loadHostDetail(workspaceState.selectedHostId);
-        }
-    } catch (err) {
-        setWorkspaceStatus(`Delete CVE failed: ${err.message}`, true);
     }
 }
 
@@ -10825,7 +10212,6 @@ async function loadSchedulerPreferences() {
         }
         const prefs = await response.json();
         applySchedulerPreferences(prefs);
-        syncStartupSchedulerFromMain();
     } catch (_err) {
     }
 }
@@ -11641,7 +11027,6 @@ async function runNmapScan() {
             goal_profile: legacyGoalProfileFromEngagementPolicy(engagementPolicy),
         });
         applySchedulerPreferences(schedulerPrefs);
-        syncStartupSchedulerFromMain();
         const body = scanMode === "passive_capture"
             ? await postJson("/api/scan/passive-capture", {
                 interface_name: getValue("passive-capture-interface").trim(),
@@ -11686,7 +11071,6 @@ function bindActionButtons() {
     };
 
     bind("nmap-scan-button", runNmapScan);
-    bind("ribbon-launch-wizard-button", launchStartupWizardAction);
     bind("ribbon-workspace-new-action-button", createNewTemporaryProject);
     bind("ribbon-workspace-open-action-button", openWorkspaceFromRibbonAction);
     bind("ribbon-workspace-save-action-button", saveWorkspaceAction);
@@ -11695,20 +11079,11 @@ function bindActionButtons() {
     bind("ribbon-workspace-restore-action-button", restoreWorkspaceBundleAction);
     bind("ribbon-import-xml-action-button", importNmapXmlFromRibbonAction);
     bind("ribbon-import-targets-action-button", importTargetsFromRibbonAction);
-    bind("ribbon-export-json-action-button", exportWorkspaceJsonAction);
-    bind("ribbon-export-csv-action-button", exportWorkspaceCsvAction);
-    bind("ribbon-export-hosts-csv-action-button", exportHostsCsvAction);
-    bind("hosts-export-json-button", exportHostsJsonAction);
-    bind("hosts-export-csv-button", exportHostsCsvAction);
     bind("hosts-reset-filter-button", resetHostFiltersAction);
     bind("hosts-filter-show-all-button", () => setHostFilterAction("show_all"));
     bind("hosts-filter-hide-down-button", () => setHostFilterAction("hide_down"));
     bind("services-panel-toggle-button", toggleServicesPanelAction);
     bind("graph-panel-toggle-button", toggleGraphPanelAction);
-    bind("ribbon-export-project-report-json-action-button", () => exportProjectAiReportAction("json"));
-    bind("ribbon-export-project-report-md-action-button", () => exportProjectAiReportAction("md"));
-    bind("ribbon-export-project-report-push-action-button", pushProjectAiReportAction);
-    bind("ribbon-export-ai-reports-action-button", exportAllHostAiReportsZipAction);
     bind("ribbon-scan-add-action-button", openAddScanAction);
     bind("ribbon-scan-manual-action-button", openManualScanAction);
     bind("ribbon-misc-host-selection-action-button", openHostSelectionAction);
@@ -11740,15 +11115,10 @@ function bindActionButtons() {
     bind("workspace-run-tool-button", runManualTool);
     bind("workspace-run-scheduler-button", runSchedulerNow);
     bind("workspace-add-script-button", addScriptEntry);
-    bind("workspace-add-cve-button", addCveEntry);
     bind("process-clear-finished-button", () => clearProcessesAction(false));
     bind("process-clear-all-button", () => clearProcessesAction(true));
     bind("graph-refresh-button", graphRefreshAction);
     bind("graph-rebuild-button", graphRebuildAction);
-    bind("graph-export-json-button", () => graphExportAction("json"));
-    bind("graph-export-graphml-button", () => graphExportAction("graphml"));
-    bind("graph-export-svg-button", graphExportSvgAction);
-    bind("graph-export-png-button", graphExportPngAction);
     bind("graph-filters-toggle-button", () => graphSetFiltersExpanded(!graphWorkspaceState.filtersExpanded));
     bind("graph-focus-selection-button", graphFocusSelectionAction);
     bind("graph-clear-focus-button", graphClearFocusAction);
@@ -11961,20 +11331,6 @@ function bindActionButtons() {
         });
     }
 
-    const cvesBody = document.getElementById("host-detail-cves");
-    if (cvesBody) {
-        cvesBody.addEventListener("click", async (event) => {
-            const btn = event.target.closest("button[data-cve-delete-id]");
-            if (!btn) {
-                return;
-            }
-            const id = parseInt(btn.dataset.cveDeleteId, 10);
-            if (!id) {
-                return;
-            }
-            await deleteCve(id);
-        });
-    }
 
     const processesBody = document.getElementById("processes-body");
     if (processesBody) {
@@ -12008,9 +11364,6 @@ function bindActionButtons() {
 
     bind("nmap-wizard-back", () => setNmapWizardStep(nmapWizardState.step - 1));
     bind("nmap-wizard-next", () => setNmapWizardStep(nmapWizardState.step + 1));
-    bind("startup-wizard-back", startupWizardBackAction);
-    bind("startup-wizard-next", startupWizardNextAction);
-    bind("startup-wizard-skip", startupWizardSkipAction);
     bind("scheduler-test-provider-button", testSchedulerProviderAction);
     bind("project-report-push-button", pushProjectAiReportAction);
     bind("scheduler-modal-close", closeSchedulerSettingsAction);
@@ -12026,8 +11379,6 @@ function bindActionButtons() {
     bind("device-category-save-button", saveDeviceCategorySettingsAction);
     bind("report-provider-modal-close", closeReportProviderModalAction);
     bind("settings-modal-close", closeAppSettingsAction);
-    bind("settings-config-refresh-button", refreshAppSettingsConfigAction);
-    bind("settings-config-save-button", saveAppSettingsConfigAction);
     bind("settings-tool-audit-refresh-button", refreshToolAuditAction);
     bind("settings-tool-install-copy-button", copyToolInstallScriptAction);
     bind("settings-tool-install-run-button", startToolInstallAction);
@@ -12045,8 +11396,6 @@ function bindActionButtons() {
     bind("provider-logs-refresh-button", loadProviderLogsAction);
     bind("provider-logs-copy-button", copyProviderLogsAction);
     bind("provider-logs-download-button", downloadProviderLogsAction);
-    bind("host-ai-export-json-button", () => exportSelectedHostAiReportAction("json"));
-    bind("host-ai-export-md-button", () => exportSelectedHostAiReportAction("md"));
     bind("host-remove-modal-close", () => closeHostRemoveModalAction(true));
     bind("host-remove-modal-cancel", () => closeHostRemoveModalAction(true));
     bind("host-remove-modal-confirm", confirmHostRemoveAction);
@@ -12385,9 +11734,6 @@ function bindActionButtons() {
             graphDismissSelection();
             return;
         }
-        if (startupWizardState.open) {
-            setStartupWizardOpen(false);
-        }
     });
 
     document.addEventListener("pointerdown", (event) => {
@@ -12417,7 +11763,6 @@ function bindActionButtons() {
             || uiModalState.deviceCategorySettingsOpen
             || uiModalState.schedulerOpen
             || uiModalState.reportProviderOpen
-            || startupWizardState.open
         ) {
             return;
         }
@@ -12525,19 +11870,6 @@ window.addEventListener("DOMContentLoaded", () => {
         engagementIntentSelect.addEventListener("change", syncEngagementPresetControls);
     }
     syncEngagementPresetControls();
-    const startupSchedulerGoalSelect = document.getElementById("startup-scheduler-goal");
-    if (startupSchedulerGoalSelect) {
-        startupSchedulerGoalSelect.addEventListener("change", syncStartupEngagementPresetControls);
-    }
-    const startupEngagementScopeSelect = document.getElementById("startup-engagement-scope-select");
-    if (startupEngagementScopeSelect) {
-        startupEngagementScopeSelect.addEventListener("change", syncStartupEngagementPresetControls);
-    }
-    const startupEngagementIntentSelect = document.getElementById("startup-engagement-intent-select");
-    if (startupEngagementIntentSelect) {
-        startupEngagementIntentSelect.addEventListener("change", syncStartupEngagementPresetControls);
-    }
-    syncStartupEngagementPresetControls();
     const reportProviderForm = document.getElementById("report-provider-form");
     if (reportProviderForm) {
         reportProviderForm.addEventListener("submit", saveProjectReportDeliveryPreferences);
@@ -12545,6 +11877,5 @@ window.addEventListener("DOMContentLoaded", () => {
 
     bindActionButtons();
     bindGraphWorkspaceEvents();
-    initializeStartupWizard();
     refreshWorkspace();
 });

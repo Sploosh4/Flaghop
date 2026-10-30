@@ -3,7 +3,6 @@ import hashlib
 import ipaddress
 import json
 from typing import Any, Dict, Iterable, List, Optional, Tuple
-from xml.sax.saxutils import escape as xml_escape
 
 from app.device_categories import category_names
 from sqlalchemy import text
@@ -2286,58 +2285,3 @@ def get_evidence_graph_snapshot(database) -> Dict[str, Any]:
         }
     finally:
         session.close()
-
-
-def export_evidence_graph_json(database, *, rebuild: bool = False) -> Dict[str, Any]:
-    if rebuild:
-        rebuild_evidence_graph(database)
-    return get_evidence_graph_snapshot(database)
-
-
-def export_evidence_graph_graphml(database, *, rebuild: bool = False) -> str:
-    if rebuild:
-        rebuild_evidence_graph(database)
-    snapshot = get_evidence_graph_snapshot(database)
-    lines = [
-        '<?xml version="1.0" encoding="UTF-8"?>',
-        '<graphml xmlns="http://graphml.graphdrawing.org/xmlns">',
-        '  <graph edgedefault="directed" id="legion-evidence-graph">',
-    ]
-    for node in snapshot.get("nodes", []):
-        if not isinstance(node, dict):
-            continue
-        props = _to_json(node.get("properties", {}), {})
-        evidence = _to_json(node.get("evidence_refs", []), [])
-        lines.extend([
-            f'    <node id="{xml_escape(str(node.get("node_id", "")))}">',
-            f'      <data key="type">{xml_escape(str(node.get("type", "")))}</data>',
-            f'      <data key="label">{xml_escape(str(node.get("label", "")))}</data>',
-            f'      <data key="confidence">{xml_escape(str(node.get("confidence", 0.0)))}</data>',
-            f'      <data key="source_kind">{xml_escape(str(node.get("source_kind", "")))}</data>',
-            f'      <data key="source_ref">{xml_escape(str(node.get("source_ref", "")))}</data>',
-            f'      <data key="properties_json">{xml_escape(props)}</data>',
-            f'      <data key="evidence_refs_json">{xml_escape(evidence)}</data>',
-            '    </node>',
-        ])
-    for edge in snapshot.get("edges", []):
-        if not isinstance(edge, dict):
-            continue
-        props = _to_json(edge.get("properties", {}), {})
-        evidence = _to_json(edge.get("evidence_refs", []), [])
-        lines.extend([
-            f'    <edge id="{xml_escape(str(edge.get("edge_id", "")))}" '
-            f'source="{xml_escape(str(edge.get("from_node_id", "")))}" '
-            f'target="{xml_escape(str(edge.get("to_node_id", "")))}">',
-            f'      <data key="type">{xml_escape(str(edge.get("type", "")))}</data>',
-            f'      <data key="confidence">{xml_escape(str(edge.get("confidence", 0.0)))}</data>',
-            f'      <data key="source_kind">{xml_escape(str(edge.get("source_kind", "")))}</data>',
-            f'      <data key="source_ref">{xml_escape(str(edge.get("source_ref", "")))}</data>',
-            f'      <data key="properties_json">{xml_escape(props)}</data>',
-            f'      <data key="evidence_refs_json">{xml_escape(evidence)}</data>',
-            '    </edge>',
-        ])
-    lines.extend([
-        '  </graph>',
-        '</graphml>',
-    ])
-    return "\n".join(lines)

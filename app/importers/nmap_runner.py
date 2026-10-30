@@ -1,5 +1,5 @@
 """
-Shared Nmap XML import entrypoint used by web, headless CLI, and MCP modes.
+Shared Nmap XML import entrypoint used by the desktop/web workspace and shared execution core.
 """
 
 from app.importers.NmapImporter import NmapImporter

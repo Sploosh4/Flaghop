@@ -2,6 +2,7 @@ import os
 import stat
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 class ToolingEnvTest(unittest.TestCase):
@@ -228,7 +229,8 @@ class ToolingEnvTest(unittest.TestCase):
             ),
         ]
 
-        plan = build_tool_install_plan(rows, platform="kali")
+        with patch("app.tooling.shutil.which", return_value="/fixture/bin/go"):
+            plan = build_tool_install_plan(rows, platform="kali")
         self.assertEqual("kali", plan["platform"])
         self.assertEqual(2, plan["command_count"])
         commands = [item["command"] for item in plan["commands"]]

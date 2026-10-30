@@ -120,15 +120,6 @@ class GraphRebuildRequest:
 
 
 @dataclass(frozen=True)
-class GraphExportQuery:
-    rebuild: bool
-
-    @classmethod
-    def from_args(cls, args) -> "GraphExportQuery":
-        return cls(rebuild=as_bool(args.get("rebuild", False), default=False))
-
-
-@dataclass(frozen=True)
 class GraphContentQuery:
     max_chars: int
     download: bool

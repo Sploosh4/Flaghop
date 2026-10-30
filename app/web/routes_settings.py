@@ -20,28 +20,6 @@ def _disable_cache(response):
     return response
 
 
-@settings_bp.get("/api/settings/legion-conf")
-def settings_legion_conf_get():
-    service = _settings_service()
-    try:
-        return jsonify(service.get_legion_conf())
-    except FileNotFoundError as exc:
-        return json_error(str(exc), 404)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
-@settings_bp.post("/api/settings/legion-conf")
-def settings_legion_conf_save():
-    service = _settings_service()
-    try:
-        return jsonify(service.save_legion_conf(request.get_json(silent=True) or {}))
-    except ValueError as exc:
-        return json_error(str(exc), 400)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
 @settings_bp.get("/api/settings/display")
 def settings_display_get():
     service = _settings_service()

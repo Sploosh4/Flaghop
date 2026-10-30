@@ -7,14 +7,11 @@ from typing import Any, Dict, Optional
 from app.scheduler.reporting import (
     build_host_report,
     build_project_report,
-    render_host_report_markdown as render_scheduler_host_report_markdown,
     render_project_report_markdown as render_scheduler_project_report_markdown,
 )
 from app.web.runtime_ai_reports import (
-    build_host_ai_reports_zip,
-    get_host_ai_report,
+    get_host_ai_report as get_host_ai_report,
     get_project_ai_report,
-    render_host_ai_report_markdown,
     render_project_ai_report_markdown,
 )
 
@@ -40,10 +37,6 @@ def get_host_report(runtime, host_id: int) -> Dict[str, Any]:
         engagement_policy=engagement_policy,
         project_metadata=project_meta,
     )
-
-
-def render_host_report_markdown(report: Dict[str, Any]) -> str:
-    return render_scheduler_host_report_markdown(report)
 
 
 def get_project_report(runtime) -> Dict[str, Any]:

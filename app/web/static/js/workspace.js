@@ -324,7 +324,7 @@
         createSlot("hosts", "inspection-view").appendChild(byId("workspace-hosts-panel"));
         createSlot("services", "inspection-view").appendChild(byId("workspace-services-panel"));
         const detail = byId("workspace-host-detail-panel");
-        const emptyDetail = emptyMessage("workspace-detail-empty", "Select a host to inspect", "Ports, findings, scripts, screenshots, and notes will appear here.");
+        const emptyDetail = emptyMessage("workspace-detail-empty", "Select a host to inspect", "Ports, scripts, screenshots, and notes will appear here.");
         detail.insertBefore(emptyDetail, detail.children[1]);
         slots.hosts.appendChild(detail);
         const graphSlot = createSlot("graph", "graph-view");

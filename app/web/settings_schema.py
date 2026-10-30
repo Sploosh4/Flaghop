@@ -11,19 +11,6 @@ def _split_query_tokens(value: Any) -> List[str]:
 
 
 @dataclass(frozen=True)
-class LegionConfRequest:
-    text_value: str
-
-    @classmethod
-    def from_payload(cls, payload: Any) -> "LegionConfRequest":
-        source = payload if isinstance(payload, dict) else {}
-        text_value = source.get("text", None)
-        if not isinstance(text_value, str):
-            raise ValueError("Field 'text' is required and must be a string.")
-        return cls(text_value=text_value)
-
-
-@dataclass(frozen=True)
 class DisplaySettingsRequest:
     colorful_ascii_background: bool
 

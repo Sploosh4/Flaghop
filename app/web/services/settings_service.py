@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from typing import Any, Dict
 
 from app.settings import AppSettings, Settings
@@ -13,7 +12,6 @@ from app.tooling import (
 from app.web.http_utils import as_bool
 from app.web.settings_schema import (
     DisplaySettingsRequest,
-    LegionConfRequest,
     ToolAuditInstallRequest,
     ToolAuditPlanQuery,
 )
@@ -49,27 +47,6 @@ class SettingsService:
     def __init__(self, runtime):
         self.runtime = runtime
 
-    def get_legion_conf(self) -> Dict[str, Any]:
-        settings = AppSettings()
-        conf_path = str(settings.actions.fileName() or "")
-        if not conf_path:
-            raise RuntimeError("Unable to resolve legion.conf path.")
-        if not os.path.isfile(conf_path):
-            raise FileNotFoundError(f"Config file not found: {conf_path}")
-        with open(conf_path, "r", encoding="utf-8") as handle:
-            text_value = handle.read()
-        return {"path": conf_path, "text": text_value}
-
-    def save_legion_conf(self, payload: Any) -> Dict[str, Any]:
-        request = LegionConfRequest.from_payload(payload)
-        settings = AppSettings()
-        conf_path = str(settings.actions.fileName() or "")
-        if not conf_path:
-            raise RuntimeError("Unable to resolve legion.conf path.")
-        with open(conf_path, "w", encoding="utf-8") as handle:
-            handle.write(request.text_value)
-        _refresh_runtime_settings(self.runtime)
-        return {"status": "ok", "path": conf_path}
 
     def get_display_settings(self) -> Dict[str, Any]:
         return load_display_settings(self.runtime)

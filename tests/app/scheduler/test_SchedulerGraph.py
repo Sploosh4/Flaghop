@@ -7,8 +7,6 @@ from app.logging.legionLog import getAppLogger, getDbLogger
 from app.scheduler.execution import get_execution_record, store_execution_record
 from app.scheduler.graph import (
     ensure_scheduler_graph_tables,
-    export_evidence_graph_graphml,
-    export_evidence_graph_json,
     get_evidence_graph_snapshot,
     list_graph_annotations,
     list_graph_layout_states,
@@ -133,13 +131,7 @@ class SchedulerEvidenceGraphTest(unittest.TestCase):
             )
             self.assertIn("/admin/login", list(evidence_node.get("evidence_refs", []) or []))
 
-            exported_json = export_evidence_graph_json(project.database)
-            exported_graphml = export_evidence_graph_graphml(project.database)
 
-            self.assertEqual(len(snapshot["nodes"]), len(exported_json["nodes"]))
-            self.assertIn("<graphml", exported_graphml)
-            self.assertIn("portal.local", exported_graphml)
-            self.assertIn("CVE-2025-1234", exported_graphml)
         finally:
             project_manager.closeProject(project)
 

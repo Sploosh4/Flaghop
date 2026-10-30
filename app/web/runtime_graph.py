@@ -6,8 +6,6 @@ from typing import Any, Dict, List, Optional
 
 from app.scheduler.graph import (
     ensure_scheduler_graph_tables,
-    export_evidence_graph_graphml,
-    export_evidence_graph_json,
     list_graph_annotations,
     list_graph_layout_states,
     query_evidence_graph,
@@ -338,20 +336,6 @@ def rebuild_evidence_graph_for_runtime(runtime, host_id: Optional[int] = None) -
             "edges": int(snapshot.get("meta", {}).get("total_edges", 0) or 0),
             "host_id": int(host_id or 0) or None,
         }
-
-
-def export_evidence_graph_json_for_runtime(runtime, *, rebuild: bool = False) -> Dict[str, Any]:
-    with runtime._lock:
-        project = runtime._require_active_project()
-        ensure_scheduler_graph_tables(project.database)
-        return export_evidence_graph_json(project.database, rebuild=bool(rebuild))
-
-
-def export_evidence_graph_graphml_for_runtime(runtime, *, rebuild: bool = False) -> str:
-    with runtime._lock:
-        project = runtime._require_active_project()
-        ensure_scheduler_graph_tables(project.database)
-        return export_evidence_graph_graphml(project.database, rebuild=bool(rebuild))
 
 
 def get_evidence_graph_layouts(runtime) -> List[Dict[str, Any]]:

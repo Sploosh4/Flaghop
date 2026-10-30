@@ -6,6 +6,8 @@ import tempfile
 from unittest import mock
 from types import SimpleNamespace
 
+from tests.timezone import local_timezone
+
 
 class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
     def test_apply_engagement_scan_profile_uses_quick_recon_ports(self):
@@ -634,6 +636,8 @@ class WebRuntimeSchedulerFeedbackTest(unittest.TestCase):
         self.assertEqual("manual_validation", summary["reflection_posture"]["priority_shift"])
         self.assertEqual("phase_transition", summary["reflection_posture"]["trigger_reason"])
 
+    # The legacy decision timestamp below uses UTC-05, matching the ISO events.
+    @local_timezone("EST5")
     def test_build_scheduler_rationale_feed_items_summarizes_scores_and_outcomes(self):
         from app.web.runtime import WebRuntime
 

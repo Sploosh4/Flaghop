@@ -32,7 +32,6 @@
                         <small class="ribbon-caret"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></small>
                     </button>
                     <div id="ribbon-workspace-menu" class="ribbon-submenu" role="menu" aria-label="Workspace options">
-                        <button id="ribbon-launch-wizard-button" class="ribbon-submenu-item" type="button" title="Run the workspace startup wizard">Workspace Wizard</button>
                         <button id="ribbon-workspace-new-action-button" class="ribbon-submenu-item" type="button" title="Create a new temporary workspace">New Workspace</button>
                         <button id="ribbon-workspace-open-action-button" class="ribbon-submenu-item" type="button" title="Open an existing .legion workspace">Open Workspace</button>
                         <button id="ribbon-workspace-save-action-button" class="ribbon-submenu-item" type="button" title="Save using the current workspace path">Save</button>
@@ -60,30 +59,7 @@
                         <button id="ribbon-import-targets-action-button" class="ribbon-submenu-item" type="button" title="Import target hosts/subnets from a text file">Import Targets TXT</button>
                     </div>
                 </div>
-                <div class="ribbon-menu" data-ribbon-menu="export">
-                    <button
-                        id="ribbon-export-menu-button"
-                        class="ribbon-btn ribbon-btn-menu"
-                        type="button"
-                        title="Export options"
-                        data-ribbon-menu-toggle="export"
-                        aria-haspopup="menu"
-                        aria-expanded="false"
-                    >
-                        <i class="fa-solid fa-file-export" aria-hidden="true"></i>
-                        <span>Export Data</span>
-                        <small class="ribbon-caret"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></small>
-                    </button>
-                    <div id="ribbon-export-menu" class="ribbon-submenu" role="menu" aria-label="Export options">
-                        <button id="ribbon-export-json-action-button" class="ribbon-submenu-item" type="button" title="Export workspace data as JSON">Export JSON</button>
-                        <button id="ribbon-export-csv-action-button" class="ribbon-submenu-item" type="button" title="Export workspace data as CSV">Export CSV</button>
-                        <button id="ribbon-export-hosts-csv-action-button" class="ribbon-submenu-item" type="button" title="Export hosts only as CSV">Export Hosts CSV</button>
-                        <button id="ribbon-export-project-report-json-action-button" class="ribbon-submenu-item" type="button" title="Export full project report as JSON">Export Project Report JSON</button>
-                        <button id="ribbon-export-project-report-md-action-button" class="ribbon-submenu-item" type="button" title="Export full project report as Markdown">Export Project Report Markdown</button>
-                        <button id="ribbon-export-project-report-push-action-button" class="ribbon-submenu-item" type="button" title="Push full project report to configured delivery endpoint">Push Project Report</button>
-                        <button id="ribbon-export-ai-reports-action-button" class="ribbon-submenu-item" type="button" title="Download all host reports (JSON and Markdown) as a ZIP">Export Host Reports ZIP</button>
-                    </div>
-                </div>
+
                 <div class="ribbon-menu" data-ribbon-menu="scans">
                     <button
                         id="ribbon-scans-menu-button"
@@ -119,7 +95,7 @@
                     </button>
                     <div id="ribbon-misc-menu" class="ribbon-submenu" role="menu" aria-label="Misc options">
                         <button id="ribbon-misc-host-selection-action-button" class="ribbon-submenu-item" type="button" title="Open host selection and notes">Host Selection</button>
-                        <button id="ribbon-misc-script-cve-action-button" class="ribbon-submenu-item" type="button" title="Open Add Script/CVE form">Add Script/CVE</button>
+                        <button id="ribbon-misc-script-cve-action-button" class="ribbon-submenu-item" type="button" title="Open Add Script form">Add Script</button>
                     </div>
                 </div>
                 <div class="ribbon-menu" data-ribbon-menu="logging">
@@ -172,7 +148,7 @@
                         <button id="ribbon-interface-settings-button" class="ribbon-submenu-item" type="button" title="Open interface settings">Interface</button>
                         <button id="ribbon-device-category-settings-button" class="ribbon-submenu-item" type="button" title="Open device category settings">Device Categories</button>
                         <button id="ribbon-report-provider-settings-button" class="ribbon-submenu-item" type="button" title="Open project report provider settings">Report Provider</button>
-                        <button id="ribbon-app-settings-button" class="ribbon-submenu-item" type="button" title="Open and edit legion.conf settings">App Settings</button>
+                        <button id="ribbon-app-settings-button" class="ribbon-submenu-item" type="button" title="Open application settings">App Settings</button>
                     </div>
                 </div>
                 </div>
@@ -675,18 +651,10 @@
                 <button id="graph-rebuild-button" class="graph-icon-button" type="button" title="Rebuild Graph" aria-label="Rebuild Graph">
                     <i class="fa-solid fa-sitemap" aria-hidden="true"></i>
                 </button>
-                <button id="graph-export-json-button" class="graph-icon-button" type="button" title="Export JSON" aria-label="Export JSON">
-                    <i class="fa-solid fa-file-code" aria-hidden="true"></i>
-                </button>
-                <button id="graph-export-graphml-button" class="graph-icon-button" type="button" title="Export GraphML" aria-label="Export GraphML">
-                    <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
-                </button>
-                <button id="graph-export-svg-button" class="graph-icon-button" type="button" title="Export SVG" aria-label="Export SVG">
-                    <i class="fa-solid fa-vector-square" aria-hidden="true"></i>
-                </button>
-                <button id="graph-export-png-button" class="graph-icon-button" type="button" title="Export PNG" aria-label="Export PNG">
-                    <i class="fa-solid fa-image" aria-hidden="true"></i>
-                </button>
+
+
+
+
             </div>
             <span class="graph-footer-separator" aria-hidden="true"></span>
             <div class="graph-action-group graph-action-group-separated">
@@ -771,11 +739,6 @@
                         <span class="sr-only">Host options</span>
                     </button>
                     <div id="hosts-panel-menu" class="ribbon-submenu panel-submenu" role="menu" aria-label="Host options">
-                        <div class="panel-submenu-group">
-                            <p class="panel-submenu-title">Export</p>
-                            <button id="hosts-export-json-button" class="ribbon-submenu-item" type="button" title="Export visible hosts as JSON">Export JSON</button>
-                            <button id="hosts-export-csv-button" class="ribbon-submenu-item" type="button" title="Export visible hosts as CSV">Export CSV</button>
-                        </div>
                         <div class="panel-submenu-group">
                             <p class="panel-submenu-title">Filter</p>
                             <button id="hosts-filter-show-all-button" class="ribbon-submenu-item" type="button" title="Show all hosts regardless of status">Show All</button>
@@ -899,21 +862,6 @@
                 <tbody id="host-detail-scripts"></tbody>
             </table>
         </div>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                <tr>
-                    <th>CVE ID</th>
-                    <th>Name</th>
-                    <th>Severity</th>
-                    <th>Product</th>
-                    <th>URL</th>
-                    <th>Action</th>
-                </tr>
-                </thead>
-                <tbody id="host-detail-cves"></tbody>
-            </table>
-        </div>
         <div class="panel-header">
             <h3>Device Categories</h3>
             <p id="host-device-category-count">0</p>
@@ -938,24 +886,6 @@
             </table>
         </div>
         <div class="panel-header">
-            <h3>Findings</h3>
-            <p id="host-ai-finding-count">0</p>
-        </div>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                <tr>
-                    <th>Severity</th>
-                    <th>Title</th>
-                    <th>CVE</th>
-                    <th>CVSS</th>
-                    <th>Evidence</th>
-                </tr>
-                </thead>
-                <tbody id="host-detail-ai-findings"></tbody>
-            </table>
-        </div>
-        <div class="panel-header">
             <h3>Manual Tests</h3>
             <p id="host-ai-manual-count">0</p>
         </div>
@@ -974,10 +904,6 @@
         <div class="panel-header">
             <h3>Analysis Status</h3>
             <p id="host-ai-analysis-status"></p>
-        </div>
-        <div class="host-ai-report-actions">
-            <button id="host-ai-export-json-button" type="button">Export Report JSON</button>
-            <button id="host-ai-export-md-button" type="button">Export Report Markdown</button>
         </div>
         <div class="panel-header">
             <h3>Screenshots</h3>
@@ -1494,8 +1420,8 @@
 <div id="script-cve-modal" class="legion-modal-overlay" aria-hidden="true">
     <div class="legion-modal script-cve-modal" role="dialog" aria-modal="true" aria-labelledby="script-cve-modal-title">
         <div class="panel-header modal-header">
-            <h2 id="script-cve-modal-title">Add Script/CVE</h2>
-            <p>Misc > Add Script/CVE</p>
+            <h2 id="script-cve-modal-title">Add Script</h2>
+            <p>Misc > Add Script</p>
             <button id="script-cve-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
                 <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
@@ -1522,17 +1448,6 @@
             </label>
             <div class="scheduler-actions">
                 <button id="workspace-add-script-button" type="button">Add Script</button>
-            </div>
-            <label>
-                CVE Name
-                <input id="workspace-cve-name" type="text" placeholder="CVE-2025-0001">
-            </label>
-            <label>
-                CVE Severity
-                <input id="workspace-cve-severity" type="text" placeholder="high">
-            </label>
-            <div class="scheduler-actions">
-                <button id="workspace-add-cve-button" type="button">Add CVE</button>
             </div>
         </div>
     </div>
@@ -2096,7 +2011,6 @@
     <div class="legion-modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
         <div class="panel-header modal-header">
             <h2 id="settings-modal-title">Application Settings</h2>
-            <p id="settings-config-path">legion.conf</p>
             <button id="settings-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
                 <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
@@ -2141,16 +2055,6 @@
                     <tbody id="settings-tool-audit-body"></tbody>
                 </table>
             </div>
-        </div>
-        <p class="meta-note">Edit `legion.conf` directly. Saving reloads settings for subsequent actions.</p>
-        <label>
-            Config Text
-            <textarea id="settings-config-text" rows="18"></textarea>
-        </label>
-        <p id="settings-config-status" class="meta-note"></p>
-        <div class="modal-actions">
-            <button id="settings-config-refresh-button" type="button">Reload</button>
-            <button id="settings-config-save-button" type="button">Save Config</button>
         </div>
     </div>
 </div>
@@ -2320,122 +2224,5 @@
     </div>
 </div>
 
-<div id="startup-wizard-overlay" class="startup-wizard-overlay" aria-hidden="true">
-    <div class="startup-wizard" role="dialog" aria-modal="true" aria-labelledby="startup-wizard-title">
-        <div class="panel-header modal-header">
-            <h2 id="startup-wizard-title">Workspace Setup</h2>
-            <p id="startup-wizard-meta">Step 1 of 4</p>
-        </div>
 
-        <section id="startup-step-1" class="startup-step is-active" data-startup-step="1">
-            <h3>Project</h3>
-            <p class="meta-note">Start a new temporary project or open an existing `.legion` file.</p>
-            <label class="mode-card">
-                <input id="startup-project-new" type="radio" name="startup-project-action" value="new" checked>
-                <strong>New Temporary Project</strong>
-                <span>Create a fresh temporary workspace now.</span>
-            </label>
-            <label class="mode-card">
-                <input id="startup-project-open" type="radio" name="startup-project-action" value="open">
-                <strong>Open Existing Project</strong>
-                <span>Load an existing `.legion` project file.</span>
-            </label>
-            <label>
-                Existing Project Path
-                <input id="startup-project-open-path" type="text" placeholder="/path/to/project.legion">
-            </label>
-        </section>
-
-        <section id="startup-step-2" class="startup-step" data-startup-step="2">
-            <h3>Imports</h3>
-            <p class="meta-note">Import optional seed data before scanning.</p>
-            <label class="checkbox">
-                <input id="startup-import-targets-enabled" type="checkbox">
-                Import Targets File
-            </label>
-            <label>
-                Targets File Path
-                <input id="startup-import-targets-path" type="text" placeholder="/path/to/targets.txt">
-            </label>
-            <label class="checkbox">
-                <input id="startup-import-xml-enabled" type="checkbox">
-                Import Nmap XML
-            </label>
-            <label>
-                Nmap XML Path
-                <input id="startup-import-xml-path" type="text" placeholder="/path/to/scan.xml">
-            </label>
-            <label class="checkbox">
-                <input id="startup-import-xml-run-actions" type="checkbox">
-                Run scripted actions after XML import
-            </label>
-        </section>
-
-        <section id="startup-step-3" class="startup-step" data-startup-step="3">
-            <h3>Scheduler</h3>
-            <p class="meta-note">Choose the scheduling strategy before entering the workspace.</p>
-            <label>
-                Mode
-                <select id="startup-scheduler-mode">
-                    <option value="deterministic">deterministic</option>
-                    <option value="ai">ai</option>
-                </select>
-            </label>
-            <label>
-                Engagement Preset
-                <select id="startup-scheduler-goal">
-                    <option value="external_recon">external_recon</option>
-                    <option value="external_pentest">external_pentest</option>
-                    <option value="internal_quick_recon">internal_quick_recon</option>
-                    <option value="internal_recon">internal_recon</option>
-                    <option value="internal_pentest">internal_pentest</option>
-                    <option value="custom">custom</option>
-                </select>
-            </label>
-            <p id="startup-engagement-preset-summary" class="meta-note scheduler-group-note">Preset drives scope and intent for most runs. Switch to custom only if you need a manual override.</p>
-            <div id="startup-engagement-derived-policy" class="scheduler-policy-summary" aria-live="polite">
-                <span class="scheduler-policy-chip">Scope: <strong id="startup-engagement-derived-scope">internal</strong></span>
-                <span class="scheduler-policy-chip">Intent: <strong id="startup-engagement-derived-intent">recon</strong></span>
-            </div>
-            <label id="startup-engagement-custom-scope-label" hidden>
-                Custom Scope
-                <select id="startup-engagement-scope-select">
-                    <option value="internal">internal</option>
-                    <option value="external">external</option>
-                    <option value="mixed">mixed</option>
-                </select>
-            </label>
-            <label id="startup-engagement-custom-intent-label" hidden>
-                Custom Intent
-                <select id="startup-engagement-intent-select">
-                    <option value="recon">recon</option>
-                    <option value="pentest">pentest</option>
-                </select>
-            </label>
-            <p id="startup-engagement-custom-note" class="meta-note scheduler-group-note" hidden>Use custom only when the standard presets do not match the engagement. Otherwise the preset is the simpler and safer choice.</p>
-            <label>
-                Provider
-                <select id="startup-scheduler-provider">
-                    <option value="none">none</option>
-                    <option value="lm_studio">lm_studio</option>
-                    <option value="openai">openai</option>
-                    <option value="claude">claude</option>
-                </select>
-            </label>
-        </section>
-
-        <section id="startup-step-4" class="startup-step" data-startup-step="4">
-            <h3>Ready</h3>
-            <p class="meta-note">Setup is complete. Continue to workspace and launch Scans > Add Scan.</p>
-            <div id="startup-summary" class="startup-summary"></div>
-        </section>
-
-        <p id="startup-wizard-status" class="meta-note"></p>
-        <div class="modal-actions">
-            <button id="startup-wizard-skip" type="button">Skip Setup</button>
-            <button id="startup-wizard-back" type="button">Back</button>
-            <button id="startup-wizard-next" type="button">Continue</button>
-        </div>
-    </div>
-</div>
 {% endblock %}

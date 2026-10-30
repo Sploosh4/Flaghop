@@ -103,30 +103,6 @@ def workspace_host_script_output(script_id):
         return json_error(str(exc), 500)
 
 
-@host_actions_bp.post("/api/workspace/hosts/<int:host_id>/cves")
-def workspace_host_cve_create(host_id):
-    service = _host_action_service()
-    try:
-        return jsonify(service.create_cve_entry(host_id, request.get_json(silent=True) or {}))
-    except KeyError as exc:
-        return json_error(str(exc), 404)
-    except ValueError as exc:
-        return json_error(str(exc), 400)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
-@host_actions_bp.delete("/api/workspace/cves/<int:cve_id>")
-def workspace_host_cve_delete(cve_id):
-    service = _host_action_service()
-    try:
-        return jsonify({"status": "ok", **service.delete_cve_entry(cve_id)})
-    except KeyError as exc:
-        return json_error(str(exc), 404)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
 @host_actions_bp.post("/api/workspace/hosts/<int:host_id>/dig-deeper")
 def workspace_host_dig_deeper(host_id):
     service = _host_action_service()
