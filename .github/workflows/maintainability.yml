@@ -32,3 +32,9 @@ jobs:
           QT_QPA_PLATFORM: offscreen
           QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
         run: .venv/bin/python tests/desktop/workspace_smoke.py
+      - name: Fixture desktop fallback compatibility
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
+          LEGION_SMOKE_WEB_STACK: legacy
+        run: .venv/bin/python tests/desktop/workspace_smoke.py

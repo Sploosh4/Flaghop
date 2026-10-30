@@ -23,7 +23,9 @@ os.environ["TMPDIR"] = str(ROOT / ".tmp")
 os.environ["XDG_CACHE_HOME"] = str(ROOT / ".cache")
 
 from app.api import create_app
-from tests.support.asgi_server import live_asgi_server
+from app.web import create_app as create_legacy_app
+from tests.support.asgi_server import live_asgi_server, live_legacy_server
+from tests.desktop.activity_fixture import seed_activity
 from PyQt6 import sip
 from PyQt6.QtCore import QTimer, QUrl
 from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
@@ -63,6 +65,7 @@ upsert_target_state(
 )
 runtime = WebRuntime(logic)
 runtime.scheduler_config.update_preferences({"feature_flags": {"graph_workspace": True}})
+fixture_process_id, fixture_approval_id = seed_activity(runtime)
 fixture_wait = threading.Event()
 
 
@@ -73,7 +76,10 @@ def fixture_job(job_id):
 
 
 fixture_job_id = runtime._start_job("fixture-ui-wait", fixture_job)["id"]
-server_context = live_asgi_server(create_app(runtime))
+legacy_stack = os.environ.get("LEGION_SMOKE_WEB_STACK") == "legacy"
+server_context = (
+    live_legacy_server(create_legacy_app(runtime)) if legacy_stack else live_asgi_server(create_app(runtime))
+)
 server_url = server_context.__enter__()
 app = QApplication([sys.argv[0]])
 errors = []
@@ -178,6 +184,141 @@ def fixture_stopped():
       return Boolean(stopped);
     }})()""",
     )
+    activity()
+
+
+def activity():
+    record(
+        "React activity panels mount and render fixture processes",
+        """(() => {
+      document.querySelector('[data-view="activity"]').click();
+      return ['processes-body', 'approvals-body', 'decisions-body', 'scan-history-body', 'decision-rationale-body']
+        .every(id => document.getElementById(id).dataset.framework === 'react')
+        && document.getElementById('processes-body').textContent.includes('Fixture activity')
+        && document.querySelectorAll('#decision-rationale-body article').length > 0;
+    })()""",
+    )
+    record(
+        "Open React process output",
+        f"""(() => {{
+      document.querySelector('#processes-body [data-process-id="{fixture_process_id}"][data-process-action="output"]').click();
+      return true;
+    }})()""",
+    )
+    QTimer.singleShot(400, activity_output)
+
+
+def activity_output():
+    view.grab().save(str(ARTIFACTS / "process-output.png"))
+    record(
+        "React output retains ANSI and escapes tool text",
+        """(() => {
+      const modal = document.getElementById('process-output-modal');
+      const output = document.getElementById('process-output-text');
+      return modal.classList.contains('is-open') && output.textContent.includes('Fixture output')
+        && !!output.querySelector('.ansi-fg-green') && !output.querySelector('img')
+        && document.getElementById('process-output-command').textContent === 'fixture-never-executed';
+    })()""",
+    )
+    record(
+        "Open React decision history",
+        """(() => {
+      document.getElementById('process-output-modal-close').click();
+      document.getElementById('ribbon-logging-scheduler-decisions-button').click();
+      return document.getElementById('decisions-body').textContent.includes('Fixture decision recorded');
+    })()""",
+    )
+    record(
+        "Open React scan history",
+        """(() => {
+      document.getElementById('scheduler-decisions-modal-close').click();
+      document.getElementById('ribbon-logging-submitted-scans-button').click();
+      return document.getElementById('scan-history-body').textContent.includes('Fixture history');
+    })()""",
+    )
+    record(
+        "Open React provider logs",
+        """(() => {
+      document.getElementById('submitted-scans-modal-close').click();
+      document.getElementById('ribbon-logging-ai-provider-button').click();
+      return true;
+    })()""",
+    )
+    QTimer.singleShot(400, activity_logs)
+
+
+def activity_logs():
+    view.grab().save(str(ARTIFACTS / "provider-logs.png"))
+    record(
+        "React provider logs display native API data safely",
+        """(() => {
+      const output = document.getElementById('provider-logs-text');
+      const ok = output.textContent.includes('Fixture provider logs') && !output.querySelector('img')
+        && document.getElementById('provider-logs-meta').textContent.includes('structured 1');
+      document.getElementById('provider-logs-modal-close').click();
+      document.querySelector('[data-view="approvals"]').click();
+      return ok && document.getElementById('approvals-body').textContent.includes('Synthetic risk');
+    })()""",
+    )
+    record(
+        "Reject synthetic approval through React and FastAPI",
+        f"""(() => {{
+      document.querySelector('#approvals-body button[data-approval-id="{fixture_approval_id}"][data-action="reject"]').click();
+      return true;
+    }})()""",
+    )
+    QTimer.singleShot(500, activity_rejected)
+
+
+def activity_rejected():
+    record(
+        "Approval queue and sidebar count update",
+        f"""(() => {{
+      return !document.querySelector('#approvals-body tr[data-approval-id="{fixture_approval_id}"]')
+        && document.getElementById('approval-count').textContent === '0';
+    }})()""",
+    )
+    from sqlalchemy import text
+
+    session = logic.activeProject.database.session()
+    try:
+        session.execute(
+            text("UPDATE process SET name = 'Fixture activity updated' WHERE id = :id"), {"id": fixture_process_id}
+        )
+        session.commit()
+    finally:
+        session.close()
+    runtime._emit_ui_invalidation("processes")
+    QTimer.singleShot(500, activity_updated)
+
+
+def activity_updated():
+    record(
+        "Live invalidation updates the React process table",
+        """(() => {
+      document.querySelector('[data-view="activity"]').click();
+      return document.getElementById('processes-body').textContent.includes('Fixture activity updated');
+    })()""",
+    )
+    view.grab().save(str(ARTIFACTS / "activity.png"))
+    record(
+        "Hide fixture process through React",
+        f"""(() => {{
+      document.querySelector('#processes-body [data-process-id="{fixture_process_id}"][data-process-action="close"]').click();
+      return true;
+    }})()""",
+    )
+    QTimer.singleShot(400, activity_hidden)
+
+
+def activity_hidden():
+    record(
+        "Hidden process disappears and count updates",
+        f"""(() => {{
+      return !document.querySelector('#processes-body tr[data-process-id="{fixture_process_id}"]')
+        && document.getElementById('process-count').textContent === '0';
+    }})()""",
+    )
     graph()
 
 
@@ -274,14 +415,15 @@ def finish():
 
 def quit_check():
     view.grab().save(str(ARTIFACTS / "overview.png"))
-    payload = {"checks": checks, "js_errors": errors}
-    (ARTIFACTS / "ui-check.json").write_text(json.dumps(payload, indent=2))
+    payload = {"stack": "legacy" if legacy_stack else "asgi", "checks": checks, "js_errors": errors}
+    filename = "ui-check-legacy.json" if legacy_stack else "ui-check.json"
+    (ARTIFACTS / filename).write_text(json.dumps(payload, indent=2))
     print(json.dumps(payload))
     app.exit(0 if all(c["result"] is True for c in checks) and not errors else 1)
 
 
 page.loadFinished.connect(lambda ok: QTimer.singleShot(2500, settings) if ok else app.exit(2))
-QTimer.singleShot(25000, lambda: app.exit(3))
+QTimer.singleShot(30000, lambda: app.exit(3))
 page.load(QUrl(server_url + "/"))
 code = app.exec()
 view.stop()

@@ -3,6 +3,7 @@ import {connectReactWorkspace} from '../../app/web/static/js/workspace/react_bri
 import {beginRename, updateJobs, updateProject} from './store';
 import {WorkspaceIdentity} from './WorkspaceIdentity';
 import {JobsTable} from './JobsTable';
+import {mountActivity} from './activity/mount';
 import '../../app/web/static/js/legion.js';
 import '../../app/web/static/js/workspace.js';
 
@@ -19,6 +20,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Clear only these server-rendered placeholders. React exclusively owns their descendants.
   sidebar.replaceChildren(); title.replaceChildren(); jobsRoot.replaceChildren();
   connectReactWorkspace({updateJobs, updateProject, beginRename});
+  mountActivity();
   createRoot(identityRoot).render(<WorkspaceIdentity sidebar={sidebar} title={title} sidebarEditor={sidebarEditor} titleEditor={titleEditor}/>);
   createRoot(jobsRoot).render(<JobsTable/>);
   identityRoot.dataset.framework = 'react'; jobsRoot.dataset.framework = 'react';

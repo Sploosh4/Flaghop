@@ -282,9 +282,9 @@ Legion is licensed under the GNU General Public License v3.0. See
 - Legion depends heavily on Nmap, Hydra, Python, Flask, PyQt, SQLAlchemy, Selenium, Chromium/Firefox, and many other tools and projects.
 - Special thanks to Dmitriy Dubson for continued contributions to the project.
 
-## Typed API and React pilot
+## Typed API and React migration
 
-The default local server now uses FastAPI/Uvicorn for workspace identity, snapshots, jobs and live events. React/TypeScript owns workspace renaming and the Jobs table; other routes and views remain on the current implementation through a compatibility boundary. See [MIGRATION.md](MIGRATION.md) for scope, validation changes, generated contracts, build commands, assessment and the `--web-stack legacy` comparison option. Built frontend assets are included; Node.js is only needed for frontend development.
+The default local server uses FastAPI/Uvicorn for workspace identity, activity, approvals, snapshots and live events. React/TypeScript owns workspace renaming, activity tables, process output, scheduler rationale, provider logs and approvals. Other routes and views remain available through a compatibility boundary. See [MIGRATION.md](MIGRATION.md) for scope, validation changes, generated contracts, build commands and the `--web-stack legacy` comparison option. Built frontend assets are included; Node.js is only needed for frontend development.
 
 ## Code organization
 

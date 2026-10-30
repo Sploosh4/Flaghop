@@ -242,16 +242,8 @@ export const GRAPH_NODE_LABEL_MIN_ZOOM = 60;
 
 export const GRAPH_NODE_TYPE_MIN_ZOOM = 78;
 
-export const processOutputState = {
-    processId: null,
-    offset: 0,
-    complete: true,
-    status: "",
-    text: "",
-    modalOpen: false,
-    refreshTimer: null,
-    refreshInFlight: false,
-};
+// Kept for shared modal/keyboard coordination; React owns output sessions.
+export const processOutputState = {modalOpen: false};
 
 export const scriptOutputState = {
     scriptDbId: null,
@@ -270,12 +262,6 @@ export const screenshotModalState = {
     url: "",
     filename: "",
     port: "",
-};
-
-export const providerLogsState = {
-    modalOpen: false,
-    text: "",
-    count: 0,
 };
 
 export const credentialCaptureState = {
@@ -303,7 +289,6 @@ export const nmapWizardState = {
     captureInterfacesLoaded: false,
 };
 
-export const PROCESS_OUTPUT_REFRESH_MS = 2000;
 
 export const workspaceSwitchGuardState = {
     modalOpen: false,

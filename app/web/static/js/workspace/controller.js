@@ -1,7 +1,6 @@
 /** Composition root: wire feature callbacks before starting the workspace.
  * Models, views and transports never import this coordinator.
  */
-import { connectApprovals } from "./approvals.js";
 import { renderCredentialCapturePanel, setCredentialCaptureConfigModalOpen, setCredentialsModalOpen } from "./credential_capture.js";
 import { connectDeviceCategories } from "./device_categories.js";
 import { closeRibbonMenus, connectDialogs } from "./dialogs.js";
@@ -24,7 +23,6 @@ import { renderHosts, renderServices, renderTools } from "./workspace_view.js";
 export class WorkspaceController {
     connect() {
         if (this.connected) return;
-        connectApprovals({ pollSnapshot });
         connectDeviceCategories({ applySchedulerPreferences });
         connectDialogs({ openManualToolPicker, pollSnapshot });
         connectGraphCommon({ graphRenderWorkspace, graphSyncDetailPresentation });
@@ -32,7 +30,7 @@ export class WorkspaceController {
         connectHostActions({ pollSnapshot });
         connectHostFilters({ closeRibbonMenus, graphLoadSnapshot, loadHostDetail, loadWorkspaceHosts, loadWorkspaceServices, renderHosts, renderServices });
         connectLiveUpdates({ renderCredentialCapturePanel });
-        connectProcessOutput({ pollSnapshot, setCredentialCaptureConfigModalOpen, setCredentialsModalOpen });
+        connectProcessOutput({ setCredentialCaptureConfigModalOpen, setCredentialsModalOpen });
         connectScan({ applySchedulerPreferences });
         connectScanPolicy({ applyNmapModeTargetDefaults, refreshNmapModeOptions, refreshNmapScanButtonState, setNmapWizardStep, updateNmapCommandPreview });
         connectToolSettings({ applySchedulerPreferences });

@@ -1,5 +1,3 @@
-import { copyProviderLogsAction, downloadProviderLogsAction, loadProviderLogsAction } from "./activity.js";
-import { approveApproval, rejectApproval } from "./approvals.js";
 import { copyCredentialCaptureHashesAction, downloadCredentialCaptureHashesAction, downloadCredentialCaptureLogAction, openCredentialCaptureConfigAction, openCredentialCaptureCredentialsAction, openCredentialCaptureLogAction, saveCredentialCaptureConfigAction, saveCredentialCaptureResponderModeQuickAction, startCredentialCaptureToolAction, stopCredentialCaptureToolAction } from "./credential_capture.js";
 import { buildDeviceCategoryRuleRow, saveDeviceCategorySettingsAction } from "./device_categories.js";
 import { closeDeviceCategorySettingsAction, closeGraphNoteModalAction, closeHostRemoveModalAction, closeHostSelectionModalAction, closeJobsModalAction, closeManualScanModalAction, closeNmapScanModalAction, closeProviderLogsModalAction, closeReportProviderModalAction, closeRibbonMenus, closeSchedulerDecisionsModalAction, closeSchedulerSettingsAction, closeScriptCveModalAction, closeSubmittedScansModalAction, openAddScanAction, openDeviceCategorySettingsAction, openHostSelectionAction, openJobsAction, openManualScanAction, openProviderLogsAction, openReportProviderAction, openSchedulerDecisionsAction, openSchedulerSettingsAction, openScriptCveAction, openSubmittedScansAction, toggleRibbonMenu } from "./dialogs.js";
@@ -11,7 +9,7 @@ import { graphRenderWorkspace } from "./graph_render.js";
 import { confirmHostRemoveAction, handleHostActionButtonAction } from "./host_actions.js";
 import { resetHostFiltersAction, setHostCategoryFilterAction, setHostFilterAction, setHostServiceFilterPopoverOpen, setHostServiceFiltersAction, setServicesCategoryFilterAction } from "./host_filters.js";
 import { closeAppSettingsAction, closeInterfaceSettingsAction, openAppSettingsAction, openInterfaceSettingsAction, saveInterfaceSettingsAction } from "./interface_settings.js";
-import { clearProcessesAction, closeCredentialCaptureConfigModalAction, closeCredentialsModalAction, closeProcessAction, closeProcessOutputModal, closeScreenshotModal, closeScriptOutputModal, copyProcessCommandAction, copyProcessOutputAction, copyScreenshotAction, copyScriptCommandAction, copyScriptOutputAction, downloadProcessOutputAction, downloadScreenshotAction, downloadScriptOutputAction, killProcessAction, openProcessOutputModal, openScreenshotModal, openScriptOutputModal, refreshProcessOutputAction, retryProcessAction } from "./process_output.js";
+import { closeCredentialCaptureConfigModalAction, closeCredentialsModalAction, closeProcessOutputModal, closeScreenshotModal, closeScriptOutputModal, copyScreenshotAction, copyScriptCommandAction, copyScriptOutputAction, downloadScreenshotAction, downloadScriptOutputAction, openScreenshotModal, openScriptOutputModal } from "./process_output.js";
 import { closeWorkspaceSwitchGuardAction, createNewTemporaryProject, downloadWorkspaceBundleAction, importNmapXmlFromRibbonAction, importTargetsFromRibbonAction, openWorkspaceFromRibbonAction, restoreWorkspaceBundleAction, restoreWorkspaceBundleSelectedAction, saveWorkspaceAction, saveWorkspaceAsAction, stopActiveWorkspaceWorkAndContinueAction } from "./projects.js";
 import { pushProjectAiReportAction } from "./report_delivery.js";
 import { refreshNmapModeOptions, runNmapScan, setNmapWizardStep, updateNmapCommandPreview } from "./scan.js";
@@ -77,8 +75,6 @@ export function bindActionButtons() {
     bind("workspace-run-tool-button", runManualTool);
     bind("workspace-run-scheduler-button", runSchedulerNow);
     bind("workspace-add-script-button", addScriptEntry);
-    bind("process-clear-finished-button", () => clearProcessesAction(false));
-    bind("process-clear-all-button", () => clearProcessesAction(true));
     bind("graph-refresh-button", graphRefreshAction);
     bind("graph-rebuild-button", graphRebuildAction);
     bind("graph-filters-toggle-button", () => graphSetFiltersExpanded(!graphWorkspaceState.filtersExpanded));
@@ -213,29 +209,6 @@ export function bindActionButtons() {
         });
     }
 
-    const approvalsBody = document.getElementById("approvals-body");
-    if (approvalsBody) {
-        approvalsBody.addEventListener("click", async (event) => {
-            const btn = event.target.closest("button[data-action]");
-            if (!btn) {
-                return;
-            }
-            const approvalId = parseInt(btn.dataset.approvalId, 10);
-            if (!approvalId) {
-                return;
-            }
-            if (btn.dataset.action === "approve") {
-                await approveApproval(approvalId);
-            } else if (btn.dataset.action === "allow-family") {
-                await approveApproval(approvalId, "allowed");
-            } else if (btn.dataset.action === "reject") {
-                await rejectApproval(approvalId);
-            } else if (btn.dataset.action === "suppress-family") {
-                await rejectApproval(approvalId, "suppressed");
-            }
-        });
-    }
-
     const hostDetailPortsBody = document.getElementById("host-detail-ports");
     if (hostDetailPortsBody) {
         hostDetailPortsBody.addEventListener("click", (event) => {
@@ -276,36 +249,6 @@ export function bindActionButtons() {
     }
 
 
-    const processesBody = document.getElementById("processes-body");
-    if (processesBody) {
-        processesBody.addEventListener("click", async (event) => {
-            const btn = event.target.closest("button[data-process-action]");
-            if (!btn) {
-                return;
-            }
-            const processId = parseInt(btn.dataset.processId, 10);
-            if (!processId) {
-                return;
-            }
-            const action = btn.dataset.processAction;
-            if (action === "output") {
-                await openProcessOutputModal(processId);
-                return;
-            }
-            if (action === "kill") {
-                await killProcessAction(processId);
-                return;
-            }
-            if (action === "retry") {
-                await retryProcessAction(processId);
-                return;
-            }
-            if (action === "close") {
-                await closeProcessAction(processId);
-            }
-        });
-    }
-
     bind("nmap-wizard-back", () => setNmapWizardStep(nmapWizardState.step - 1));
     bind("nmap-wizard-next", () => setNmapWizardStep(nmapWizardState.step + 1));
     bind("scheduler-test-provider-button", testSchedulerProviderAction);
@@ -333,21 +276,12 @@ export function bindActionButtons() {
     bind("manual-scan-modal-close", closeManualScanModalAction);
     bind("host-selection-modal-close", closeHostSelectionModalAction);
     bind("script-cve-modal-close", closeScriptCveModalAction);
-    bind("provider-logs-modal-close", closeProviderLogsModalAction);
     bind("jobs-modal-close", closeJobsModalAction);
     bind("submitted-scans-modal-close", closeSubmittedScansModalAction);
     bind("scheduler-decisions-modal-close", closeSchedulerDecisionsModalAction);
-    bind("provider-logs-refresh-button", loadProviderLogsAction);
-    bind("provider-logs-copy-button", copyProviderLogsAction);
-    bind("provider-logs-download-button", downloadProviderLogsAction);
     bind("host-remove-modal-close", () => closeHostRemoveModalAction(true));
     bind("host-remove-modal-cancel", () => closeHostRemoveModalAction(true));
     bind("host-remove-modal-confirm", confirmHostRemoveAction);
-    bind("process-output-modal-close", () => closeProcessOutputModal(true));
-    bind("process-output-refresh-button", () => refreshProcessOutputAction(true, false));
-    bind("process-output-copy-button", copyProcessOutputAction);
-    bind("process-output-command-copy", copyProcessCommandAction);
-    bind("process-output-download-button", downloadProcessOutputAction);
     bind("credentials-modal-close", closeCredentialsModalAction);
     bind("credentials-copy-hashes-button", copyCredentialCaptureHashesAction);
     bind("credentials-download-hashes-button", () => downloadCredentialCaptureHashesAction("txt"));

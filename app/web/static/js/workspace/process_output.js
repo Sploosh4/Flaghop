@@ -1,136 +1,21 @@
+import {publishActivity, requestActivity} from "./activity_bridge.js";
 
 /** Called by WorkspaceController before UI handlers or asynchronous updates start. */
-let pollSnapshot, setCredentialCaptureConfigModalOpen, setCredentialsModalOpen;
+let setCredentialCaptureConfigModalOpen, setCredentialsModalOpen;
 export function connectProcessOutput(callbacks) {
-    for (const name of ["pollSnapshot", "setCredentialCaptureConfigModalOpen", "setCredentialsModalOpen"]) {
+    for (const name of ["setCredentialCaptureConfigModalOpen", "setCredentialsModalOpen"]) {
         if (typeof callbacks[name] !== "function") throw new TypeError(`Missing process_output callback: ${name}`);
     }
-    ({ pollSnapshot, setCredentialCaptureConfigModalOpen, setCredentialsModalOpen } = callbacks);
+    ({ setCredentialCaptureConfigModalOpen, setCredentialsModalOpen } = callbacks);
 }
 
-import { makeCell, makeTruncatedCell, setText, setWorkspaceStatus, updateBodyModalState } from "./dom.js";
-import { fetchJson, postJson } from "./http.js";
-import { formatEtaSeconds, formatTargetLabel, getProcessStatusClass, isProcessRunning, renderAnsiOutput } from "./output_format.js";
-import { PROCESS_OUTPUT_REFRESH_MS, processOutputState, screenshotModalState, scriptOutputState } from "./state.js";
+import { setText, setWorkspaceStatus, updateBodyModalState } from "./dom.js";
+import { fetchJson } from "./http.js";
+import { renderAnsiOutput } from "./output_format.js";
+import { processOutputState, screenshotModalState, scriptOutputState } from "./state.js";
 /** Workspace process output. */
 
-export function renderProcesses(processes) {
-    const body = document.getElementById("processes-body");
-    if (!body) {
-        return;
-    }
-    body.innerHTML = "";
-    (processes || []).forEach((process) => {
-        const tr = document.createElement("tr");
-        tr.dataset.processId = String(process.id || "");
-        tr.appendChild(makeCell(process.id));
-        tr.appendChild(makeTruncatedCell(process.name, "process-name-cell"));
-        const target = formatTargetLabel(process.hostIp, process.port, process.protocol);
-        tr.appendChild(makeTruncatedCell(target, "process-target-cell"));
-        const statusCell = document.createElement("td");
-        statusCell.className = "process-status-cell";
-        const statusWrap = document.createElement("span");
-        statusWrap.className = "process-status";
-        const statusClass = getProcessStatusClass(process.status);
-        if (statusClass) {
-            statusWrap.classList.add(statusClass);
-        }
-        if (isProcessRunning(process.status)) {
-            const spinner = document.createElement("span");
-            spinner.className = "process-spinner";
-            spinner.setAttribute("aria-hidden", "true");
-            statusWrap.appendChild(spinner);
-        }
-        const statusText = document.createElement("span");
-        statusText.textContent = process.status || "";
-        statusWrap.appendChild(statusText);
-        statusCell.appendChild(statusWrap);
-        tr.appendChild(statusCell);
-
-        let percentDisplay = process.percent || "";
-        const numericPercent = Number(String(percentDisplay).replace("%", "").trim());
-        if (Number.isFinite(numericPercent)) {
-            percentDisplay = `${numericPercent.toFixed(1)}%`;
-        }
-        const percentCell = makeCell(percentDisplay);
-        percentCell.className = "process-percent-cell";
-        tr.appendChild(percentCell);
-        const etaCell = makeCell(formatEtaSeconds(process.estimatedRemaining));
-        etaCell.className = "process-eta-cell";
-        tr.appendChild(etaCell);
-
-        const actions = document.createElement("td");
-        actions.className = "process-actions";
-
-        const viewBtn = document.createElement("button");
-        viewBtn.type = "button";
-        viewBtn.className = "icon-btn";
-        viewBtn.title = "Output";
-        viewBtn.setAttribute("aria-label", "Output");
-        viewBtn.innerHTML = '<i class="fa-solid fa-terminal" aria-hidden="true"></i>';
-        viewBtn.dataset.processAction = "output";
-        viewBtn.dataset.processId = String(process.id || "");
-        actions.appendChild(viewBtn);
-
-        const retryBtn = document.createElement("button");
-        retryBtn.type = "button";
-        retryBtn.className = "icon-btn";
-        retryBtn.title = "Retry";
-        retryBtn.setAttribute("aria-label", "Retry");
-        retryBtn.innerHTML = '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i>';
-        retryBtn.dataset.processAction = "retry";
-        retryBtn.dataset.processId = String(process.id || "");
-        actions.appendChild(retryBtn);
-
-        if (isProcessRunning(process.status)) {
-            const killBtn = document.createElement("button");
-            killBtn.type = "button";
-            killBtn.className = "icon-btn icon-btn-danger";
-            killBtn.title = "Kill";
-            killBtn.setAttribute("aria-label", "Kill");
-            killBtn.innerHTML = '<i class="fa-solid fa-stop" aria-hidden="true"></i>';
-            killBtn.dataset.processAction = "kill";
-            killBtn.dataset.processId = String(process.id || "");
-            actions.appendChild(killBtn);
-        }
-
-        const hideBtn = document.createElement("button");
-        hideBtn.type = "button";
-        hideBtn.className = "icon-btn";
-        hideBtn.title = "Hide";
-        hideBtn.setAttribute("aria-label", "Hide");
-        hideBtn.innerHTML = '<i class="fa-solid fa-eye-slash" aria-hidden="true"></i>';
-        hideBtn.dataset.processAction = "close";
-        hideBtn.dataset.processId = String(process.id || "");
-        actions.appendChild(hideBtn);
-
-        tr.appendChild(actions);
-        body.appendChild(tr);
-    });
-    setText("process-count", (processes || []).length);
-}
-
-
-export function setProcessOutputMeta(text) {
-    setText("process-output-meta", text || "");
-}
-
-
-export function setProcessOutputText(text) {
-    processOutputState.text = String(text || "");
-    renderAnsiOutput("process-output-text", processOutputState.text);
-}
-
-
-export function setProcessOutputCommand(text) {
-    setText("process-output-command", text || "");
-}
-
-
-export function setProcessOutputProgress(text) {
-    setText("process-output-progress", text || "No structured progress reported");
-}
-
+export function renderProcesses(rows) { publishActivity("processes", rows || []); }
 
 export function setScriptOutputMeta(text) {
     setText("script-output-meta", text || "");
@@ -184,42 +69,7 @@ export function setScreenshotModalOpen(open) {
 }
 
 
-export function stopProcessOutputAutoRefresh() {
-    if (processOutputState.refreshTimer) {
-        window.clearInterval(processOutputState.refreshTimer);
-        processOutputState.refreshTimer = null;
-    }
-}
-
-
-export function startProcessOutputAutoRefresh() {
-    stopProcessOutputAutoRefresh();
-    processOutputState.refreshTimer = window.setInterval(() => {
-        if (!processOutputState.modalOpen) {
-            return;
-        }
-        refreshProcessOutputAction(false, false).catch(() => {});
-    }, PROCESS_OUTPUT_REFRESH_MS);
-}
-
-
-export function closeProcessOutputModal(resetSelection = true) {
-    stopProcessOutputAutoRefresh();
-    processOutputState.refreshInFlight = false;
-    setProcessOutputModalOpen(false);
-    if (resetSelection) {
-        processOutputState.processId = null;
-        processOutputState.offset = 0;
-        processOutputState.complete = true;
-        processOutputState.status = "";
-        processOutputState.text = "";
-        setProcessOutputMeta("No process selected");
-        setProcessOutputCommand("");
-        setProcessOutputProgress("");
-        setProcessOutputText("");
-    }
-}
-
+export function closeProcessOutputModal() { return requestActivity("closeOutput"); }
 
 export function closeScriptOutputModal(resetSelection = true) {
     setScriptOutputModalOpen(false);
@@ -265,30 +115,7 @@ export function closeCredentialCaptureConfigModalAction() {
 }
 
 
-export async function openProcessOutputModal(processId) {
-    const pid = parseInt(processId, 10);
-    if (!pid) {
-        return;
-    }
-    setProcessOutputModalOpen(true);
-    setProcessOutputMeta(`Process ${pid} | loading...`);
-    setProcessOutputCommand("");
-    setProcessOutputProgress("");
-    setProcessOutputText("");
-    processOutputState.processId = pid;
-    processOutputState.offset = 0;
-    processOutputState.complete = false;
-    processOutputState.status = "";
-    startProcessOutputAutoRefresh();
-    try {
-        await refreshProcessOutputAction(true, true);
-    } catch (err) {
-        setProcessOutputMeta(`Process ${pid} | load failed`);
-        setProcessOutputProgress("No structured progress reported");
-        setProcessOutputText(`Failed to load process output: ${err.message || err}`);
-    }
-}
-
+export function openProcessOutputModal(id) { return requestActivity("openOutput", Number(id)); }
 
 export async function openScriptOutputModal(scriptDbId) {
     const sid = parseInt(scriptDbId, 10);
@@ -370,40 +197,6 @@ export function openScreenshotModal(url, filename, port = "") {
 }
 
 
-export async function refreshProcessOutputAction(force = false, reset = false) {
-    const pid = parseInt(processOutputState.processId, 10);
-    if (!pid) {
-        return;
-    }
-    if (!force && processOutputState.complete) {
-        return;
-    }
-    if (processOutputState.refreshInFlight) {
-        return;
-    }
-
-    processOutputState.refreshInFlight = true;
-    try {
-        await loadProcessOutput(pid, Boolean(reset));
-    } finally {
-        processOutputState.refreshInFlight = false;
-    }
-}
-
-
-export async function copyProcessOutputAction() {
-    const text = processOutputState.text || "";
-    await copyTextToClipboard(text, "Process output copied to clipboard", "No process output to copy");
-}
-
-
-export async function copyProcessCommandAction() {
-    const node = document.getElementById("process-output-command");
-    const text = node ? String(node.textContent || "") : "";
-    await copyTextToClipboard(text, "Command copied to clipboard", "No command to copy");
-}
-
-
 export async function copyScriptOutputAction() {
     const text = scriptOutputState.output || "";
     await copyTextToClipboard(text, "Script output copied to clipboard", "No script output to copy");
@@ -470,26 +263,6 @@ export async function copyTextToClipboard(text, successMessage, emptyMessage) {
 }
 
 
-export function downloadProcessOutputAction() {
-    const text = processOutputState.text || "";
-    if (!text) {
-        setWorkspaceStatus("No process output to download", true);
-        return;
-    }
-    const processId = parseInt(processOutputState.processId, 10) || "unknown";
-    const blob = new Blob([text], {type: "text/plain;charset=utf-8"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `process-${processId}-output.txt`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    setWorkspaceStatus(`Process ${processId} output downloaded`);
-}
-
-
 export function downloadScriptOutputAction() {
     const text = scriptOutputState.output || "";
     if (!text) {
@@ -549,106 +322,6 @@ export async function downloadScreenshotAction() {
         setWorkspaceStatus(`Downloaded ${downloadName}`);
     } catch (err) {
         setWorkspaceStatus(`Screenshot download failed: ${err.message}`, true);
-    }
-}
-
-
-export async function loadProcessOutput(processId, reset = true) {
-    const pid = parseInt(processId, 10);
-    if (!pid) {
-        return;
-    }
-    if (reset || processOutputState.processId !== pid) {
-        processOutputState.processId = pid;
-        processOutputState.offset = 0;
-        processOutputState.complete = false;
-        processOutputState.status = "";
-        setProcessOutputText("");
-        setProcessOutputProgress("");
-    }
-
-    const query = new URLSearchParams({
-        offset: String(processOutputState.offset || 0),
-        max_chars: "24000",
-    });
-    const payload = await fetchJson(`/api/processes/${pid}/output?${query.toString()}`);
-    setProcessOutputCommand(payload.command || "");
-    const chunk = payload.output_chunk || "";
-    const nextOffset = Number(payload.next_offset || 0);
-    const current = processOutputState.text || "";
-    if (chunk) {
-        setProcessOutputText(`${current}${chunk}`);
-    } else if (reset && payload.output) {
-        setProcessOutputText(payload.output || "");
-    }
-    processOutputState.offset = nextOffset;
-    processOutputState.complete = Boolean(payload.completed);
-    processOutputState.status = String(payload.status || "");
-    const progress = payload.progress || {};
-    const progressLines = [];
-    if (progress.summary) {
-        progressLines.push(progress.summary);
-    }
-    if (progress.source || progress.updated_at) {
-        const metaBits = [];
-        if (progress.source) {
-            metaBits.push(String(progress.source));
-        }
-        if (progress.updated_at) {
-            metaBits.push(`updated ${progress.updated_at}`);
-        }
-        progressLines.push(metaBits.join(" | "));
-    }
-    setProcessOutputProgress(progressLines.join("\n"));
-    setProcessOutputMeta(
-        `Process ${payload.id} | ${payload.status || ""} | bytes ${processOutputState.offset}/${payload.output_length || 0}`
-    );
-}
-
-
-export async function killProcessAction(processId) {
-    try {
-        await postJson(`/api/processes/${processId}/kill`, {});
-        setWorkspaceStatus(`Process ${processId} kill requested`);
-        await pollSnapshot();
-        if (processOutputState.modalOpen && parseInt(processOutputState.processId, 10) === parseInt(processId, 10)) {
-            await loadProcessOutput(processId, false);
-        }
-    } catch (err) {
-        setWorkspaceStatus(`Kill failed: ${err.message}`, true);
-    }
-}
-
-
-export async function retryProcessAction(processId) {
-    try {
-        const body = await postJson(`/api/processes/${processId}/retry`, {});
-        setWorkspaceStatus(`Retry queued for process ${processId} (job ${body?.job?.id || "?"})`);
-        await pollSnapshot();
-    } catch (err) {
-        setWorkspaceStatus(`Retry failed: ${err.message}`, true);
-    }
-}
-
-
-export async function closeProcessAction(processId) {
-    try {
-        await postJson(`/api/processes/${processId}/close`, {});
-        setWorkspaceStatus(`Process ${processId} hidden`);
-        await pollSnapshot();
-    } catch (err) {
-        setWorkspaceStatus(`Hide failed: ${err.message}`, true);
-    }
-}
-
-
-export async function clearProcessesAction(resetAll) {
-    try {
-        await postJson("/api/processes/clear", {reset_all: Boolean(resetAll)});
-        setWorkspaceStatus(resetAll ? "Hidden all non-running processes" : "Hidden finished/issues processes");
-        await pollSnapshot();
-    } catch (err) {
-        setWorkspaceStatus(`Clear failed: ${err.message}`, true);
     }
 }
 

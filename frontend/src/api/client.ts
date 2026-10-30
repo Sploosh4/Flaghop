@@ -3,9 +3,9 @@ import type { paths, components } from './schema';
 
 export type Project = components['schemas']['Project'];
 export type Job = components['schemas']['Job'];
-const client = createClient<paths>({baseUrl: window.location.origin, fetch: request => globalThis.fetch(request)});
+export const client = createClient<paths>({baseUrl: window.location.origin, fetch: request => globalThis.fetch(request)});
 
-function failure(error: unknown, status: number): Error {
+export function failure(error: unknown, status: number): Error {
   const message = error && typeof error === 'object' && 'error' in error ? String(error.error) : `Request failed (${status})`;
   return new Error(message);
 }

@@ -55,6 +55,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/processes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Processes */
+        get: operations["listProcesses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/processes/clear": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clear Processes */
+        post: operations["clearProcesses"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/processes/{process_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close Process */
+        post: operations["closeProcess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/processes/{process_id}/kill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kill Process */
+        post: operations["killProcess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/processes/{process_id}/output": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Process Output */
+        get: operations["getProcessOutput"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/processes/{process_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry Process */
+        post: operations["retryProcess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/project": {
         parameters: {
             query?: never;
@@ -89,6 +191,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/scans/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scans */
+        get: operations["listScans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduler/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Approvals */
+        get: operations["listApprovals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduler/approvals/{approval_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve */
+        post: operations["approveApproval"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduler/approvals/{approval_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject */
+        post: operations["rejectApproval"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduler/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Decisions */
+        get: operations["listDecisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduler/provider/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Provider Logs */
+        get: operations["getProviderLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/snapshot": {
         parameters: {
             query?: never;
@@ -98,6 +302,23 @@ export interface paths {
         };
         /** Get Snapshot */
         get: operations["getSnapshot"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspace/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview */
+        get: operations["getOverview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -127,6 +348,24 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivitySnapshot */
+        ActivitySnapshot: {
+            /** Jobs */
+            jobs?: components["schemas"]["Job"][];
+            /** Processes */
+            processes?: components["schemas"]["Process"][];
+            project: components["schemas"]["Project"];
+            /** Scan History */
+            scan_history?: components["schemas"]["Scan"][];
+            /** Scheduler Approvals */
+            scheduler_approvals?: components["schemas"]["Approval"][];
+            /** Scheduler Decisions */
+            scheduler_decisions?: components["schemas"]["Decision"][];
+            /** Scheduler Rationale Feed */
+            scheduler_rationale_feed?: components["schemas"]["Rationale"][];
+        } & {
+            [key: string]: unknown;
+        };
         /** ApiError */
         ApiError: {
             /** Details */
@@ -141,6 +380,130 @@ export interface components {
              * @constant
              */
             status?: "error";
+        };
+        /** Approval */
+        Approval: {
+            /**
+             * Command Template
+             * @default
+             */
+            command_template?: string | null;
+            /**
+             * Danger Categories
+             * @default
+             */
+            danger_categories?: string | null;
+            /**
+             * Evidence Refs
+             * @default
+             */
+            evidence_refs?: string | null;
+            /**
+             * Family Policy State
+             * @default
+             */
+            family_policy_state?: string | null;
+            /**
+             * Host Ip
+             * @default
+             */
+            host_ip?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Label
+             * @default
+             */
+            label?: string | null;
+            /**
+             * Policy Decision
+             * @default
+             */
+            policy_decision?: string | null;
+            /**
+             * Policy Reason
+             * @default
+             */
+            policy_reason?: string | null;
+            /**
+             * Port
+             * @default
+             */
+            port?: string | number | null;
+            /**
+             * Protocol
+             * @default
+             */
+            protocol?: string | null;
+            /**
+             * Rationale
+             * @default
+             */
+            rationale?: string | null;
+            /**
+             * Risk Summary
+             * @default
+             */
+            risk_summary?: string | null;
+            /**
+             * Risk Tags
+             * @default
+             */
+            risk_tags?: string | null;
+            /**
+             * Safer Alternative
+             * @default
+             */
+            safer_alternative?: string | null;
+            /**
+             * Status
+             * @default
+             */
+            status?: string | null;
+            /**
+             * Tool Id
+             * @default
+             */
+            tool_id?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /** ApprovalList */
+        ApprovalList: {
+            /** Approvals */
+            approvals: components["schemas"]["Approval"][];
+        };
+        /** ApprovalResponse */
+        ApprovalResponse: {
+            approval: components["schemas"]["Approval"];
+            job?: components["schemas"]["Job"] | null;
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status?: "ok";
+        } & {
+            [key: string]: unknown;
+        };
+        /** ApproveApproval */
+        ApproveApproval: {
+            /**
+             * Approve Family
+             * @default false
+             */
+            approve_family?: boolean;
+            /**
+             * Family Action
+             * @default
+             * @enum {string}
+             */
+            family_action?: "" | "allowed" | "approval_required";
+            /**
+             * Run Now
+             * @default true
+             */
+            run_now?: boolean;
         };
         /** Autosave */
         Autosave: {
@@ -171,6 +534,96 @@ export interface components {
             last_saved_at?: string;
         } & {
             [key: string]: unknown;
+        };
+        /** ClearProcesses */
+        ClearProcesses: {
+            /**
+             * Reset All
+             * @default false
+             */
+            reset_all?: boolean;
+        };
+        /** ClearedProcesses */
+        ClearedProcesses: {
+            /** Cleared */
+            cleared: boolean;
+            /** Reset All */
+            reset_all: boolean;
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status?: "ok";
+        } & {
+            [key: string]: unknown;
+        };
+        /** Decision */
+        Decision: {
+            /**
+             * Approved
+             * @default
+             */
+            approved?: string | boolean | null;
+            /**
+             * Command Family Id
+             * @default
+             */
+            command_family_id?: string | null;
+            /**
+             * Executed
+             * @default
+             */
+            executed?: string | boolean | null;
+            /**
+             * Host Ip
+             * @default
+             */
+            host_ip?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Label
+             * @default
+             */
+            label?: string | null;
+            /**
+             * Port
+             * @default
+             */
+            port?: string | number | null;
+            /**
+             * Protocol
+             * @default
+             */
+            protocol?: string | null;
+            /**
+             * Reason
+             * @default
+             */
+            reason?: string | null;
+            /**
+             * Scheduler Mode
+             * @default
+             */
+            scheduler_mode?: string | null;
+            /**
+             * Timestamp
+             * @default
+             */
+            timestamp?: string | null;
+            /**
+             * Tool Id
+             * @default
+             */
+            tool_id?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /** DecisionList */
+        DecisionList: {
+            /** Decisions */
+            decisions: components["schemas"]["Decision"][];
         };
         /** Health */
         Health: {
@@ -239,6 +692,159 @@ export interface components {
             jobs: components["schemas"]["Job"][];
         };
         JsonValue: unknown;
+        /** Overview */
+        Overview: {
+            project: components["schemas"]["Project"];
+            /** Scheduler */
+            scheduler: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            /** Scheduler Rationale Feed */
+            scheduler_rationale_feed?: components["schemas"]["Rationale"][];
+            /** Summary */
+            summary: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+        } & {
+            [key: string]: unknown;
+        };
+        /** Process */
+        Process: {
+            /** Estimatedremaining */
+            estimatedRemaining?: number | string | null;
+            /**
+             * Hostip
+             * @default
+             */
+            hostIp?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Name
+             * @default
+             */
+            name?: string | null;
+            /**
+             * Percent
+             * @default
+             */
+            percent?: string | number | null;
+            /**
+             * Port
+             * @default
+             */
+            port?: string | number | null;
+            /**
+             * Protocol
+             * @default
+             */
+            protocol?: string | null;
+            /**
+             * Status
+             * @default
+             */
+            status?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /** ProcessAction */
+        ProcessAction: {
+            /** Process Id */
+            process_id: number;
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status?: "ok";
+        } & {
+            [key: string]: unknown;
+        };
+        /** ProcessList */
+        ProcessList: {
+            /** Processes */
+            processes: components["schemas"]["Process"][];
+        };
+        /** ProcessOutput */
+        ProcessOutput: {
+            /**
+             * Command
+             * @default
+             */
+            command?: string | null;
+            /** Completed */
+            completed: boolean;
+            /** Estimatedremaining */
+            estimatedRemaining?: number | string | null;
+            /**
+             * Hostip
+             * @default
+             */
+            hostIp?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Name
+             * @default
+             */
+            name?: string | null;
+            /** Next Offset */
+            next_offset: number;
+            /** Offset */
+            offset: number;
+            /**
+             * Output
+             * @default
+             */
+            output?: string;
+            /** Output Chunk */
+            output_chunk: string;
+            /** Output Length */
+            output_length: number;
+            /**
+             * Percent
+             * @default
+             */
+            percent?: string | number | null;
+            /**
+             * Port
+             * @default
+             */
+            port?: string | number | null;
+            progress?: components["schemas"]["ProcessProgress"];
+            /**
+             * Protocol
+             * @default
+             */
+            protocol?: string | null;
+            /**
+             * Status
+             * @default
+             */
+            status?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /** ProcessProgress */
+        ProcessProgress: {
+            /**
+             * Source
+             * @default
+             */
+            source?: string;
+            /**
+             * Summary
+             * @default
+             */
+            summary?: string;
+            /**
+             * Updated At
+             * @default
+             */
+            updated_at?: string;
+        } & {
+            [key: string]: unknown;
+        };
         /** Project */
         Project: {
             autosave?: components["schemas"]["Autosave"];
@@ -277,6 +883,80 @@ export interface components {
              */
             status?: "ok";
         };
+        /** ProviderLog */
+        ProviderLog: {
+            /** Prompt Metadata */
+            prompt_metadata?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+        } & {
+            [key: string]: unknown;
+        };
+        /** ProviderLogs */
+        ProviderLogs: {
+            /** Logs */
+            logs: components["schemas"]["ProviderLog"][];
+            /** Text */
+            text: string;
+        };
+        /** Rationale */
+        Rationale: {
+            /** Details */
+            details?: string[];
+            /**
+             * Headline
+             * @default
+             */
+            headline?: string;
+            /**
+             * Host Ip
+             * @default
+             */
+            host_ip?: string | null;
+            /**
+             * Kind
+             * @default
+             */
+            kind?: string;
+            /**
+             * Port
+             * @default
+             */
+            port?: string | number | null;
+            /**
+             * Protocol
+             * @default
+             */
+            protocol?: string | null;
+            /**
+             * Summary
+             * @default
+             */
+            summary?: string;
+            /** Tags */
+            tags?: string[];
+            /**
+             * Timestamp
+             * @default
+             */
+            timestamp?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /** RejectApproval */
+        RejectApproval: {
+            /**
+             * Family Action
+             * @default
+             * @enum {string}
+             */
+            family_action?: "" | "approval_required" | "suppressed" | "blocked";
+            /**
+             * Reason
+             * @default rejected via web
+             */
+            reason?: string;
+        };
         /** RenameProject */
         RenameProject: {
             /**
@@ -287,13 +967,69 @@ export interface components {
             /** Name */
             name: string;
         };
-        /** Snapshot */
-        Snapshot: {
-            /** Jobs */
-            jobs?: components["schemas"]["Job"][];
-            project: components["schemas"]["Project"];
+        /** RetriedProcess */
+        RetriedProcess: {
+            job: components["schemas"]["Job"];
+            /**
+             * Status
+             * @constant
+             */
+            status: "accepted";
+        };
+        /** RetryProcess */
+        RetryProcess: {
+            /**
+             * Timeout
+             * @default 300
+             */
+            timeout?: number;
+        };
+        /** Scan */
+        Scan: {
+            /**
+             * Created At
+             * @default
+             */
+            created_at?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Result Summary
+             * @default
+             */
+            result_summary?: string | null;
+            /**
+             * Scan Mode
+             * @default
+             */
+            scan_mode?: string | null;
+            /**
+             * Scope Summary
+             * @default
+             */
+            scope_summary?: string | null;
+            /**
+             * Status
+             * @default
+             */
+            status?: string | null;
+            /**
+             * Submission Kind
+             * @default
+             */
+            submission_kind?: string | null;
+            /**
+             * Target Summary
+             * @default
+             */
+            target_summary?: string | null;
         } & {
             [key: string]: unknown;
+        };
+        /** ScanList */
+        ScanList: {
+            /** Scans */
+            scans: components["schemas"]["Scan"][];
         };
         /** StopJobResponse */
         StopJobResponse: {
@@ -499,6 +1235,363 @@ export interface operations {
             };
         };
     };
+    listProcesses: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProcessList"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    clearProcesses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ClearProcesses"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClearedProcesses"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    closeProcess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                process_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProcessAction"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    killProcess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                process_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProcessAction"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getProcessOutput: {
+        parameters: {
+            query?: {
+                offset?: number;
+                max_chars?: number;
+            };
+            header?: never;
+            path: {
+                process_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProcessOutput"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    retryProcess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                process_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RetryProcess"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetriedProcess"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     getProject: {
         parameters: {
             query?: never;
@@ -615,6 +1708,372 @@ export interface operations {
             };
         };
     };
+    listScans: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScanList"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    listApprovals: {
+        parameters: {
+            query?: {
+                limit?: number;
+                status?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalList"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    approveApproval: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approval_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ApproveApproval"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalResponse"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    rejectApproval: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approval_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RejectApproval"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    listDecisions: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionList"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getProviderLogs: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderLogs"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     getSnapshot: {
         parameters: {
             query?: never;
@@ -630,7 +2089,63 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Snapshot"];
+                    "application/json": components["schemas"]["ActivitySnapshot"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Overview"];
                 };
             };
             /** @description Bad Request */

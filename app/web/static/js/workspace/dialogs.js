@@ -13,7 +13,7 @@ import { renderDeviceCategorySettingsModal, setDeviceCategorySettingsStatus } fr
 import { setText, setValue, updateBodyModalState } from "./dom.js";
 import { setHostServiceFilterPopoverOpen } from "./host_filters.js";
 import { resetNmapScanWizardState } from "./scan_policy.js";
-import { hostRemoveState, providerLogsState, ribbonMenuState, uiModalState, workspaceState } from "./state.js";
+import { hostRemoveState, ribbonMenuState, uiModalState, workspaceState } from "./state.js";
 /** Workspace dialogs. */
 
 export function setNmapScanModalOpen(open) {
@@ -70,7 +70,6 @@ export function setProviderLogsModalOpen(open) {
         return;
     }
     uiModalState.providerLogsOpen = Boolean(open);
-    providerLogsState.modalOpen = Boolean(open);
     overlay.classList.toggle("is-open", Boolean(open));
     overlay.setAttribute("aria-hidden", open ? "false" : "true");
     updateBodyModalState();
