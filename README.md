@@ -4,6 +4,14 @@
 
 This public fork of [Hackman238/legion](https://github.com/Hackman238/legion) adds a near-black workspace, searchable navigation (`Ctrl K`), resizable host/detail panes, compact original menus, and a bottom status bar. The CTF workspace keeps hosts, services, graph/matrix views, jobs, scheduler rationale, credentials/relay, approvals, essential settings and workspace ZIP backup/restore. The optional native Qt WebEngine window uses this same interface and local backend without a browser tab. This fork is not affiliated with T3 Code.
 
+### Planned CTF workflow
+
+The intended direction is one workspace with automatic initial reconnaissance, a visible device map including the user's laptop, and a right-hand panel of scan-driven actions with individual **Run** buttons. Relationship types will use different link colours. Several actions can be queued together and stay visible while running. The panel will also surface incoming files with **Open**, automatic attempts to decode supported content, and suspected password hashes queued for the user to action. A file browser and text editor are planned alongside this workflow.
+
+These are planned features, not a claim that the complete workflow is already available. See the [CTF workspace roadmap](docs/ctf-workspace-roadmap.md) for confirmed direction, the current foundation, recommendations and unanswered questions.
+
+### Current desktop workflow
+
 Click the workspace title to rename it with its current name selected; Enter or clicking away saves, and Escape cancels. Names travel with the project through save/open and ZIP export/restore. Right-click the sidebar workspace (or press Shift F10 while it is focused) for rename, save, export and details actions. Sidebar Rename edits the name in place in the sidebar; clicking the top title edits it at the top. Both names stay synchronized. The graph fits visible content at its default zoom, with minus/percentage/plus controls in its top-right corner; click the percentage to reset.
 
 For an already provisioned Ubuntu checkout, install the optional dependencies into its local `.venv`, then run `scripts/install-desktop.sh`. Search Applications for **Legion**, or run `legion`. `Ctrl R` reloads the window and `Ctrl +` / `Ctrl -` adjust zoom. The backend continues running when the window closes. Use `journalctl --user -u legion.service` for backend logs. Installation replaces this user's Legion launcher and Legion user services.
