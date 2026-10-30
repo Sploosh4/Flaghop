@@ -2,7 +2,17 @@
 
 This is the intended direction for the Sploosh4 Legion fork. It records the owner's plans and separates them from recommendations that still need a decision. Publishing this roadmap does not implement these features or settle the open questions.
 
-The aim is to keep reconnaissance, the network map, suggested actions, incoming files and notes in one workspace. A user should be able to see what has been discovered, choose several useful actions, inspect their results and continue without losing track of the evidence.
+The aim is to bring reconnaissance, device mapping, commands, Metasploit, file analysis and website testing into one application.
+
+## Roadmap
+
+- [x] Desktop workspace, scans, evidence graph, jobs and approvals.
+- [x] Backend cleanup and React/FastAPI workspace/activity panels.
+- [ ] Device map with coloured connection types and commands launched from selected devices.
+- [ ] Metasploit integration and a right-hand action/results panel.
+- [ ] File-watcher/decoder integration, found-file notifications and user-run hash jobs.
+- [ ] File browser and text editor.
+- [ ] A unified workflow for website targets and web tools.
 
 ## Confirmed direction
 
@@ -16,6 +26,8 @@ The aim is to keep reconnaissance, the network map, suggested actions, incoming 
 ### Actions on the right
 
 - A panel on the right should fill with suggested actions based on scan results.
+- Integrate Metasploit actions into this panel and the same command/job workflow.
+- The panel should also surface deciphered content, discovered files and suspected password hashes that can be queued for cracking.
 - Each action should include a tactic and technique where applicable, essential context and a **Run** button. The full card contents will be decided later.
 - The user should be able to press Run on several actions. Each should visibly enter a queued or running state and remain visible while it is in progress.
 - Actions should leave the active list only after completion. The treatment of failed, cancelled and completed work still needs a decision.
@@ -33,9 +45,16 @@ The aim is to keep reconnaissance, the network map, suggested actions, incoming 
 - Include a file browser and text editor in the workspace.
 - Decide later whether the browser covers local workspace files, remote files through active sessions, or both, and how editing relates to original evidence.
 
+### Website targets
+
+- Extend the shared workflow to website targets and web tools, keeping commands, actions, results and evidence together.
+- The first website tools and their integration depth still need to be chosen.
+
 ## Existing foundation and remaining work
 
 The current app already contains persistent SQLite workspaces, host/service inventory, an evidence graph, tool execution, approval handling, background jobs and execution history. Workspace identity and activity panels have been migrated to React/TypeScript, with their API routes served by FastAPI. Other views still use the compatibility layer; see [the migration notes](../MIGRATION.md).
+
+Web-tool commands and some Metasploit command mappings already exist. The unified website workflow and deeper Metasploit integration described here remain planned work.
 
 The evidence graph is a useful foundation, but it does not establish that the proposed laptop-centred network topology workflow is complete. A discovered host, a reachable service and a confirmed network hop are different observations.
 
@@ -68,13 +87,15 @@ These are suggestions, not settled product requirements.
 6. Where should completed, failed and cancelled actions go, and when may an action be suggested again?
 7. Which file types, encodings and cipher families should be supported first? What should a hash action require before it runs?
 8. Should the editor cover notes, scripts and other text files, and how should saving or running a script work?
+9. Which Metasploit actions and website tools should be integrated first, and what results should their cards show?
 
 ## Suggested delivery order
 
 1. Agree the remaining workflow decisions and define what a useful first reconnaissance result looks like.
 2. Build the map and right-hand action panel around existing scans, jobs and evidence.
 3. Add file notifications and a basic file browser/editor.
-4. Integrate bounded file analysis, derived results and user-run hash jobs.
-5. Test the complete workflow in representative CTF exercises and improve it from observed friction.
+4. Integrate Metasploit, bounded file analysis, derived results and user-run hash jobs into the shared panel.
+5. Extend the workflow to website targets and selected web tools.
+6. Test the complete workflow in representative CTF exercises and improve it from observed friction.
 
 No dates or completion promises are attached to these phases. A useful evaluation should measure time to a useful lead, irrelevant suggestions, evidence traceability and recovery after an interruption. The intended benefit is less repeated work and less switching between tools; it has not yet been demonstrated for this planned workflow.

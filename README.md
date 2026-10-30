@@ -1,14 +1,19 @@
 # LEGION
 
-## T3-inspired desktop fork
+## About
 
-This public fork of [Hackman238/legion](https://github.com/Hackman238/legion) adds a near-black workspace, searchable navigation (`Ctrl K`), resizable host/detail panes, compact original menus, and a bottom status bar. The CTF workspace keeps hosts, services, graph/matrix views, jobs, scheduler rationale, credentials/relay, approvals, essential settings and workspace ZIP backup/restore. The optional native Qt WebEngine window uses this same interface and local backend without a browser tab. This fork is not affiliated with T3 Code.
+Legion is a CTF workspace for recon, commands and evidence. It aims to unite device mapping, Metasploit, file analysis and website testing in one app. Based on [Hackman238/legion](https://github.com/Hackman238/legion).
 
-### Planned CTF workflow
+## Roadmap
 
-The intended direction is one workspace with automatic initial reconnaissance, a visible device map including the user's laptop, and a right-hand panel of scan-driven actions with individual **Run** buttons. Relationship types will use different link colours. Several actions can be queued together and stay visible while running. The panel will also surface incoming files with **Open**, automatic attempts to decode supported content, and suspected password hashes queued for the user to action. A file browser and text editor are planned alongside this workflow.
+- [x] Desktop workspace, scans, evidence graph, jobs and approvals.
+- [x] Refactored backend; React/FastAPI workspace and activity panels.
+- [ ] Device map with coloured connection types and commands launched from selected devices.
+- [ ] Metasploit integration and a right-hand panel for actions, decoded ciphers, found files and hash-cracking jobs.
+- [ ] Integrated file watcher/decoders, file browser and text editor.
+- [ ] The same map, action and evidence workflow for website targets and web tools.
 
-These are planned features, not a claim that the complete workflow is already available. See the [CTF workspace roadmap](docs/ctf-workspace-roadmap.md) for confirmed direction, the current foundation, recommendations and unanswered questions.
+[Roadmap details and open decisions](docs/ctf-workspace-roadmap.md).
 
 ### Current desktop workflow
 
@@ -48,14 +53,6 @@ This is the active home of `LEGION`.
 `0.7.0` hardens that web-first foundation: the web runtime is split into clearer domains, high-risk execution paths are stricter, bundle restore/export fidelity is improved, workspace filtering is more useful on large engagements, and the first bundled pipettes provide repeatable aggregate checks for high-value service families.
 
 After upgrading, review tool paths and provider settings under `Settings`, especially if you customize Nmap, browsers/screenshot tooling, Responder, NTLMRelay, or AI providers.
-
-## ✨ About
-
-Legion is a local-first, operator-guided reconnaissance and penetration testing platform with deterministic and AI-assisted orchestration.
-
-It supports governed deterministic and AI-assisted orchestration, project-based persistence, explicit approval gates, shared target state, evidence graphing, and a desktop and local web workflow for Kali and Ubuntu operators. AI providers supported include OpenAI, Claude and LM Studio. It also supports any local server that implements the OpenAI API.
-
-The standalone Qt WebEngine window and local web interface share one workspace. The old widget-based Qt UI, its controller and the unfinished PostgreSQL adapter have been removed; project storage uses SQLite.
 
 ## 🖥 Web Interface (Primary)
 
