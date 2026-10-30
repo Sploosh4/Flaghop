@@ -7,9 +7,9 @@ Usage: QT_QPA_PLATFORM=offscreen QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu --no-
 import json
 import os
 import tempfile
+import threading
 from pathlib import Path
 import sys
-import threading
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -22,8 +22,8 @@ os.environ["LEGION_HOME"] = fixture_home.name
 os.environ["TMPDIR"] = str(ROOT / ".tmp")
 os.environ["XDG_CACHE_HOME"] = str(ROOT / ".cache")
 
-from app.web import create_app
-from werkzeug.serving import make_server
+from app.api import create_app
+from tests.support.asgi_server import live_asgi_server
 from PyQt6 import sip
 from PyQt6.QtCore import QTimer, QUrl
 from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
@@ -63,8 +63,18 @@ upsert_target_state(
 )
 runtime = WebRuntime(logic)
 runtime.scheduler_config.update_preferences({"feature_flags": {"graph_workspace": True}})
-server = make_server("127.0.0.1", 0, create_app(runtime), threaded=True)
-threading.Thread(target=server.serve_forever, daemon=True).start()
+fixture_wait = threading.Event()
+
+
+def fixture_job(job_id):
+    while not runtime.jobs.is_cancel_requested(job_id):
+        fixture_wait.wait(0.03)
+    return {"fixture": True}
+
+
+fixture_job_id = runtime._start_job("fixture-ui-wait", fixture_job)["id"]
+server_context = live_asgi_server(create_app(runtime))
+server_url = server_context.__enter__()
 app = QApplication([sys.argv[0]])
 errors = []
 
@@ -130,7 +140,45 @@ def tools():
       return document.getElementById('manual-scan-modal').classList.contains('is-open');
     })()""",
     )
-    QTimer.singleShot(300, graph)
+    QTimer.singleShot(300, open_jobs)
+
+
+def open_jobs():
+    record(
+        "React jobs panel opens",
+        """(() => {
+      document.getElementById('manual-scan-modal-close').click();
+      document.getElementById('ribbon-logging-jobs-button').click();
+      return document.getElementById('jobs-body').dataset.framework === 'react';
+    })()""",
+    )
+    QTimer.singleShot(300, stop_fixture_job)
+
+
+def stop_fixture_job():
+    record(
+        "Stop a synthetic job through the native API",
+        f"""(() => {{
+      const button = document.querySelector('#jobs-body tr[data-job-id="{fixture_job_id}"] button[data-job-action="stop"]');
+      if (!button) return false;
+      button.click();
+      return true;
+    }})()""",
+    )
+    QTimer.singleShot(700, fixture_stopped)
+
+
+def fixture_stopped():
+    record(
+        "React receives job cancellation updates",
+        f"""(() => {{
+      const row = document.querySelector('#jobs-body tr[data-job-id="{fixture_job_id}"]');
+      const stopped = row && row.textContent.includes('cancelled') && !row.querySelector('button');
+      document.getElementById('jobs-modal-close').click();
+      return Boolean(stopped);
+    }})()""",
+    )
+    graph()
 
 
 def graph():
@@ -162,17 +210,37 @@ def graph_interactions():
         """(() => {
       document.getElementById('sidebar-project-name').dispatchEvent(new MouseEvent('dblclick', {bubbles:true}));
       const input = document.getElementById('workspace-rename-input');
-      return !input.hidden && document.activeElement === input
-        && input.classList.contains('workspace-rename-sidebar')
-        && input.parentElement.classList.contains('workspace-project-shell');
+      return document.getElementById('workspace-react-root').dataset.framework === 'react';
+    })()""",
+    )
+    QTimer.singleShot(100, edit_workspace_name)
+
+
+def edit_workspace_name():
+    record(
+        "React rename editor is focused",
+        """(() => {
+      const input = document.getElementById('workspace-rename-input');
+      return input && !input.hidden && document.activeElement === input;
     })()""",
     )
     record(
         "rename submits through the current workspace API",
         """(() => {
       const input = document.getElementById('workspace-rename-input');
-      input.value = 'Refactor fixture';
-      input.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter',bubbles:true}));
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Refactor fixture');
+      input.dispatchEvent(new Event('input', {bubbles:true}));
+      return true;
+    })()""",
+    )
+    QTimer.singleShot(100, submit_workspace_name)
+
+
+def submit_workspace_name():
+    record(
+        "Submit React workspace name",
+        """(() => {
+      document.getElementById('workspace-rename-input').dispatchEvent(new KeyboardEvent('keydown', {key:'Enter',bubbles:true}));
       return true;
     })()""",
     )
@@ -214,14 +282,15 @@ def quit_check():
 
 page.loadFinished.connect(lambda ok: QTimer.singleShot(2500, settings) if ok else app.exit(2))
 QTimer.singleShot(25000, lambda: app.exit(3))
-page.load(QUrl(f"http://127.0.0.1:{server.server_port}/"))
+page.load(QUrl(server_url + "/"))
 code = app.exec()
 view.stop()
 view.close()
 sip.delete(view)
 sip.delete(profile)
-server.shutdown()
-server.server_close()
+server_context.__exit__(None, None, None)
+runtime.jobs.cancel_job(fixture_job_id, reason="fixture cleanup")
+fixture_wait.set()
 logic.projectManager.closeProject(logic.activeProject)
 fixture_home.cleanup()
 sys.exit(code)

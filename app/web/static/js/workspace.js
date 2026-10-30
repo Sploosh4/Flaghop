@@ -1,8 +1,6 @@
-import { setActionStatus } from "./workspace/dom.js";
 import { graphWorkspaceEnabled } from "./workspace/graph_common.js";
 import { graphRenderWorkspace } from "./workspace/graph_render.js";
-import { postJson } from "./workspace/http.js";
-import { renderProject } from "./workspace/project_view.js";
+import { beginWorkspaceRename } from "./workspace/react_bridge.js";
 import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/workspace_view.js";
 
 /* Presentation shell. Existing Legion controls and handlers remain the source of actions. */
@@ -73,12 +71,6 @@ import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/w
             const value = byId(node.dataset.mirror)?.textContent?.trim() || "0";
             if (node.textContent !== value) node.textContent = value;
         });
-        const raw = byId("project-name")?.textContent?.trim() || "";
-        const temporary = byId("project-kind")?.textContent?.trim() === "temporary";
-        const name = byId("project-name")?.dataset.displayName || (temporary ? "Untitled workspace" : raw.split(/[\\/]/).pop().replace(/\.legion$/, "") || "Workspace");
-        syncText("sidebar-project-name", name);
-        syncText("breadcrumb-project", name);
-        syncText("sidebar-project-kind", temporary ? "Temporary · save to keep your work" : "Saved project");
         const running = Number(byId("stat-running")?.textContent || 0);
         syncText("statusbar-running", running ? `${running} running ${running === 1 ? "job" : "jobs"}` : "No running jobs");
         const action = byId("action-status")?.textContent?.trim() || "Ready";
@@ -179,72 +171,7 @@ import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/w
         const projectShell = document.createElement("div");
         projectShell.className = "workspace-project-shell";
         project.before(projectShell); projectShell.appendChild(project);
-        const oldTitle = byId("breadcrumb-project");
-        const title = document.createElement("button");
-        title.id = oldTitle.id; title.type = "button"; title.textContent = oldTitle.textContent;
-        title.title = "Rename workspace"; title.setAttribute("aria-label", "Rename workspace");
-        oldTitle.replaceWith(title);
-        const editor = document.createElement("input");
-        editor.id = "workspace-rename-input"; editor.type = "text"; editor.maxLength = 120;
-        editor.setAttribute("aria-label", "Workspace name"); editor.hidden = true;
-        title.after(editor);
-        const error = document.createElement("span");
-        error.className = "workspace-rename-error"; error.setAttribute("role", "alert");
-        editor.after(error);
-        let editing = null;
-        const finish = () => {
-            editing = null; editor.hidden = true; editor.disabled = false; title.hidden = false;
-            project.classList.remove("is-renaming");
-            error.textContent = ""; editor.removeAttribute("aria-invalid");
-        };
-        const begin = (location = "title") => {
-            closeMenu();
-            if (editing?.saving) return;
-            editing = {path: byId("project-name").textContent.trim(), name: title.textContent, location};
-            const sidebar = location === "sidebar";
-            editor.classList.toggle("workspace-rename-sidebar", sidebar);
-            error.classList.toggle("workspace-rename-sidebar-error", sidebar);
-            project.classList.toggle("is-renaming", sidebar);
-            if (sidebar) projectShell.append(editor, error);
-            else {title.after(editor); editor.after(error);}
-            editor.value = editing.name; title.hidden = !sidebar; editor.hidden = false;
-            error.textContent = ""; editor.removeAttribute("aria-invalid");
-            editor.focus(); editor.select();
-        };
-        const save = async () => {
-            if (!editing || editing.saving) return;
-            const name = editor.value.trim();
-            if (name === editing.name) {finish(); return;}
-            if (!name) {
-                error.textContent = "Enter a workspace name."; editor.setAttribute("aria-invalid", "true");
-                editor.focus(); return;
-            }
-            editing.saving = true; editor.disabled = true;
-            try {
-                const response = await postJson("/api/project/rename", {name, expected_path: editing.path});
-                if (byId("project-name").textContent.trim() === editing.path) renderProject(response.project);
-                finish(); refreshMirrors();
-                setActionStatus("Workspace renamed");
-            } catch (failure) {
-                editing.saving = false; editor.disabled = false;
-                error.textContent = failure.message; editor.setAttribute("aria-invalid", "true"); editor.focus();
-            }
-        };
-        title.addEventListener("click", () => begin("title"));
-        const sidebarName = byId("sidebar-project-name");
-        sidebarName.title = "Double-click to rename workspace";
-        sidebarName.addEventListener("dblclick", (event) => {
-            event.preventDefault(); event.stopPropagation();
-            begin("sidebar");
-        });
-        editor.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {event.preventDefault(); save();}
-            if (event.key === "Escape" && !editing?.saving) {
-                event.preventDefault(); const anchor = editing?.location === "sidebar" ? project : title;
-                finish(); anchor.focus();
-            }
-        });
-        editor.addEventListener("blur", () => {if (editing && !editing.saving) save();});
+        const begin = (location) => {closeMenu(); beginWorkspaceRename(location);};
         const menu = document.createElement("div");
         menu.id = "workspace-context-menu"; menu.className = "workspace-context-menu";
         menu.setAttribute("role", "menu"); menu.setAttribute("aria-label", "Workspace actions"); menu.hidden = true;

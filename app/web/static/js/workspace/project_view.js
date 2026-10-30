@@ -1,6 +1,8 @@
+import { publishWorkspaceProject } from "./react_bridge.js";
 import { getValue, setText, setValue } from "./dom.js";
 /** project view: shared behavior independent of action controllers. */
 export function renderProject(project) {
+    publishWorkspaceProject(project);
     setText("project-name", project.name || "");
     const projectName = document.getElementById("project-name");
     if (projectName) projectName.dataset.displayName = project.display_name || "";

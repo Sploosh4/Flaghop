@@ -9,6 +9,6 @@ export TMPDIR="$PWD/.tmp"
 export QT_QPA_PLATFORM=offscreen
 export TZ=Australia/Perth
 mkdir -p "$LEGION_HOME" "$XDG_CACHE_HOME" "$TMPDIR"
-"$python_bin" -m black --check app db parsers pipettes plugins legion.py tests
-"$python_bin" -m flake8 app db parsers pipettes plugins legion.py tests
+"$python_bin" -m black --check app db parsers pipettes plugins legion.py tests scripts/export-openapi.py scripts/frontend-notices.py
+"$python_bin" -m flake8 app db parsers pipettes plugins legion.py tests scripts/export-openapi.py scripts/frontend-notices.py
 "$python_bin" -m unittest

@@ -653,31 +653,6 @@ export async function clearProcessesAction(resetAll) {
 }
 
 
-export async function stopJobAction(jobId) {
-    const id = Number(jobId);
-    if (!Number.isFinite(id) || id <= 0) {
-        setWorkspaceStatus("Invalid job id.", true);
-        return;
-    }
-    try {
-        const body = await postJson(`/api/jobs/${id}/stop`, {});
-        if (body?.stopped) {
-            const killedCount = Array.isArray(body?.killed_process_ids) ? body.killed_process_ids.length : 0;
-            if (killedCount > 0) {
-                setWorkspaceStatus(`Stop requested for job ${id} (terminated ${killedCount} process${killedCount === 1 ? "" : "es"})`);
-            } else {
-                setWorkspaceStatus(`Stop requested for job ${id}`);
-            }
-        } else {
-            setWorkspaceStatus(`Job ${id} is already finished`);
-        }
-        await pollSnapshot();
-    } catch (err) {
-        setWorkspaceStatus(`Stop job failed: ${err.message}`, true);
-    }
-}
-
-
 export function renderSummary(summary) {
     setText("stat-hosts", summary.hosts);
     setText("stat-open-ports", summary.open_ports);

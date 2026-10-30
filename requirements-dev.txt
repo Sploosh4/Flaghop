@@ -1,3 +1,4 @@
 -r requirements-desktop.txt
 flake8
 black==26.10.1
+httpx==0.28.1

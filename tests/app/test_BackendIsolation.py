@@ -33,6 +33,12 @@ try:
     client = create_app(WebRuntime(logic)).test_client()
     assert client.get('/health').status_code == 200
     assert client.get('/api/graph').status_code == 200
+    from app.api import create_app as create_native_app
+    from fastapi.testclient import TestClient
+    with TestClient(create_native_app(WebRuntime(logic))) as native:
+        assert native.get('/health').headers['X-Legion-API'] == 'fastapi'
+        assert native.get('/api/project').status_code == 200
+        assert native.get('/api/graph').status_code == 200
 finally:
     logic.projectManager.closeProject(logic.activeProject)
 """,

@@ -150,3 +150,8 @@ LEGION_AI_PROMPT_IMPROVEMENT_PLAN.md
 .artifacts/
 .storage-baseline.json
 lost+found/
+
+# Frontend dependencies and build caches; production bundles are versioned.
+node_modules/
+frontend/.vite/
+*.tsbuildinfo

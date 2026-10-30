@@ -11,7 +11,7 @@ import { graphRenderWorkspace } from "./graph_render.js";
 import { confirmHostRemoveAction, handleHostActionButtonAction } from "./host_actions.js";
 import { resetHostFiltersAction, setHostCategoryFilterAction, setHostFilterAction, setHostServiceFilterPopoverOpen, setHostServiceFiltersAction, setServicesCategoryFilterAction } from "./host_filters.js";
 import { closeAppSettingsAction, closeInterfaceSettingsAction, openAppSettingsAction, openInterfaceSettingsAction, saveInterfaceSettingsAction } from "./interface_settings.js";
-import { clearProcessesAction, closeCredentialCaptureConfigModalAction, closeCredentialsModalAction, closeProcessAction, closeProcessOutputModal, closeScreenshotModal, closeScriptOutputModal, copyProcessCommandAction, copyProcessOutputAction, copyScreenshotAction, copyScriptCommandAction, copyScriptOutputAction, downloadProcessOutputAction, downloadScreenshotAction, downloadScriptOutputAction, killProcessAction, openProcessOutputModal, openScreenshotModal, openScriptOutputModal, refreshProcessOutputAction, retryProcessAction, stopJobAction } from "./process_output.js";
+import { clearProcessesAction, closeCredentialCaptureConfigModalAction, closeCredentialsModalAction, closeProcessAction, closeProcessOutputModal, closeScreenshotModal, closeScriptOutputModal, copyProcessCommandAction, copyProcessOutputAction, copyScreenshotAction, copyScriptCommandAction, copyScriptOutputAction, downloadProcessOutputAction, downloadScreenshotAction, downloadScriptOutputAction, killProcessAction, openProcessOutputModal, openScreenshotModal, openScriptOutputModal, refreshProcessOutputAction, retryProcessAction } from "./process_output.js";
 import { closeWorkspaceSwitchGuardAction, createNewTemporaryProject, downloadWorkspaceBundleAction, importNmapXmlFromRibbonAction, importTargetsFromRibbonAction, openWorkspaceFromRibbonAction, restoreWorkspaceBundleAction, restoreWorkspaceBundleSelectedAction, saveWorkspaceAction, saveWorkspaceAsAction, stopActiveWorkspaceWorkAndContinueAction } from "./projects.js";
 import { pushProjectAiReportAction } from "./report_delivery.js";
 import { refreshNmapModeOptions, runNmapScan, setNmapWizardStep, updateNmapCommandPreview } from "./scan.js";
@@ -232,24 +232,6 @@ export function bindActionButtons() {
                 await rejectApproval(approvalId);
             } else if (btn.dataset.action === "suppress-family") {
                 await rejectApproval(approvalId, "suppressed");
-            }
-        });
-    }
-
-    const jobsBody = document.getElementById("jobs-body");
-    if (jobsBody) {
-        jobsBody.addEventListener("click", async (event) => {
-            const btn = event.target.closest("button[data-job-action]");
-            if (!btn) {
-                return;
-            }
-            const jobId = parseInt(btn.dataset.jobId, 10);
-            if (!jobId) {
-                return;
-            }
-            const action = String(btn.dataset.jobAction || "");
-            if (action === "stop") {
-                await stopJobAction(jobId);
             }
         });
     }

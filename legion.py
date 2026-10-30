@@ -250,7 +250,7 @@ def build_arg_parser():
 
     parser = argparse.ArgumentParser(description="Start Legion")
     audit_group = parser.add_mutually_exclusive_group()
-    parser.add_argument("--web", action="store_true", help="Run Legion with the local Flask web interface")
+    parser.add_argument("--web", action="store_true", help="Run Legion with the local workspace web interface")
     audit_group.add_argument("--tool-audit", action="store_true", help="Print a tool availability audit and exit")
     audit_group.add_argument(
         "--tool-install-plan",
@@ -261,6 +261,12 @@ def build_arg_parser():
         "--tool-install",
         choices=("kali", "ubuntu"),
         help="Run the generated install plan for missing tools on the selected platform and exit",
+    )
+    parser.add_argument(
+        "--web-stack",
+        choices=("asgi", "legacy"),
+        default="asgi",
+        help="Select the native ASGI pilot or legacy Flask transport",
     )
     parser.add_argument("--web-port", type=int, default=5000, help="Local web interface port")
     parser.add_argument(
@@ -373,7 +379,6 @@ if __name__ == "__main__":
 
     if args.web:
         ensure_web_dependency_compatibility()
-        from app.web import create_app
         from app.web.bootstrap import create_default_logic
         from app.web.runtime import WebRuntime
 
@@ -381,11 +386,23 @@ if __name__ == "__main__":
         startupLog.info("Starting Legion web interface on http://%s:%s", web_bind_host, args.web_port)
         logic = create_default_logic()
         runtime = WebRuntime(logic)
-        web_app = create_app(runtime)
-        web_app.config["LEGION_WEB_BIND_HOST"] = web_bind_host
-        web_app.config["LEGION_WEB_BIND_LABEL"] = describe_web_bind_host(web_bind_host)
-        web_app.config["LEGION_UI_OPAQUE"] = resolve_web_opaque_ui(args)
-        web_app.run(host=web_bind_host, port=args.web_port, debug=False, use_reloader=False)
+        config = {
+            "LEGION_WEB_BIND_HOST": web_bind_host,
+            "LEGION_WEB_BIND_LABEL": describe_web_bind_host(web_bind_host),
+            "LEGION_UI_OPAQUE": resolve_web_opaque_ui(args),
+        }
+        if args.web_stack == "legacy":
+            from app.web import create_app
+
+            web_app = create_app(runtime)
+            web_app.config.update(config)
+            web_app.run(host=web_bind_host, port=args.web_port, debug=False, use_reloader=False)
+        else:
+            from app.api import create_app
+            import uvicorn
+
+            # One process owns the active workspace and job registry.
+            uvicorn.run(create_app(runtime, config=config), host=web_bind_host, port=args.web_port, workers=1)
         sys.exit(0)
 
     from app.desktop import main

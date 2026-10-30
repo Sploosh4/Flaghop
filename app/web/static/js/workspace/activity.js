@@ -1,3 +1,4 @@
+import { publishWorkspaceJobs } from "./react_bridge.js";
 import { makeCell, setText, setWorkspaceStatus } from "./dom.js";
 import { fetchJson } from "./http.js";
 import { formatTargetLabel, renderAnsiOutput } from "./output_format.js";
@@ -292,49 +293,7 @@ export function renderApprovals(approvals) {
 
 
 export function renderJobs(jobs) {
-    const body = document.getElementById("jobs-body");
-    if (!body) {
-        return;
-    }
-    body.innerHTML = "";
-    (jobs || []).forEach((job) => {
-        const tr = document.createElement("tr");
-        tr.appendChild(makeCell(job.id || ""));
-        tr.appendChild(makeCell(job.type || ""));
-        const status = String(job?.status || "").trim().toLowerCase();
-        const cancelRequested = Boolean(job?.cancel_requested);
-        const renderedStatus = cancelRequested && status === "running"
-            ? "stopping"
-            : (cancelRequested && status === "queued" ? "cancelling" : (job.status || ""));
-        tr.appendChild(makeCell(renderedStatus));
-        tr.appendChild(makeCell(job.created_at || ""));
-        tr.appendChild(makeCell(job.started_at || ""));
-        tr.appendChild(makeCell(job.finished_at || ""));
-        const warnings = Array.isArray(job?.result?.warnings) ? job.result.warnings.filter(Boolean) : [];
-        const errorText = String(job?.error || "");
-        const cancelReason = String(job?.cancel_reason || "").trim();
-        const diagnostic = errorText
-            || (warnings.length ? warnings.join(" | ") : "")
-            || (cancelRequested ? (cancelReason || "stop requested") : "");
-        tr.appendChild(makeCell(diagnostic));
-        const actionsCell = document.createElement("td");
-        if ((status === "running" || status === "queued") && !cancelRequested) {
-            const stopBtn = document.createElement("button");
-            stopBtn.type = "button";
-            stopBtn.textContent = "Stop";
-            stopBtn.dataset.jobAction = "stop";
-            stopBtn.dataset.jobId = String(job.id || "");
-            actionsCell.appendChild(stopBtn);
-        } else if ((status === "running" || status === "queued") && cancelRequested) {
-            const stoppingBtn = document.createElement("button");
-            stoppingBtn.type = "button";
-            stoppingBtn.textContent = status === "queued" ? "Cancelling..." : "Stopping...";
-            stoppingBtn.disabled = true;
-            actionsCell.appendChild(stoppingBtn);
-        }
-        tr.appendChild(actionsCell);
-        body.appendChild(tr);
-    });
+    publishWorkspaceJobs(jobs || []);
     setText("job-count", (jobs || []).length);
 }
 
