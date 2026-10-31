@@ -81,6 +81,11 @@ class ProjectNetworksTest(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
+        # Unit fixtures inspect argv/rules without executing helpers. Optional host
+        # packages belong to runtime availability and real-tunnel acceptance tests.
+        helpers = patch("app.services.network_guard.executable", side_effect=lambda name: f"/fixture/bin/{name}")
+        helpers.start()
+        self.addCleanup(helpers.stop)
         self.hub = FixtureHub(self.temp.name)
         self.probe = FixtureProbe()
         self.service = ProjectNetworks(self.hub, self.probe)
