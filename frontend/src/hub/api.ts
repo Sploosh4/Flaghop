@@ -2,6 +2,7 @@ import {client, failure} from '../api/client';
 import type {components} from '../api/schema';
 
 export type HubProject = components['schemas']['HubProject'];
+export type Connector = NonNullable<HubProject['connector']>;
 export type HubSettings = components['schemas']['HubSettings'];
 export type HubFile = components['schemas']['HubFile'];
 export type Snapshot = components['schemas']['ActivitySnapshot'];
@@ -25,6 +26,15 @@ export async function files(id: string) {
 }
 export async function setProjectVpn(id: string, selection: 'inherit' | 'none') {
   return result(await client.POST('/api/hub/projects/{identifier}/vpn', {params: {path: {identifier: id}}, body: {selection}}));
+}
+export async function setProjectConnector(id: string, selection: Connector) {
+  return result(await client.POST('/api/hub/projects/{identifier}/connector', {params: {path: {identifier: id}}, body: {selection}}));
+}
+export async function installConnector(connector: 'openvpn' | 'wireguard') {
+  return result(await client.POST('/api/hub/connectors/install', {body: {connector}}));
+}
+export async function connectorInstallJob(id: number) {
+  return result(await client.GET('/api/jobs/{job_id}', {params: {path: {job_id: id}}}));
 }
 export function fileUrl(id: string, path: string) {
   return `/api/hub/projects/${encodeURIComponent(id)}/file?${new URLSearchParams({path})}`;

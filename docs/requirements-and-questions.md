@@ -28,8 +28,9 @@ Updated 31 October 2026. This separates working changes from requests still wait
 - [x] Fill the main area with Application settings. Remove the bottom status bar; keep live status, job count and connection/version/bind/auth details under the existing information button.
 - [x] Restore the sidebar collapse/reopen arrows and remember the collapsed state. Remove the decorative arrows from project rows.
 - [x] Show a red, **unconfigured** Setup state and inactive VPN controls. This does not report whether a real VPN is connected.
-- [x] Allow each project to use the global default or explicitly choose None. The global control currently shows No default.
-- [ ] VPN discovery, installed-profile lists, refresh/rescan, live connection status, connecting and default-VPN selection. **Deferred at Josh's request. No VPN scanning is implemented.**
+- [x] Project setup now labels the setting **Connector**, with NetworkManager, OpenVPN and WireGuard choices saved per project. Existing default/None VPN data remains compatible; choosing a connector does not connect it.
+- [x] Computer Setup has Install OpenVPN and Install WireGuard buttons beside the default VPN controls, using the existing targeted tool installer and job outcomes.
+- [ ] Implement the agreed OpenVPN, WireGuard and local/direct network support, including profile discovery, connect/disconnect controls and connection/target checks in Settings. See [the connector plan](ctf-workspace-roadmap.md#connectors-and-target-reachability-in-settings). Only installer buttons and connector preference storage are implemented in this pass; discovery and probes do not run yet.
 - [ ] A real connected/disconnected indicator. Red currently means configuration is incomplete.
 - [ ] Josh's visual review of this foundation.
 
@@ -57,7 +58,7 @@ The tool audit now covers the retained local discovery and protocol tools. Remov
 - Interface settings controls the evidence graph and optional ASCII background.
 - Scheduler settings controls deterministic follow-ups, approvals, concurrency and execution permissions. AI providers, prompt controls and alternate runners are removed.
 - Device categories defines labels and matching rules for ports, fingerprints and CPE values.
-- Setup contains this computer and deferred VPN preferences. VPN discovery is still not implemented.
+- Setup contains this computer, connector installer buttons and deferred connection-profile controls. Project setup stores the connector choice; VPN discovery and target diagnostics are still to build.
 
 ### Removed in this pass
 
@@ -77,7 +78,7 @@ Useful future settings: workflow-specific tool selections, executable/wordlist p
 ### Map and navigation
 
 - A network-topology map starting with the laptop and its VPN, separate from CTF targets. Different link colours mean different connection types.
-- Automatically add discoveries from initial reconnaissance. Unknown devices/hops stay unknown, with their traceroute origin retained. Represent gaps without inventing direct physical connections.
+- Automatically add discoveries from initial reconnaissance. Unknown devices stay unknown. Keep traceroute, connection-path and target reachability diagnostics in Settings; do not invent direct physical connections.
 - Use the approved device artwork and preserve uncertain classifications. The 21 images have been handed over but are not installed in the map.
 - Switch between Devices, Services and Files/evidence with Q/W/E. Keep the selection across layers; more layer keys may be added if useful.
 - Hovering an action highlights its target. Targets on another layer appear in a translucent preview without changing the selected layer.
@@ -117,24 +118,24 @@ Useful future settings: workflow-specific tool selections, executable/wordlist p
 
 ## UI questions
 
-1. The topology map will live directly in Overview. The project name and folder path sit at the upper left; VPN preference and files are in Project setup. Editor placement and action-filter grouping still need a decision.
+1. The topology map will live directly in Overview. The project name and folder path sit at the upper left; Connector preference and files are in Project setup. Connection and target reachability diagnostics belong in Settings, not the map. Editor placement and action-filter grouping still need a decision.
 2. Should renaming also rename its folder later? Inline rename is restored; it currently keeps the existing folder.
 3. Should the file browser cover local files only, remote files, or both? Where should the editor and terminal dock?
-4. Which connection categories, colours and line styles should the map use? How should multiple missing traceroute hops look?
+4. Which connection categories, colours and line styles should the map use? Connection-path and reachability diagnostics, including missing traceroute hops, belong in Settings.
 5. Should Q/W/E be the only layers initially? Which extra layer, if any, deserves R?
 6. Confirm seven Kill Chain stages with M added. Should file/hash events stay visible when a stage filter is selected?
 7. What happens when there are more than nine devices or eleven visible actions? Keys should not silently change targets while a user is about to press them.
 8. Which card details remain visible, and which appear only when expanded? Where do the plain explanation and output go?
 9. Should a running card move entirely into Working or also remain marked in its original list? How should finished Deep scan results appear?
-10. Should intentional No VPN look different from disconnected, unknown or failed status? Future red status should not imply a connection check that never happened.
+10. Intentional local/direct access without a VPN is a normal state, distinct from disconnected, unknown or failed. Future red status must not imply a check that never happened.
 11. Should project files open in a read-only preview, an editor, or the system app? How should edited copies be named?
 
 ## Non-UI questions
 
 1. What targets, scan depth and exclusions should initial reconnaissance accept? How is its execution location chosen: laptop/interface/VPN or a remote session?
-2. How should VPN discovery work across NetworkManager, external OpenVPN/WireGuard clients and unmanaged tunnels? Which providers/platforms need support? This remains deferred.
-3. Does selecting a default VPN only remember it, or also connect it on project open? What happens when it is missing, disconnected or routes only some targets?
-4. How should events without a VPN work: downloadable challenges, browser-hosted targets or an on-site network? Which failures should block a job rather than just mark its status?
+2. Planned support covers NetworkManager, OpenVPN, WireGuard and local/direct networks, including detection of externally managed tunnels. Profile discovery/management and implementation order remain to build; see the agreed connector plan.
+3. Connector selection only saves a preference. Define profile selection and explicit connection controls; do not connect on project open. Report a missing/disconnected profile and per-target route mismatches in Settings.
+4. Local/direct access is a supported mode; downloadable challenges need no challenge-network connection. Which diagnostics should block a job rather than just record its status remains open.
 5. Which observations become stale after a target reset, IP reuse, VPN/routing change or session loss? Agree the useful stale indicators and refresh behaviour; a specific example was requested earlier.
 6. Which terminal tools can supply structured results? How should manually typed commands, exit status, output files and remote sessions be attributed to map entities?
 7. Where do card explanations come from: authored descriptions, tool/module metadata or reviewed generated drafts? How are tactic, technique and Kill Chain stage mapped separately?

@@ -1,6 +1,7 @@
 from typing import Literal
 from pydantic import BaseModel
-from app.api.contracts import Project
+from app.api.contracts import Job, Project
+from app.services.project_hub_requests import Connector
 
 
 class HubProject(BaseModel):
@@ -10,6 +11,7 @@ class HubProject(BaseModel):
     folder: str
     managed: bool
     vpn: Literal["inherit", "none"] = "inherit"
+    connector: Connector = "networkmanager"
 
 
 class HubProjects(BaseModel):
@@ -46,3 +48,8 @@ class HubFiles(BaseModel):
 
 class HubOk(BaseModel):
     status: Literal["ok"]
+
+
+class HubConnectorInstallation(BaseModel):
+    status: Literal["accepted"]
+    job: Job

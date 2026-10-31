@@ -21,7 +21,7 @@ beforeEach(() => {
   vi.mocked(api.openProject).mockImplementation(async id => opened(id === 'one' ? harbour : other));
   vi.mocked(api.files).mockResolvedValue({files: [], truncated: false});
   vi.mocked(api.snapshot).mockResolvedValue({project: {name: harbour.path}, jobs: [], hosts: [{id: 7, ip: '192.0.2.7', hostname: 'fixture'}]});
-  vi.mocked(api.setProjectVpn).mockResolvedValue({status: 'ok'});
+  vi.mocked(api.setProjectConnector).mockResolvedValue({status: 'ok'});
   vi.mocked(api.background).mockImplementation(async id => backgroundState(id, false));
 });
 
@@ -125,9 +125,25 @@ it('shows the computer and honest, inactive VPN controls without discovery', asy
   expect(screen.getByText('Not configured')).toBeTruthy();
   expect((screen.getByRole('combobox', {name: 'Default VPN'}) as HTMLSelectElement).disabled).toBe(true);
   expect((screen.getByRole('button', {name: 'Refresh VPNs — not available yet'}) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByRole('button', {name: 'Install OpenVPN'})).toBeTruthy();
+  expect(screen.getByRole('button', {name: 'Install WireGuard'})).toBeTruthy();
+  expect(api.installConnector).not.toHaveBeenCalled();
   expect(api.settings).toHaveBeenCalledTimes(1);
   await userEvent.setup().click(screen.getByRole('button', {name: 'Setup — VPN not configured'}));
   expect(screen.getByRole('heading', {name: 'Projects'})).toBeTruthy();
+});
+
+it('queues only the requested connector and reports installation failures', async () => {
+  vi.mocked(api.installConnector).mockResolvedValue({status: 'accepted', job: {id: 91, type: 'tool-install', status: 'queued'}});
+  vi.mocked(api.connectorInstallJob).mockResolvedValue({id: 91, type: 'tool-install', status: 'failed', error: 'Administrator access is required.'});
+  render(<ProjectHub/>); const user = userEvent.setup();
+  await user.click(screen.getByRole('button', {name: 'Setup — VPN not configured'}));
+  for (const [label, connector] of [['OpenVPN', 'openvpn'], ['WireGuard', 'wireguard']] as const) {
+    await user.click(screen.getByRole('button', {name: `Install ${label}`}));
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Administrator access is required.'));
+    expect(api.installConnector).toHaveBeenLastCalledWith(connector);
+  }
+  expect(api.installConnector).toHaveBeenCalledTimes(2);
 });
 
 it('saves the default folder below VPN and keeps an invalid path editable', async () => {
@@ -153,7 +169,7 @@ it('saves the default folder below VPN and keeps an invalid path editable', asyn
   await waitFor(() => expect((screen.getByRole('textbox', {name: 'Default save folder'}) as HTMLInputElement).value).toBe('/custom/FlagHop'));
 });
 
-it('keeps Overview clear and moves working files and VPN preferences into Project setup', async () => {
+it('keeps Overview clear and moves working files and connector preferences into Project setup', async () => {
   vi.mocked(api.createProject).mockResolvedValue(opened(harbour));
   vi.mocked(api.files).mockResolvedValue({files: [{path: 'notes.md', size: 8}], truncated: false});
   vi.mocked(api.fileUrl).mockReturnValue('/fixture-file');
@@ -164,15 +180,16 @@ it('keeps Overview clear and moves working files and VPN preferences into Projec
   await waitFor(() => expect(screen.getByRole('heading', {name: 'Harbour'})).toBeTruthy());
   expect(api.createProject).toHaveBeenCalledWith('Harbour');
   expect(screen.getByText(harbour.folder)).toBeTruthy();
-  expect(screen.queryByRole('combobox', {name: 'VPN'})).toBeNull();
+  expect(screen.queryByRole('combobox', {name: 'Connector'})).toBeNull();
   expect(screen.queryByRole('heading', {name: 'Files'})).toBeNull();
   await user.click(sidebar().getByRole('button', {name: 'Project setup'}));
   await waitFor(() => expect(screen.getByRole('link', {name: /notes.md/}).getAttribute('href')).toBe('/fixture-file'));
-  await user.selectOptions(screen.getByRole('combobox', {name: 'VPN'}), 'none');
-  await waitFor(() => expect(api.setProjectVpn).toHaveBeenCalledWith('one', 'none'));
+  expect(within(screen.getByRole('combobox', {name: 'Connector'})).getAllByRole('option').map(option => option.textContent)).toEqual(['NetworkManager', 'OpenVPN', 'WireGuard']);
+  await user.selectOptions(screen.getByRole('combobox', {name: 'Connector'}), 'wireguard');
+  await waitFor(() => expect(api.setProjectConnector).toHaveBeenCalledWith('one', 'wireguard'));
   await user.click(sidebar().getByRole('button', {name: 'Overview'}));
   expect(screen.getByRole('heading', {name: 'Harbour'})).toBeTruthy();
-  expect(screen.queryByRole('combobox', {name: 'VPN'})).toBeNull();
+  expect(screen.queryByRole('combobox', {name: 'Connector'})).toBeNull();
 });
 
 it('restores Project setup after reload and after toggling the bottom Setup button', async () => {
@@ -189,7 +206,7 @@ it('restores Project setup after reload and after toggling the bottom Setup butt
   await waitFor(() => expect(screen.getByRole('heading', {name: 'Fixture laptop'})).toBeTruthy());
   await user.click(sidebar().getByRole('button', {name: 'Setup — VPN not configured'}));
   expect(screen.getByRole('heading', {name: 'Project setup'})).toBeTruthy();
-  expect(screen.getByRole('combobox', {name: 'VPN'})).toBeTruthy();
+  expect(screen.getByRole('combobox', {name: 'Connector'})).toBeTruthy();
 });
 
 it('keeps the home page and shows the reason when a project cannot be opened', async () => {

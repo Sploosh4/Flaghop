@@ -189,6 +189,32 @@ class ProjectHubTest(TestCase):
         with self.assertRaises(ValueError):
             self.hub.set_vpn(None, "some-vpn")
 
+    def test_connector_preferences_persist_without_connecting_or_affecting_other_projects(self):
+        first = self.hub.create("First")["project"]
+        second = self.hub.create("Second")["project"]
+        with patch("subprocess.run", side_effect=AssertionError("No connection or probe is allowed")):
+            for connector in ("openvpn", "wireguard", "networkmanager"):
+                self.hub.set_connector(first["id"], connector)
+                reloaded = ProjectHub(self.runtime).list()["projects"]
+                self.assertEqual(connector, next(row for row in reloaded if row["id"] == first["id"])["connector"])
+                self.assertEqual(
+                    "networkmanager", next(row for row in reloaded if row["id"] == second["id"])["connector"]
+                )
+        with self.assertRaises(ValueError):
+            self.hub.set_connector(first["id"], "invalid")
+        with self.assertRaises(KeyError):
+            self.hub.set_connector("missing", "wireguard")
+
+    def test_old_catalog_gets_a_connector_default_without_changing_vpn_preference(self):
+        first = self.hub.create("Legacy")["project"]
+        data = self.hub._read()
+        data["projects"][-1].pop("connector")
+        data["projects"][-1]["vpn"] = "none"
+        self.hub._write(data)
+        opened = self.hub.open(first["id"])["project"]
+        self.assertEqual("networkmanager", opened["connector"])
+        self.assertEqual("none", opened["vpn"])
+
     def test_native_and_legacy_routes_use_the_same_project_service(self):
         for stack in ("native", "legacy"):
             with self.subTest(stack=stack):
@@ -206,6 +232,32 @@ class ProjectHubTest(TestCase):
                 response = post("/api/hub/projects", {"name": f"{stack} lab"})
                 self.assertEqual(200, response.status_code, response.data if stack == "legacy" else response.text)
                 row = payload(response)["project"]
+                connector_url = f"/api/hub/projects/{row['id']}/connector"
+                self.assertEqual(200, post(connector_url, {"selection": "wireguard"}).status_code)
+                self.assertEqual(422, post(connector_url, {"selection": "invalid"}).status_code)
+                self.assertEqual(422, post(connector_url, {"selection": "openvpn", "connect": True}).status_code)
+                reopened = post(f"/api/hub/projects/{row['id']}/open", {})
+                self.assertEqual("wireguard", payload(reopened)["project"]["connector"])
+                with (
+                    patch.object(
+                        self.runtime,
+                        "start_tool_install_job",
+                        return_value={
+                            "id": 99,
+                            "type": "tool-install",
+                            "status": "queued",
+                        },
+                    ) as install,
+                    patch("app.tooling.detect_supported_tool_install_platform", return_value="ubuntu"),
+                ):
+                    for connector in ("openvpn", "wireguard"):
+                        queued = post("/api/hub/connectors/install", {"connector": connector})
+                        self.assertEqual(202, queued.status_code)
+                        install.assert_called_with(platform="ubuntu", scope="missing", tool_keys=[connector])
+                    self.assertEqual(
+                        422, post("/api/hub/connectors/install", {"connector": "networkmanager"}).status_code
+                    )
+                    self.assertEqual(2, install.call_count)
                 self.assertEqual(200, get("/api/hub/settings").status_code)
                 folder = str(self.root / f"{stack} output")
                 changed = post("/api/hub/settings/save-folder", {"path": folder})

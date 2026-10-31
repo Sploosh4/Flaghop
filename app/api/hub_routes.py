@@ -7,6 +7,7 @@ from pathlib import Path
 import tempfile
 from app.api.dependencies import native_router
 from app.api.hub_contracts import (
+    HubConnectorInstallation,
     HubFiles,
     HubOk,
     HubProjects,
@@ -14,7 +15,14 @@ from app.api.hub_contracts import (
     OpenHubProject,
 )
 from app.services.project_hub import ProjectHub
-from app.services.project_hub_requests import CreateHubProject, HubVpn, OpenHubPath, HubSaveFolder
+from app.services.project_hub_requests import (
+    CreateHubProject,
+    HubConnector,
+    HubConnectorInstall,
+    HubVpn,
+    OpenHubPath,
+    HubSaveFolder,
+)
 
 router = native_router()
 
@@ -111,6 +119,21 @@ def project_vpn(identifier: str, payload: HubVpn, hub: Hub):
 @router.get("/api/hub/projects/{identifier}/files", response_model=HubFiles, operation_id="listHubFiles")
 def files(identifier: str, hub: Hub):
     return hub.files(identifier)
+
+
+@router.post("/api/hub/projects/{identifier}/connector", response_model=HubOk, operation_id="setHubProjectConnector")
+def project_connector(identifier: str, payload: HubConnector, hub: Hub):
+    return hub.set_connector(identifier, payload.selection)
+
+
+@router.post(
+    "/api/hub/connectors/install",
+    response_model=HubConnectorInstallation,
+    status_code=202,
+    operation_id="installHubConnector",
+)
+def install_connector(payload: HubConnectorInstall, hub: Hub):
+    return hub.install_connector(payload.connector)
 
 
 @router.get("/api/hub/projects/{identifier}/file", response_class=FileResponse, operation_id="downloadHubFile")

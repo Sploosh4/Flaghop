@@ -8,6 +8,7 @@ Legion should let you map devices, run commands, use Metasploit and inspect file
 
 - [x] Desktop workspace, scans, evidence graph, jobs and approvals.
 - [x] Backend cleanup and React/FastAPI workspace/activity panels.
+- [ ] OpenVPN, WireGuard and local/direct network connections, with connection and target reachability checks in Settings.
 - [ ] Device map with coloured connection types and commands launched from selected devices.
 - [ ] Metasploit integration and a right-hand action/results panel.
 - [ ] File-watcher/decoder integration, found-file notifications and user-run hash jobs.
@@ -22,6 +23,24 @@ Legion should let you map devices, run commands, use Metasploit and inspect file
 - Show the user's laptop, discovered devices and the links between them. Include an intermediate router or firewall when it has been observed.
 - Use different link colours for different connections, with a legend. The categories and colours are still undecided.
 - Use the approved device illustrations. Choose an image from the evidence about the device; the artwork alone doesn't establish its identity or NGFW capabilities.
+
+### Connectors and target reachability in Settings
+
+Agreed 31 October 2026. Keep connection diagnostics and per-target route/reachability checks in Settings, not on the map.
+
+- Support OpenVPN profiles, WireGuard profiles and local/direct access over Ethernet, Wi-Fi and virtual lab networks. Local access without a VPN is an intentional mode, not a connection error.
+- Each project's Project setup has a **Connector** dropdown with exactly **NetworkManager**, **OpenVPN** and **WireGuard**. This selects the connection manager/client; profile selection and local/direct mode are separate settings. NetworkManager can manage OpenVPN, WireGuard and local interfaces.
+- Computer Setup has **Install OpenVPN** and **Install WireGuard** buttons beside the default VPN controls. Queue only the selected tool through the existing installer and show its outcome. Installing a client or choosing a connector does not connect a tunnel.
+- Keep a selected project connector separate from its connection profile and from live connection status. Preserve compatibility with existing default/None VPN preferences until the profile controls are implemented.
+- Detect NetworkManager-managed profiles and externally managed OpenVPN/WireGuard interfaces. Show ownership; do not start duplicate tunnels or disconnect external clients automatically.
+- Inspect OpenVPN session state; for WireGuard distinguish interface configuration from peer handshake/traffic observations. An idle peer's old handshake alone does not establish failure. A connected tunnel does not prove target access.
+- For each selected target, resolve its hostname if needed, then ask the OS for the selected interface, source IP and next-hop gateway. On Linux use a structured route lookup such as `ip -j route get`, matching the tool's execution environment and any relevant routing policy. Compare the selected path with the project's expected connection. A default route's existence alone does not establish a usable lab route.
+- Check a bounded number of probes to the selected target: ICMP where appropriate and TCP connections to supplied or known service ports. Keep route selection, observed responses and application/service availability as separate results. No ping reply or a timeout means no response observed, not proof that the host is down. Treat a refused connection as a rejection response, not an available service.
+- Optional **Trace route** reports observed intermediate hops; unanswered hops remain unknown. Tunnels and filtering can hide routers, and tracing does not establish a complete physical path or the return path.
+- Record target/address, connector, execution environment, interface/source/gateway, probe method/port, result, reason and check time. Mark prior results as needing a recheck after VPN/routing changes, session loss, IP reuse or target resets, retaining history.
+- Check callback/listener reachability separately when a workflow needs it. Outbound access to a target service does not prove that the target can connect back.
+
+Implemented: installer buttons and persisted per-project connector selection. Profile discovery, connect/disconnect controls and the diagnostics above remain planned work. Do not start checks simply by opening a project or changing its connector.
 
 ### Actions on the right
 
@@ -56,7 +75,7 @@ The current app already contains persistent SQLite workspaces, host/service inve
 
 Web-tool commands and some Metasploit command mappings already exist. The unified website workflow and deeper Metasploit integration described here remain planned work.
 
-The evidence graph exists; the planned map of network paths from the laptop is still to build. A discovered host, a reachable service and a confirmed network hop are different observations.
+The evidence graph exists; the device map is still to build. A discovered host, a reachable service and a confirmed network hop are different observations. Connection-path and reachability diagnostics belong in Settings.
 
 A separate local file-watching prototype combines Watchdog, base64dump and Ciphey. It preserves originals, records source hashes and candidate locations, saves derived files and reports failures or partial processing. It is not integrated into Legion, and there is no working Legion importer for its proposed export. Archive/PDF extraction and general cipher detection are not implemented in that prototype.
 
@@ -68,7 +87,7 @@ These still need a decision.
 
 | Area | Suggested behaviour |
 | --- | --- |
-| Map evidence | Distinguish reachability, observed hops and confirmed connections; retain unknown hops and show the source and age of a relationship. Supplement colours with labels or line styles. |
+| Map evidence | Keep connection-path and target reachability diagnostics in Settings. Map relationships must still have evidence; supplement colours with labels or line styles. |
 | Action cards | Include target, reason for the suggestion, supporting evidence, expected outcome, tool, execution location, prerequisites, impact, progress and access to output. |
 | Queue behaviour | Prevent duplicate runs, limit concurrency, offer cancellation, keep failures actionable and retain completed work in searchable history. |
 | Panel organisation | Provide views for the selected device, the whole workspace, running work and new files. |
