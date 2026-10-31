@@ -277,6 +277,7 @@ def save_project_as_impl(runtime, project_path: str, replace: bool = True) -> Di
 def count_running_scan_jobs(runtime, include_queued: bool = True) -> int:
     running_types = {
         "nmap-scan",
+        "deep-scan",
         "import-nmap-xml",
         "scheduler-run",
         "scheduler-approval-execute",

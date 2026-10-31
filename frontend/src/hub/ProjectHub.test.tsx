@@ -24,6 +24,8 @@ beforeEach(() => {
   vi.mocked(api.projectNetwork).mockImplementation(async project_id => ({project_id, config_id: `network-${project_id}`, revision: 0, connector: 'networkmanager', configured: false, settings: {}, enforcement_available: true, enforcement_reason: 'Fixture enforcement tools', recent_checks: []}));
   vi.mocked(api.setProjectConnector).mockResolvedValue({status: 'ok'});
   vi.mocked(api.background).mockImplementation(async id => backgroundState(id, false));
+  vi.mocked(api.deepScans).mockResolvedValue({runs: []});
+  vi.mocked(api.documentUrl).mockImplementation((id, path) => '/api/hub/projects/' + id + '/editor?path=' + encodeURIComponent(path));
   vi.spyOn(window, 'open').mockReturnValue(null);
   vi.mocked(api.filesystemUrl).mockImplementation(id => '/api/hub/projects/' + id + '/filesystem');
   vi.mocked(api.editorUrl).mockImplementation((id, result) => '/api/hub/projects/' + id + '/editor?result=' + result);
@@ -411,6 +413,36 @@ it('opens Files independently and leaves Overview selected', async () => {
   await user.click(sidebar().getByRole('button', {name: 'Files'}));
   expect(window.open).toHaveBeenCalledWith('/api/hub/projects/one/filesystem', '_blank', 'noopener');
   expect(document.querySelector('.hub-files-view')).toBeNull();
+  expect(sidebar().getByRole('button', {name: 'Overview'}).getAttribute('aria-current')).toBe('page');
+});
+
+it('runs one selected-device scan through Working, cancellation and saved evidence History', async () => {
+  vi.mocked(api.snapshot).mockResolvedValue({project: opened(harbour).workspace, hosts: [{id: 1, ip: '192.0.2.10', hostname: 'fixture.test'}]});
+  let runs: api.DeepScanRun[] = [];
+  vi.mocked(api.deepScans).mockImplementation(async () => ({runs}));
+  vi.mocked(api.startDeepScan).mockImplementation(async (_id, body) => {
+    const run: api.DeepScanRun = {id: 'scan-one', project_id: 'one', host_id: body.host_id, target_ip: body.target_ip, status: 'queued', job_id: 123, profile_path: '', summary: {}};
+    runs = [run]; return run;
+  });
+  vi.mocked(api.stopDeepScan).mockImplementation(async () => {
+    runs = [{...runs[0], status: 'cancelled', reason: 'Stopped by user', log_path: 'workspace-tool-output/deep-scans/scan-one/log.txt'}];
+    return {status: 'ok', stopped: true, job: {id: 123, type: 'deep-scan', status: 'cancelled'}};
+  });
+  render(<ProjectHub/>); const user = userEvent.setup();
+  await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
+  await user.click(await screen.findByRole('button', {name: '192.0.2.10 · fixture.test'}));
+  expect(document.getElementById('hub-deep-scan')).toBeNull();
+  await user.click(screen.getByRole('button', {name: 'Deep scan 192.0.2.10'}));
+  await screen.findByText('queued');
+  expect(api.startDeepScan).toHaveBeenCalledWith('one', {host_id: 1, target_ip: '192.0.2.10', expected_revision: 0});
+  expect(screen.getByRole('button', {name: 'Deep scan 192.0.2.10'}).hasAttribute('disabled')).toBe(true);
+  await user.click(within(document.getElementById('hub-background-working')!).getByRole('button', {name: 'Stop'}));
+  await waitFor(() => expect(document.querySelector('#hub-background-working [data-scan-id]')).toBeNull());
+  await user.click(within(document.getElementById('hub-background-history')!).getByText('History'));
+  expect(await screen.findByText('cancelled')).toBeTruthy();
+  const link = within(document.querySelector('[data-scan-id="scan-one"]') as HTMLElement).getByRole('link', {name: 'Open'});
+  expect(link.getAttribute('href')).toContain('/one/editor?path=');
+  expect(link.getAttribute('target')).toBe('_blank');
   expect(sidebar().getByRole('button', {name: 'Overview'}).getAttribute('aria-current')).toBe('page');
 });
 

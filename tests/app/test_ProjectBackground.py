@@ -115,6 +115,8 @@ class ProjectBackgroundTest(TestCase):
             "workspace.autosave.legion",
             "workspace-tool-output/legion-passwords.txt",
             "workspace-tool-output/legion-usernames.txt",
+            "workspace-tool-output/deep-scans/" + "a" * 32 + "/profile/device-profile.json",
+            "workspace-tool-output/deep-scans/" + "a" * 32 + "/request.json",
         ):
             report["sources"][0]["path"] = source_path
             atomic_json(report_path, report)
@@ -124,6 +126,11 @@ class ProjectBackgroundTest(TestCase):
             self.assertEqual("Internal application data", value["history"][0]["history_reason"])
             self.assertEqual(b"actual saved evidence", path.read_bytes())
         report["sources"][0]["path"] = "inputs/received.txt"
+        atomic_json(report_path, report)
+        self.assertEqual(identifier, self.service().status()["alerts"][0]["id"])
+        report["sources"][0]["path"] = (
+            "workspace-tool-output/deep-scans/" + "a" * 32 + "/profile/raw/http-found-file.txt"
+        )
         atomic_json(report_path, report)
         self.assertEqual(identifier, self.service().status()["alerts"][0]["id"])
 

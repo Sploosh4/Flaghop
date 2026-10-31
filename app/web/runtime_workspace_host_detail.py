@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from app.scheduler.state import get_target_state as load_target_state
 from app.web.runtime_workspace_identity import resolve_host_os
+from app.scanning.repository import summaries as scan_summaries
 
 
 def get_host_workspace(
@@ -116,6 +117,7 @@ def get_host_workspace(
         os_state = resolve_host_os(host, service_inventory=service_inventory_payload, target_state=target_state)
 
         return {
+            "deep_scans": scan_summaries(project, int(host.id)),
             "host": {
                 "id": int(host.id),
                 "ip": str(getattr(host, "ip", "") or ""),

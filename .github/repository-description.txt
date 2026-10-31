@@ -1,1 +1,1 @@
-FlagHop: a CTF workspace for tools, evidence, files and guarded local network jobs. Device mapping and unified Metasploit workflows are planned.
+FlagHop: a desktop CTF workspace with guarded device scans, service inventory, project evidence and files. Full topology and unified Metasploit workflows remain planned.

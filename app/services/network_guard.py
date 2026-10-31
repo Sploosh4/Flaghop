@@ -1,6 +1,7 @@
 """Per-command Linux egress restrictions; no rules affect other application traffic."""
 
 import grp
+import json
 import os
 from pathlib import Path
 import secrets
@@ -8,6 +9,7 @@ import shlex
 import subprocess
 import tempfile
 import time
+import sys
 
 from app.services.network_probe import command, executable
 from app.services.project_networks import JOB_NETWORK, NetworkHeld, command_targets
@@ -24,6 +26,7 @@ class NetworkLease:
         self.next_check = 0.0
         self.installed = False
         self.hosts_folder = None
+        self.proxy_sequence = ""
 
     def prepare(self):
         try:
@@ -35,6 +38,11 @@ class NetworkLease:
             if self.request.tool_name == "tshark-passive-capture":
                 raise NetworkHeld("Passive capture needs a dedicated privileged adapter; the guarded runner holds it.")
             targets = command_targets(self.request)
+            if (
+                self.request.tool_name == "device-profile"
+                and self.service.get(self.reference["project_id"])["revision"] != self.reference["revision"]
+            ):
+                raise NetworkHeld("Network settings changed after Deep scan was queued. Reload and retry.")
             port = int(self.request.port) if str(self.request.port).isdigit() else None
             self.snapshot = self.service.inspect(self.reference, targets, port)
             observations = self.service.services(self.snapshot)
@@ -73,6 +81,12 @@ class NetworkLease:
             f"add chain inet {table} targets",
             f"add rule inet {table} output meta skgid {self.gid} jump targets",
         ]
+        if self.request.tool_name == "device-profile" and self.request.proxy_channel:
+            lines += [
+                f"add set inet {table} scan_proxy {{ type inet_service; }}",
+                f'add rule inet {table} targets meta oifname "lo" ip saddr 127.0.0.1 ip daddr 127.0.0.1 tcp dport @scan_proxy accept',
+                f'add rule inet {table} targets meta oifname "lo" ip saddr 127.0.0.1 ip daddr 127.0.0.1 tcp sport @scan_proxy ct state established accept',
+            ]
         if snapshot.get("transport"):
             transport = snapshot["transport"]
             for peer in transport["peers"]:
@@ -91,7 +105,9 @@ class NetworkLease:
         for network in snapshot["excludes"]:
             family = "ip" if network.version == 4 else "ip6"
             lines.append(f"add rule inet {table} targets {family} daddr {network} drop")
-        for network in snapshot["includes"]:
+        # A profiler is narrower than the project scope: one IP and an optional explicit resolver.
+        includes = snapshot["destinations"] if self.request.tool_name == "device-profile" else snapshot["includes"]
+        for network in includes:
             family = "ip" if network.version == 4 else "ip6"
             sources = sorted(
                 {row["source"] for row in snapshot["routes"] if (":" in row["source"]) == (network.version == 6)}
@@ -122,6 +138,22 @@ class NetworkLease:
         # Pin checked hostnames for subprocesses without changing the host's resolver.
         hosts.write_text("\n".join(entries) + "\n" + Path("/etc/hosts").read_text())
         hosts.chmod(0o644)
+        child = list(self.request.argv) if self.request.argv else ["/bin/sh", "-c", self.request.command]
+        if self.request.tool_name == "device-profile":
+            # sudo-rs ignores -E. Restore only scanner runtime paths after
+            # setpriv has dropped privileges, never into the root helpers.
+            from app.tooling import build_tool_execution_env
+
+            environment = build_tool_execution_env()
+            names = ("PATH", "HOME", "USER", "LOGNAME", "LANG", "LC_ALL", "TERM", "TZ", "TMPDIR", "XDG_CACHE_HOME")
+            child = [
+                executable("env"),
+                "-i",
+                *[f"{name}={environment[name]}" for name in names if name in environment],
+                "NMAP_UNPRIVILEGED=1",
+                "PYTHONDONTWRITEBYTECODE=1",
+                *child,
+            ]
         args = [
             executable("setpriv"),
             f"--reuid={uid}",
@@ -131,9 +163,7 @@ class NetworkLease:
             "--inh-caps=-all",
             "--ambient-caps=-all",
             "--no-new-privs",
-            "/bin/sh",
-            "-c",
-            self.request.command,
+            *child,
         ]
         mount_script = f'{shlex.quote(executable("mount"))} --bind "$1" /etc/hosts; shift; exec "$@"'
         args = [
@@ -149,9 +179,11 @@ class NetworkLease:
             str(hosts),
             *args,
         ]
-        return args if os.geteuid() == 0 else [executable("sudo"), "-n", "-E", *args]
+        preserve = [] if self.request.tool_name == "device-profile" else ["-E"]
+        return args if os.geteuid() == 0 else [executable("sudo"), "-n", *preserve, *args]
 
     def verify(self):
+        self.sync_proxy()
         if time.monotonic() < self.next_check:
             return
         self.next_check = time.monotonic() + 1
@@ -162,6 +194,37 @@ class NetworkLease:
         except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as exc:
             self.block(str(exc))
             raise NetworkHeld(f"held: {exc}") from exc
+
+    def sync_proxy(self):
+        if self.request.tool_name != "device-profile" or not self.request.proxy_channel:
+            return
+        path = Path(self.request.proxy_channel)
+        if not path.exists():
+            return
+        if path.is_symlink() or path.stat().st_size > 2048:
+            raise NetworkHeld("Invalid scan proxy registration.")
+        message = json.loads(path.read_text())
+        sequence, port = message.get("sequence"), message.get("port")
+        if sequence == self.proxy_sequence:
+            return
+        if not isinstance(sequence, str) or len(sequence) != 32 or message.get("token") != self.request.proxy_token:
+            raise NetworkHeld("Invalid scan proxy ownership token.")
+        if type(port) is not int or not 1 <= port <= 65535 or message.get("operation") not in {"open", "close"}:
+            raise NetworkHeld("Invalid scan proxy port/operation.")
+        if message["operation"] == "open":
+            helper = Path(__file__).resolve().parents[1] / "scanning/listener.py"
+            try:
+                command([sys.executable, "-I", str(helper), str(self.gid), str(port)], admin=True)
+            except RuntimeError as exc:
+                raise NetworkHeld("Scan proxy listener does not belong to this job's private group.") from exc
+        rules = f"flush set inet {self.table} scan_proxy\n"
+        if message["operation"] == "open":
+            rules += f"add element inet {self.table} scan_proxy {{ {port} }}\n"
+        command([executable("nft"), "-f", "-"], admin=True, input=rules)
+        from app.services.project_background import atomic_json
+
+        atomic_json(path.with_suffix(".ack"), {"token": self.request.proxy_token, "sequence": sequence})
+        self.proxy_sequence = sequence
 
     def block(self, reason):
         if self.reference:

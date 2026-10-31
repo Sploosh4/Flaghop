@@ -2,7 +2,21 @@ import datetime
 import logging
 import itertools
 import threading
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional
+
+
+@dataclass
+class JobOutcome:
+    """Explicit terminal outcome for adapters that can retain partial evidence."""
+
+    status: str
+    result: dict
+    error: str = ""
+
+    def __post_init__(self):
+        if self.status not in {"completed", "partial", "failed", "cancelled", "held"}:
+            raise ValueError("Invalid terminal job outcome.")
 
 
 class WebJobManager:
@@ -22,6 +36,7 @@ class WebJobManager:
         self._jobs_by_id: Dict[int, Dict[str, Any]] = {}
         self._pending_job_ids: List[int] = []
         self._runners: Dict[int, Callable[[], Dict[str, Any]]] = {}
+        self._completion_callbacks = {}
         self._workers: List[threading.Thread] = []
         self._running_job_count = 0
         self._running_exclusive_job_id = 0
@@ -35,6 +50,7 @@ class WebJobManager:
         payload: Optional[Dict[str, Any]] = None,
         queue_front: bool = False,
         exclusive: bool = False,
+        on_finish=None,
     ):
         job_id = next(self._counter)
         now = self._utc_now()
@@ -56,6 +72,8 @@ class WebJobManager:
             self._jobs.append(job)
             self._jobs_by_id[job_id] = job
             self._runners[job_id] = runner
+            if callable(on_finish):
+                self._completion_callbacks[job_id] = on_finish
             if queue_front:
                 self._pending_job_ids.insert(0, job_id)
             else:
@@ -129,7 +147,7 @@ class WebJobManager:
                 return None
 
             status = str(job.get("status", "") or "").strip().lower()
-            if status in {"completed", "failed", "cancelled", "held"}:
+            if status in {"completed", "partial", "failed", "cancelled", "held"}:
                 return self._copy_job(job)
 
             job["cancel_requested"] = True
@@ -189,8 +207,10 @@ class WebJobManager:
                         if not str(job.get("error", "") or "").strip():
                             job["error"] = str(job.get("cancel_reason", "") or "cancelled by user")
                     else:
-                        job["status"] = "completed"
-                    job["result"] = result
+                        job["status"] = result.status if isinstance(result, JobOutcome) else "completed"
+                    job["result"] = result.result if isinstance(result, JobOutcome) else result
+                    if isinstance(result, JobOutcome) and result.error:
+                        job["error"] = result.error
             except Exception as exc:
                 from app.services.project_networks import NetworkHeld
 
@@ -315,9 +335,18 @@ class WebJobManager:
         return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     def _notify_change(self, job: Optional[Dict[str, Any]], event_name: str):
-        if job is None or self._on_change is None:
+        if job is None:
             return
-        try:
-            self._on_change(dict(job), str(event_name or "updated"))
-        except Exception:
-            logging.getLogger(__name__).exception("Job change callback failed for job %s", job.get("id"))
+        if self._on_change is not None:
+            try:
+                self._on_change(dict(job), str(event_name or "updated"))
+            except Exception:
+                logging.getLogger(__name__).exception("Job change callback failed for job %s", job.get("id"))
+        if job.get("status") not in {"queued", "running"}:
+            with self._lock:
+                finished = self._completion_callbacks.pop(job["id"], None)
+            if finished:
+                try:
+                    finished(dict(job))
+                except Exception:
+                    logging.getLogger(__name__).exception("Job result persistence failed for job %s", job.get("id"))

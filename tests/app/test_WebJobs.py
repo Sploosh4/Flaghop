@@ -4,6 +4,26 @@ import unittest
 
 
 class WebJobManagerTest(unittest.TestCase):
+    def test_partial_outcome_calls_its_completion_callback_once(self):
+        from app.web.jobs import WebJobManager, JobOutcome
+
+        completed = []
+        manager = WebJobManager()
+        job = manager.start(
+            "fixture-partial",
+            lambda: JobOutcome("partial", {"evidence": "saved"}, "tool missing"),
+            on_finish=lambda row: completed.append(row),
+        )
+        finished = self._wait_for_state(manager, job["id"], {"partial"})
+        self.assertEqual("partial", finished["status"])
+        deadline = time.monotonic() + 1
+        while not completed and time.monotonic() < deadline:
+            time.sleep(0.01)
+        self.assertEqual(1, len(completed))
+        self.assertEqual("saved", completed[0]["result"]["evidence"])
+        manager.cancel_job(job["id"])
+        self.assertEqual(1, len(completed))
+
     def _wait_for_state(self, manager, job_id, states, timeout=1.5):
         deadline = time.time() + timeout
         while time.time() < deadline:

@@ -27,6 +27,11 @@ jobs:
         run: scripts/frontend.sh check
       - name: Tests, formatting and lint
         run: scripts/check-maintainability.sh
+      - name: Bundled scanner Python compatibility
+        working-directory: vendor/ctf_profiler
+        env:
+          TMPDIR: ${{ github.workspace }}/.tmp
+        run: ../../.venv/bin/python -m unittest discover -s tests -p test_dependency_compat.py
       - name: Fixture desktop smoke test
         env:
           QT_QPA_PLATFORM: offscreen
@@ -60,3 +65,14 @@ jobs:
           QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
           LEGION_SMOKE_WEB_STACK: legacy
         run: .venv/bin/python tests/desktop/documents_smoke.py
+      - name: Synthetic Deep scan job, import and evidence reopening
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
+        run: .venv/bin/python tests/desktop/scanner_smoke.py
+      - name: Synthetic Deep scan fallback compatibility
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
+          LEGION_SMOKE_WEB_STACK: legacy
+        run: .venv/bin/python tests/desktop/scanner_smoke.py

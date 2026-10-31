@@ -68,5 +68,17 @@ export function renderHostDetail(payload) {
 
     setText("host-ai-tech-count", aiTechnologies.length);
     renderCategoryChipList("host-detail-categories", stateDeviceCategories, "Uncategorized");
+    const scanPanel = document.getElementById('host-detail-deep-scans'), scanResults = document.getElementById('host-detail-scan-results');
+    if (scanPanel && scanResults) {
+        const scans = Array.isArray(payload?.deep_scans) ? payload.deep_scans : [];
+        scanPanel.hidden = scans.length === 0;
+        scanResults.replaceChildren();
+        for (const scan of scans) {
+            const details = document.createElement('details'), title = document.createElement('summary'), body = document.createElement('pre');
+            title.textContent = `${scan.profile_status || ''} · ${scan.profile_sha256 || ''}`;
+            body.textContent = JSON.stringify({role_hypotheses: scan.classification || {}, candidates: scan.candidates || [], reproduced: scan.reproduced || [], task_problems: scan.problems || [], dependency_audit: scan.dependency_audit || ''}, null, 2);
+            details.append(title, body); scanResults.append(details);
+        }
+    }
     setText("host-device-category-count", normalizeCategoryList(stateDeviceCategories).length);
 }

@@ -9,6 +9,7 @@ from app.api.routes import router
 from app.api.activity_routes import router as activity_router
 from app.api.hub_routes import router as hub_router
 from app.api.background_routes import router as background_router
+from app.api.scanner_routes import router as scanner_router
 from app.api.events import register_event_routes
 from app.web import create_app as create_legacy_app
 
@@ -64,6 +65,7 @@ def create_app(runtime=None, *, config=None):
     app.include_router(activity_router)
     app.include_router(hub_router)
     app.include_router(background_router)
+    app.include_router(scanner_router)
     register_event_routes(app)
     # Keep unmatched paths, static files and existing downloads working during the pilot.
     app.mount("/", WSGIMiddleware(legacy))

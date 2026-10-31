@@ -1,0 +1,14 @@
+id: profiler-wordpress-detection
+info:
+  name: WordPress resource markers
+  author: ctf-profiler
+  severity: info
+  tags: tech,wordpress
+http:
+  - method: GET
+    path:
+      - "{{RootURL}}/"
+    matchers:
+      - type: word
+        condition: or
+        words: ["/wp-content/", "/wp-includes/"]

@@ -25,8 +25,16 @@ The right panel shows the selected host context, an empty collapsible Cyber Kill
 Chain section above Hash/Cipher, and the workspace reader's Working/History controls.
 The kill-chain section has no action source or runner yet. Reader results remain project-scoped; they are not
 silently filtered by device without a verified provenance association. Full action
-cards, scanner/profile import, observed intermediate hops and terminal integration
-remain separate work. The previous evidence graph is still available through search.
+cards, observed intermediate hops and terminal integration remain separate work. The previous evidence graph is still available through search.
+
+This checkpoint adds the first selected-device
+Deep scan slice. With a device selected its Run action follows the reader groups;
+otherwise a Deep scan folder lists devices below Working and above History.
+Scan jobs/results are filtered by the selected device. Profile import updates
+service inventory and shows role hypotheses, candidates and reproduced findings
+without promoting them to physical identity or inventing topology links. Reader
+results keep their existing project scope. Live guarded acceptance passed against owned fixtures;
+see [scanner integration](scanner-integration.md).
 
 `tests/desktop/hardware_smoke.py` checks the actual WebEngine rendering, masks,
 hover/selected colours, asset loading, shortcuts, resizing and project isolation on

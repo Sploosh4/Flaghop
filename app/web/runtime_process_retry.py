@@ -35,6 +35,10 @@ def retry_process(runtime, process_id: int, timeout: int = 300, job_id: int = 0)
         port = str(details.get("port", "") or "")
         protocol = str(details.get("protocol", "") or "tcp")
         tool_name = str(details.get("name", "") or "process")
+        if tool_name == "device-profile":
+            raise ValueError(
+                "Start a fresh Deep scan from the selected device; saved scanner commands cannot be replayed."
+            )
         tab_title = str(details.get("tabTitle", "") or tool_name)
         outputfile = str(details.get("outputfile", "") or "")
         if not outputfile:

@@ -96,6 +96,8 @@ class ProcessRunner:
             int(timeout_policy.get("inactivity_timeout_seconds", self.request.timeout) or self.request.timeout or 300),
         )
         self.state.hard_timeout_seconds = max(0, int(timeout_policy.get("hard_timeout_seconds", 0) or 0))
+        if self.request.hard_timeout:
+            self.state.hard_timeout_seconds = self.request.hard_timeout
         self.state.progress_state = {
             "adapter": self.ports.process_progress_adapter_for_command(
                 str(self.request.tool_name), str(self.request.command)
@@ -135,6 +137,14 @@ class ProcessRunner:
             self._record_network()
             return self._build_result(False, reason, int(self.state.process_id))
         finally:
+            if self.request.argv and self.state.proc is not None and self.state.proc.poll() is None:
+                try:
+                    self.ports.signal_process_tree(self.state.proc, force=True)
+                    self.state.proc.wait(timeout=5)
+                except (OSError, subprocess.SubprocessError):
+                    logging.getLogger(__name__).warning(
+                        "Command parent did not exit before network cleanup", exc_info=True
+                    )
             if self.ports.network_guard is not None:
                 try:
                     self.ports.network_guard.close()
@@ -168,8 +178,12 @@ class ProcessRunner:
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
-            start_new_session=os.name != "nt",
+            # Keep the authenticated terminal session for sudo's timestamp,
+            # while retaining a separate process group for cancellation.
+            start_new_session=os.name != "nt" and not guarded,
+            process_group=0 if os.name != "nt" and guarded else None,
             env=env,
+            cwd=self.request.cwd,
         )
         self.state.process_repo.storeProcessRunningStatus(str(self.state.process_id), str(self.state.proc.pid))
         with self.ports.registry.lock:
@@ -249,7 +263,7 @@ class ProcessRunner:
                 self.state.killed = True
                 self.ports.signal_process_tree(self.state.proc, force=False)
                 try:
-                    self.state.proc.wait(timeout=2)
+                    self.state.proc.wait(timeout=self.request.cancel_grace)
                 except Exception:
                     self.ports.signal_process_tree(self.state.proc, force=True)
             if (
@@ -260,7 +274,7 @@ class ProcessRunner:
                 self.state.killed = True
                 self.ports.signal_process_tree(self.state.proc, force=False)
                 try:
-                    self.state.proc.wait(timeout=2)
+                    self.state.proc.wait(timeout=self.request.cancel_grace)
                 except Exception:
                     self.ports.signal_process_tree(self.state.proc, force=True)
             if self.state.proc.poll() is None:
@@ -382,8 +396,20 @@ class ProcessRunner:
         try:
             if pipe is None:
                 return
-            for line in iter(pipe.readline, ""):
-                self.state.output_queue.put(str(line))
+            if self.request.output_limit:
+                remaining = self.request.output_limit
+                truncated = False
+                while chunk := pipe.readline(4096):
+                    kept = chunk[:remaining]
+                    if kept:
+                        self.state.output_queue.put(kept)
+                        remaining -= len(kept)
+                    if len(kept) < len(chunk) and not truncated:
+                        self.state.output_queue.put("\n[output truncated at scan log limit]\n")
+                        truncated = True
+            else:
+                for line in iter(pipe.readline, ""):
+                    self.state.output_queue.put(str(line))
         except Exception as exc:
             self.state.output_queue.put(f"\n[reader-error] {exc}\n")
         finally:
@@ -414,5 +440,6 @@ class ProcessRunner:
                     self.ports.collect_command_artifacts(self.request.outputfile) if process_id > 0 else []
                 ),
                 "network": self.ports.network_guard.report if self.ports.network_guard is not None else None,
+                "exit_code": getattr(self.state.proc, "returncode", None),
             },
         )

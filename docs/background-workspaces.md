@@ -23,6 +23,13 @@ and saved tool artifacts in each configured folder. Alerts are newest first with
 collapsible Hash and Cipher groups. Working is followed by collapsed History.
 An empty collapsible Cyber Kill Chain section sits above Hash; its action engine
 is not integrated and its count remains zero.
+
+This checkpoint adds manual Deep scan jobs separately
+from reader controls. They use the app queue and guarded runner, and appear in
+Working/History with validated profile/evidence links. Header Start/Stop still
+controls only registered cipher/password readers. New scan bookkeeping and Nmap
+metadata are excluded from discovery alerts; captured target-file content is not.
+See [scanner integration](scanner-integration.md) for tests and the live gate.
 Historical candidates originating only from the app's workspace databases or
 generated username/password lists appear in History, rather than as new findings.
 Hypothesis-only transformations also stay in History. Dismiss writes

@@ -31,9 +31,23 @@ Reader engines and service live in separate tool directories. See [workspace rea
 
 ## Active work
 
+This checkpoint implements a thin adapter around
+all 18 scanner modules: selected-device Deep scan jobs, revision/scope checks,
+guarded descendants and an owned-proxy handshake, validated profile/evidence
+import, service and role/finding views, and independent evidence reopening.
+The app fixture tests exercise both transports. Live privileged egress acceptance
+passed against an owned local fixture: normal-user execution, allowed/denied-port
+controls, real guarded browser proof, profile import and evidence reopening. No
+guard bypass was used. Post-launcher checks passed 529 Python tests and 56 React tests, with scanner fixtures
+and the existing desktop regressions passing on both transports. The scanner's
+owner completed fresh Python 3.12 compatibility validation and evidence review:
+51 regressions on each interpreter, 15 supplemental checks and three 28/28
+browser-gated runs. The Chrome ELF/WPScan entrypoint audit gap remains open. It is included in this `master` checkpoint. See [scanner integration](scanner-integration.md)
+and [architecture](architecture.md).
+
 | Workstream | Current position | Remaining gate |
 | --- | --- | --- |
-| Scanner | Separate conditional five-stage profiler and device classifier. Saved round-two acceptance reports 28/28 methods passing, 100/100; the observer records 39/39 original regressions. Three recorded source hashes matched at review. | Three consecutive matching full runs and independent final evidence/documentation/dependency review remain open. Six of eight milestones are complete. Scanner-to-app integration is separate. |
+| Scanner | Conditional five-stage profiler and device classifier; current Python 3.12 compatibility candidate passes 51 regressions on both interpreters, 15 supplemental checks and three matching browser-gated runs with 28/28 acceptance checks each. Source and evidence review completed. | Chrome ELF/WPScan implementation identity coverage remains incomplete. The owned-fixture app guard path passed separately; this does not establish every network/tool configuration. |
 | VPN/network setup | Included: shared scope/exclusions/ports, explicit profile/interface identity, Settings checks, original-project job references, held outcomes and guarded local execution. Real isolated WireGuard and userspace OpenVPN acceptance passed, including Nmap, denied destinations/ports and route-fallback blocking. | Profile discovery/import/connect/disconnect, raw-socket/DCO adapters, remote runners, callback verification and optional traceroute remain planned. |
 
 Acceptance scores describe their defined lab suite. They do not measure whole-app completion, exploit coverage or exact device identity. Metasploit is excluded from the scanner's staged evaluation.
@@ -46,7 +60,7 @@ Combined-checkpoint validation: 505 Python tests, Black/flake8, 46 React tests, 
 
 | Component | Available evidence | Main-app gap |
 | --- | --- | --- |
-| Device profiler/classifier | Parsed network profiles and ranked role hypotheses, with conflicts and unknowns retained. | Connect profiles/classification to the production device map. Rule strength is not calibrated probability. |
+| Device profiler/classifier | Parsed profiles and ranked role hypotheses, with conflicts/unknowns retained; local app adapter updates service inventory and exposes saved role/finding evidence. | Extend the broader action/session workflow separately. Rule strength is not calibrated probability. |
 | Shared cipher/password reader | Supported decoding/recovery chains, mixed hashes/encodings, supported archive handling, durable queues and source/result provenance. | Package repeatable setup; add clickable source/version navigation. Engine directories remain external even though controls/results are locally integrated. |
 | SSH/SFTP collector and workbench | Explicitly configured endpoints, supplied authentication, verified host identity, remote browsing and local evidence snapshots. | Map authenticated sessions into main Files and the correct project/target. Scope alone does not provide credentials or establish a session. |
 | Metasploit profile import | Resource script imports Nmap inventory and a profile note; recorded import verification exists. | Unified module actions, sessions and outcome reporting in the app. Import completion is not exploitation success. |
@@ -83,14 +97,17 @@ and 16 hardware desktop checks per transport, including the Unknown fallback.
 
 ## Planned and deferred
 
-Still to build: scanner-to-app profile/topology wiring, full action panel and embedded terminal, unified Metasploit jobs, remote sessions in Files, and reader installation/recovery packaging. See the [roadmap](ctf-workspace-roadmap.md).
+Included in this checkpoint: the verified scanner/profile import slice.
+Still to build: observed-hop topology import, the full action panel and embedded
+terminal, unified Metasploit jobs, remote sessions in Files, and reader
+installation/recovery packaging. See the [roadmap](ctf-workspace-roadmap.md).
 
 Authenticated web investigation is deferred until the basic integrated workflow exists. The smaller unified website replacement is a later phase. Unauthenticated web reconnaissance remains in the separate scanner. Detailed privilege-escalation interpretation and reachability/pivoting scope are not yet agreed.
 
 ## Problems to track
 
-1. **Integration:** no verified end-to-end path yet connects target selection, the new scanner, the production map, actions and remote Files.
-2. **Scanner sign-off:** acceptance passes while repeatability and final review remain open.
+1. **Broader integration:** selected-target scan, inventory, findings and saved evidence are verified locally. Full action/session wiring, observed-hop topology and remote Files remain separate work.
+2. **Scanner identity:** the Chrome ELF and WPScan implementation-entrypoint fingerprint gaps remain open despite the passing defined suites.
 3. **Network support:** automatic connection management and unsupported privileged/remote adapters remain incomplete. The tested guard covers app-managed local commands only.
 4. **Pause observation:** requests are durable and cooperative; the app cannot confirm the instant every worker has stopped.
 5. **Evidence navigation/editing:** provenance exists, but return-to-source links, a visual version chain and durable edited-copy saving remain incomplete.
@@ -100,12 +117,12 @@ Earlier roadmap statements that treated all reader/file features as unbuilt have
 
 ## Proposed next milestone
 
-Finish scanner verification, then demonstrate one selected target → scan → evidence → saved-result workflow in the app using the shared network guard. Follow with full action/session wiring, remote Files and repeatable setup. This is a proposed delivery order; no delivery date or work-hours estimate is agreed.
+The selected target → scan → evidence → saved-result workflow passed with the shared network guard. Next work is full action/session wiring, remote Files and repeatable setup. This is a proposed delivery order; no delivery date or work-hours estimate is agreed.
 
 ## Evidence ownership
 
 Current application contracts are described in [MIGRATION.md](../MIGRATION.md) and [workspace readers](background-workspaces.md). Implementation and remaining choices are recorded in [requests and questions](requirements-and-questions.md).
 
-The local scanner's owning records are `ctf-profiler/validation/round2-acceptance-003.json`, `SCANNING-PROGRESS-MILESTONES.md` and `pi-bridge/observability/milestones-state.json` in the Hackathons workspace. Reader acceptance is under the app's ignored `.state/research/main-workspace-integration/`. Those local evidence files are not bundled in this public repository. Do not publish real investigation data or recovered secrets to fill that gap.
+The local scanner's owning records are `ctf-profiler/validation/compat-python312-20261031/REPORT.md` and its source/evidence manifests. Earlier round-two reports and observer milestones remain historical records in the Hackathons workspace. Reader acceptance is under the app's ignored `.state/research/main-workspace-integration/`. Those local evidence files are not bundled in this public repository. Do not publish real investigation data or recovered secrets to fill that gap.
 
 Update this review alongside relevant implementation changes. Move a capability to the published section only when its code is actually published, and cite checks for the same revision.

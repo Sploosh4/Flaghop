@@ -158,6 +158,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/hub/projects/{identifier}/deep-scans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scans */
+        get: operations["getDeepScans"];
+        put?: never;
+        /** Start */
+        post: operations["startDeepScan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/hub/projects/{identifier}/editor": {
         parameters: {
             query?: never;
@@ -1126,6 +1144,74 @@ export interface components {
             /** Decisions */
             decisions: components["schemas"]["Decision"][];
         };
+        /** DeepScanList */
+        DeepScanList: {
+            /** Runs */
+            runs: components["schemas"]["DeepScanRun"][];
+        };
+        /** DeepScanRequest */
+        DeepScanRequest: {
+            /** Dns Resolver */
+            dns_resolver?: string | null;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Host Id */
+            host_id: number;
+            /** Target Ip */
+            target_ip: string;
+            /**
+             * Timeout
+             * @default 1800
+             */
+            timeout?: number;
+        };
+        /** DeepScanRun */
+        DeepScanRun: {
+            /**
+             * Directory
+             * @default
+             */
+            directory?: string;
+            /** Host Id */
+            host_id: number;
+            /** Id */
+            id: string;
+            /**
+             * Job Id
+             * @default 0
+             */
+            job_id?: number;
+            /**
+             * Log Path
+             * @default
+             */
+            log_path?: string;
+            /**
+             * Profile Path
+             * @default
+             */
+            profile_path?: string;
+            /** Project Id */
+            project_id: string;
+            /**
+             * Reason
+             * @default
+             */
+            reason?: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "completed" | "partial" | "failed" | "cancelled" | "held" | "planned" | "interrupted";
+            /** Summary */
+            summary?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            /** Target Ip */
+            target_ip: string;
+        } & {
+            [key: string]: unknown;
+        };
         /** Health */
         Health: {
             /**
@@ -1295,7 +1381,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "queued" | "running" | "completed" | "failed" | "cancelled" | "held";
+            status: "queued" | "running" | "completed" | "partial" | "failed" | "cancelled" | "held";
             /** Type */
             type: string;
         } & {
@@ -2405,6 +2491,126 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HubOk"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getDeepScans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeepScanList"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    startDeepScan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeepScanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeepScanRun"];
                 };
             };
             /** @description Bad Request */

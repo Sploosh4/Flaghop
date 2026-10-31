@@ -4,6 +4,10 @@ import {useState} from 'react';
 import {editorUrl} from '../api';
 import type {ReaderAlert} from '../api';
 import {readPreference, writePreference} from '../preferences';
+import type {HubProject} from '../api';
+import type {HardwareNode} from '../hardware/model';
+import type {DeepScanController} from '../scanner/useDeepScans';
+import {ScanAction, ScanCard} from '../scanner/ScanCard';
 
 export function BackgroundControl({view, controller}: {view: WorkspaceView | null; controller: WorkspaceController}) {
   const status = view?.status, action = status?.running ? 'Stop' : 'Start';
@@ -32,11 +36,14 @@ function Result({alert, view, controller, history = false}: {alert: ReaderAlert;
   </article>;
 }
 
-export function BackgroundPanel({view, controller, header}: {view: WorkspaceView | null; controller: WorkspaceController; header?: ReactNode}) {
+export function BackgroundPanel({view, controller, header, scans, project, targets = [], target}: {view: WorkspaceView | null; controller: WorkspaceController; header?: ReactNode; scans?: DeepScanController; project?: HubProject | null; targets?: HardwareNode[]; target?: HardwareNode | null}) {
   const alerts = view?.status?.alerts || [], history = view?.status?.history || [];
+  const scanRuns = scans?.runs.filter(run => !target || run.host_id === target.hostId) || [];
+  const working = scanRuns.filter(run => ['queued', 'running'].includes(run.status)), settled = scanRuns.filter(run => !['queued', 'running'].includes(run.status));
   return <aside className="hub-background-panel" aria-label="Workspace working and results">
     {header}
     {view?.error && <p className="hub-error" role="alert">{view.error}</p>}
+    {scans?.error && <p className="hub-error" role="alert">{scans.error}</p>}
     <div className="hub-result-alerts" aria-label="Result alerts">
       <Group key={`${view?.id}-kill-chain`} id="hub-cyber-kill-chain" label="Cyber Kill Chain" count={0}>{null}</Group>
       {(['Hash', 'Cipher'] as const).map(kind => {
@@ -45,11 +52,16 @@ export function BackgroundPanel({view, controller, header}: {view: WorkspaceView
           {view && rows.map(alert => <Result key={alert.id} alert={alert} view={view} controller={controller}/>)}
         </Group>;
       })}
+      {target && scans && <div className="hub-selected-deep-scan"><ScanAction node={{...target, label: 'Deep scan'}} scans={scans}/></div>}
     </div>
-    <Group key={`${view?.id}-working`} id="hub-background-working" label="Working" count={view?.status?.working.length || 0} expanded>
+    <Group key={`${view?.id}-working`} id="hub-background-working" label="Working" count={(view?.status?.working.length || 0) + working.length} expanded>
       {view?.status?.working.map(job => <div className="hub-background-job" key={`${job.tool}-${job.id}`}><span>{job.tool === 'cipher' ? 'Cipher' : 'Hash'}</span><small>{job.state}</small></div>)}
+      {scans && project && working.map(run => <ScanCard key={run.id} run={run} project={project} scans={scans}/>)}
     </Group>
-    <Group key={`${view?.id}-history`} id="hub-background-history" label="History" count={history.length}>
+    {!target && scans && <Group key={`${view?.id}-deep-scan`} id="hub-deep-scan" label="Deep scan" count={targets.length}>
+      {targets.map(node => <ScanAction key={node.id} node={node} scans={scans}/>)}</Group>}
+    <Group key={`${view?.id}-history`} id="hub-background-history" label="History" count={history.length + settled.length}>
+      {scans && project && settled.map(run => <ScanCard key={run.id} run={run} project={project} scans={scans}/>)}
       {view && history.map(alert => <Result key={alert.id} alert={alert} view={view} controller={controller} history/>)}
     </Group>
   </aside>;

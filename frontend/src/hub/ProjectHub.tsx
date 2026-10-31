@@ -17,6 +17,8 @@ import {useLiveWorkspace} from './live';
 import {useBackground} from './reader/useBackground';
 import {BackgroundControl, BackgroundPanel} from './reader/BackgroundPanel';
 import type {HardwareNode} from './hardware/model';
+import {hardwareGraph} from './hardware/model';
+import {useDeepScans} from './scanner/useDeepScans';
 
 const message = (error: unknown) => error instanceof Error ? error.message : String(error);
 type Page = 'home' | 'project' | 'project-setup' | 'setup' | 'part' | 'files';
@@ -32,6 +34,7 @@ export function ProjectHub() {
   const [projects, setProjects] = useState<HubProject[]>([]), [settings, setSettings] = useState<HubSettings | null>(null);
   const [selected, setSelected] = useState<HubProject | null>(null), [page, setPage] = useState<Page>('home');
   const background = useBackground(selected, openResult);
+  const scans = useDeepScans(selected);
   const [query, setQuery] = useState(''), [dialog, setDialog] = useState<Form>(null), [name, setName] = useState('');
   const [error, setError] = useState(''), [status, setStatus] = useState('Ready'), [busy, setBusy] = useState(false);
   const [palette, setPalette] = useState(false), [ready, setReady] = useState(false), [renameRequest, setRenameRequest] = useState(0);
@@ -184,6 +187,7 @@ export function ProjectHub() {
   const menuItems = menu ? Object.entries({rename: 'Rename project', save: 'Save', 'save-as': 'Save as…', export: 'Export ZIP', details: 'Workspace details'}).map(([action, label]) => ({label, disabled: busy, run: () => ignore(projectAction(menu.project, action))})) : [];
   const title = page === 'setup' ? 'Setup' : page === 'project-setup' ? 'Project setup' : page === 'files' ? 'Files' : page === 'part' ? partTitles[part] : 'Overview';
   const hardwareTarget = page === 'project' && hardwareSelection && hardwareSelection.projectId === selected?.id && hardwareSelection.node?.kind === 'host' ? hardwareSelection.node : null;
+  const scanTargets = selected ? hardwareGraph(selected, live.snapshot, settings, null).nodes.filter(node => node.kind === 'host') : [];
   const showResults = selected && ['project', 'project-setup', 'files'].includes(page);
   return <div className={`hub-app${sidebarCollapsed ? ' hub-collapsed' : ''}${desktop ? ' hub-desktop' : ''}`} style={{'--hub-sidebar-width': `${width}px`, '--hub-actions-width': `${actions.width}px`} as CSSProperties}>
     {colorful && <div className="logo-watermark" aria-hidden="true"><pre>{(window as typeof window & {LEGION_CONSOLE_LOGO_ART?: string}).LEGION_CONSOLE_LOGO_ART || ''}</pre></div>}
@@ -215,7 +219,7 @@ export function ProjectHub() {
         {page === 'project-setup' && selected && <ProjectSetup key={selected.id} project={selected} onChange={next => setSelected(current => current?.id === next.id ? next : current)}/>}
         {page === 'setup' && <Setup settings={settings} openPart={openPart} onSettingsChange={setSettings}/>}
         {page === 'part' && <ReusedPanel part={part} host={host} close={closePart} displayChanged={displayChanged} statusChanged={setStatus}/>}
-      </div>{showResults && <><div className="hub-actions-resizer" role="separator" aria-label="Resize action panel" aria-orientation="vertical" aria-valuemin={280} aria-valuemax={480} aria-valuenow={actions.width} tabIndex={0} {...actions.resize}/><BackgroundPanel {...background} header={hardwareTarget && <div className="hardware-context" aria-label="Selected device"><div>{hardwareTarget.ip && <span>{hardwareTarget.ip}</span>}{hardwareTarget.hostname && <small>{hardwareTarget.hostname}</small>}{hardwareTarget.os && <small>{hardwareTarget.os}</small>}</div><button onClick={() => openPart('hosts', hardwareTarget.hostId)}>Details</button></div>}/></>}</div>
+      </div>{showResults && <><div className="hub-actions-resizer" role="separator" aria-label="Resize action panel" aria-orientation="vertical" aria-valuemin={280} aria-valuemax={480} aria-valuenow={actions.width} tabIndex={0} {...actions.resize}/><BackgroundPanel {...background} scans={scans} project={selected} targets={scanTargets} target={hardwareTarget} header={hardwareTarget && <div className="hardware-context" aria-label="Selected device"><div>{hardwareTarget.ip && <span>{hardwareTarget.ip}</span>}{hardwareTarget.hostname && <small>{hardwareTarget.hostname}</small>}{hardwareTarget.os && <small>{hardwareTarget.os}</small>}</div><button onClick={() => openPart('hosts', hardwareTarget.hostId)}>Details</button></div>}/></>}</div>
       <span className="hub-status-announcement" role="status">{busy ? 'Working…' : status}</span>
     </main>
     {desktop && !desktop.maximized && <div className="hub-window-edges" aria-hidden="true">{['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map(edge => <div key={edge} data-window-edge={edge} onPointerDown={event => {if (event.button === 0) {event.preventDefault(); desktop.resizeEdge(edge);}}}/>)}</div>}

@@ -747,6 +747,146 @@
         "title": "DecisionList",
         "type": "object"
       },
+      "DeepScanList": {
+        "properties": {
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/DeepScanRun"
+            },
+            "title": "Runs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "runs"
+        ],
+        "title": "DeepScanList",
+        "type": "object"
+      },
+      "DeepScanRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "dns_resolver": {
+            "anyOf": [
+              {
+                "maxLength": 45,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dns Resolver"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "host_id": {
+            "minimum": 1.0,
+            "title": "Host Id",
+            "type": "integer"
+          },
+          "target_ip": {
+            "maxLength": 45,
+            "minLength": 1,
+            "title": "Target Ip",
+            "type": "string"
+          },
+          "timeout": {
+            "default": 1800,
+            "maximum": 3600.0,
+            "minimum": 1.0,
+            "title": "Timeout",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "host_id",
+          "target_ip",
+          "expected_revision"
+        ],
+        "title": "DeepScanRequest",
+        "type": "object"
+      },
+      "DeepScanRun": {
+        "additionalProperties": true,
+        "properties": {
+          "directory": {
+            "default": "",
+            "title": "Directory",
+            "type": "string"
+          },
+          "host_id": {
+            "title": "Host Id",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "job_id": {
+            "default": 0,
+            "title": "Job Id",
+            "type": "integer"
+          },
+          "log_path": {
+            "default": "",
+            "title": "Log Path",
+            "type": "string"
+          },
+          "profile_path": {
+            "default": "",
+            "title": "Profile Path",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reason": {
+            "default": "",
+            "title": "Reason",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "completed",
+              "partial",
+              "failed",
+              "cancelled",
+              "held",
+              "planned",
+              "interrupted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Summary",
+            "type": "object"
+          },
+          "target_ip": {
+            "title": "Target Ip",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "host_id",
+          "target_ip",
+          "status"
+        ],
+        "title": "DeepScanRun",
+        "type": "object"
+      },
       "Health": {
         "properties": {
           "status": {
@@ -1101,6 +1241,7 @@
               "queued",
               "running",
               "completed",
+              "partial",
               "failed",
               "cancelled",
               "held"
@@ -3017,6 +3158,152 @@
           }
         },
         "summary": "Project Connector"
+      }
+    },
+    "/api/hub/projects/{identifier}/deep-scans": {
+      "get": {
+        "operationId": "getDeepScans",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "title": "Identifier",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeepScanList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Scans"
+      },
+      "post": {
+        "operationId": "startDeepScan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "title": "Identifier",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeepScanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeepScanRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Start"
       }
     },
     "/api/hub/projects/{identifier}/editor": {

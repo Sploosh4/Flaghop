@@ -18,9 +18,23 @@ from app.services.network_models import NetworkUpdate, NetworkCheckRequest
 from app.services.project_background import ProjectBackground
 from app.services.project_hub_requests import BackgroundControl
 from app.services.project_files import ProjectFiles
+from app.scanning.contracts import DeepScanRequest
+from app.scanning.service import DeepScans
 from app.web.http_utils import runtime_from_app
 
 hub_bp = Blueprint("project_hub", __name__)
+
+
+@hub_bp.get("/api/hub/projects/<identifier>/deep-scans")
+def deep_scans(identifier):
+    with _hub().lock:
+        return jsonify(DeepScans(_hub(), identifier).list())
+
+
+@hub_bp.post("/api/hub/projects/<identifier>/deep-scans")
+def start_deep_scan(identifier):
+    payload = DeepScanRequest.model_validate(request.get_json(silent=True) or {})
+    return jsonify(DeepScans(_hub(), identifier).start(payload)), 202
 
 
 def _hub():

@@ -16,6 +16,8 @@ Shared project network settings, scope/exclusions, target checks and common-runn
 
 Reader/filesystem routes are listed in the reader contract. Both FastAPI and legacy transports also expose per-project `GET`/`PUT /api/hub/projects/{id}/network` and `POST /api/hub/projects/{id}/network/check`; writes use an expected configuration revision. Process output includes the saved `network_context`.
 
+This checkpoint adds `GET`/`POST /api/hub/projects/{id}/deep-scans` on both transports. POST returns 202 with a project/host-bound run; it accepts a literal target IP, host ID, expected revision, timeout and optional explicit resolver. Commands and output paths are app-owned. Jobs can now report `partial`; per-job completion callbacks persist pre-launch held/cancelled outcomes. The generated client and snapshot guard accept that status. Existing command callers retain their old contracts. See [scanner boundaries and live validation](docs/scanner-integration.md).
+
 ## Scope
 
 `python legion.py --web` now runs one Uvicorn/ASGI process. Native FastAPI routes handle:

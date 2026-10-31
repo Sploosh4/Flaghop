@@ -16,6 +16,13 @@ class CommandRequest:
     timeout: int
     job_id: int = 0
     network_targets: tuple[str, ...] = ()
+    argv: tuple[str, ...] = ()
+    cwd: str | None = None
+    output_limit: int = 0
+    cancel_grace: int = 2
+    hard_timeout: int = 0
+    proxy_channel: str = ""
+    proxy_token: str = ""
 
 
 @dataclass(frozen=True)

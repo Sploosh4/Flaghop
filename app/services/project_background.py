@@ -19,6 +19,25 @@ def internal_origins(origins):
         if origin.get("transport") not in (None, "local"):
             return False
         path = Path(str(origin.get("path", "")))
+        parts = path.parts
+        if (
+            len(parts) >= 4
+            and parts[0].endswith("-tool-output")
+            and parts[1] == "deep-scans"
+            and re.fullmatch(r"[a-f0-9]{32}", parts[2])
+        ):
+            relative = "/".join(parts[3:])
+            if relative in {
+                "run.json",
+                "request.json",
+                "summary.json",
+                "proxy.json",
+                "proxy.ack",
+                "log.txt",
+                "profile/device-profile.json",
+                "profile/raw/nmap.xml",
+            }:
+                return True
         return (
             len(path.parts) == 1
             and ".legion" in path.name
