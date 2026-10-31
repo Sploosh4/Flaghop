@@ -49,6 +49,38 @@ Agreed 31 October 2026. Keep connection diagnostics and per-target route/reachab
 
 Implemented: installer buttons and persisted per-project connector selection. Profile discovery, connect/disconnect controls and the diagnostics above remain planned work. Do not start checks simply by opening a project or changing its connector.
 
+### Shared project network configuration
+
+Agreed 31 October 2026; still to build. Store one authoritative network configuration per project and make every app-managed automatic network tool use it. Put its controls in **Project setup → Network settings**, with connection and per-target diagnostics in Settings, not on the map.
+
+| Setting | Purpose |
+| --- | --- |
+| Network name and scope source | Identify the hackathon/lab and record the organiser's supplied scope or the user's explicit configuration. |
+| Allowed targets | Explicit IPv4/IPv6 addresses, CIDR ranges, hostnames or challenge endpoints, with port/protocol limits where supplied. Do not assume the event occupies one subnet. |
+| Exclusions | Addresses, ranges or endpoints that must not be targeted; exclusions take precedence over inclusions. |
+| Connection mode and profile | Local/direct access or a specific OpenVPN/WireGuard profile, together with the project's Connector choice. Use a stable profile identifier; an interface name such as `tun0` alone does not identify the event. |
+| Execution environment | Identify where tools run: initially the local runner, with an explicit environment/session reference when other runners are supported. |
+| Network identity | Project ID, network-configuration ID and revision, so jobs and tools share the same configuration without accidentally using another project's current settings. |
+
+Keep configured target scope separate from observed state: interfaces, source addresses, gateway/routes, tunnel/peer state and per-target reachability results with timestamps. A VPN route, WireGuard AllowedIPs, an attached interface subnet or a discovered host does not grant target scope. The VPN client's own address/subnet can differ from the challenge target ranges.
+
+Expose the project network configuration and its observed state through one shared backend service and a read API for tool integrations. Pass the project/network IDs and configuration revision to each job. Tools must not derive the event network independently from the default interface, scan history or a global active-project setting. Do not expose VPN private keys or passwords in the shared context or job metadata.
+
+Before initial reconnaissance, scheduler follow-ups, retries, subnet expansion or any other app-managed automatic network action, the common runner must:
+
+1. Load the job's project network configuration. Hold network work if it is missing or incomplete; local file analysis can continue without network access.
+2. Validate every intended destination against inclusions and exclusions. Resolve hostnames in the execution environment and check the actual destination addresses; new discoveries, redirects and expanded targets must pass the same scope checks before being contacted.
+3. Verify the selected connection/profile is available in that execution environment, and check the OS route, source address and interface for each destination against that connection. Local/direct mode must match its selected network too.
+4. Refresh stale observations immediately before execution. Hold the job if the scope, profile or route no longer matches; show the reason in Settings and job history. Do not silently fall back to another network, switch VPNs or rewrite routes.
+5. Run the bounded reachability/service checks needed by the action. A route match and an allowed target are mandatory; a ping timeout alone does not establish failure. If a required service cannot be verified, record that outcome and hold the dependent action without labelling the host definitively down.
+6. Execute through the verified network environment. Metadata or exported environment variables alone do not constrain a subprocess's traffic. Use supported source/interface controls or an isolated network environment as appropriate; choose the enforcement mechanism during implementation and verify that it prevents fallback.
+
+Apply these checks at the common execution boundary, including integrated Metasploit actions and future network adapters, rather than relying on each tool's UI. Validate listener/callback settings separately when required. Independently launched external tools need an explicit integration or wrapper; reading a configuration file alone does not enforce their network use.
+
+Invalidate observations after a configuration edit, VPN disconnect/reconnect, route/interface change, target reset, IP reuse or execution-session loss. Revalidate queued jobs against the new revision before starting. If a running network job loses its verified path, prevent further network steps and cancel or isolate active traffic as supported, preserving output and marking interruption; never silently resume it on a different network. Record the configuration revision, checked destination, execution environment, selected route, check time and decision with each run.
+
+Acceptance checks must use deterministic fixtures: two projects with overlapping private IP ranges and different profiles; local/direct access; an excluded destination; a hostname resolving outside scope; a missing VPN or wrong route; a queued retry after a configuration change; and a disconnect during a running job. Verify that offline work continues, blocked jobs explain why, and route/reachability diagnostics stay in Settings. These are planned checks, not completed tests.
+
 ## Actions, terminal and Metasploit
 
 Use one selected-target/stage-filtered action panel with Run, applicability, explanation, output and queue state. Laptop/VPN selection is not a CTF target filter. Keep actions readable while queued/running. Completed output goes to History; failures/interruption return with a reason. Final running-card placement and completed Deep scan presentation remain open.
