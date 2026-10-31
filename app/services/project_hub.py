@@ -75,12 +75,15 @@ class ProjectHub:
             "folder": "",
             "managed": False,
             "vpn": "inherit",
+            "connector": "networkmanager",
         }
 
     def list(self):
         with self.lock:
             data = self._read()
-            projects = [dict(row) for row in data["projects"] if Path(row["path"]).is_file()]
+            projects = [
+                {"connector": "networkmanager", **row} for row in data["projects"] if Path(row["path"]).is_file()
+            ]
             current = self._current()
             if current.get("name") and not any(row["path"] == current["name"] for row in projects):
                 projects.append(self._legacy(current))
@@ -158,7 +161,15 @@ class ProjectHub:
             try:
                 self.runtime.create_new_temporary_project()
                 self.runtime.rename_project(name, expected_path=self._current()["name"])
-                record = self._adopt({"id": uuid.uuid4().hex, "name": name, "vpn": "inherit", "managed": False})
+                record = self._adopt(
+                    {
+                        "id": uuid.uuid4().hex,
+                        "name": name,
+                        "vpn": "inherit",
+                        "connector": "networkmanager",
+                        "managed": False,
+                    }
+                )
             except Exception:
                 if previous_path and Path(previous_path).is_file() and self._current().get("name") != previous_path:
                     self.runtime.open_project(previous_path)
@@ -204,6 +215,25 @@ class ProjectHub:
             else:
                 self._write(data)
             return self.settings()
+
+    def set_connector(self, identifier, selection):
+        if selection not in {"networkmanager", "openvpn", "wireguard"}:
+            raise ValueError("Choose NetworkManager, OpenVPN or WireGuard.")
+        with self.lock:
+            data = self._read()
+            row = next((row for row in data["projects"] if row["id"] == identifier), None)
+            if row is None:
+                raise KeyError("Project not found.")
+            row["connector"] = selection
+            self._write(data)
+        return {"status": "ok"}
+
+    def install_connector(self, connector):
+        from app.web.services.settings_service import SettingsService
+
+        if connector not in {"openvpn", "wireguard"}:
+            raise ValueError("Choose OpenVPN or WireGuard to install.")
+        return SettingsService(self.runtime).start_tool_install({"scope": "missing", "tool_keys": [connector]})
 
     def _record(self, identifier):
         row = next((row for row in self._read()["projects"] if row["id"] == identifier), None)

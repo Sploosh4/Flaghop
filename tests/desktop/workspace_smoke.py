@@ -156,7 +156,7 @@ def project():
 
 def project_preferences():
     record(
-        "Project setup retains files and its own VPN preference",
+        "Project setup retains files and its own connector preference",
         """(() => {
         return !!document.querySelector('.hub-project-setup') && !!document.getElementById('hub-project-vpn')
             && document.querySelector('.hub-project-setup-tab').getAttribute('aria-current') === 'page'
@@ -166,10 +166,10 @@ def project_preferences():
     )
     view.grab().save(str(ARTIFACTS / "foundation-project-preferences.png"))
     record(
-        "Project VPN can explicitly be None",
+        "Project connector can select WireGuard",
         """(() => {
         const select = document.getElementById('hub-project-vpn');
-        select.value = 'none'; select.dispatchEvent(new Event('change', {bubbles:true}));
+        select.value = 'wireguard'; select.dispatchEvent(new Event('change', {bubbles:true}));
         return true;
     })()""",
     )
@@ -180,7 +180,8 @@ def switch_project():
     checks.append(
         {
             "name": "Project preference persisted",
-            "result": next(row for row in hub.list()["projects"] if row["id"] == harbour["id"])["vpn"] == "none",
+            "result": next(row for row in hub.list()["projects"] if row["id"] == harbour["id"])["connector"]
+            == "wireguard",
         }
     )
     record("Return to projects before switching", "document.querySelector('.hub-brand').click(); true")

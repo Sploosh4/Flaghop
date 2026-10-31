@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/hub/connectors/install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Install Connector */
+        post: operations["installHubConnector"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/hub/open-path": {
         parameters: {
             query?: never;
@@ -118,6 +135,23 @@ export interface paths {
         get: operations["downloadHubBundle"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hub/projects/{identifier}/connector": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Project Connector */
+        post: operations["setHubProjectConnector"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1054,6 +1088,31 @@ export interface components {
             /** System */
             system: string;
         };
+        /** HubConnector */
+        HubConnector: {
+            /**
+             * Selection
+             * @enum {string}
+             */
+            selection: "networkmanager" | "openvpn" | "wireguard";
+        };
+        /** HubConnectorInstall */
+        HubConnectorInstall: {
+            /**
+             * Connector
+             * @enum {string}
+             */
+            connector: "openvpn" | "wireguard";
+        };
+        /** HubConnectorInstallation */
+        HubConnectorInstallation: {
+            job: components["schemas"]["Job"];
+            /**
+             * Status
+             * @constant
+             */
+            status: "accepted";
+        };
         /** HubFile */
         HubFile: {
             /** Path */
@@ -1078,6 +1137,12 @@ export interface components {
         };
         /** HubProject */
         HubProject: {
+            /**
+             * Connector
+             * @default networkmanager
+             * @enum {string}
+             */
+            connector?: "networkmanager" | "openvpn" | "wireguard";
             /** Folder */
             folder: string;
             /** Id */
@@ -1596,6 +1661,66 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    installHubConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HubConnectorInstall"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HubConnectorInstallation"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     openHubPath: {
         parameters: {
             query?: never;
@@ -2027,6 +2152,68 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    setHubProjectConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HubConnector"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HubOk"];
+                };
             };
             /** @description Bad Request */
             400: {

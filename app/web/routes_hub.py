@@ -5,7 +5,14 @@ from pathlib import Path
 import tempfile
 import shutil
 from pydantic import ValidationError
-from app.services.project_hub_requests import CreateHubProject, HubVpn, OpenHubPath, HubSaveFolder
+from app.services.project_hub_requests import (
+    CreateHubProject,
+    HubConnector,
+    HubConnectorInstall,
+    HubVpn,
+    OpenHubPath,
+    HubSaveFolder,
+)
 from app.services.project_hub import ProjectHub
 from app.services.project_background import ProjectBackground
 from app.services.project_hub_requests import BackgroundControl
@@ -125,6 +132,18 @@ def project_vpn(identifier):
 @hub_bp.get("/api/hub/projects/<identifier>/files")
 def files(identifier):
     return jsonify(_hub().files(identifier))
+
+
+@hub_bp.post("/api/hub/projects/<identifier>/connector")
+def project_connector(identifier):
+    payload = HubConnector.model_validate(request.get_json(silent=True) or {})
+    return jsonify(_hub().set_connector(identifier, payload.selection))
+
+
+@hub_bp.post("/api/hub/connectors/install")
+def install_connector():
+    payload = HubConnectorInstall.model_validate(request.get_json(silent=True) or {})
+    return jsonify(_hub().install_connector(payload.connector)), 202
 
 
 @hub_bp.get("/api/hub/projects/<identifier>/file")

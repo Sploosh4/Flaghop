@@ -105,6 +105,11 @@ body.workspace-part[data-workspace-part="app-settings"] .tool-audit-table-wrap c
 #project-hub-root .hub-computer>svg {width:45px;height:45px;color:#9a8caa;}
 #project-hub-root .hub-computer h1 {font-size:22px;margin-bottom:3px;}
 #project-hub-root .hub-vpn-unconfigured {color:#b67878;font-size:12px;}
+#project-hub-root .hub-connector-install {margin-left:auto;min-width:0;}
+#project-hub-root .hub-connector-install-buttons {display:flex;flex-wrap:wrap;gap:8px;}
+#project-hub-root .hub-connector-install-buttons button {border:1px solid #303030;background:#111;padding:8px 12px;white-space:nowrap;}
+#project-hub-root .hub-connector-install p {margin:8px 0 0;max-width:360px;overflow-wrap:anywhere;padding:0;}
+#project-hub-root .hub-connection-default {flex-wrap:wrap;}
 #project-hub-root .hub-error {color:#db8d8d;font-size:12px;padding:10px 25px;margin:0;}
 #project-hub-root .hub-modal-backdrop {position:fixed;inset:0;display:grid;place-items:center;background:#0009;backdrop-filter:blur(3px);z-index:100;}
 #project-hub-root .hub-modal {width:min(390px,calc(100vw - 40px));padding:22px;background:#141414;border:1px solid #333;border-radius:10px;box-sizing:border-box;}

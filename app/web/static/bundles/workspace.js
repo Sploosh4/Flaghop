@@ -13859,33 +13859,39 @@ async function hs(e) {
 	return ls(await D.GET("/api/hub/projects/{identifier}/files", { params: { path: { identifier: e } } }));
 }
 async function gs(e, t) {
-	return ls(await D.POST("/api/hub/projects/{identifier}/vpn", {
+	return ls(await D.POST("/api/hub/projects/{identifier}/connector", {
 		params: { path: { identifier: e } },
 		body: { selection: t }
 	}));
 }
-function _s(e, t) {
+async function _s(e) {
+	return ls(await D.POST("/api/hub/connectors/install", { body: { connector: e } }));
+}
+async function vs(e) {
+	return ls(await D.GET("/api/jobs/{job_id}", { params: { path: { job_id: e } } }));
+}
+function ys(e, t) {
 	return `/api/hub/projects/${encodeURIComponent(e)}/file?${new URLSearchParams({ path: t })}`;
 }
-async function vs(e, t) {
+async function bs(e, t) {
 	return ls(await D.POST("/api/hub/projects/{identifier}/rename", {
 		params: { path: { identifier: e } },
 		body: { name: t }
 	}));
 }
-async function ys(e) {
+async function xs(e) {
 	return ls(await D.POST("/api/hub/projects/{identifier}/save", { params: { path: { identifier: e } } }));
 }
-async function bs(e, t) {
+async function Ss(e, t) {
 	return ls(await D.POST("/api/hub/projects/{identifier}/save-as", {
 		params: { path: { identifier: e } },
 		body: { name: t }
 	}));
 }
-async function xs(e) {
+async function Cs(e) {
 	return ls(await D.POST("/api/hub/open-path", { body: { path: e } }));
 }
-async function Ss(e) {
+async function ws(e) {
 	let t = await fetch("/api/hub/restore-zip", {
 		method: "POST",
 		headers: { "Content-Type": "application/zip" },
@@ -13894,38 +13900,38 @@ async function Ss(e) {
 	if (!t.ok) throw fe(n, t.status);
 	return n;
 }
-function Cs(e) {
+function Ts(e) {
 	return `/api/hub/projects/${encodeURIComponent(e)}/bundle`;
 }
-async function ws() {
+async function Es() {
 	return ls(await D.GET("/api/snapshot"));
 }
-async function Ts(e) {
+async function Ds(e) {
 	return ls(await D.GET("/api/hub/projects/{identifier}/background", { params: { path: { identifier: e } } }));
 }
-async function Es(e, t) {
+async function Os(e, t) {
 	return ls(await D.POST("/api/hub/projects/{identifier}/background/control", {
 		params: { path: { identifier: e } },
 		body: { running: t }
 	}));
 }
-async function Ds(e, t) {
+async function ks(e, t) {
 	return ls(await D.POST("/api/hub/projects/{identifier}/background/alerts/{alert_id}/dismiss", { params: { path: {
 		identifier: e,
 		alert_id: t
 	} } }));
 }
-async function Os(e, t) {
+async function As(e, t) {
 	return ls(await D.GET("/api/hub/projects/{identifier}/background/results/{alert_id}", { params: { path: {
 		identifier: e,
 		alert_id: t
 	} } }));
 }
-function ks(e, t) {
+function js(e, t) {
 	return `/api/hub/projects/${encodeURIComponent(e)}/filesystem${t ? `?${new URLSearchParams({ result: t })}` : ""}`;
 }
 // src/hub/Icon.tsx
-function As({ kind: e }) {
+function Ms({ kind: e }) {
 	return /* @__PURE__ */ (0, U.jsx)("svg", {
 		width: "17",
 		height: "17",
@@ -13948,7 +13954,7 @@ function As({ kind: e }) {
 	});
 }
 // src/hub/desktop.ts
-function js() {
+function Ns() {
 	let [e, t] = (0, C.useState)(() => window.legionDesktop);
 	return (0, C.useEffect)(() => {
 		let e = () => t(window.legionDesktop ? { ...window.legionDesktop } : void 0);
@@ -13956,7 +13962,7 @@ function js() {
 	}, []), e;
 }
 // src/hub/WindowControls.tsx
-function Ms({ desktop: e }) {
+function Ps({ desktop: e }) {
 	return /* @__PURE__ */ (0, U.jsxs)("div", {
 		className: "hub-window-controls",
 		"aria-label": "Window controls",
@@ -13995,7 +14001,7 @@ function Ms({ desktop: e }) {
 	});
 }
 // src/hub/ProjectLabel.tsx
-function Ns({ name: e, onRename: t, request: n = 0, doubleClick: r = !1 }) {
+function Fs({ name: e, onRename: t, request: n = 0, doubleClick: r = !1 }) {
 	let [i, a] = (0, C.useState)(!1), [o, s] = (0, C.useState)(e), [c, l] = (0, C.useState)(""), [u, d] = (0, C.useState)(!1), f = (0, C.useRef)(!1), p = (0, C.useRef)(null);
 	function m() {
 		s(e), l(""), a(!0);
@@ -14051,27 +14057,27 @@ function Ns({ name: e, onRename: t, request: n = 0, doubleClick: r = !1 }) {
 	});
 }
 // src/hub/parts.tsx
-var Ps = {
+var Is = {
 	"app-settings": "Application settings",
 	"interface-settings": "Interface settings",
 	"scheduler-settings": "Scheduler settings",
 	"device-category-settings": "Device categories"
-}, Fs = {
+}, Ls = {
 	hosts: "Hosts",
 	services: "Services",
 	graph: "Graph",
 	activity: "Activity",
 	approvals: "Approvals"
-}, Is = {
+}, Rs = {
 	scan: "New scan",
 	tool: "Run a tool",
 	import: "Import results"
-}, Ls = {
-	...Fs,
-	...Ps,
-	...Is
+}, zs = {
+	...Ls,
+	...Is,
+	...Rs
 };
-function Rs({ part: e, host: t, close: n, displayChanged: r, statusChanged: i }) {
+function Bs({ part: e, host: t, close: n, displayChanged: r, statusChanged: i }) {
 	let a = (0, C.useRef)(null);
 	return (0, C.useEffect)(() => {
 		let e = (e) => {
@@ -14084,22 +14090,94 @@ function Rs({ part: e, host: t, close: n, displayChanged: r, statusChanged: i })
 		i
 	]), /* @__PURE__ */ (0, U.jsxs)("section", {
 		className: "hub-reused-panel",
-		"aria-label": Ls[e],
-		children: [!Ps[e] && e !== "scan" && e !== "tool" && /* @__PURE__ */ (0, U.jsx)("button", {
+		"aria-label": zs[e],
+		children: [!Is[e] && e !== "scan" && e !== "tool" && /* @__PURE__ */ (0, U.jsx)("button", {
 			className: "hub-part-close",
-			"aria-label": `Close ${Ls[e]}`,
+			"aria-label": `Close ${zs[e]}`,
 			onClick: n,
 			children: "×"
 		}), /* @__PURE__ */ (0, U.jsx)("iframe", {
 			ref: a,
-			title: Ls[e],
+			title: zs[e],
 			src: `/?part=${encodeURIComponent(e)}${t ? `&host=${t}` : ""}`
 		})]
 	});
 }
+// src/hub/ConnectorInstall.tsx
+var Vs = {
+	openvpn: "OpenVPN",
+	wireguard: "WireGuard"
+};
+function Hs() {
+	let [e, t] = (0, C.useState)(null), [n, r] = (0, C.useState)(null), [i, a] = (0, C.useState)(""), [o, s] = (0, C.useState)("");
+	(0, C.useEffect)(() => {
+		if (n === null) return;
+		let i = !0, o;
+		async function c() {
+			try {
+				let o = await vs(n);
+				if (!i) return;
+				if (s(""), o.status === "queued" || o.status === "running") a(`${Vs[e]} installation ${o.status} (job #${o.id}).`);
+				else {
+					a(o.status === "completed" ? String(o.result?.message || "Installation completed.") : ""), o.status !== "completed" && s(o.error || `Installation ${o.status}.`), t(null), r(null);
+					return;
+				}
+			} catch (e) {
+				if (!i) return;
+				s(`Could not check installation: ${e.message}. Retrying…`);
+			}
+			o = setTimeout(() => {
+				c();
+			}, 2e3);
+		}
+		return c(), () => {
+			i = !1, clearTimeout(o);
+		};
+	}, [n, e]);
+	async function c(e) {
+		t(e), s(""), a(`Queueing ${Vs[e]} installation…`);
+		try {
+			let t = await _s(e);
+			r(t.job.id), a(`${Vs[e]} installation queued (job #${t.job.id}).`);
+		} catch (e) {
+			t(null), a(""), s(e.message);
+		}
+	}
+	return /* @__PURE__ */ (0, U.jsxs)("div", {
+		className: "hub-connector-install",
+		children: [
+			/* @__PURE__ */ (0, U.jsxs)("div", {
+				className: "hub-connector-install-buttons",
+				children: [/* @__PURE__ */ (0, U.jsx)("button", {
+					disabled: e !== null,
+					onClick: () => {
+						c("openvpn");
+					},
+					children: "Install OpenVPN"
+				}), /* @__PURE__ */ (0, U.jsx)("button", {
+					disabled: e !== null,
+					onClick: () => {
+						c("wireguard");
+					},
+					children: "Install WireGuard"
+				})]
+			}),
+			i && /* @__PURE__ */ (0, U.jsx)("p", {
+				role: "status",
+				className: "hub-muted",
+				children: i
+			}),
+			o && /* @__PURE__ */ (0, U.jsx)("p", {
+				role: "alert",
+				className: "hub-error",
+				children: o
+			})
+		]
+	});
+}
 // src/hub/pages.tsx
-var zs = (e) => e instanceof Error ? e.message : String(e);
-function Bs({ project: e }) {
+var Us = (e) => e instanceof Error ? e.message : String(e);
+function Ws({ project: e }) {
 	return /* @__PURE__ */ (0, U.jsxs)("section", {
 		className: "hub-overview",
 		"aria-label": "Project overview",
@@ -14109,14 +14187,14 @@ function Bs({ project: e }) {
 		})]
 	});
 }
-function Vs({ project: e, onChange: t }) {
+function Gs({ project: e, onChange: t }) {
 	let [n, r] = (0, C.useState)([]), [i, a] = (0, C.useState)(""), [o, s] = (0, C.useState)(!1), [c, l] = (0, C.useState)(!1);
 	(0, C.useEffect)(() => {
 		let t = !0;
 		return hs(e.id).then((e) => {
 			t && (r(e.files), s(e.truncated));
 		}).catch((e) => {
-			t && a(zs(e));
+			t && a(Us(e));
 		}), () => {
 			t = !1;
 		};
@@ -14126,10 +14204,10 @@ function Vs({ project: e, onChange: t }) {
 		try {
 			await gs(e.id, n), t({
 				...e,
-				vpn: n
+				connector: n
 			});
 		} catch (e) {
-			a(zs(e));
+			a(Us(e));
 		} finally {
 			l(!1);
 		}
@@ -14144,22 +14222,29 @@ function Vs({ project: e, onChange: t }) {
 				children: [
 					/* @__PURE__ */ (0, U.jsx)("label", {
 						htmlFor: "hub-project-vpn",
-						children: "VPN"
+						children: "Connector"
 					}),
 					/* @__PURE__ */ (0, U.jsxs)("select", {
 						id: "hub-project-vpn",
-						value: e.vpn,
+						value: e.connector || "networkmanager",
 						disabled: c,
 						onChange: (e) => {
 							u(e.target.value);
 						},
-						children: [/* @__PURE__ */ (0, U.jsx)("option", {
-							value: "inherit",
-							children: "Use default"
-						}), /* @__PURE__ */ (0, U.jsx)("option", {
-							value: "none",
-							children: "None"
-						})]
+						children: [
+							/* @__PURE__ */ (0, U.jsx)("option", {
+								value: "networkmanager",
+								children: "NetworkManager"
+							}),
+							/* @__PURE__ */ (0, U.jsx)("option", {
+								value: "openvpn",
+								children: "OpenVPN"
+							}),
+							/* @__PURE__ */ (0, U.jsx)("option", {
+								value: "wireguard",
+								children: "WireGuard"
+							})
+						]
 					}),
 					/* @__PURE__ */ (0, U.jsx)("span", {
 						className: "hub-muted",
@@ -14180,7 +14265,7 @@ function Vs({ project: e, onChange: t }) {
 					onClick: () => {
 						hs(e.id).then((e) => {
 							r(e.files), s(e.truncated), a("");
-						}).catch((e) => a(zs(e)));
+						}).catch((e) => a(Us(e)));
 					},
 					children: "↻"
 				})]
@@ -14188,10 +14273,10 @@ function Vs({ project: e, onChange: t }) {
 			/* @__PURE__ */ (0, U.jsxs)("div", {
 				className: "hub-files",
 				children: [n.map((t) => /* @__PURE__ */ (0, U.jsxs)("a", {
-					href: _s(e.id, t.path),
+					href: ys(e.id, t.path),
 					download: !0,
 					children: [
-						/* @__PURE__ */ (0, U.jsx)(As, { kind: "file" }),
+						/* @__PURE__ */ (0, U.jsx)(Ms, { kind: "file" }),
 						/* @__PURE__ */ (0, U.jsx)("span", { children: t.path }),
 						/* @__PURE__ */ (0, U.jsx)("small", { children: t.size < 1024 ? `${t.size} B` : `${Math.ceil(t.size / 1024)} KB` })
 					]
@@ -14207,7 +14292,7 @@ function Vs({ project: e, onChange: t }) {
 		]
 	});
 }
-function Hs({ settings: e, openPart: t, onSettingsChange: n }) {
+function Ks({ settings: e, openPart: t, onSettingsChange: n }) {
 	let [r, i] = (0, C.useState)(e?.projects_folder || ""), [a, o] = (0, C.useState)(!1), [s, c] = (0, C.useState)("");
 	(0, C.useEffect)(() => {
 		i(e?.projects_folder || "");
@@ -14217,7 +14302,7 @@ function Hs({ settings: e, openPart: t, onSettingsChange: n }) {
 		try {
 			n(await fs(r.trim()));
 		} catch (e) {
-			c(zs(e));
+			c(Us(e));
 		} finally {
 			o(!1);
 		}
@@ -14228,7 +14313,7 @@ function Hs({ settings: e, openPart: t, onSettingsChange: n }) {
 		children: [
 			/* @__PURE__ */ (0, U.jsxs)("div", {
 				className: "hub-computer",
-				children: [/* @__PURE__ */ (0, U.jsx)(As, { kind: "computer" }), /* @__PURE__ */ (0, U.jsxs)("div", { children: [/* @__PURE__ */ (0, U.jsx)("h1", { children: e?.computer.name || "This computer" }), /* @__PURE__ */ (0, U.jsx)("span", {
+				children: [/* @__PURE__ */ (0, U.jsx)(Ms, { kind: "computer" }), /* @__PURE__ */ (0, U.jsxs)("div", { children: [/* @__PURE__ */ (0, U.jsx)("h1", { children: e?.computer.name || "This computer" }), /* @__PURE__ */ (0, U.jsx)("span", {
 					className: "hub-muted",
 					children: e?.computer.system || "—"
 				})] })]
@@ -14241,7 +14326,7 @@ function Hs({ settings: e, openPart: t, onSettingsChange: n }) {
 				})]
 			}),
 			/* @__PURE__ */ (0, U.jsxs)("div", {
-				className: "hub-property",
+				className: "hub-property hub-connection-default",
 				children: [
 					/* @__PURE__ */ (0, U.jsx)("label", {
 						htmlFor: "hub-default-vpn",
@@ -14261,7 +14346,8 @@ function Hs({ settings: e, openPart: t, onSettingsChange: n }) {
 						disabled: !0,
 						"aria-label": "Refresh VPNs — not available yet",
 						children: "↻"
-					})
+					}),
+					/* @__PURE__ */ (0, U.jsx)(Hs, {})
 				]
 			}),
 			/* @__PURE__ */ (0, U.jsxs)("form", {
@@ -14295,7 +14381,7 @@ function Hs({ settings: e, openPart: t, onSettingsChange: n }) {
 			}),
 			/* @__PURE__ */ (0, U.jsx)("div", {
 				className: "hub-settings-links",
-				children: Object.entries(Ps).map(([e, n]) => /* @__PURE__ */ (0, U.jsx)("button", {
+				children: Object.entries(Is).map(([e, n]) => /* @__PURE__ */ (0, U.jsx)("button", {
 					onClick: () => t(e),
 					children: n
 				}, e))
@@ -14304,7 +14390,7 @@ function Hs({ settings: e, openPart: t, onSettingsChange: n }) {
 	});
 }
 // src/hub/Dialog.tsx
-function Us({ title: e, close: t, children: n }) {
+function qs({ title: e, close: t, children: n }) {
 	let r = (0, C.useRef)(null), i = (0, C.useRef)(document.activeElement);
 	return (0, C.useEffect)(() => (r.current?.querySelector("input,button")?.focus(), () => i.current?.focus()), []), /* @__PURE__ */ (0, U.jsx)("div", {
 		className: "hub-modal-backdrop",
@@ -14328,7 +14414,7 @@ function Us({ title: e, close: t, children: n }) {
 	});
 }
 // src/hub/Menu.tsx
-function Ws({ items: e, x: t, y: n, close: r }) {
+function Js({ items: e, x: t, y: n, close: r }) {
 	let i = (0, C.useRef)(null), a = (0, C.useRef)(document.activeElement);
 	return (0, C.useLayoutEffect)(() => {
 		let e = i.current;
@@ -14371,13 +14457,13 @@ function Ws({ items: e, x: t, y: n, close: r }) {
 	});
 }
 // src/hub/Palette.tsx
-function Gs({ commands: e, close: t }) {
+function Ys({ commands: e, close: t }) {
 	let [n, r] = (0, C.useState)(""), [i, a] = (0, C.useState)(0), o = (0, C.useMemo)(() => e.filter((e) => `${e.label} ${e.detail || ""}`.toLowerCase().includes(n.toLowerCase())).slice(0, 30), [e, n]), s = (0, C.useRef)(null);
 	function c(e) {
 		let n = o[e];
 		n && (t(), n.run());
 	}
-	return /* @__PURE__ */ (0, U.jsx)(Us, {
+	return /* @__PURE__ */ (0, U.jsx)(qs, {
 		title: "Search workspace",
 		close: t,
 		children: /* @__PURE__ */ (0, U.jsxs)("div", {
@@ -14413,7 +14499,7 @@ function Gs({ commands: e, close: t }) {
 	});
 }
 // src/hub/preferences.ts
-function Ks(e, t) {
+function Xs(e, t) {
 	try {
 		let n = localStorage.getItem(`legion.workspace.${e}`);
 		return n === null ? t : JSON.parse(n);
@@ -14421,18 +14507,18 @@ function Ks(e, t) {
 		return t;
 	}
 }
-function qs(e, t) {
+function Zs(e, t) {
 	try {
 		localStorage.setItem(`legion.workspace.${e}`, JSON.stringify(t));
 	} catch {}
 }
-var Js = (e) => Math.max(210, Math.min(340, e));
-function Ys() {
+var Qs = (e) => Math.max(210, Math.min(340, e));
+function $s() {
 	let [e, t] = (0, C.useState)(() => {
-		let e = Ks("sidebarWidth", 260);
-		return typeof e == "number" && Number.isFinite(e) ? Js(e) : 260;
+		let e = Xs("sidebarWidth", 260);
+		return typeof e == "number" && Number.isFinite(e) ? Qs(e) : 260;
 	}), n = (0, C.useRef)(null);
-	return (0, C.useEffect)(() => qs("sidebarWidth", e), [e]), {
+	return (0, C.useEffect)(() => Zs("sidebarWidth", e), [e]), {
 		width: e,
 		resize: {
 			onPointerDown(t) {
@@ -14442,7 +14528,7 @@ function Ys() {
 				}, t.currentTarget.setPointerCapture(t.pointerId), t.preventDefault());
 			},
 			onPointerMove(e) {
-				n.current && t(Js(n.current.width + e.clientX - n.current.x));
+				n.current && t(Qs(n.current.width + e.clientX - n.current.x));
 			},
 			onPointerUp() {
 				n.current = null;
@@ -14456,13 +14542,13 @@ function Ys() {
 					"ArrowRight",
 					"Home",
 					"End"
-				].includes(e.key) && (e.preventDefault(), t((t) => e.key === "Home" ? 210 : e.key === "End" ? 340 : Js(t + (e.key === "ArrowLeft" ? -10 : 10))));
+				].includes(e.key) && (e.preventDefault(), t((t) => e.key === "Home" ? 210 : e.key === "End" ? 340 : Qs(t + (e.key === "ArrowLeft" ? -10 : 10))));
 			}
 		}
 	};
 }
 // src/hub/live.ts
-function Xs() {
+function ec() {
 	let [e, t] = (0, C.useState)(null), [n, r] = (0, C.useState)("Connecting"), i = (0, C.useRef)(() => {});
 	return (0, C.useEffect)(() => {
 		let e = !0, n = !1, a = null, o, s = !1;
@@ -14471,7 +14557,7 @@ function Xs() {
 			else {
 				n = !0;
 				try {
-					let n = await ws();
+					let n = await Es();
 					e && (t(n), r(a?.readyState === 1 ? "Live" : "Polling/API"));
 				} catch {
 					e && r("Offline");
@@ -14510,23 +14596,23 @@ function Xs() {
 	};
 }
 // src/hub/reader/workspace-controller.js
-var Zs = (e) => structuredClone(e), Qs = (e) => e instanceof Error ? e.message : String(e);
-function $s(e) {
+var tc = (e) => structuredClone(e), nc = (e) => e instanceof Error ? e.message : String(e);
+function rc(e) {
 	if (!e || typeof e.running != "boolean") throw Error("Workspace control state is unavailable");
 	let t = /* @__PURE__ */ new Map();
-	for (let n of e.alerts || []) typeof n.id == "string" && n.id && typeof n.result_path == "string" && t.set(n.id, Zs(n));
+	for (let n of e.alerts || []) typeof n.id == "string" && n.id && typeof n.result_path == "string" && t.set(n.id, tc(n));
 	let n = [
 		"running",
 		"pausing",
 		"paused"
 	].includes(e.observed_state) ? e.observed_state : null;
 	return {
-		...Zs(e),
+		...tc(e),
 		observed_state: n,
 		alerts: [...t.values()].sort((e, t) => (Number(t.completed) || 0) - (Number(e.completed) || 0) || e.id.localeCompare(t.id))
 	};
 }
-var ec = class {
+var ic = class {
 	constructor({ openResult: e = () => {} } = {}) {
 		this.workspaces = /* @__PURE__ */ new Map(), this.selected = null, this.selectionRevision = 0, this.listeners = /* @__PURE__ */ new Set(), this.openResultCallback = e;
 	}
@@ -14563,7 +14649,7 @@ var ec = class {
 	}
 	view(e = this.selected) {
 		if (e === null) return null;
-		let t = this.workspace(e), n = t.status ? Zs(t.status) : null;
+		let t = this.workspace(e), n = t.status ? tc(t.status) : null;
 		return n && (n.alerts = n.alerts.filter((e) => !t.dismissed.has(e.id))), {
 			id: t.id,
 			label: t.label,
@@ -14583,10 +14669,10 @@ var ec = class {
 	async refresh(e = this.selected) {
 		let t = this.workspace(e), n = t.revision, r = ++t.readSequence;
 		try {
-			let i = $s(await t.adapter.read());
+			let i = rc(await t.adapter.read());
 			return t.revision !== n || r < t.appliedSequence || t.busy ? !1 : (t.appliedSequence = r, t.status = i, t.error = "", e === this.selected && this.emit(), !0);
 		} catch (i) {
-			return t.revision === n && r >= t.appliedSequence && !t.busy && (t.appliedSequence = r, t.error = Qs(i), e === this.selected && this.emit()), !1;
+			return t.revision === n && r >= t.appliedSequence && !t.busy && (t.appliedSequence = r, t.error = nc(i), e === this.selected && this.emit()), !1;
 		}
 	}
 	async setRunning(e, t = this.selected) {
@@ -14598,7 +14684,7 @@ var ec = class {
 			if ((await n.adapter.setRunning(e))?.running !== e) throw Error("Workspace did not acknowledge the requested state");
 			return n.status && (n.status.running = e, n.status.observed_state = null), !0;
 		} catch (e) {
-			return n.error = Qs(e), !1;
+			return n.error = nc(e), !1;
 		} finally {
 			n.busy = !1, n.revision++, t === this.selected && this.emit();
 			let e = n.error;
@@ -14613,7 +14699,7 @@ var ec = class {
 		try {
 			return await n.adapter.dismiss(e), n.dismissed.add(e), !0;
 		} catch (e) {
-			return n.error = Qs(e), !1;
+			return n.error = nc(e), !1;
 		} finally {
 			n.dismissing.delete(e), n.revision++, t === this.selected && this.emit();
 		}
@@ -14624,27 +14710,27 @@ var ec = class {
 		if (n.opening) return !1;
 		n.opening = e, n.error = "", t === this.selected && this.emit();
 		try {
-			let e = await n.adapter.result(Zs(i));
+			let e = await n.adapter.result(tc(i));
 			return this.selected !== t || r !== this.selectionRevision ? !1 : (await this.openResultCallback({
 				workspaceId: t,
 				workspaceLabel: n.label,
-				alert: Zs(i),
+				alert: tc(i),
 				result: e
 			}), !0);
 		} catch (e) {
-			return n.error = Qs(e), !1;
+			return n.error = nc(e), !1;
 		} finally {
 			n.opening = null, t === this.selected && this.emit();
 		}
 	}
 };
 // src/hub/reader/useBackground.ts
-function tc(e, t) {
+function ac(e, t) {
 	let n = (0, C.useRef)(t);
 	n.current = t;
 	let r = (0, C.useRef)(e?.id);
 	r.current = e?.id;
-	let i = (0, C.useMemo)(() => new ec({ openResult: ({ workspaceId: e, alert: t }) => {
+	let i = (0, C.useMemo)(() => new ic({ openResult: ({ workspaceId: e, alert: t }) => {
 		r.current === e && n.current(t.id);
 	} }), []), [a, o] = (0, C.useState)(null);
 	return (0, C.useEffect)(() => i.subscribe(o), [i]), (0, C.useEffect)(() => {
@@ -14657,10 +14743,10 @@ function tc(e, t) {
 			id: t,
 			label: e.name,
 			adapter: {
-				read: () => Ts(t),
-				setRunning: (e) => Es(t, e),
-				dismiss: (e) => Ds(t, e),
-				result: (e) => Os(t, e.id)
+				read: () => Ds(t),
+				setRunning: (e) => Os(t, e),
+				dismiss: (e) => ks(t, e),
+				result: (e) => As(t, e.id)
 			}
 		}), i.workspaces.get(t).label = e.name, i.select(t);
 		let n = !1, r;
@@ -14680,7 +14766,7 @@ function tc(e, t) {
 	};
 }
 // src/hub/reader/BackgroundPanel.tsx
-function nc({ view: e, controller: t }) {
+function oc({ view: e, controller: t }) {
 	let n = e?.status, r = n ? n.worker.available ? n.running ? "Enabled" : "Pause requested" : "Reader unavailable" : "Loading";
 	return /* @__PURE__ */ (0, U.jsxs)("div", {
 		className: "hub-background-control",
@@ -14700,7 +14786,7 @@ function nc({ view: e, controller: t }) {
 		})]
 	});
 }
-function rc({ view: e, controller: t }) {
+function sc({ view: e, controller: t }) {
 	return /* @__PURE__ */ (0, U.jsxs)("aside", {
 		className: "hub-background-panel",
 		"aria-label": "Workspace working and results",
@@ -14763,8 +14849,8 @@ function rc({ view: e, controller: t }) {
 	});
 }
 // src/hub/reader/FilesView.tsx
-function ic({ project: e, resultId: t, active: n }) {
-	let r = (0, C.useRef)(null), i = (0, C.useRef)(!1), a = (0, C.useRef)(ks(e.id, t));
+function cc({ project: e, resultId: t, active: n }) {
+	let r = (0, C.useRef)(null), i = (0, C.useRef)(!1), a = (0, C.useRef)(js(e.id, t));
 	return (0, C.useEffect)(() => {
 		t && n && i.current && r.current?.contentWindow?.postMessage({
 			type: "hub-open-result",
@@ -14787,13 +14873,13 @@ function ic({ project: e, resultId: t, active: n }) {
 	});
 }
 // src/hub/ProjectHub.tsx
-var ac = (e) => e instanceof Error ? e.message : String(e);
-function oc() {
-	let e = js(), t = (e) => e instanceof Element && !e.closest("button,input,select,a,[role=\"button\"]"), n = (n) => {
+var lc = (e) => e instanceof Error ? e.message : String(e);
+function uc() {
+	let e = Ns(), t = (e) => e instanceof Element && !e.closest("button,input,select,a,[role=\"button\"]"), n = (n) => {
 		n.button === 0 && t(n.target) && e?.startMove();
 	}, r = (n) => {
 		t(n.target) && e?.toggleMaximize();
-	}, [i, a] = (0, C.useState)([]), [o, s] = (0, C.useState)(null), [c, l] = (0, C.useState)(null), [u, d] = (0, C.useState)("home"), [f, p] = (0, C.useState)({}), m = tc(c, N), [h, g] = (0, C.useState)(""), [_, v] = (0, C.useState)(null), [y, b] = (0, C.useState)(""), [x, S] = (0, C.useState)(""), [ee, w] = (0, C.useState)("Ready"), [T, E] = (0, C.useState)(!1), [te, ne] = (0, C.useState)(!1), [re, ie] = (0, C.useState)(!1), [ae, oe] = (0, C.useState)(0), [se, ce] = (0, C.useState)(""), [le, ue] = (0, C.useState)(), [de, D] = (0, C.useState)(document.body.classList.contains("colorful-background")), [fe, pe] = (0, C.useState)(null), [me, he] = (0, C.useState)(() => Ks("sidebarCollapsed", !1) === !0), { width: O, resize: ge } = Ys(), _e = Xs(), ve = (0, C.useRef)(!1), k = (0, C.useRef)(0), ye = (0, C.useRef)(0), be = (0, C.useRef)(!1), A = (0, C.useRef)(null), j = (0, C.useRef)("project"), xe = (0, C.useRef)(void 0);
+	}, [i, a] = (0, C.useState)([]), [o, s] = (0, C.useState)(null), [c, l] = (0, C.useState)(null), [u, d] = (0, C.useState)("home"), [f, p] = (0, C.useState)({}), m = ac(c, N), [h, g] = (0, C.useState)(""), [_, v] = (0, C.useState)(null), [y, b] = (0, C.useState)(""), [x, S] = (0, C.useState)(""), [ee, w] = (0, C.useState)("Ready"), [T, E] = (0, C.useState)(!1), [te, ne] = (0, C.useState)(!1), [re, ie] = (0, C.useState)(!1), [ae, oe] = (0, C.useState)(0), [se, ce] = (0, C.useState)(""), [le, ue] = (0, C.useState)(), [de, D] = (0, C.useState)(document.body.classList.contains("colorful-background")), [fe, pe] = (0, C.useState)(null), [me, he] = (0, C.useState)(() => Xs("sidebarCollapsed", !1) === !0), { width: O, resize: ge } = $s(), _e = ec(), ve = (0, C.useRef)(!1), k = (0, C.useRef)(0), ye = (0, C.useRef)(0), be = (0, C.useRef)(!1), A = (0, C.useRef)(null), j = (0, C.useRef)("project"), xe = (0, C.useRef)(void 0);
 	async function Se() {
 		let e = ++ye.current, t = await us();
 		return e === ye.current && a(t), t;
@@ -14806,7 +14892,7 @@ function oc() {
 			let r = await e();
 			return await Se(), _e.refresh(), n === k.current && (l(r.project), t || d("project"), w("Ready")), r;
 		} catch (e) {
-			throw n === k.current && S(ac(e)), e;
+			throw n === k.current && S(lc(e)), e;
 		} finally {
 			ve.current = !1, E(!1);
 		}
@@ -14817,7 +14903,7 @@ function oc() {
 	(0, C.useEffect)(() => {
 		let e = !0;
 		return Se().then(async (t) => {
-			let n = Ks("hubNavigation", null);
+			let n = Xs("hubNavigation", null);
 			if (!e || k.current || !n) return;
 			let r = n.setupOrigin;
 			r && [
@@ -14826,26 +14912,26 @@ function oc() {
 				"project-setup",
 				"part",
 				"files"
-			].includes(r.page) && (r.page !== "part" || r.part && Ls[r.part]) && (xe.current = r);
+			].includes(r.page) && (r.page !== "part" || r.part && zs[r.part]) && (xe.current = r);
 			let i = t.find((e) => e.id === n.project);
 			if (i) {
 				if (await Ce(() => ms(i.id)), !e || k.current !== 1) return;
 				n.page === "setup" && d("setup"), n.page === "project-setup" && d("project-setup"), n.page === "files" && (p((e) => ({
 					...e,
 					[i.id]: { project: i }
-				})), d("files")), n.page === "part" && n.part && Ls[n.part] && (ce(n.part), ue(n.host), d("part"));
+				})), d("files")), n.page === "part" && n.part && zs[n.part] && (ce(n.part), ue(n.host), d("part"));
 			} else n.page === "setup" && !n.project && d("setup");
 		}).catch((t) => {
-			e && S(ac(t));
+			e && S(lc(t));
 		}).finally(() => {
 			e && ie(!0);
 		}), ds().then(s).catch((t) => {
-			e && S(ac(t));
+			e && S(lc(t));
 		}), () => {
 			e = !1;
 		};
 	}, []), (0, C.useEffect)(() => {
-		re && qs("hubNavigation", {
+		re && Zs("hubNavigation", {
 			project: c?.id,
 			page: u,
 			part: se,
@@ -14859,7 +14945,7 @@ function oc() {
 		se,
 		le
 	]), (0, C.useEffect)(() => {
-		qs("sidebarCollapsed", me), be.current && (be.current = !1, document.getElementById(me ? "hub-sidebar-reopen" : "hub-sidebar-toggle")?.focus());
+		Zs("sidebarCollapsed", me), be.current && (be.current = !1, document.getElementById(me ? "hub-sidebar-reopen" : "hub-sidebar-toggle")?.focus());
 	}, [me]), (0, C.useEffect)(() => {
 		let e = (e) => {
 			(e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k" && (e.preventDefault(), e.stopImmediatePropagation(), ne((e) => !e)), (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s" && c && !_ && !te && (e.preventDefault(), e.stopImmediatePropagation(), e.shiftKey ? P("save-as", `${c.name} copy`) : we(Ne(c)));
@@ -14918,10 +15004,10 @@ function oc() {
 		c?.id !== e.id && await Ce(() => ms(e.id));
 	}
 	async function Ne(e) {
-		await Me(e), await Ce(() => ys(e.id), !0), w("Saved");
+		await Me(e), await Ce(() => xs(e.id), !0), w("Saved");
 	}
 	async function Pe(e) {
-		c && await Ce(() => vs(c.id, e), !0);
+		c && await Ce(() => bs(c.id, e), !0);
 	}
 	function Fe(e, t) {
 		if ("key" in e && e.key !== "ContextMenu" && !(e.shiftKey && e.key === "F10")) return;
@@ -14935,17 +15021,17 @@ function oc() {
 	}
 	async function Ie() {
 		if (y.trim() && !T) try {
-			_ === "open" ? await Ce(() => xs(y.trim())) : _ === "save-as" && c ? await Ce(() => bs(c.id, y.trim())) : await Ce(() => ps(y.trim())), v(null);
+			_ === "open" ? await Ce(() => Cs(y.trim())) : _ === "save-as" && c ? await Ce(() => Ss(c.id, y.trim())) : await Ce(() => ps(y.trim())), v(null);
 		} catch {}
 	}
 	async function F(e, t) {
 		try {
 			if (await Me(e), t === "rename" && (he(!1), oe((e) => e + 1)), t === "save" && await Ne(e), t === "save-as" && P("save-as", `${e.name} copy`), t === "details" && P("details"), t === "export") {
 				let t = document.createElement("a");
-				t.href = Cs(e.id), t.download = "", t.click();
+				t.href = Ts(e.id), t.download = "", t.click();
 			}
 		} catch (e) {
-			S(ac(e));
+			S(lc(e));
 		}
 	}
 	let I = i.filter((e) => e.name.toLowerCase().includes(h.toLowerCase())), L = [
@@ -14985,7 +15071,7 @@ function oc() {
 			detail: "Action",
 			run: () => A.current?.click()
 		},
-		...Object.entries(Ps).map(([e, t]) => ({
+		...Object.entries(Is).map(([e, t]) => ({
 			id: e,
 			label: t,
 			detail: "Settings",
@@ -15010,12 +15096,12 @@ function oc() {
 			run: () => N()
 		});
 		for (let [e, t] of Object.entries({
-			...Fs,
-			...Is
+			...Ls,
+			...Rs
 		})) L.push({
 			id: e,
 			label: t,
-			detail: Fs[e] ? "View" : "Action",
+			detail: Ls[e] ? "View" : "Action",
 			run: () => ke(e)
 		});
 		for (let [e, t] of Object.entries({
@@ -15048,7 +15134,7 @@ function oc() {
 		label: t,
 		disabled: T,
 		run: () => we(F(fe.project, e))
-	})) : [], V = u === "setup" ? "Setup" : u === "project-setup" ? "Project setup" : u === "files" ? "Files" : u === "part" ? Ls[se] : "Overview";
+	})) : [], V = u === "setup" ? "Setup" : u === "project-setup" ? "Project setup" : u === "files" ? "Files" : u === "part" ? zs[se] : "Overview";
 	return /* @__PURE__ */ (0, U.jsxs)("div", {
 		className: `hub-app${me ? " hub-collapsed" : ""}${e ? " hub-desktop" : ""}`,
 		style: { "--hub-sidebar-width": `${O}px` },
@@ -15084,7 +15170,7 @@ function oc() {
 							"aria-controls": "hub-sidebar",
 							"aria-expanded": !me,
 							onClick: () => Oe(!0),
-							children: /* @__PURE__ */ (0, U.jsx)(As, { kind: "left" })
+							children: /* @__PURE__ */ (0, U.jsx)(Ms, { kind: "left" })
 						})]
 					}),
 					c ? /* @__PURE__ */ (0, U.jsxs)("div", {
@@ -15100,7 +15186,7 @@ function oc() {
 									className: "hub-avatar",
 									"aria-hidden": "true",
 									children: "FH"
-								}), /* @__PURE__ */ (0, U.jsx)(Ns, {
+								}), /* @__PURE__ */ (0, U.jsx)(Fs, {
 									name: c.name,
 									onRename: Pe,
 									request: ae,
@@ -15111,7 +15197,7 @@ function oc() {
 								className: "hub-search",
 								onClick: () => ne(!0),
 								children: [
-									/* @__PURE__ */ (0, U.jsx)(As, { kind: "search" }),
+									/* @__PURE__ */ (0, U.jsx)(Ms, { kind: "search" }),
 									/* @__PURE__ */ (0, U.jsx)("span", { children: "Search workspace" }),
 									/* @__PURE__ */ (0, U.jsx)("kbd", { children: "Ctrl K" })
 								]
@@ -15123,19 +15209,19 @@ function oc() {
 										className: "hub-overview-tab",
 										"aria-current": u === "project" ? "page" : void 0,
 										onClick: Ee,
-										children: [/* @__PURE__ */ (0, U.jsx)(As, { kind: "home" }), "Overview"]
+										children: [/* @__PURE__ */ (0, U.jsx)(Ms, { kind: "home" }), "Overview"]
 									}),
 									/* @__PURE__ */ (0, U.jsxs)("button", {
 										className: "hub-overview-tab hub-project-setup-tab",
 										"aria-current": u === "project-setup" ? "page" : void 0,
 										onClick: De,
-										children: [/* @__PURE__ */ (0, U.jsx)(As, { kind: "gear" }), "Project setup"]
+										children: [/* @__PURE__ */ (0, U.jsx)(Ms, { kind: "gear" }), "Project setup"]
 									}),
 									/* @__PURE__ */ (0, U.jsxs)("button", {
 										className: "hub-overview-tab",
 										"aria-current": u === "files" ? "page" : void 0,
 										onClick: () => N(),
-										children: [/* @__PURE__ */ (0, U.jsx)(As, { kind: "file" }), "Files"]
+										children: [/* @__PURE__ */ (0, U.jsx)(Ms, { kind: "file" }), "Files"]
 									})
 								]
 							})
@@ -15144,7 +15230,7 @@ function oc() {
 						/* @__PURE__ */ (0, U.jsxs)("label", {
 							className: "hub-search",
 							children: [
-								/* @__PURE__ */ (0, U.jsx)(As, { kind: "search" }),
+								/* @__PURE__ */ (0, U.jsx)(Ms, { kind: "search" }),
 								/* @__PURE__ */ (0, U.jsx)("input", {
 									id: "hub-search",
 									"aria-label": "Search projects",
@@ -15193,7 +15279,7 @@ function oc() {
 						"aria-label": "Setup — VPN not configured",
 						"aria-current": u === "setup" ? "page" : void 0,
 						children: [
-							/* @__PURE__ */ (0, U.jsx)(As, { kind: "gear" }),
+							/* @__PURE__ */ (0, U.jsx)(Ms, { kind: "gear" }),
 							/* @__PURE__ */ (0, U.jsx)("span", { children: "Setup" }),
 							/* @__PURE__ */ (0, U.jsx)("span", { className: "hub-dot" })
 						]
@@ -15227,7 +15313,7 @@ function oc() {
 								"aria-controls": "hub-sidebar",
 								"aria-expanded": "false",
 								onClick: () => Oe(!1),
-								children: /* @__PURE__ */ (0, U.jsx)(As, { kind: "right" })
+								children: /* @__PURE__ */ (0, U.jsx)(Ms, { kind: "right" })
 							}),
 							me && /* @__PURE__ */ (0, U.jsx)("button", {
 								className: "hub-collapsed-brand",
@@ -15240,7 +15326,7 @@ function oc() {
 									"aria-hidden": "true",
 									children: "FH"
 								}),
-								/* @__PURE__ */ (0, U.jsx)(Ns, {
+								/* @__PURE__ */ (0, U.jsx)(Fs, {
 									name: c.name,
 									onRename: Pe
 								}, c.id),
@@ -15250,7 +15336,7 @@ function oc() {
 								}),
 								/* @__PURE__ */ (0, U.jsx)("span", { children: V })
 							] }) : /* @__PURE__ */ (0, U.jsx)("span", { children: u === "setup" || u === "part" ? V : "Projects" }),
-							c && /* @__PURE__ */ (0, U.jsx)(nc, { ...m }),
+							c && /* @__PURE__ */ (0, U.jsx)(oc, { ...m }),
 							/* @__PURE__ */ (0, U.jsx)("button", {
 								className: "hub-header-details",
 								"aria-label": "Workspace details",
@@ -15258,7 +15344,7 @@ function oc() {
 								onClick: () => P("details"),
 								children: "ⓘ"
 							}),
-							e && /* @__PURE__ */ (0, U.jsx)(Ms, { desktop: e })
+							e && /* @__PURE__ */ (0, U.jsx)(Ps, { desktop: e })
 						]
 					}),
 					x && !_ && /* @__PURE__ */ (0, U.jsx)("p", {
@@ -15317,24 +15403,24 @@ function oc() {
 										})
 									]
 								}),
-								u === "project" && c && /* @__PURE__ */ (0, U.jsx)(Bs, { project: c }),
-								u === "project-setup" && c && /* @__PURE__ */ (0, U.jsx)(Vs, {
+								u === "project" && c && /* @__PURE__ */ (0, U.jsx)(Ws, { project: c }),
+								u === "project-setup" && c && /* @__PURE__ */ (0, U.jsx)(Gs, {
 									project: c,
 									onChange: (e) => l((t) => t?.id === e.id ? e : t)
 								}, c.id),
-								u === "setup" && /* @__PURE__ */ (0, U.jsx)(Hs, {
+								u === "setup" && /* @__PURE__ */ (0, U.jsx)(Ks, {
 									settings: o,
 									openPart: ke,
 									onSettingsChange: s
 								}),
-								u === "part" && /* @__PURE__ */ (0, U.jsx)(Rs, {
+								u === "part" && /* @__PURE__ */ (0, U.jsx)(Bs, {
 									part: se,
 									host: le,
 									close: Ae,
 									displayChanged: je,
 									statusChanged: w
 								}),
-								Object.entries(f).map(([e, t]) => /* @__PURE__ */ (0, U.jsx)(ic, {
+								Object.entries(f).map(([e, t]) => /* @__PURE__ */ (0, U.jsx)(cc, {
 									...t,
 									active: u === "files" && c?.id === e
 								}, e))
@@ -15343,7 +15429,7 @@ function oc() {
 							"project",
 							"project-setup",
 							"files"
-						].includes(u) && /* @__PURE__ */ (0, U.jsx)(rc, { ...m })]
+						].includes(u) && /* @__PURE__ */ (0, U.jsx)(sc, { ...m })]
 					}),
 					/* @__PURE__ */ (0, U.jsx)("span", {
 						className: "hub-status-announcement",
@@ -15379,20 +15465,20 @@ function oc() {
 				"aria-label": "Restore workspace ZIP",
 				onChange: (e) => {
 					let t = e.target.files?.[0];
-					t && we(Ce(() => Ss(t))), e.target.value = "";
+					t && we(Ce(() => ws(t))), e.target.value = "";
 				}
 			}),
-			fe && /* @__PURE__ */ (0, U.jsx)(Ws, {
+			fe && /* @__PURE__ */ (0, U.jsx)(Js, {
 				items: Le,
 				x: fe.x,
 				y: fe.y,
 				close: () => pe(null)
 			}),
-			te && /* @__PURE__ */ (0, U.jsx)(Gs, {
+			te && /* @__PURE__ */ (0, U.jsx)(Ys, {
 				commands: L,
 				close: () => ne(!1)
 			}),
-			_ && /* @__PURE__ */ (0, U.jsx)(Us, {
+			_ && /* @__PURE__ */ (0, U.jsx)(qs, {
 				title: _ === "create" ? "New project" : _ === "save-as" ? "Save project as" : _ === "open" ? "Open project" : "Workspace details",
 				close: () => {
 					T || v(null);
@@ -15458,19 +15544,19 @@ function oc() {
 	});
 }
 // ../app/web/static/js/workspace/scan.js
-var sc;
-function cc(e) {
+var dc;
+function fc(e) {
 	for (let t of ["applySchedulerPreferences"]) if (typeof e[t] != "function") throw TypeError(`Missing scan callback: ${t}`);
-	({applySchedulerPreferences: sc} = e);
+	({applySchedulerPreferences: dc} = e);
 }
-function lc(e) {
+function pc(e) {
 	return (e || "").split(/[\s,]+/).map((e) => e.trim()).filter((e) => e.length > 0);
 }
-function uc() {
+function mc() {
 	let e = document.querySelector("input[name='nmap-scan-mode']:checked");
 	return e ? String(e.value || "rfc1918_discovery") : "rfc1918_discovery";
 }
-function dc(e, t = "T3") {
+function hc(e, t = "T3") {
 	let n = String(e || t).toUpperCase(), r = n.startsWith("T") ? n : `T${n}`;
 	return [
 		"T0",
@@ -15481,34 +15567,34 @@ function dc(e, t = "T3") {
 		"T5"
 	].includes(r) ? r : t;
 }
-function fc(e, t = 1e3) {
+function gc(e, t = 1e3) {
 	let n = parseInt(e, 10);
 	return Number.isFinite(n) ? Math.min(65535, Math.max(1, n)) : t;
 }
-function pc() {
-	let e = uc(), t = /* @__PURE__ */ new Set();
-	return e === "rfc1918_discovery" ? (R("nmap-rfc-10") && t.add("10.0.0.0/8"), R("nmap-rfc-172") && t.add("172.16.0.0/12"), R("nmap-rfc-192") && t.add("192.168.0.0/16"), Array.from(t)) : (lc(z("nmap-targets")).forEach((e) => t.add(e)), Array.from(t));
+function _c() {
+	let e = mc(), t = /* @__PURE__ */ new Set();
+	return e === "rfc1918_discovery" ? (R("nmap-rfc-10") && t.add("10.0.0.0/8"), R("nmap-rfc-172") && t.add("172.16.0.0/12"), R("nmap-rfc-192") && t.add("192.168.0.0/16"), Array.from(t)) : (pc(z("nmap-targets")).forEach((e) => t.add(e)), Array.from(t));
 }
-function mc() {
+function vc() {
 	let e = document.getElementById("nmap-rfc-profile");
 	return (e ? String(e.value || "quick").trim().toLowerCase() : "quick") === "comprehensive" ? "comprehensive" : "quick";
 }
-function hc(e) {
+function yc(e) {
 	return e === "comprehensive" ? ve : _e;
 }
-function gc() {
+function bc() {
 	let e = document.getElementById("nmap-rfc-chunk-concurrency"), t = parseInt(e ? String(e.value || "1").trim() : "1", 10);
 	return Number.isFinite(t) ? Math.max(1, Math.min(t, 4)) : 1;
 }
-function _c(e) {
+function xc(e) {
 	if (e === "easy") {
 		let e = Br(zr());
 		return {
 			discovery: R("nmap-easy-discovery"),
 			skip_dns: R("nmap-easy-skip-dns"),
 			force_pn: R("nmap-easy-force-pn"),
-			timing: dc(z("nmap-easy-timing"), "T3"),
-			top_ports: e ? 0 : fc(z("nmap-easy-top-ports"), 1e3),
+			timing: hc(z("nmap-easy-timing"), "T3"),
+			top_ports: e ? 0 : gc(z("nmap-easy-top-ports"), 1e3),
 			explicit_ports: e ? _e : "",
 			service_detection: R("nmap-easy-service-detection"),
 			default_scripts: R("nmap-easy-default-scripts"),
@@ -15524,8 +15610,8 @@ function _c(e) {
 		discovery: R("nmap-hard-discovery"),
 		skip_dns: R("nmap-hard-skip-dns"),
 		force_pn: R("nmap-hard-force-pn"),
-		timing: dc(z("nmap-hard-timing"), "T4"),
-		top_ports: fc(z("nmap-hard-top-ports"), 1e3),
+		timing: hc(z("nmap-hard-timing"), "T4"),
+		top_ports: gc(z("nmap-hard-top-ports"), 1e3),
 		service_detection: R("nmap-hard-service-detection"),
 		default_scripts: R("nmap-hard-default-scripts"),
 		os_detection: R("nmap-hard-os-detection"),
@@ -15535,18 +15621,18 @@ function _c(e) {
 		host_discovery_only: !1,
 		arp_ping: !1
 	};
-	let t = R("nmap-rfc-host-discovery-only"), n = mc();
+	let t = R("nmap-rfc-host-discovery-only"), n = vc();
 	return {
 		discovery: R("nmap-rfc-discovery"),
 		host_discovery_only: t,
 		skip_dns: R("nmap-rfc-skip-dns"),
 		arp_ping: R("nmap-rfc-arp-ping"),
 		force_pn: !1,
-		timing: dc(z("nmap-rfc-timing"), "T3"),
+		timing: hc(z("nmap-rfc-timing"), "T3"),
 		top_ports: 0,
-		explicit_ports: t ? "" : hc(n),
+		explicit_ports: t ? "" : yc(n),
 		scan_profile: n,
-		chunk_concurrency: gc(),
+		chunk_concurrency: bc(),
 		service_detection: R("nmap-rfc-service-detection"),
 		default_scripts: R("nmap-rfc-default-scripts"),
 		os_detection: R("nmap-rfc-os-detection"),
@@ -15555,14 +15641,14 @@ function _c(e) {
 		vuln_scripts: !1
 	};
 }
-function vc() {
+function Sc() {
 	return [
 		R("nmap-rfc-10"),
 		R("nmap-rfc-172"),
 		R("nmap-rfc-192")
 	].filter(Boolean).length;
 }
-function yc(e) {
+function Cc(e) {
 	[
 		"nmap-rfc-10",
 		"nmap-rfc-172",
@@ -15572,10 +15658,10 @@ function yc(e) {
 		n && (n.disabled = !e);
 	});
 }
-function bc(e) {
-	e === "rfc1918_discovery" ? (L("nmap-rfc-discovery", !0), L("nmap-rfc-host-discovery-only", !0), L("nmap-rfc-arp-ping", !1), L("nmap-rfc-skip-dns", !0), I("nmap-rfc-timing", "T3"), I("nmap-rfc-profile", "quick"), I("nmap-rfc-chunk-concurrency", "1"), L("nmap-rfc-service-detection", !1), L("nmap-rfc-default-scripts", !1), L("nmap-rfc-os-detection", !1), L("nmap-rfc-force-pn", !1), L("nmap-rfc-10", !0), L("nmap-rfc-172", !0), L("nmap-rfc-192", !0), yc(!0)) : (L("nmap-rfc-10", !1), L("nmap-rfc-172", !1), L("nmap-rfc-192", !1), L("nmap-rfc-force-pn", !1), yc(!1));
+function wc(e) {
+	e === "rfc1918_discovery" ? (L("nmap-rfc-discovery", !0), L("nmap-rfc-host-discovery-only", !0), L("nmap-rfc-arp-ping", !1), L("nmap-rfc-skip-dns", !0), I("nmap-rfc-timing", "T3"), I("nmap-rfc-profile", "quick"), I("nmap-rfc-chunk-concurrency", "1"), L("nmap-rfc-service-detection", !1), L("nmap-rfc-default-scripts", !1), L("nmap-rfc-os-detection", !1), L("nmap-rfc-force-pn", !1), L("nmap-rfc-10", !0), L("nmap-rfc-172", !0), L("nmap-rfc-192", !0), Cc(!0)) : (L("nmap-rfc-10", !1), L("nmap-rfc-172", !1), L("nmap-rfc-192", !1), L("nmap-rfc-force-pn", !1), Cc(!1));
 }
-function xc(e) {
+function Tc(e) {
 	let t = document.getElementById(e);
 	if (!t || t.disabled) return !0;
 	let n = String(t.value || "").trim();
@@ -15583,8 +15669,8 @@ function xc(e) {
 	let r = parseInt(n, 10);
 	return Number.isInteger(r) && r >= 1 && r <= 65535;
 }
-function Sc() {
-	let e = uc();
+function Ec() {
+	let e = mc();
 	if (e === "passive_capture") {
 		if (!Vr(zr())) return {
 			valid: !1,
@@ -15613,17 +15699,17 @@ function Sc() {
 			reason: "Select a valid capture duration."
 		};
 	}
-	let t = (e === "rfc1918_discovery" ? [] : lc(z("nmap-targets"))).length > 0, n = e === "rfc1918_discovery" && vc() > 0;
+	let t = (e === "rfc1918_discovery" ? [] : pc(z("nmap-targets"))).length > 0, n = e === "rfc1918_discovery" && Sc() > 0;
 	return !t && !n ? {
 		valid: !1,
 		reason: "Add targets, or select RFC1918 ranges in RFC1918 mode."
-	} : pc().length ? e === "easy" ? !Br(zr()) && !xc("nmap-easy-top-ports") ? {
+	} : _c().length ? e === "easy" ? !Br(zr()) && !Tc("nmap-easy-top-ports") ? {
 		valid: !1,
 		reason: "Easy mode Top Ports must be 1-65535."
 	} : {
 		valid: !0,
 		reason: ""
-	} : e === "hard" && !R("nmap-hard-full-ports") && !xc("nmap-hard-top-ports") ? {
+	} : e === "hard" && !R("nmap-hard-full-ports") && !Tc("nmap-hard-top-ports") ? {
 		valid: !1,
 		reason: "Hard mode Top Ports must be 1-65535 when full scan is disabled."
 	} : {
@@ -15634,28 +15720,28 @@ function Sc() {
 		reason: "Provide at least one target."
 	};
 }
-function Cc() {
+function Dc() {
 	let e = document.getElementById("nmap-scan-button");
 	if (!e) return;
-	let t = Sc(), n = !P.postSubmitLock;
+	let t = Ec(), n = !P.postSubmitLock;
 	e.disabled = !t.valid || !n, e.title = n ? t.valid ? "" : t.reason : "Enter scan inputs to enable this action.";
 }
-function wc(e) {
+function Oc(e) {
 	let t = String(e || "").trim();
 	return t ? (t.match(/(?:[^\s"'`]+|"[^"]*"|'[^']*')+/g) || []).map((e) => e.trim()).map((e) => e.replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1")).filter((e) => e.length > 0) : [];
 }
-function Tc(e) {
+function kc(e) {
 	return (e || []).map((e) => {
 		let t = String(e ?? "");
 		return t ? /^[A-Za-z0-9_./:=@-]+$/.test(t) ? t : `'${t.replace(/'/g, "'\\''")}'` : "''";
 	}).join(" ");
 }
-function Ec() {
+function Ac() {
 	let e = document.getElementById("nmap-command-preview");
 	if (!e) return;
-	let t = uc(), n = document.getElementById("nmap-scan-button"), r = document.getElementById("nmap-run-actions-label"), i = document.getElementById("nmap-args-label");
+	let t = mc(), n = document.getElementById("nmap-scan-button"), r = document.getElementById("nmap-run-actions-label"), i = document.getElementById("nmap-args-label");
 	if (n && (n.textContent = t === "passive_capture" ? "Start Passive Capture Job" : "Start Nmap Scan Job"), r && (r.lastChild.textContent = t === "passive_capture" ? " Run scripted actions after spawned Easy scans" : " Run scripted actions after scan"), i && (i.hidden = t === "passive_capture"), t === "passive_capture") {
-		e.textContent = `Command Preview: ${Tc([
+		e.textContent = `Command Preview: ${kc([
 			"tshark",
 			"-i",
 			String(z("passive-capture-interface") || "<interface>").trim() || "<interface>",
@@ -15667,29 +15753,29 @@ function Ec() {
 			"arp or broadcast or multicast or udp port 67 or udp port 68 or udp port 137 or udp port 138 or udp port 5353 or udp port 5355 or udp port 1900",
 			"-w",
 			"<output_prefix>.pcapng"
-		])}  |  Then queue Easy scans for discovered internal networks`, Cc();
+		])}  |  Then queue Easy scans for discovered internal networks`, Dc();
 		return;
 	}
-	let a = pc(), o = _c(t), s = wc(z("nmap-args").trim()), c = s.some((e) => {
+	let a = _c(), o = xc(t), s = Oc(z("nmap-args").trim()), c = s.some((e) => {
 		let t = String(e || "").trim().toLowerCase();
 		return t === "--stats-every" || t.startsWith("--stats-every=");
 	}), l = s.some((e) => {
 		let t = String(e || "").trim().toLowerCase();
 		return t === "-v" || t === "-vv" || t === "-vvv" || t === "--verbose";
 	}), u = a.length ? a : ["<targets>"], d = ["nmap"];
-	o.host_discovery_only ? (d.push("-sn"), o.skip_dns && d.push("-n"), o.arp_ping && d.push("-PR"), d.push(`-${dc(o.timing, "T3")}`)) : ((o.force_pn || !o.discovery) && d.push("-Pn"), o.skip_dns && d.push("-n"), d.push(`-${dc(o.timing, "T3")}`), o.full_ports ? d.push("-p-") : String(o.explicit_ports || "").trim() ? d.push("-p", String(o.explicit_ports || "").trim()) : d.push("--top-ports", String(fc(o.top_ports, 1e3))), o.aggressive ? d.push("-A") : (o.service_detection && d.push("-sV"), o.default_scripts && d.push("-sC"), o.os_detection && d.push("-O")), o.vuln_scripts && d.push("--script", "vuln"));
+	o.host_discovery_only ? (d.push("-sn"), o.skip_dns && d.push("-n"), o.arp_ping && d.push("-PR"), d.push(`-${hc(o.timing, "T3")}`)) : ((o.force_pn || !o.discovery) && d.push("-Pn"), o.skip_dns && d.push("-n"), d.push(`-${hc(o.timing, "T3")}`), o.full_ports ? d.push("-p-") : String(o.explicit_ports || "").trim() ? d.push("-p", String(o.explicit_ports || "").trim()) : d.push("--top-ports", String(gc(o.top_ports, 1e3))), o.aggressive ? d.push("-A") : (o.service_detection && d.push("-sV"), o.default_scripts && d.push("-sC"), o.os_detection && d.push("-O")), o.vuln_scripts && d.push("--script", "vuln"));
 	let f = c ? s : [
 		...s,
 		"--stats-every",
 		"15s"
 	];
-	l || (f = [...f, "-vv"]), d.push(...f, ...u, "-oA", "<output_prefix>"), e.textContent = `Command Preview: ${Tc(d)}`, Cc();
+	l || (f = [...f, "-vv"]), d.push(...f, ...u, "-oA", "<output_prefix>"), e.textContent = `Command Preview: ${kc(d)}`, Dc();
 }
-function Dc() {
+function jc() {
 	let e = zr(), t = Br(e), n = e !== P.lastEngagementPreset, r = document.getElementById("nmap-easy-top-ports"), i = document.getElementById("nmap-easy-top-ports-label"), a = document.getElementById("nmap-easy-preset-note"), o = document.getElementById("nmap-easy-service-detection"), s = document.getElementById("nmap-easy-default-scripts");
 	n && (o && (o.checked = !t), s && (s.checked = !t)), r && (r.disabled = t), i && (i.hidden = t), a && (a.hidden = !t, a.textContent = t ? `Internal Quick Recon uses a curated TCP port list instead of Top Ports: ${_e}. Add UDP-specific follow-up separately if needed.` : ""), P.lastEngagementPreset = e;
 }
-function Oc(e) {
+function Mc(e) {
 	let t = Math.max(1, Math.min(4, parseInt(e, 10) || 1));
 	P.step = t, [
 		1,
@@ -15703,11 +15789,11 @@ function Oc(e) {
 		r && r.classList.toggle("is-active", e === t);
 	});
 	let n = document.getElementById("nmap-wizard-back"), r = document.getElementById("nmap-wizard-next");
-	n && (n.disabled = t <= 1), r && (r.disabled = t >= 4, r.style.display = t >= 4 ? "none" : ""), Cc();
+	n && (n.disabled = t <= 1), r && (r.disabled = t >= 4, r.style.display = t >= 4 ? "none" : ""), Dc();
 }
-function kc() {
-	let e = uc();
-	e !== P.lastMode && (bc(e), P.lastMode = e), document.querySelectorAll("[data-mode-options]").forEach((t) => {
+function Nc() {
+	let e = mc();
+	e !== P.lastMode && (wc(e), P.lastMode = e), document.querySelectorAll("[data-mode-options]").forEach((t) => {
 		let n = String(t.getAttribute("data-mode-options") || "");
 		t.classList.toggle("is-active", n === e);
 	});
@@ -15733,7 +15819,7 @@ function kc() {
 	});
 	let c = document.getElementById("nmap-rfc-profile-note");
 	if (c) {
-		let e = mc(), t = gc(), n = e === "comprehensive" ? "More comprehensive uses a broader common-internal-services TCP list" : "Quick uses the curated low-hanging-fruit TCP list", r = hc(e), i = `${t} chunk scan${t === 1 ? "" : "s"} at a time`;
+		let e = vc(), t = bc(), n = e === "comprehensive" ? "More comprehensive uses a broader common-internal-services TCP list" : "Quick uses the curated low-hanging-fruit TCP list", r = yc(e), i = `${t} chunk scan${t === 1 ? "" : "s"} at a time`;
 		c.textContent = a ? `${n}. RFC sweeps run in /24 chunks, up to 2 subnets per Nmap run, with ${i}. Disable discovery-only to scan responsive hosts on: ${r}.` : `${n}. RFC sweeps run in /24 chunks, up to 2 subnets per Nmap run, with ${i}: ${r}.`;
 	}
 	let l = document.getElementById("passive-capture-interface-note"), u = document.getElementById("passive-capture-interface");
@@ -15744,28 +15830,28 @@ function kc() {
 			l.textContent = t ? `Connected networks: ${t}` : "Passive capture will watch discovery traffic on the selected interface.";
 		}
 	}
-	Dc(), Ec(), Cc();
+	jc(), Ac(), Dc();
 }
-async function Ac() {
+async function Pc() {
 	if (P.postSubmitLock) {
-		V("Scan failed: enter scan inputs before starting a job.", !0), Cc();
+		V("Scan failed: enter scan inputs before starting a job.", !0), Dc();
 		return;
 	}
-	let e = Sc();
+	let e = Ec();
 	if (!e.valid) {
 		V(`Scan failed: ${e.reason}`, !0);
 		let t = String(e.reason || "").toLowerCase();
-		t.includes("target") || t.includes("rfc1918") || t.includes("interface") ? Oc(3) : Oc(4);
+		t.includes("target") || t.includes("rfc1918") || t.includes("interface") ? Mc(3) : Mc(4);
 		return;
 	}
-	let t = pc(), n = uc(), r = _c(n), i = !!r.discovery, a = Ur(zr(), { fallbackGoalProfile: z("scheduler-goal-select") || "internal_recon" });
+	let t = _c(), n = mc(), r = xc(n), i = !!r.discovery, a = Ur(zr(), { fallbackGoalProfile: z("scheduler-goal-select") || "internal_recon" });
 	V("Queueing Nmap scan job...");
 	try {
 		let e = await Je("/api/scheduler/preferences", {
 			engagement_policy: a,
 			goal_profile: Ar(a)
 		});
-		sc(e);
+		dc(e);
 		let o = (n === "passive_capture" ? await Je("/api/scan/passive-capture", {
 			interface_name: z("passive-capture-interface").trim(),
 			duration_minutes: Hr(),
@@ -15781,30 +15867,30 @@ async function Ac() {
 			scan_mode: n,
 			scan_options: r
 		}))?.job?.id;
-		V(o ? `${n === "passive_capture" ? "Passive capture" : "Nmap scan"} queued (job ${o})` : n === "passive_capture" ? "Passive capture queued" : "Nmap scan queued"), ti(), I("nmap-targets", ""), P.postSubmitLock = !0, Oc(1), Ec(), Cc(), await Co();
+		V(o ? `${n === "passive_capture" ? "Passive capture" : "Nmap scan"} queued (job ${o})` : n === "passive_capture" ? "Passive capture queued" : "Nmap scan queued"), ti(), I("nmap-targets", ""), P.postSubmitLock = !0, Mc(1), Ac(), Dc(), await Co();
 	} catch (e) {
 		V(`Scan failed: ${e.message}`, !0);
 	}
 }
 // ../app/web/static/js/workspace/tool_settings.js
-var jc;
-function Mc(e) {
+var Fc;
+function Ic(e) {
 	for (let t of ["applySchedulerPreferences"]) if (typeof e[t] != "function") throw TypeError(`Missing tool_settings callback: ${t}`);
-	({applySchedulerPreferences: jc} = e);
+	({applySchedulerPreferences: Fc} = e);
 }
-function Nc(e, t = !1) {
+function Lc(e, t = !1) {
 	let n = document.getElementById("settings-tool-audit-status");
 	n && (n.textContent = e || "", n.style.color = t ? "#ff9b9b" : "");
 }
-function Pc(e, t = !1) {
+function Rc(e, t = !1) {
 	let n = document.getElementById("settings-tool-install-status");
 	n && (n.textContent = e || "", n.style.color = t ? "#ff9b9b" : "");
 }
-function Fc(e, t = !1) {
+function zc(e, t = !1) {
 	let n = document.getElementById("interface-settings-status");
 	n && (n.textContent = e || "", n.style.color = t ? "#ff9b9b" : "");
 }
-function Ic(e) {
+function Bc(e) {
 	let t = document.querySelector(".logo-watermark");
 	if (!e) {
 		t && t.remove();
@@ -15819,30 +15905,30 @@ function Ic(e) {
 	let a = document.createElement("pre");
 	a.textContent = n, i.appendChild(a), r.parentNode.insertBefore(i, r);
 }
-function Lc(e) {
+function Vc(e) {
 	let t = !!e;
-	window.LEGION_COLORFUL_ASCII_BACKGROUND_ENABLED = t, document.body?.classList.toggle("colorful-background", t), L("interface-colorful-ascii-background", t), Ic(t);
+	window.LEGION_COLORFUL_ASCII_BACKGROUND_ENABLED = t, document.body?.classList.toggle("colorful-background", t), L("interface-colorful-ascii-background", t), Bc(t);
 }
-function Rc(e) {
+function Hc(e) {
 	let t = !!e, n = document.getElementById("graph-workspace-panel"), r = document.getElementById("graph-workspace-shell"), i = document.getElementById("graph-workspace-disabled-state");
 	n && (n.dataset.graphEnabled = t ? "true" : "false", n.hidden = !t), r && (r.hidden = !t), i && (i.hidden = t), L("interface-graph-workspace-enabled", t), t ? $a({ background: !1 }).catch(() => {}) : (k.loading = !1, da());
 }
-function zc() {
+function Uc() {
 	return A.recommendedPlatform;
 }
-function Bc(e) {
+function Wc(e) {
 	A.plan = e || null;
 	let t = e || {}, n = String(t?.script || "");
 	I("settings-tool-install-script", n);
-	let r = Number(t?.command_count || 0), i = Number(t?.manual_count || 0), a = String(t?.platform || zc() || "this system"), o = ["kali", "ubuntu"].includes(zc());
+	let r = Number(t?.command_count || 0), i = Number(t?.manual_count || 0), a = String(t?.platform || Uc() || "this system"), o = ["kali", "ubuntu"].includes(Uc());
 	if (document.getElementById("settings-tool-install-run-button").disabled = !o || !e || r === 0, document.getElementById("settings-tool-install-copy-button").disabled = !n.trim(), !r && !i) {
-		Pc(`No missing tool installs are queued for ${a}.`);
+		Rc(`No missing tool installs are queued for ${a}.`);
 		return;
 	}
 	let s = `${r} install command${r === 1 ? "" : "s"} queued for ${a}`;
-	i > 0 && (s += `; ${i} tool${i === 1 ? "" : "s"} still require manual follow-up`), Pc(s);
+	i > 0 && (s += `; ${i} tool${i === 1 ? "" : "s"} still require manual follow-up`), Rc(s);
 }
-function Vc(e) {
+function Gc(e) {
 	let t = document.getElementById("settings-tool-audit-body");
 	if (!t) return;
 	let n = Array.isArray(e) ? e : [];
@@ -15858,63 +15944,63 @@ function Vc(e) {
                 <td>${Le(e?.category || "")}</td>
                 <td><span class="${r}">${Le(t)}</span></td>
                 <td><code>${Le(n)}</code></td>
-                <td><code>${Le(e?.[`${zc()}_install`] || "-")}</code></td>
+                <td><code>${Le(e?.[`${Uc()}_install`] || "-")}</code></td>
             </tr>
         `;
 	}).join("") : "<tr><td colspan=\"5\" class=\"empty-cell\">No tool audit data.</td></tr>";
 }
-async function Hc() {
-	Nc("Checking tools...");
+async function Kc() {
+	Lc("Checking tools...");
 	try {
 		let e = await Ye("/api/settings/tool-audit"), t = String(e?.recommended_platform || "").trim().toLowerCase();
-		A.recommendedPlatform = ["kali", "ubuntu"].includes(t) ? t : "", Vc(e?.tools || []), A.supportedPlatforms = Array.isArray(e?.supported_platforms) && e.supported_platforms.length ? e.supported_platforms : ["kali", "ubuntu"];
+		A.recommendedPlatform = ["kali", "ubuntu"].includes(t) ? t : "", Gc(e?.tools || []), A.supportedPlatforms = Array.isArray(e?.supported_platforms) && e.supported_platforms.length ? e.supported_platforms : ["kali", "ubuntu"];
 		let n = e?.summary || {};
-		Nc(`Installed ${n.installed || 0}/${n.total || 0}; missing ${n.missing || 0}; configured missing ${n.configured_missing || 0}`), await Uc(!1);
+		Lc(`Installed ${n.installed || 0}/${n.total || 0}; missing ${n.missing || 0}; configured missing ${n.configured_missing || 0}`), await qc(!1);
 	} catch (e) {
-		Vc([]), Bc(null), Nc(`Tool audit failed: ${e.message}`, !0), Pc(`Install plan unavailable: ${e.message}`, !0);
+		Gc([]), Wc(null), Lc(`Tool audit failed: ${e.message}`, !0), Rc(`Install plan unavailable: ${e.message}`, !0);
 	}
 }
-async function Uc(e = !0) {
-	e && Pc("Building install plan...");
+async function qc(e = !0) {
+	e && Rc("Building install plan...");
 	try {
-		if (!zc()) throw Error("Automatic installation supports Kali and Ubuntu only.");
-		Bc(await Ye("/api/settings/tool-audit/install-plan?scope=missing") || {});
+		if (!Uc()) throw Error("Automatic installation supports Kali and Ubuntu only.");
+		Wc(await Ye("/api/settings/tool-audit/install-plan?scope=missing") || {});
 	} catch (e) {
-		Bc(null), Pc(`Install plan failed: ${e.message}`, !0);
+		Wc(null), Rc(`Install plan failed: ${e.message}`, !0);
 	}
 }
-async function Wc() {
+async function Jc() {
 	let e = String(z("settings-tool-install-script") || "");
-	if (e.trim() || (await Uc(!1), e = String(z("settings-tool-install-script") || "")), !e.trim()) Pc("No install script is available to copy.", !0);
+	if (e.trim() || (await qc(!1), e = String(z("settings-tool-install-script") || "")), !e.trim()) Rc("No install script is available to copy.", !0);
 	else try {
 		if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(e);
 		else {
 			let t = document.createElement("textarea");
 			t.value = e, t.setAttribute("readonly", "readonly"), t.style.position = "absolute", t.style.left = "-9999px", document.body.appendChild(t), t.select(), document.execCommand("copy"), document.body.removeChild(t);
 		}
-		Pc("Install script copied to clipboard.");
+		Rc("Install script copied to clipboard.");
 	} catch (e) {
-		Pc(`Copy failed: ${e.message}`, !0);
+		Rc(`Copy failed: ${e.message}`, !0);
 	}
 }
-async function Gc() {
-	Pc("Queueing install job...");
+async function Yc() {
+	Rc("Queueing install job...");
 	try {
-		if (!zc()) throw Error("Automatic installation supports Kali and Ubuntu only.");
+		if (!Uc()) throw Error("Automatic installation supports Kali and Ubuntu only.");
 		let e = await Je("/api/settings/tool-audit/install", { scope: "missing" }), t = Number(e?.job?.id || 0);
-		Pc(t > 0 ? `Install queued as job #${t}. Use Logging > Jobs to monitor progress.` : "Install job queued. Use Logging > Jobs to monitor progress.");
+		Rc(t > 0 ? `Install queued as job #${t}. Use Logging > Jobs to monitor progress.` : "Install job queued. Use Logging > Jobs to monitor progress.");
 	} catch (e) {
-		Pc(`Install failed to queue: ${e.message}`, !0);
+		Rc(`Install failed to queue: ${e.message}`, !0);
 	}
 }
 // ../app/web/static/js/workspace/scheduler_preferences.js
-function Kc(e = {}) {
+function Xc(e = {}) {
 	return {
 		graph_workspace: !!e.graph_workspace,
 		context_summary_enabled: e.context_summary_enabled !== !1
 	};
 }
-function qc(e) {
+function Zc(e) {
 	if (!e) return;
 	let t = Or(e.engagement_policy, e.goal_profile);
 	O.deviceCategoryRules = e.device_categories || [], O.builtInDeviceCategories = e.built_in_device_categories || [], F("scheduler-mode", "deterministic"), F("scheduler-goal", t.preset_label || t.preset), F("scheduler-families", e.preapproved_families_count || 0), I("scheduler-goal-select", t.preset), I("engagement-scope-select", t.scope), I("engagement-intent-select", t.intent);
@@ -15938,9 +16024,9 @@ function qc(e) {
 	}[t], e[t]);
 	document.querySelectorAll(".danger-group input[value]").forEach((t) => {
 		t.checked = (e.dangerous_categories || []).includes(t.value);
-	}), Rc(!!e.feature_flags?.graph_workspace), Jc(), wr();
+	}), Hc(!!e.feature_flags?.graph_workspace), Qc(), wr();
 }
-function Jc() {
+function Qc() {
 	let e = String(z("scheduler-goal-select") || "internal_recon").trim().toLowerCase(), t = e === "custom", n = t ? {
 		scope: z("engagement-scope-select") || "internal",
 		intent: z("engagement-intent-select") || "recon"
@@ -15955,9 +16041,9 @@ function Jc() {
 		o
 	].forEach((e) => {
 		e && (e.hidden = !t);
-	}), s && (s.disabled = !t), c && (c.disabled = !t), Dc(), document.getElementById("nmap-command-preview") && Ec();
+	}), s && (s.disabled = !t), c && (c.disabled = !t), jc(), document.getElementById("nmap-command-preview") && Ac();
 }
-function Yc() {
+function $c() {
 	return {
 		engagement_policy: Or({
 			preset: z("scheduler-goal-select"),
@@ -15978,25 +16064,25 @@ function Yc() {
 		dangerous_categories: [...document.querySelectorAll(".danger-group input[value]:checked")].map((e) => e.value)
 	};
 }
-async function Xc() {
+async function el() {
 	try {
-		qc(await Ye("/api/scheduler/preferences"));
+		Zc(await Ye("/api/scheduler/preferences"));
 	} catch (e) {
 		V(`Settings: ${e.message}`, !0);
 	}
 }
-async function Zc(e) {
+async function tl(e) {
 	e?.preventDefault();
 	try {
-		qc(await Je("/api/scheduler/preferences", Yc())), F("scheduler-save-status", "Saved");
+		Zc(await Je("/api/scheduler/preferences", $c())), F("scheduler-save-status", "Saved");
 	} catch (e) {
 		F("scheduler-save-status", e.message);
 	}
 }
 // ../app/web/static/js/workspace/controller.js
-var Qc = class {
+var nl = class {
 	connect() {
-		this.connected ||= (xr({ applySchedulerPreferences: qc }), Xr({
+		this.connected ||= (xr({ applySchedulerPreferences: Zc }), Xr({
 			openManualToolPicker: ia,
 			pollSnapshot: Co
 		}), Lt({
@@ -16010,13 +16096,13 @@ var Qc = class {
 			loadWorkspaceServices: hr,
 			renderHosts: so,
 			renderServices: lo
-		}), cc({ applySchedulerPreferences: qc }), Lr({
-			applyNmapModeTargetDefaults: bc,
-			refreshNmapModeOptions: kc,
-			refreshNmapScanButtonState: Cc,
-			setNmapWizardStep: Oc,
-			updateNmapCommandPreview: Ec
-		}), Mc({ applySchedulerPreferences: qc }), Yi({ pollSnapshot: Co }), dr({
+		}), fc({ applySchedulerPreferences: Zc }), Lr({
+			applyNmapModeTargetDefaults: wc,
+			refreshNmapModeOptions: Nc,
+			refreshNmapScanButtonState: Dc,
+			setNmapWizardStep: Mc,
+			updateNmapCommandPreview: Ac
+		}), Ic({ applySchedulerPreferences: Zc }), Yi({ pollSnapshot: Co }), dr({
 			graphLoadSnapshot: $a,
 			renderHosts: so,
 			renderServices: lo,
@@ -16025,11 +16111,11 @@ var Qc = class {
 	}
 };
 // ../app/web/static/js/workspace/graph_actions.js
-function $c(e) {
+function rl(e) {
 	let t = (k.layouts || []).find((t) => String(t?.layout_id || "") === String(e || ""));
 	k.activeLayoutId = String(t?.layout_id || ""), k.positions = t?.layout?.positions && typeof t.layout.positions == "object" ? { ...t.layout.positions } : {}, k.pinnedNodeIds = t?.layout?.pinned_node_ids && typeof t.layout.pinned_node_ids == "object" ? { ...t.layout.pinned_node_ids } : {}, t?.layout?.group_by && I("graph-group-select", t.layout.group_by), t?.name && I("graph-layout-name", t.name), mn(), Xa();
 }
-function el() {
+function il() {
 	let e = Ja(k.data), t = /* @__PURE__ */ new Map();
 	if ((e.nodes || []).forEach((n) => {
 		let r = Sa(n, k.groupBy || fn().defaultGroup || "subnet", xa(e.nodes)) || "other";
@@ -16046,7 +16132,7 @@ function el() {
 		};
 	}), Xa({ preserveDetail: !0 }), G(`Layout tidied for ${e.nodes.length} nodes across ${(n.groups || []).length} groups`);
 }
-function tl() {
+function al() {
 	if (k.selectedKind !== "node" || !k.selectedRef) {
 		G("Select a node or summary before focusing the neighborhood.", !0), _a();
 		return;
@@ -16054,10 +16140,10 @@ function tl() {
 	let e = Wt(), t = Pa(e);
 	t.length ? (k.focusSeedNodeIds = t, k.focusSeedLabel = String(e?.label || e?.node_id || "selection"), k.focusDepth = Math.max(1, Math.min(3, parseInt(z("graph-focus-depth-select"), 10) || k.focusDepth || 1)), K(e, "summary_kind") && (k.selectedKind = "node", k.selectedRef = t[0]), Xa(), _a(), G(`Focused ${k.focusDepth}-hop neighborhood around ${k.focusSeedLabel}`)) : (G("The selected graph node cannot be focused.", !0), _a());
 }
-function nl() {
+function ol() {
 	k.focusSeedNodeIds.length ? (k.focusSeedNodeIds = [], k.focusSeedLabel = "", Xa(), _a(), G("Graph focus cleared")) : (G("No graph focus is active.", !0), _a());
 }
-function rl() {
+function sl() {
 	if (k.selectedKind !== "node" || !k.selectedRef) {
 		G("Select a summary node before expanding it.", !0), _a();
 		return;
@@ -16070,11 +16156,11 @@ function rl() {
 	let t = String(e?.node_id || "");
 	k.expandedSummaryIds[t] ? (delete k.expandedSummaryIds[t], k.selectedKind = "node", k.selectedRef = t, k.selectedPayload = null, G(`Collapsed ${e.label || t}`)) : (k.expandedSummaryIds[t] = !0, k.selectedKind = "node", k.selectedRef = t, k.selectedPayload = e, G(`Expanded ${e.label || t}`)), Xa(), _a();
 }
-function il() {
+function cl() {
 	let e = Wt(), t = String(e?.node_id || "");
 	!K(e, "summary_kind") || !t || !k.expandedSummaryIds[t] ? (G("Select an expanded summary cluster to collapse.", !0), _a()) : (delete k.expandedSummaryIds[t], k.selectedKind = "node", k.selectedRef = t, k.selectedPayload = null, Xa(), _a(), G(`Collapsed ${e.label || t}`));
 }
-async function al() {
+async function ll() {
 	let e = String(z("graph-view-select") || k.viewId || "attack_surface").trim(), t = String(z("graph-layout-name") || "default").trim() || "default", n = String(k.activeLayoutId || ""), r = {
 		positions: k.filtered?.positions && typeof k.filtered.positions == "object" ? k.filtered.positions : k.positions,
 		pinned_node_ids: k.pinnedNodeIds,
@@ -16105,10 +16191,10 @@ async function al() {
 		G(`Layout save failed: ${e.message}`, !0);
 	}
 }
-function ol() {
+function ul() {
 	k.activeLayoutId = "", k.positions = {}, k.pinnedNodeIds = {}, I("graph-layout-select", ""), Xa(), G("Layout reset");
 }
-async function sl() {
+async function dl() {
 	let e = String(k.selectedKind || ""), t = String(k.selectedRef || ""), n = String(z("graph-note-input") || "").trim();
 	if (!e || !t) G("Select a node or edge before saving a note.", !0);
 	else if (!n) G("Note text is required.", !0);
@@ -16125,7 +16211,7 @@ async function sl() {
 		G(`Note save failed: ${e.message}`, !0);
 	}
 }
-function cl() {
+function fl() {
 	let e = String(k.selectedKind || ""), t = String(k.selectedRef || "");
 	if (!e || !t) {
 		G("Select a node or edge before adding a note.", !0);
@@ -16134,7 +16220,7 @@ function cl() {
 	let n = Pt(e === "node" ? "node" : "edge", t), r = String(n?.label || n?.edge_id || t || "").trim() || "selected item";
 	F("graph-note-modal-target", `Target: ${Qt(e)} | ${r}`), ei(!0);
 }
-function ll() {
+function pl() {
 	let e = k.selectedKind === "node" ? Pt("node", k.selectedRef) : null;
 	if (!e) {
 		G("Select a node to pin or unpin.", !0);
@@ -16152,43 +16238,43 @@ function ll() {
 	Xa();
 }
 // ../app/web/static/js/workspace/interface_settings.js
-function ul(e) {
+function ml(e) {
 	let t = document.getElementById("interface-settings-modal");
 	t && (Ae.interfaceSettingsOpen = !!e, t.classList.toggle("is-open", !!e), t.setAttribute("aria-hidden", e ? "false" : "true"), Ie());
 }
-async function dl() {
-	Fc("Loading interface settings...");
+async function hl() {
+	zc("Loading interface settings...");
 	try {
-		let [e, t] = await Promise.all([Ye("/api/scheduler/preferences"), Ye("/api/settings/display")]), n = Kc(e?.feature_flags).graph_workspace;
-		L("interface-graph-workspace-enabled", n), L("interface-colorful-ascii-background", !!t?.colorful_ascii_background), Fc("Interface settings loaded");
+		let [e, t] = await Promise.all([Ye("/api/scheduler/preferences"), Ye("/api/settings/display")]), n = Xc(e?.feature_flags).graph_workspace;
+		L("interface-graph-workspace-enabled", n), L("interface-colorful-ascii-background", !!t?.colorful_ascii_background), zc("Interface settings loaded");
 	} catch (e) {
-		Fc(`Load failed: ${e.message}`, !0);
+		zc(`Load failed: ${e.message}`, !0);
 	}
 }
-async function fl() {
+async function gl() {
 	let e = R("interface-graph-workspace-enabled"), t = R("interface-colorful-ascii-background");
-	Fc("Saving interface settings...");
+	zc("Saving interface settings...");
 	try {
 		let [n, r] = await Promise.all([Je("/api/scheduler/preferences", { feature_flags: { graph_workspace: e } }), Je("/api/settings/display", { colorful_ascii_background: t })]);
-		qc(n), Lc(!!r?.colorful_ascii_background), Fc("Interface settings saved");
+		Zc(n), Vc(!!r?.colorful_ascii_background), zc("Interface settings saved");
 	} catch (e) {
-		Fc(`Save failed: ${e.message}`, !0);
+		zc(`Save failed: ${e.message}`, !0);
 	}
 }
-async function pl() {
-	pi(), di(!0), await Promise.allSettled([Hc()]);
+async function _l() {
+	pi(), di(!0), await Promise.allSettled([Kc()]);
 }
-function ml() {
+function vl() {
 	di(!1);
 }
-async function hl() {
-	pi(), ul(!0), await dl();
+async function yl() {
+	pi(), ml(!0), await hl();
 }
-function gl() {
-	ul(!1);
+function bl() {
+	ml(!1);
 }
 // ../app/web/static/js/workspace/projects.js
-async function _l() {
+async function xl() {
 	pi();
 	let e = z("project-open-path").trim();
 	if (!e) {
@@ -16196,9 +16282,9 @@ async function _l() {
 		if (e = String(t || "").trim(), !e) return;
 		I("project-open-path", e);
 	}
-	await Ll();
+	await Vl();
 }
-async function vl(e = !1) {
+async function Sl(e = !1) {
 	pi();
 	let t = z("project-save-path").trim();
 	if (e || !t) {
@@ -16206,24 +16292,24 @@ async function vl(e = !1) {
 		if (t = String(n || "").trim(), !t) return;
 		I("project-save-path", t);
 	}
-	await Rl();
+	await Hl();
 }
-async function yl() {
-	pi(), z("project-save-path").trim() ? await Rl() : V("Save failed: no destination path is set. Use Save As.", !0);
+async function Cl() {
+	pi(), z("project-save-path").trim() ? await Hl() : V("Save failed: no destination path is set. Use Save As.", !0);
 }
-async function bl() {
-	await vl(!0);
+async function wl() {
+	await Sl(!0);
 }
-function xl() {
+function Tl() {
 	pi(), window.location.assign(`/api/project/download-zip?t=${Date.now()}`);
 }
-async function Sl() {
-	pi(), await Nl("restoring a workspace bundle", async () => {
+async function El() {
+	pi(), await Ll("restoring a workspace bundle", async () => {
 		let e = document.getElementById("project-restore-zip-file");
 		e ? (e.value = "", e.click()) : V("Restore failed: ZIP input control missing.", !0);
 	});
 }
-async function Cl(e) {
+async function Dl(e) {
 	let t = e?.target, n = t?.files && t.files.length ? t.files[0] : null;
 	if (n) {
 		V(`Uploading restore bundle (${n.name})...`);
@@ -16255,7 +16341,7 @@ async function Cl(e) {
 		}
 	}
 }
-async function wl() {
+async function Ol() {
 	pi();
 	let e = z("nmap-xml-path").trim();
 	if (!e) {
@@ -16263,20 +16349,20 @@ async function wl() {
 		if (e = String(t || "").trim(), !e) return;
 		I("nmap-xml-path", e);
 	}
-	L("nmap-xml-run-actions", window.confirm("Run scripted actions after XML import?")), await zl();
+	L("nmap-xml-run-actions", window.confirm("Run scripted actions after XML import?")), await Ul();
 }
-function Tl(e) {
+function kl(e) {
 	let t = document.getElementById("workspace-switch-guard-modal");
 	t && (ke.modalOpen = !!e, Ae.workspaceSwitchGuardOpen = !!e, t.classList.toggle("is-open", !!e), t.setAttribute("aria-hidden", e ? "false" : "true"), Ie());
 }
-function El(e, t = !1) {
+function Al(e, t = !1) {
 	let n = document.getElementById("workspace-switch-guard-status");
 	n && (n.textContent = e || "", n.style.color = t ? "#ff9b9b" : "");
 }
-function Dl() {
-	ke.busy = !1, ke.pendingAction = null, ke.pendingLabel = "", ke.latestSummary = null, El("Stop running jobs and processes before switching workspaces."), F("workspace-switch-guard-summary", "No active work detected."), F("workspace-switch-guard-details", ""), Tl(!1);
+function jl() {
+	ke.busy = !1, ke.pendingAction = null, ke.pendingLabel = "", ke.latestSummary = null, Al("Stop running jobs and processes before switching workspaces."), F("workspace-switch-guard-summary", "No active work detected."), F("workspace-switch-guard-details", ""), kl(!1);
 }
-async function Ol() {
+async function Ml() {
 	let [e, t] = await Promise.all([Ye("/api/jobs?limit=500"), Ye("/api/processes?limit=500")]), n = Array.isArray(e?.jobs) ? e.jobs : [], r = Array.isArray(t?.processes) ? t.processes : [];
 	return {
 		jobs: n.filter((e) => {
@@ -16289,7 +16375,7 @@ async function Ol() {
 		})
 	};
 }
-function kl(e) {
+function Nl(e) {
 	let t = Array.isArray(e?.jobs) ? e.jobs : [], n = Array.isArray(e?.processes) ? e.processes : [], r = [];
 	return t.slice(0, 6).forEach((e) => {
 		r.push(`Job ${e.id} | ${e.type || "job"} | ${e.status || ""}`);
@@ -16297,25 +16383,25 @@ function kl(e) {
 		r.push(`Process ${e.id} | ${e.name || "process"} | ${e.hostIp || ""}${e.port ? `:${e.port}/${e.protocol || "tcp"}` : ""} | ${e.status || ""}`);
 	}), (t.length > 6 || n.length > 8) && r.push("..."), r.join("\n");
 }
-function Al(e, t, n) {
+function Pl(e, t, n) {
 	ke.pendingAction = n, ke.pendingLabel = String(t || "switch workspaces"), ke.latestSummary = e;
 	let r = Array.isArray(e?.jobs) ? e.jobs.length : 0, i = Array.isArray(e?.processes) ? e.processes.length : 0;
-	El("Active work must be stopped before switching workspaces."), F("workspace-switch-guard-summary", `${r} active job${r === 1 ? "" : "s"} and ${i} active process${i === 1 ? "" : "es"} detected before ${ke.pendingLabel}.`), F("workspace-switch-guard-details", kl(e)), Tl(!0);
+	Al("Active work must be stopped before switching workspaces."), F("workspace-switch-guard-summary", `${r} active job${r === 1 ? "" : "s"} and ${i} active process${i === 1 ? "" : "es"} detected before ${ke.pendingLabel}.`), F("workspace-switch-guard-details", Nl(e)), kl(!0);
 }
-async function jl(e = 2e4) {
+async function Fl(e = 2e4) {
 	let t = Date.now() + Math.max(1e3, Number(e) || 2e4);
 	for (; Date.now() < t;) {
-		let e = await Ol();
+		let e = await Ml();
 		if (!e.jobs.length && !e.processes.length) return e;
 		await new Promise((e) => window.setTimeout(e, 600));
 	}
 	throw Error("Timed out waiting for running jobs and processes to stop.");
 }
-async function Ml() {
+async function Il() {
 	if (!ke.busy) {
-		ke.busy = !0, El("Stopping active jobs and processes...");
+		ke.busy = !0, Al("Stopping active jobs and processes...");
 		try {
-			let e = await Ol();
+			let e = await Ml();
 			for (let t of e.jobs) {
 				let e = Number(t?.id || 0);
 				e > 0 && await Je(`/api/jobs/${e}/stop`, {});
@@ -16326,35 +16412,35 @@ async function Ml() {
 					await Je(`/api/processes/${e}/kill`, {});
 				} catch {}
 			}
-			await jl(), await Co();
+			await Fl(), await Co();
 			let t = ke.pendingAction;
-			Dl(), typeof t == "function" && await t();
+			jl(), typeof t == "function" && await t();
 		} catch (e) {
-			ke.busy = !1, El(`Stop failed: ${e.message}`, !0);
+			ke.busy = !1, Al(`Stop failed: ${e.message}`, !0);
 		}
 	}
 }
-async function Nl(e, t) {
-	let n = await Ol();
-	n.jobs.length || n.processes.length ? Al(n, e, t) : await t();
+async function Ll(e, t) {
+	let n = await Ml();
+	n.jobs.length || n.processes.length ? Pl(n, e, t) : await t();
 }
-async function Pl() {
+async function Rl() {
 	V("Creating temporary project...");
 	let e = await Je("/api/project/new-temp", {});
 	V("Created temporary project"), io({ clearProjectPaths: !0 }), Re(e?.project || {}), await vr(), await Promise.all([Co(), Nt()]);
 }
-async function Fl() {
+async function zl() {
 	try {
-		await Nl("creating a new workspace", Pl);
+		await Ll("creating a new workspace", Rl);
 	} catch (e) {
 		if (String(e?.message || "").toLowerCase().includes("jobs/scans are active")) {
-			await Nl("creating a new workspace", Pl);
+			await Ll("creating a new workspace", Rl);
 			return;
 		}
 		V(`Create failed: ${e.message}`, !0);
 	}
 }
-async function Il() {
+async function Bl() {
 	let e = z("project-open-path").trim();
 	if (!e) {
 		V("Open failed: project path is required", !0);
@@ -16364,18 +16450,18 @@ async function Il() {
 	let t = await Je("/api/project/open", { path: e });
 	V("Project opened"), io({ clearProjectPaths: !1 }), I("project-save-path", ""), Re(t?.project || {}), await vr(), await Promise.all([Co(), Nt()]);
 }
-async function Ll() {
+async function Vl() {
 	try {
-		await Nl("opening a workspace", Il);
+		await Ll("opening a workspace", Bl);
 	} catch (e) {
 		if (String(e?.message || "").toLowerCase().includes("jobs/scans are active")) {
-			await Nl("opening a workspace", Il);
+			await Ll("opening a workspace", Bl);
 			return;
 		}
 		V(`Open failed: ${e.message}`, !0);
 	}
 }
-async function Rl() {
+async function Hl() {
 	let e = z("project-save-path").trim();
 	if (!e) V("Save failed: destination path is required", !0);
 	else {
@@ -16391,7 +16477,7 @@ async function Rl() {
 		}
 	}
 }
-async function zl() {
+async function Ul() {
 	let e = z("nmap-xml-path").trim();
 	if (!e) V("Import failed: XML path is required", !0);
 	else {
@@ -16408,12 +16494,12 @@ async function zl() {
 	}
 }
 // ../app/web/static/js/workspace/events.js
-function Bl() {
+function Wl() {
 	let e = (e, t) => {
 		let n = document.getElementById(e);
 		n && n.addEventListener("click", t);
 	};
-	e("nmap-scan-button", Ac), e("ribbon-workspace-new-action-button", Fl), e("ribbon-workspace-open-action-button", _l), e("ribbon-workspace-save-action-button", yl), e("ribbon-workspace-save-as-action-button", bl), e("ribbon-workspace-download-action-button", xl), e("ribbon-workspace-restore-action-button", Sl), e("ribbon-import-xml-action-button", wl), e("hosts-reset-filter-button", tr), e("hosts-filter-show-all-button", () => Yn("show_all")), e("hosts-filter-hide-down-button", () => Yn("hide_down")), e("services-panel-toggle-button", fo), e("graph-panel-toggle-button", mo), e("ribbon-scan-add-action-button", oi), e("ribbon-scan-manual-action-button", si), e("ribbon-scheduler-settings-button", hi), e("ribbon-interface-settings-button", hl), e("ribbon-device-category-settings-button", _i), e("ribbon-app-settings-button", pl), e("workspace-refresh-button", vr), e("workspace-run-tool-button", sa), e("workspace-run-scheduler-button", ca), e("graph-refresh-button", to), e("graph-rebuild-button", no), e("graph-filters-toggle-button", () => fa(!k.filtersExpanded)), e("graph-focus-selection-button", tl), e("graph-clear-focus-button", nl), e("graph-expand-selection-button", rl), e("graph-collapse-expanded-button", il), e("graph-layout-save-button", al), e("graph-layout-reset-button", ol), e("graph-note-open-button", cl), e("graph-note-save-button", sl), e("graph-note-modal-close", () => ai(!1)), e("graph-note-modal-cancel", () => ai(!1)), e("graph-pin-toggle-button", ll), e("graph-detail-dock-toggle-button", ga), e("graph-detail-close-button", da), fa(k.filtersExpanded), uo(!0), po(!1);
+	e("nmap-scan-button", Pc), e("ribbon-workspace-new-action-button", zl), e("ribbon-workspace-open-action-button", xl), e("ribbon-workspace-save-action-button", Cl), e("ribbon-workspace-save-as-action-button", wl), e("ribbon-workspace-download-action-button", Tl), e("ribbon-workspace-restore-action-button", El), e("ribbon-import-xml-action-button", Ol), e("hosts-reset-filter-button", tr), e("hosts-filter-show-all-button", () => Yn("show_all")), e("hosts-filter-hide-down-button", () => Yn("hide_down")), e("services-panel-toggle-button", fo), e("graph-panel-toggle-button", mo), e("ribbon-scan-add-action-button", oi), e("ribbon-scan-manual-action-button", si), e("ribbon-scheduler-settings-button", hi), e("ribbon-interface-settings-button", yl), e("ribbon-device-category-settings-button", _i), e("ribbon-app-settings-button", _l), e("workspace-refresh-button", vr), e("workspace-run-tool-button", sa), e("workspace-run-scheduler-button", ca), e("graph-refresh-button", to), e("graph-rebuild-button", no), e("graph-filters-toggle-button", () => fa(!k.filtersExpanded)), e("graph-focus-selection-button", al), e("graph-clear-focus-button", ol), e("graph-expand-selection-button", sl), e("graph-collapse-expanded-button", cl), e("graph-layout-save-button", ll), e("graph-layout-reset-button", ul), e("graph-note-open-button", fl), e("graph-note-save-button", dl), e("graph-note-modal-close", () => ai(!1)), e("graph-note-modal-cancel", () => ai(!1)), e("graph-pin-toggle-button", pl), e("graph-detail-dock-toggle-button", ga), e("graph-detail-close-button", da), fa(k.filtersExpanded), uo(!0), po(!1);
 	let t = Ht();
 	t && t.addEventListener("scroll", () => {
 		k.detailMode === "floating" && Ut() && ma();
@@ -16485,12 +16571,12 @@ function Bl() {
 		}
 		let n = e.target.closest("button[data-script-delete-id]");
 		n && parseInt(n.dataset.scriptDeleteId, 10);
-	}), e("nmap-wizard-back", () => Oc(P.step - 1)), e("nmap-wizard-next", () => Oc(P.step + 1)), e("scheduler-modal-close", gi), e("interface-settings-modal-close", gl), e("interface-settings-save-button", fl), e("device-category-modal-close", vi), e("device-category-add-rule-button", () => {
+	}), e("nmap-wizard-back", () => Mc(P.step - 1)), e("nmap-wizard-next", () => Mc(P.step + 1)), e("scheduler-modal-close", gi), e("interface-settings-modal-close", bl), e("interface-settings-save-button", gl), e("device-category-modal-close", vi), e("device-category-add-rule-button", () => {
 		let e = document.getElementById("device-category-rules-body");
 		e && e.appendChild(Cr({}));
-	}), e("device-category-save-button", Er), e("settings-modal-close", ml), e("settings-tool-audit-refresh-button", Hc), e("settings-tool-install-copy-button", Wc), e("settings-tool-install-run-button", Gc), e("workspace-switch-guard-close", Dl), e("workspace-switch-guard-cancel-button", Dl), e("workspace-switch-guard-stop-button", Ml), e("nmap-scan-modal-close", ti), e("manual-scan-modal-close", ni), e("host-remove-modal-close", () => ii(!0)), e("host-remove-modal-cancel", () => ii(!0)), e("host-remove-modal-confirm", qi), e("script-output-modal-close", () => mt(!0)), e("script-output-copy-button", _t), e("script-output-command-copy", vt), e("script-output-download-button", bt), e("graph-layout-tidy-button", el);
+	}), e("device-category-save-button", Er), e("settings-modal-close", vl), e("settings-tool-audit-refresh-button", Kc), e("settings-tool-install-copy-button", Jc), e("settings-tool-install-run-button", Yc), e("workspace-switch-guard-close", jl), e("workspace-switch-guard-cancel-button", jl), e("workspace-switch-guard-stop-button", Il), e("nmap-scan-modal-close", ti), e("manual-scan-modal-close", ni), e("host-remove-modal-close", () => ii(!0)), e("host-remove-modal-cancel", () => ii(!0)), e("host-remove-modal-confirm", qi), e("script-output-modal-close", () => mt(!0)), e("script-output-copy-button", _t), e("script-output-command-copy", vt), e("script-output-download-button", bt), e("graph-layout-tidy-button", il);
 	let f = document.getElementById("project-restore-zip-file");
-	f && f.addEventListener("change", Cl), document.querySelectorAll("[data-ribbon-menu-toggle]").forEach((e) => {
+	f && f.addEventListener("change", Dl), document.querySelectorAll("[data-ribbon-menu-toggle]").forEach((e) => {
 		e.addEventListener("click", (t) => {
 			t.preventDefault(), t.stopPropagation(), mi(e.getAttribute("data-ribbon-menu-toggle"));
 		});
@@ -16519,11 +16605,11 @@ function Bl() {
 	});
 	let v = document.getElementById("interface-settings-modal");
 	v && v.addEventListener("click", (e) => {
-		e.target === v && gl();
+		e.target === v && bl();
 	});
 	let y = document.getElementById("workspace-switch-guard-modal");
 	y && y.addEventListener("click", (e) => {
-		e.target === y && Dl();
+		e.target === y && jl();
 	});
 	let b = document.getElementById("host-remove-modal");
 	b && b.addEventListener("click", (e) => {
@@ -16543,9 +16629,9 @@ function Bl() {
 	});
 	let C = document.getElementById("app-settings-modal");
 	C && C.addEventListener("click", (e) => {
-		e.target === C && ml();
+		e.target === C && vl();
 	}), document.addEventListener("keydown", (e) => {
-		e.key === "Escape" && (je.openMenuId ? pi() : De.modalOpen ? pt(!0) : N.modalOpen ? mt(!0) : Ae.nmapScanOpen ? ti() : Ae.manualScanOpen ? ni() : !Ae.submittedScansOpen && !Ae.schedulerDecisionsOpen && (Ae.hostRemoveOpen ? ii(!0) : Ae.graphNoteOpen ? ai(!1) : Ae.settingsOpen ? ml() : Ae.deviceCategorySettingsOpen ? vi() : Ae.schedulerOpen ? gi() : k.detailMode === "floating" && Ut() && da()));
+		e.key === "Escape" && (je.openMenuId ? pi() : De.modalOpen ? pt(!0) : N.modalOpen ? mt(!0) : Ae.nmapScanOpen ? ti() : Ae.manualScanOpen ? ni() : !Ae.submittedScansOpen && !Ae.schedulerDecisionsOpen && (Ae.hostRemoveOpen ? ii(!0) : Ae.graphNoteOpen ? ai(!1) : Ae.settingsOpen ? vl() : Ae.deviceCategorySettingsOpen ? vi() : Ae.schedulerOpen ? gi() : k.detailMode === "floating" && Ut() && da()));
 	}), document.addEventListener("pointerdown", (e) => {
 		if (k.detailMode !== "floating" || !Ut()) return;
 		let t = e.target;
@@ -16554,19 +16640,19 @@ function Bl() {
 		n && n.contains(t) || da();
 	}), document.querySelectorAll("[data-wizard-goto]").forEach((e) => {
 		e.addEventListener("click", () => {
-			Oc(e.getAttribute("data-wizard-goto"));
+			Mc(e.getAttribute("data-wizard-goto"));
 		});
 	});
 	let w = document.getElementById("nmap-wizard");
 	w && w.querySelectorAll("input, select, textarea").forEach((e) => {
 		let t = e.tagName === "INPUT" && (e.type === "checkbox" || e.type === "radio") || e.tagName === "SELECT" ? "change" : "input";
 		e.addEventListener(t, () => {
-			P.postSubmitLock = !1, e.name === "nmap-scan-mode" && Oc(3), e.id === "nmap-engagement-preset-select" && Wr(), kc();
+			P.postSubmitLock = !1, e.name === "nmap-scan-mode" && Mc(3), e.id === "nmap-engagement-preset-select" && Wr(), Nc();
 		});
 	}), ["nmap-args"].forEach((e) => {
 		let t = document.getElementById(e);
 		t && t.addEventListener("input", () => {
-			P.postSubmitLock = !1, Ec();
+			P.postSubmitLock = !1, Ac();
 		});
 	}), qr({
 		scrollIntoView: !1,
@@ -16575,7 +16661,7 @@ function Bl() {
 	});
 }
 // ../app/web/static/js/workspace/graph_events.js
-function Vl(e) {
+function Gl(e) {
 	if (!k.drag) return;
 	e.preventDefault();
 	let t = Number(e.clientX || 0) - Number(k.drag.startClientX || 0), n = Number(e.clientY || 0) - Number(k.drag.startClientY || 0);
@@ -16607,12 +16693,12 @@ function Vl(e) {
 		};
 	}), Xa({ preserveDetail: !0 });
 }
-function Hl() {
+function Kl() {
 	if (!k.drag) return;
 	let e = !!k.drag.active;
-	document.body.classList.remove("graph-workspace-panning"), window.removeEventListener("pointermove", Vl), window.removeEventListener("pointerup", Hl), k.drag = null, e && (k.suppressClickUntil = Date.now() + 180);
+	document.body.classList.remove("graph-workspace-panning"), window.removeEventListener("pointermove", Gl), window.removeEventListener("pointerup", Kl), k.drag = null, e && (k.suppressClickUntil = Date.now() + 180);
 }
-function Ul() {
+function ql() {
 	if (!Rt()) return;
 	[
 		"graph-view-select",
@@ -16666,7 +16752,7 @@ function Ul() {
 	let i = document.getElementById("graph-layout-select");
 	i && i.addEventListener("change", () => {
 		let e = String(i.value || "");
-		e ? ($c(e), G("Layout loaded")) : ol();
+		e ? (rl(e), G("Layout loaded")) : ul();
 	});
 	let a = document.getElementById("graph-workspace-canvas");
 	a && (a.addEventListener("click", (e) => {
@@ -16682,7 +16768,7 @@ function Ul() {
 		let t = e.target.closest("[data-graph-node-id]");
 		if (!t) return;
 		let n = String(t.getAttribute("data-graph-node-id") || "");
-		k.selectedKind = "node", k.selectedRef = n, K(Pt("node", n), "summary_kind") && rl();
+		k.selectedKind = "node", k.selectedRef = n, K(Pt("node", n), "summary_kind") && sl();
 	}), a.addEventListener("pointerdown", (e) => {
 		let t = e.target.closest("[data-graph-node-id]");
 		if (!t) return;
@@ -16699,7 +16785,7 @@ function Ul() {
 			startClientX: Number(e.clientX || 0),
 			startClientY: Number(e.clientY || 0),
 			active: !1
-		}, window.addEventListener("pointermove", Vl), window.addEventListener("pointerup", Hl), e.preventDefault());
+		}, window.addEventListener("pointermove", Gl), window.addEventListener("pointerup", Kl), e.preventDefault());
 	}), a.addEventListener("pointerdown", (e) => {
 		let t = e.target.closest("[data-graph-group-key]");
 		if (!t || e.target.closest("[data-graph-node-id]")) return;
@@ -16722,7 +16808,7 @@ function Ul() {
 			startClientX: Number(e.clientX || 0),
 			startClientY: Number(e.clientY || 0),
 			active: !1
-		}, window.addEventListener("pointermove", Vl), window.addEventListener("pointerup", Hl), e.preventDefault());
+		}, window.addEventListener("pointermove", Gl), window.addEventListener("pointerup", Kl), e.preventDefault());
 	}), a.addEventListener("pointerdown", (e) => {
 		if (e.target.closest("[data-graph-node-id], [data-graph-edge-id], [data-graph-group-key]")) return;
 		let t = k.viewport || Ei(k.filtered.width || 1600, k.filtered.height || 900);
@@ -16734,32 +16820,32 @@ function Ul() {
 			startCenterY: Number(t.centerY || 0),
 			viewport: { ...t },
 			active: !1
-		}, window.addEventListener("pointermove", Vl), window.addEventListener("pointerup", Hl), e.preventDefault());
+		}, window.addEventListener("pointermove", Gl), window.addEventListener("pointerup", Kl), e.preventDefault());
 	})), un(), dn(), hn(), mn();
 }
 // ../app/web/static/js/legion.js
-var Wl = new Qc();
+var Jl = new nl();
 // src/main.tsx
 window.addEventListener("DOMContentLoaded", () => {
 	if (document.body.classList.contains("project-foundation")) return;
-	Wl.connect();
+	Jl.connect();
 	let e = document.getElementById("initial-snapshot");
 	if (e && e.textContent) try {
 		_o(JSON.parse(e.textContent));
 	} catch {
 		yo("Init Error", !0);
 	}
-	window.LEGION_WS_ENABLED ? So() : (yo("Polling/API", !1), Co(), window.setInterval(Co, 2e3)), Xc(), Nt();
+	window.LEGION_WS_ENABLED ? So() : (yo("Polling/API", !1), Co(), window.setInterval(Co, 2e3)), el(), Nt();
 	let t = document.getElementById("scheduler-form");
-	t && t.addEventListener("submit", Zc);
+	t && t.addEventListener("submit", tl);
 	let n = document.getElementById("scheduler-provider-select");
 	n && n.addEventListener("change", () => {});
 	let r = document.getElementById("scheduler-goal-select");
-	r && r.addEventListener("change", Jc);
+	r && r.addEventListener("change", Qc);
 	let i = document.getElementById("engagement-scope-select");
-	i && i.addEventListener("change", Jc);
+	i && i.addEventListener("change", Qc);
 	let a = document.getElementById("engagement-intent-select");
-	a && a.addEventListener("change", Jc), Jc(), Bl(), Ul(), vr();
+	a && a.addEventListener("change", Qc), Qc(), Wl(), ql(), vr();
 }), (() => {
 	let e = (e) => document.getElementById(e), t = {
 		overview: "Overview",
@@ -17115,7 +17201,7 @@ window.addEventListener("DOMContentLoaded", () => {
 })(), window.addEventListener("DOMContentLoaded", () => {
 	let e = document.getElementById("project-hub-root");
 	if (e) {
-		(0, c.createRoot)(e).render(/* @__PURE__ */ (0, U.jsx)(oc, {}));
+		(0, c.createRoot)(e).render(/* @__PURE__ */ (0, U.jsx)(uc, {}));
 		return;
 	}
 	let t = document.getElementById("workspace-identity-sidebar"), n = document.getElementById("workspace-identity-title"), r = document.querySelector(".workspace-project-shell"), i = document.querySelector(".workspace-breadcrumb"), a = document.getElementById("workspace-react-root"), o = document.getElementById("jobs-body");

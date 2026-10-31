@@ -12,6 +12,19 @@ class HubVpn(BaseModel):
     selection: Literal["inherit", "none"] | None = None
 
 
+Connector = Literal["networkmanager", "openvpn", "wireguard"]
+
+
+class HubConnector(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    selection: Connector
+
+
+class HubConnectorInstall(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    connector: Literal["openvpn", "wireguard"]
+
+
 class OpenHubPath(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     path: str = Field(min_length=1, strict=True)

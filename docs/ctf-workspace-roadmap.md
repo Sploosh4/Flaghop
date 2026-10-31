@@ -31,6 +31,24 @@ Planned navigation includes Devices/Services/Files layers, stable device/action 
 
 The separate profiler supplies ranked device-role hypotheses with evidence, alternatives and uncertainty. Its rule strength is not calibrated probability. Connect its output through an explicit job/profile contract rather than assuming a completed scan has updated the app.
 
+## Connectors and target reachability in Settings
+
+Agreed 31 October 2026. Keep connection diagnostics and per-target route/reachability checks in Settings, not on the map.
+
+- Support OpenVPN profiles, WireGuard profiles and local/direct access over Ethernet, Wi-Fi and virtual lab networks. Local access without a VPN is an intentional mode, not a connection error.
+- Each project's Project setup has a **Connector** dropdown with exactly **NetworkManager**, **OpenVPN** and **WireGuard**. This selects the connection manager/client; profile selection and local/direct mode are separate settings. NetworkManager can manage OpenVPN, WireGuard and local interfaces.
+- Computer Setup has **Install OpenVPN** and **Install WireGuard** buttons beside the default VPN controls. Queue only the selected tool through the existing installer and show its outcome. Installing a client or choosing a connector does not connect a tunnel.
+- Keep a selected project connector separate from its connection profile and from live connection status. Preserve compatibility with existing default/None VPN preferences until the profile controls are implemented.
+- Detect NetworkManager-managed profiles and externally managed OpenVPN/WireGuard interfaces. Show ownership; do not start duplicate tunnels or disconnect external clients automatically.
+- Inspect OpenVPN session state; for WireGuard distinguish interface configuration from peer handshake/traffic observations. An idle peer's old handshake alone does not establish failure. A connected tunnel does not prove target access.
+- For each selected target, resolve its hostname if needed, then ask the OS for the selected interface, source IP and next-hop gateway. On Linux use a structured route lookup such as `ip -j route get`, matching the tool's execution environment and any relevant routing policy. Compare the selected path with the project's expected connection. A default route's existence alone does not establish a usable lab route.
+- Check a bounded number of probes to the selected target: ICMP where appropriate and TCP connections to supplied or known service ports. Keep route selection, observed responses and application/service availability as separate results. No ping reply or a timeout means no response observed, not proof that the host is down. Treat a refused connection as a rejection response, not an available service.
+- Optional **Trace route** reports observed intermediate hops; unanswered hops remain unknown. Tunnels and filtering can hide routers, and tracing does not establish a complete physical path or the return path.
+- Record target/address, connector, execution environment, interface/source/gateway, probe method/port, result, reason and check time. Mark prior results as needing a recheck after VPN/routing changes, session loss, IP reuse or target resets, retaining history.
+- Check callback/listener reachability separately when a workflow needs it. Outbound access to a target service does not prove that the target can connect back.
+
+Implemented: installer buttons and persisted per-project connector selection. Profile discovery, connect/disconnect controls and the diagnostics above remain planned work. Do not start checks simply by opening a project or changing its connector.
+
 ## Actions, terminal and Metasploit
 
 Use one selected-target/stage-filtered action panel with Run, applicability, explanation, output and queue state. Laptop/VPN selection is not a CTF target filter. Keep actions readable while queued/running. Completed output goes to History; failures/interruption return with a reason. Final running-card placement and completed Deep scan presentation remain open.

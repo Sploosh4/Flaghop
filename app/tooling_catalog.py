@@ -54,6 +54,24 @@ class ToolAuditEntry:
 def _tool_specs() -> List[ToolSpec]:
     return [
         ToolSpec(
+            "openvpn",
+            "OpenVPN",
+            ("openvpn",),
+            "connectivity",
+            "Connect to CTF lab networks using OpenVPN profiles.",
+            kali_install="sudo apt install openvpn",
+            ubuntu_install="sudo apt install openvpn",
+        ),
+        ToolSpec(
+            "wireguard",
+            "WireGuard",
+            ("wg",),
+            "connectivity",
+            "Manage WireGuard connections to CTF lab networks.",
+            kali_install="sudo apt install wireguard-tools",
+            ubuntu_install="sudo apt install wireguard-tools",
+        ),
+        ToolSpec(
             "nmap",
             "Nmap",
             ("nmap",),
