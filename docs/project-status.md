@@ -21,7 +21,7 @@ This checkpoint includes:
 
 - FlagHop branding, configurable project save folders, and separate project/computer setup.
 - Stable project-ID routing for cipher/password reader controls, queues, results and local Files.
-- Per-workspace Start/Pause, readiness heartbeats and automatic enrollment of new managed projects. Switching projects or views does not resume processing.
+- Per-workspace Start/Stop, readiness heartbeats and automatic enrollment of new managed projects. Switching projects or views does not resume processing.
 - Real Working and saved-result alerts. Open displays saved bytes in the project editor; Dismiss retains files and provenance.
 - Project-bounded file browsing and a tabbed editor. Originals are preserved; text edits stay in browser drafts. Binary and incomplete results are read-only previews.
 
@@ -51,11 +51,39 @@ Combined-checkpoint validation: 505 Python tests, Black/flake8, 46 React tests, 
 | SSH/SFTP collector and workbench | Explicitly configured endpoints, supplied authentication, verified host identity, remote browsing and local evidence snapshots. | Map authenticated sessions into main Files and the correct project/target. Scope alone does not provide credentials or establish a session. |
 | Metasploit profile import | Resource script imports Nmap inventory and a profile note; recorded import verification exists. | Unified module actions, sessions and outcome reporting in the app. Import completion is not exploitation success. |
 
+## Hardware/editor UI checkpoint
+
+Merged from `codex/hardware-overview` into `master` on 31 October 2026: the Hardware layer now renders directly in Overview,
+using the approved pictures and grey-hover/purple-selection silhouette contours.
+It uses project-matched inventory and saved route observations, with device
+selection/shortcuts, details, pan/zoom and a resizable results panel. The app
+code matches the CI-verified `78e278c` checkpoint. `main` remains at `3e31fb4`. See [hardware behaviour and limits](hardware-overview.md).
+
+The picture/contour artwork and selection treatment are included in `master`. The
+full scanner-fed topology, observed intermediate hops and unified action panel
+remain planned. Device artwork has no vulnerability severity colouring.
+
+The same checkpoint groups Hash/Cipher notifications, add History below
+Working, and use green Start/red Stop controls. Internal database/wordlist-derived
+candidates stay in History. Files and Text Editor open independently with native
+window controls; opening a result neither replaces Overview nor opens Files.
+The local source is labelled Laptop. Remote SSH session mapping remains pending.
+The panel also has an empty Cyber Kill Chain section above Hash. Device shortcut
+numbers are larger; the VPN picture shows the selected WireGuard/OpenVPN type
+where known, or Unknown otherwise. Neither the label nor an empty section implies an active connection
+or implemented kill-chain actions.
+
+Local UI validation: 507 Python tests and 54 React tests passed, along with
+format/lint, schema/type and production-bundle checks. Workspace, hardware and
+independent-document smoke checks passed on both transports (188 checks total).
+Native title-bar checks also passed. These checks use isolated synthetic files
+and do not run target scans or connect to SSH hosts.
+The subsequent Cyber Kill Chain/number/VPN-label refinement passed 55 React tests
+and 16 hardware desktop checks per transport, including the Unknown fallback.
+
 ## Planned and deferred
 
-The reviewed picture/contour map design is ready for implementation. Hover uses a visible light-grey silhouette contour; purple marks the selected device. Connection colours represent connection types. It does not use vulnerability severity to colour device artwork. Figma states are design work, not production map interactions.
-
-Still to build: production topology and keyboard navigation, scanner-to-app profile/event wiring, full action panel and embedded terminal, unified Metasploit jobs, remote sessions in Files, and reader installation/recovery packaging. See the [roadmap](ctf-workspace-roadmap.md).
+Still to build: scanner-to-app profile/topology wiring, full action panel and embedded terminal, unified Metasploit jobs, remote sessions in Files, and reader installation/recovery packaging. See the [roadmap](ctf-workspace-roadmap.md).
 
 Authenticated web investigation is deferred until the basic integrated workflow exists. The smaller unified website replacement is a later phase. Unauthenticated web reconnaissance remains in the separate scanner. Detailed privilege-escalation interpretation and reachability/pivoting scope are not yet agreed.
 

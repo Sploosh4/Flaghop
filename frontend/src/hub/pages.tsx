@@ -1,15 +1,30 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import * as api from './api';
 import type {HubFile, HubProject, HubSettings} from './api';
 import {Icon} from './Icon';
 import {settingParts} from './parts';
 import {ConnectorInstall} from './ConnectorInstall';
 import {NetworkSettings} from './NetworkSettings';
+import {HardwareMap} from './hardware/HardwareMap';
+import {hardwareGraph} from './hardware/model';
+import type {HardwareNode} from './hardware/model';
 const message = (error: unknown) => error instanceof Error ? error.message : String(error);
 
-export function ProjectOverview({project}: {project: HubProject}) {
+export function ProjectOverview({project, snapshot, settings, onSelect, onOpen, onSetup, onServices, onFiles}: {
+  project: HubProject; snapshot: api.Snapshot | null; settings: HubSettings | null;
+  onSelect(node: HardwareNode | null): void; onOpen(id: number): void; onSetup(): void; onServices(): void; onFiles(): void;
+}) {
+  const [network, setNetwork] = useState<api.NetworkContext | null>(null);
+  useEffect(() => {
+    let active = true;
+    void api.projectNetwork(project.id).then(value => {if (active && value?.project_id === project.id) setNetwork(value);}).catch(() => {if (active) setNetwork(null);});
+    return () => {active = false;};
+  }, [project.id, snapshot?.timestamp]);
+  const graph = useMemo(() => hardwareGraph(project, snapshot, settings, network), [project, snapshot, settings, network]);
   return <section className="hub-overview" aria-label="Project overview">
     <h1>{project.name}</h1><p className="hub-folder">{project.folder}</p>
+    <nav className="hardware-layers" aria-label="Overview layers"><button aria-current="page" onClick={() => {}}><kbd>Q</kbd>Hardware</button><button onClick={onServices}><kbd>W</kbd>Services</button><button onClick={onFiles}><kbd>E</kbd>Files</button></nav>
+    <HardwareMap key={project.id} projectId={project.id} graph={graph} onSelect={onSelect} onOpen={onOpen} onSetup={onSetup}/>
   </section>;
 }
 

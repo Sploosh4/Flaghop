@@ -11,6 +11,9 @@ class ProjectFiles(ProjectBackground):
     def session(self):
         return {
             "session_id": self.identifier,
+            "label": "Laptop",
+            "kind": "local",
+            "project_name": self.record.get("name", self.root.name),
             "project_id": self.identifier,
             "fixture": str(self.root),
             "connected": True,

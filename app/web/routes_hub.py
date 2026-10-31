@@ -49,6 +49,13 @@ def projects():
     return jsonify(_hub().list())
 
 
+@hub_bp.get("/api/hub/projects/<identifier>/editor")
+def editor(identifier):
+    with _hub().lock:
+        ProjectFiles(_hub(), identifier)
+    return send_file(Path(__file__).parent / "templates/hub-files.html", mimetype="text/html")
+
+
 @hub_bp.get("/api/hub/projects/<identifier>/network")
 def project_network(identifier):
     return jsonify(_hub().networks.get(identifier))

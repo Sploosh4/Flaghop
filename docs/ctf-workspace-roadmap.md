@@ -9,12 +9,15 @@ The goal is one workspace for device mapping, reconnaissance, commands, Metasplo
 - [x] Published: desktop/browser workspace, local scans/tools, inventory, evidence graph, jobs, approvals and history.
 - [x] Published: React/FastAPI workspace/activity panels and retained compatibility views.
 - [x] FlagHop branding and configurable project folders.
-- [x] Project-specific reader Start/Pause, readiness, real Working/results and persistent dismissal; engines remain separate dependencies.
+- [x] Project-specific reader Start/Stop, readiness, real Working/results and persistent dismissal; engines remain separate dependencies.
+- [x] Included in `master`: Hash/Cipher groups, Working then History, Start/Stop buttons and independent Files/editor windows. Stop remains cooperative; SSH session mapping is pending.
+- [x] Included in `master`: empty Cyber Kill Chain group above Hash, larger device shortcut numbers and selected VPN protocol labels. Kill-chain actions and live connection discovery remain separate work.
 - [x] Project file browser and tabbed editor, preserving original evidence.
 - [x] Shared network settings, scope/exclusions, explicit profile identity and Linux enforcement for app-managed local commands; real isolated WireGuard/userspace OpenVPN acceptance.
 - [ ] Finish the separate scanner's repeatability and final evidence review.
 - [ ] Add automatic profile discovery/import/connect/disconnect and separately enforced privileged/remote adapters.
-- [ ] Implement the reviewed topology map, classifier/profile wiring, contextual actions and bulk command bar.
+- [x] Local development: picture-based Hardware layer in Overview, selection contours, inventory/observed routes, shortcuts and a resizable results panel.
+- [ ] Add scanner/classifier profiles and observed intermediate hops, contextual action cards and the bulk command bar.
 - [ ] Connect scanner jobs/results to the app's evidence and map.
 - [ ] Build the full action panel/terminal and unified Metasploit job/session workflow.
 - [ ] Map authenticated remote sessions into main Files; add source/version navigation and durable edited-copy saving.
@@ -25,7 +28,12 @@ The goal is one workspace for device mapping, reconnaissance, commands, Metasplo
 
 The existing evidence graph is not the planned topology map. Show the user's laptop/VPN, targets and observed intermediate hops without inventing physical connections. Preserve unknown hops and evidence age/source. Reachability, an exposed service and a confirmed network hop are different observations.
 
-The reviewed picture/contour design is ready for implementation. Device artwork stays neutral; a light-grey silhouette contour marks hover and purple marks selection. Selected targets filter the action panel. Connection colours represent connection types, with categories/colours still to settle. Device images alone do not establish identity or security capability.
+The picture/contour hardware design is included in `master` (merged from `codex/hardware-overview` on 31 October 2026).
+Device artwork stays neutral; a light-grey silhouette contour marks hover and
+purple marks selection. The selected host appears in the results panel; full
+target-filtered action cards remain planned. Saved route observations are drawn
+without inventing physical links. Broader connection categories/colours remain
+to settle. Device images alone do not establish identity or security capability.
 
 Planned navigation includes Devices/Services/Files layers, stable device/action shortcuts, context menus and a bulk command bar. Protect terminal/editor typing from global shortcuts and define overflow behaviour before implementing it.
 

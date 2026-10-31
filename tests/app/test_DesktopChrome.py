@@ -7,6 +7,7 @@ try:
     from PyQt6.QtCore import QObject, Qt, QUrl
     from app.desktop import is_workspace_url
     from app.desktop_chrome import WindowChrome
+    from app.desktop_documents import is_document_path
 except ImportError:
     QObject = object
     WindowChrome = None
@@ -82,3 +83,14 @@ class DesktopChromeTest(unittest.TestCase):
             "file:///tmp/local.html",
         ):
             self.assertFalse(is_workspace_url(QUrl(url)))
+
+    def test_native_document_popups_only_match_document_routes(self):
+        self.assertTrue(is_document_path("/api/hub/projects/project_1/editor"))
+        self.assertTrue(is_document_path("/api/hub/projects/project_1/filesystem"))
+        for path in (
+            "/",
+            "/api/hub/projects/a/../../editor",
+            "/api/hub/projects/a/file",
+            "/api/hub/projects/a/editor/other",
+        ):
+            self.assertFalse(is_document_path(path))

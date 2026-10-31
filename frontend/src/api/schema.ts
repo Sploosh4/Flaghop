@@ -158,6 +158,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/hub/projects/{identifier}/editor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Editor */
+        get: operations["hubEditor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/hub/projects/{identifier}/file": {
         parameters: {
             query?: never;
@@ -977,6 +994,8 @@ export interface components {
             hash_states: {
                 [key: string]: number;
             };
+            /** History */
+            history?: components["schemas"]["ReaderAlert"][];
             /** Node States */
             node_states: {
                 [key: string]: number;
@@ -1647,8 +1666,29 @@ export interface components {
         ReaderAlert: {
             /** Completed */
             completed: number;
+            /**
+             * Display Name
+             * @default
+             */
+            display_name?: string;
+            /**
+             * History Reason
+             * @default
+             */
+            history_reason?: string;
             /** Id */
             id: string;
+            /**
+             * Internal
+             * @default false
+             */
+            internal?: boolean;
+            /**
+             * Kind
+             * @default cipher
+             * @enum {string}
+             */
+            kind?: "cipher" | "hash";
             /** Label */
             label: string;
             /** Origins */
@@ -2366,6 +2406,62 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HubOk"];
                 };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    hubEditor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {
