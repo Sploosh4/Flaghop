@@ -110,6 +110,8 @@ class ProjectHubOperations:
             # shell's documents separately, using the same containment boundary.
             with zipfile.ZipFile(path) as archive:
                 for member, relative in documents:
+                    if relative.as_posix() in {"reader-control.json", "reader-alerts.json"}:
+                        continue
                     destination = Path(record["folder"]) / relative
                     if not destination.resolve().is_relative_to(Path(record["folder"]).resolve()):
                         raise ValueError("Invalid project document path in ZIP.")

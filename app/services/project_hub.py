@@ -10,6 +10,8 @@ from pathlib import Path
 
 from app.paths import get_legion_home
 from app.services.project_hub_operations import ProjectHubOperations
+from app.services.project_storage import default_save_folder, migrate_project_folders, writable_save_folder
+from app.services.project_background import atomic_json
 
 
 def project_name(value):
@@ -25,9 +27,22 @@ class ProjectHub:
     def __init__(self, runtime, *, config_path=None, projects_dir=None):
         self.runtime = runtime
         self.config_path = Path(config_path or Path(get_legion_home()) / "project-hub.json")
-        self.root = Path(projects_dir or os.environ.get("LEGION_PROJECTS_DIR") or Path.home() / "Documents/Hackathon")
+        self.default_root = Path(projects_dir or os.environ.get("LEGION_PROJECTS_DIR") or default_save_folder())
+        self.root_overridden = bool(projects_dir or os.environ.get("LEGION_PROJECTS_DIR"))
         self.lock = threading.RLock()
         self.operations = ProjectHubOperations(self)
+
+    @property
+    def root(self):
+        data = self._read()
+        if data.get("save_folder"):
+            return Path(data["save_folder"])
+        legacy = Path.home() / "Documents/Hackathon"
+        if not self.root_overridden and any(
+            row.get("managed") and Path(row.get("folder", "")).parent == legacy for row in data["projects"]
+        ):
+            return legacy
+        return self.default_root
 
     def _read(self):
         if not self.config_path.exists():
@@ -99,12 +114,15 @@ class ProjectHub:
             if not any(folder.iterdir()):
                 folder.rmdir()
             raise
+        # A new registered workspace must not start reader jobs just by existing.
+        atomic_json(folder / "reader-control.json", {"running": False, "pause_policy": "finish-bounded-step"})
         return {**record, "path": self._current()["name"], "folder": str(folder), "managed": True}
 
     def _remember(self, record):
         data = self._read()
         data["projects"] = [row for row in data["projects"] if row["id"] != record["id"]]
         data["projects"].append(record)
+        data["active_project"] = record["id"]
         self._write(data)
 
     def open(self, identifier):
@@ -176,6 +194,17 @@ class ProjectHub:
             self._write(data)
             return {"status": "ok"}
 
+    def set_save_folder(self, path, move_existing=False):
+        destination = writable_save_folder(path)
+        with self.lock, self.runtime._lock:
+            data = self._read()
+            data["save_folder"] = str(destination)
+            if move_existing and destination != self.root.resolve():
+                migrate_project_folders(self, destination, data)
+            else:
+                self._write(data)
+            return self.settings()
+
     def _record(self, identifier):
         row = next((row for row in self._read()["projects"] if row["id"] == identifier), None)
         if row is None or not row.get("managed"):
@@ -211,7 +240,12 @@ class ProjectHub:
             )
             for name in sorted(filenames):
                 path = Path(folder) / name
-                if name.startswith(".") or ".legion" in name or path.is_symlink():
+                if (
+                    name.startswith(".")
+                    or ".legion" in name
+                    or path.is_symlink()
+                    or name in {"reader-control.json", "reader-alerts.json"}
+                ):
                     continue
                 if name in {"legion-usernames.txt", "legion-passwords.txt"} and path.stat().st_size == 0:
                     continue

@@ -17,7 +17,7 @@ Author(s): Shane Scott (sscott@shanewilliamscott.com), Dmitriy Dubson (d.dubson@
 """
 
 applicationInfo = {
-    "name": "LEGION",
+    "name": "FlagHop",
     "version": "0.7.0",
     "build": "1777505257",
     "author": "Shane Scott",
@@ -26,11 +26,9 @@ applicationInfo = {
     "emails": [],
     "update": "04/29/2026",
     "license": "GPL v3",
-    "desc": "Legion is a local-first, operator-guided reconnaissance and penetration testing platform with \n"
-    + "governed deterministic and AI-assisted orchestration, evidence graphing, and a local \n"
-    + "desktop and web workspace.",
-    "smallIcon": "./images/icons/Legion-N_128x128.svg",
-    "bigIcon": "./images/icons/Legion-N_128x128.svg",
+    "desc": "FlagHop is a local CTF workspace for reconnaissance, evidence and tool execution.",
+    "smallIcon": "./images/icons/flaghop.svg",
+    "bigIcon": "./images/icons/flaghop.svg",
 }
 
 
@@ -41,4 +39,4 @@ def getVersion():
 def getConsoleLogo():
     from pathlib import Path
 
-    return Path(__file__).with_name("legionLogo.txt").read_text(encoding="utf-8")
+    return Path(__file__).with_name("flaghopLogo.txt").read_text(encoding="utf-8")

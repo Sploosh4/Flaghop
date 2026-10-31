@@ -1,6 +1,7 @@
 """Project persistence and isolated local file access; no VPN or network activity."""
 
 import json
+import fcntl
 import os
 from pathlib import Path
 import tempfile
@@ -11,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from app.api import create_app
 from app.services.project_hub import ProjectHub
+from app.services.project_storage import download_folder
 from app.web import create_app as create_legacy_app
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
@@ -56,6 +58,81 @@ class ProjectHubTest(TestCase):
         second = self.hub.create("Lab")["project"]
         self.assertEqual("Lab (2)", Path(second["folder"]).name)
         self.assertEqual("original", original.read_text())
+
+    def test_flaghop_default_and_custom_folder_persist_without_moving_existing_projects(self):
+        with patch.dict(os.environ, {}, clear=False), patch("pathlib.Path.home", return_value=self.root):
+            os.environ.pop("LEGION_PROJECTS_DIR", None)
+            fresh = ProjectHub(self.runtime, config_path=self.root / "fresh.json")
+            self.assertEqual(self.root / "Documents/FlagHop", fresh.root)
+        first = self.hub.create("Original")["project"]
+        destination = self.root / "custom output"
+        self.hub.set_save_folder(str(destination))
+        reloaded = ProjectHub(self.runtime)
+        self.assertEqual(destination, reloaded.root)
+        self.assertTrue(Path(first["path"]).is_file())
+        second = reloaded.create("New project")["project"]
+        self.assertEqual(destination / "New project", Path(second["folder"]))
+        self.assertEqual(destination / "New project/exports", download_folder(reloaded.config_path))
+        self.assertEqual(Path(first["folder"]) / "exports", download_folder(reloaded.config_path, first["id"]))
+
+    def test_explicit_migration_preserves_ids_documents_and_unregistered_project_files(self):
+        row = self.hub.create("Existing")["project"]
+        Path(row["folder"], "notes.txt").write_text("original evidence")
+        extra = self.hub.root / "reader demo"
+        extra.mkdir()
+        (extra / "finding.txt").write_text("separate reader output")
+        destination = self.root / "Documents/FlagHop"
+        self.hub.set_save_folder(str(destination), move_existing=True)
+        migrated = next(item for item in self.hub.list()["projects"] if item["id"] == row["id"])
+        self.assertEqual(row["id"], migrated["id"])
+        self.assertEqual(destination / "Existing", Path(migrated["folder"]))
+        self.assertEqual(migrated["path"], self.runtime.get_project_details()["name"])
+        self.assertEqual("original evidence", Path(migrated["folder"], "notes.txt").read_text())
+        self.assertEqual("separate reader output", (destination / "reader demo/finding.txt").read_text())
+        self.assertEqual(Path(row["path"]).resolve(), Path(migrated["path"]).resolve())
+        self.assertTrue((self.root / "Documents/Hackathon").is_symlink())
+
+    def test_migration_rejects_locked_readers_collisions_and_nested_destinations(self):
+        row = self.hub.create("Existing")["project"]
+        state = Path(row["folder"], ".reader-state")
+        state.mkdir()
+        destination = self.root / "Documents/FlagHop"
+        with (state / "owner.lock").open("w") as stream:
+            fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            with self.assertRaisesRegex(RuntimeError, "Pause file processing"):
+                self.hub.set_save_folder(str(destination), move_existing=True)
+        (destination / "Existing").mkdir()
+        with self.assertRaisesRegex(ValueError, "matching names"):
+            self.hub.set_save_folder(str(destination), move_existing=True)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            self.hub.set_save_folder(str(Path(row["folder"], "nested")), move_existing=True)
+        self.assertTrue(Path(row["path"]).is_file())
+
+    def test_migration_failure_rolls_back_files_catalog_and_active_workspace(self):
+        import shutil
+
+        row = self.hub.create("Existing")["project"]
+        Path(row["folder"], "notes.txt").write_text("preserve me")
+        (self.hub.root / "extra").mkdir()
+        old_root = self.hub.root
+        old_config = self.hub.config_path.read_text()
+        move = shutil.move
+        calls = 0
+
+        def fail_second(source, destination):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise OSError("fixture interrupted move")
+            return move(source, destination)
+
+        with patch("app.services.project_storage.shutil.move", side_effect=fail_second):
+            with self.assertRaisesRegex(OSError, "interrupted move"):
+                self.hub.set_save_folder(str(self.root / "Documents/FlagHop"), move_existing=True)
+        self.assertEqual(old_root, self.hub.root)
+        self.assertEqual(old_config, self.hub.config_path.read_text())
+        self.assertEqual(row["path"], self.runtime.get_project_details()["name"])
+        self.assertEqual("preserve me", Path(row["folder"], "notes.txt").read_text())
 
     def test_invalid_names_do_not_create_files_or_replace_project(self):
         before = self.runtime.get_project_details()["name"]
@@ -130,6 +207,12 @@ class ProjectHubTest(TestCase):
                 self.assertEqual(200, response.status_code, response.data if stack == "legacy" else response.text)
                 row = payload(response)["project"]
                 self.assertEqual(200, get("/api/hub/settings").status_code)
+                folder = str(self.root / f"{stack} output")
+                changed = post("/api/hub/settings/save-folder", {"path": folder})
+                self.assertEqual(200, changed.status_code)
+                self.assertEqual(folder, payload(changed)["projects_folder"])
+                self.assertEqual(400, post("/api/hub/settings/save-folder", {"path": "relative"}).status_code)
+                self.assertEqual(422, post("/api/hub/settings/save-folder", {"path": 3}).status_code)
                 self.assertEqual(422, post("/api/hub/projects", {"name": 3}).status_code)
                 self.assertEqual(404, post("/api/hub/projects/missing/open", {}).status_code)
                 Path(row["folder"], "notes.txt").write_text("fixture notes")

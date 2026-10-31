@@ -1,4 +1,4 @@
-"""Native Legion window hosting the same local web workspace and feature set.
+"""Native FlagHop window hosting the same local web workspace and feature set.
 
 Uses the optional requirements-desktop.txt dependencies. No browser tab or separate
 browser installation is needed; the existing localhost service handles tool jobs.
@@ -11,6 +11,8 @@ import sys
 
 from app.local_server import local_backend
 from app.desktop_chrome import install_window_chrome
+from app.paths import get_legion_home
+from app.services.project_storage import download_folder
 
 from PyQt6.QtCore import QEvent, QUrl, Qt
 from PyQt6.QtGui import QAction, QDesktopServices, QIcon, QKeySequence
@@ -66,9 +68,10 @@ class WorkspacePage(QWebEnginePage):
 class LegionWindow(QMainWindow):
     def __init__(self, workspace_url=URL, profile_dir=None):
         super().__init__()
+        self.workspace_url = workspace_url
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
-        self.setWindowTitle("Legion")
-        self.setWindowIcon(QIcon(str(ROOT / "images/icons/Legion-N_128x128.svg")))
+        self.setWindowTitle("FlagHop")
+        self.setWindowIcon(QIcon(str(ROOT / "images/icons/flaghop.svg")))
         self.resize(1520, 960)
         self.setMinimumSize(760, 540)
         self.setStyleSheet("QMainWindow { background: #050505; }")
@@ -118,19 +121,29 @@ class LegionWindow(QMainWindow):
 
     def loaded(self, success):
         if success:
-            print("Legion desktop workspace loaded", flush=True)
+            print("FlagHop desktop workspace loaded", flush=True)
         else:
             QMessageBox.warning(
                 self,
-                "Legion",
-                "The local workspace could not load. Relaunch Legion from Applications to restart its service.",
+                "FlagHop",
+                "The local workspace could not load. Relaunch FlagHop from Applications to restart its service.",
             )
 
     def save_download(self, request):
-        destination = ROOT / ".state/downloads"
-        destination.mkdir(parents=True, exist_ok=True)
+        identifier = None
+        url = request.url()
+        parts = url.path().split("/")
+        if is_workspace_url(url, self.workspace_url) and parts[1:4] == ["api", "hub", "projects"] and len(parts) > 4:
+            identifier = parts[4]
+        destination = download_folder(Path(get_legion_home()) / "project-hub.json", identifier)
+        try:
+            destination.mkdir(parents=True, exist_ok=True, mode=0o700)
+        except OSError as exc:
+            QMessageBox.warning(self, "FlagHop", f"The save folder is not writable: {exc}")
+            request.cancel()
+            return
         filename, _filter = QFileDialog.getSaveFileName(
-            self, "Save Legion export", str(destination / request.downloadFileName())
+            self, "Save FlagHop export", str(destination / Path(request.downloadFileName()).name)
         )
         if filename:
             request.setDownloadDirectory(str(Path(filename).parent))
@@ -142,8 +155,8 @@ class LegionWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("Legion")
-    app.setDesktopFileName("legion")
+    app.setApplicationName("FlagHop")
+    app.setDesktopFileName("flaghop")
     identity = hashlib.sha256(str(ROOT).encode()).hexdigest()[:16]
     socket_name = f"legion-desktop-{os.getuid()}-{identity}"
     client = QLocalSocket()
@@ -155,7 +168,7 @@ def main():
     server = QLocalServer(app)
     QLocalServer.removeServer(socket_name)
     if not server.listen(socket_name):
-        raise RuntimeError("Cannot create the Legion desktop activation socket")
+        raise RuntimeError("Cannot create the FlagHop desktop activation socket")
     with local_backend():
         window = LegionWindow()
 

@@ -62,7 +62,7 @@ def _tool_specs() -> List[ToolSpec]:
             configured_setting="tools_path_nmap",
             kali_install="sudo apt install nmap",
             ubuntu_install="sudo apt install nmap",
-            notes="This is the baseline requirement for most Legion workflows.",
+            notes="This is the baseline requirement for most FlagHop workflows.",
             optional=False,
         ),
         ToolSpec(
@@ -71,7 +71,7 @@ def _tool_specs() -> List[ToolSpec]:
             ("cisco-smart-install",),
             "internal",
             "Optional Cisco Smart Install validation helper used by Smart Install pipettes when an approved read-only invocation is configured.",
-            notes="Legion does not currently invoke this automatically because command syntax and safety characteristics vary by implementation.",
+            notes="FlagHop does not currently invoke this automatically because command syntax and safety characteristics vary by implementation.",
         ),
         ToolSpec(
             "curl",
@@ -209,8 +209,8 @@ def _tool_specs() -> List[ToolSpec]:
             "internal",
             "Legacy SNMP enumeration.",
             kali_install="sudo apt install snmpcheck",
-            ubuntu_install="Use a Kali container/VM or install snmpcheck from upstream source; Legion does not mix Kali repositories into Ubuntu.",
-            notes="Ubuntu does not have a curated native package path for snmpcheck in Legion today.",
+            ubuntu_install="Use a Kali container/VM or install snmpcheck from upstream source; FlagHop does not mix Kali repositories into Ubuntu.",
+            notes="Ubuntu does not have a curated native package path for snmpcheck in FlagHop today.",
         ),
         ToolSpec(
             "samrdump",

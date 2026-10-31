@@ -14,7 +14,7 @@ from app.api.hub_contracts import (
     OpenHubProject,
 )
 from app.services.project_hub import ProjectHub
-from app.services.project_hub_requests import CreateHubProject, HubVpn, OpenHubPath
+from app.services.project_hub_requests import CreateHubProject, HubVpn, OpenHubPath, HubSaveFolder
 
 router = native_router()
 
@@ -96,6 +96,11 @@ def settings(hub: Hub):
 @router.post("/api/hub/settings/vpn", response_model=HubOk, operation_id="setHubDefaultVpn")
 def default_vpn(payload: HubVpn, hub: Hub):
     return hub.set_vpn(None, payload.selection)
+
+
+@router.post("/api/hub/settings/save-folder", response_model=HubSettings, operation_id="setHubSaveFolder")
+def save_folder(payload: HubSaveFolder, hub: Hub):
+    return hub.set_save_folder(payload.path, payload.move_existing)
 
 
 @router.post("/api/hub/projects/{identifier}/vpn", response_model=HubOk, operation_id="setHubProjectVpn")

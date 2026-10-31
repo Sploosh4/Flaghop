@@ -5,8 +5,11 @@ from pathlib import Path
 import tempfile
 import shutil
 from pydantic import ValidationError
-from app.services.project_hub_requests import CreateHubProject, HubVpn, OpenHubPath
+from app.services.project_hub_requests import CreateHubProject, HubVpn, OpenHubPath, HubSaveFolder
 from app.services.project_hub import ProjectHub
+from app.services.project_background import ProjectBackground
+from app.services.project_hub_requests import BackgroundControl
+from app.services.project_files import ProjectFiles
 from app.web.http_utils import runtime_from_app
 
 hub_bp = Blueprint("project_hub", __name__)
@@ -107,6 +110,12 @@ def default_vpn():
     return jsonify(_hub().set_vpn(None, payload.selection))
 
 
+@hub_bp.post("/api/hub/settings/save-folder")
+def save_folder():
+    payload = HubSaveFolder.model_validate(request.get_json(silent=True) or {})
+    return jsonify(_hub().set_save_folder(payload.path, payload.move_existing))
+
+
 @hub_bp.post("/api/hub/projects/<identifier>/vpn")
 def project_vpn(identifier):
     payload = HubVpn.model_validate(request.get_json(silent=True) or {})
@@ -124,3 +133,53 @@ def file(identifier):
     response = send_file(path, mimetype="application/octet-stream", as_attachment=True, download_name=path.name)
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
+
+
+@hub_bp.get("/api/hub/projects/<identifier>/background")
+def background(identifier):
+    hub = _hub()
+    with hub.lock:
+        return jsonify(ProjectBackground(hub, identifier).status())
+
+
+@hub_bp.post("/api/hub/projects/<identifier>/background/control")
+def background_control(identifier):
+    payload = BackgroundControl.model_validate(request.get_json(silent=True) or {})
+    hub = _hub()
+    with hub.lock:
+        return jsonify(ProjectBackground(hub, identifier).control(payload.running))
+
+
+@hub_bp.post("/api/hub/projects/<identifier>/background/alerts/<alert_id>/dismiss")
+def background_dismiss(identifier, alert_id):
+    hub = _hub()
+    with hub.lock:
+        return jsonify(ProjectBackground(hub, identifier).dismiss(alert_id))
+
+
+@hub_bp.get("/api/hub/projects/<identifier>/background/results/<alert_id>")
+def background_result(identifier, alert_id):
+    hub = _hub()
+    with hub.lock:
+        return jsonify(ProjectBackground(hub, identifier).result(alert_id))
+
+
+@hub_bp.get("/api/hub/projects/<identifier>/filesystem")
+def filesystem(identifier):
+    ProjectFiles(_hub(), identifier)
+    return send_file(Path(__file__).parent / "templates/hub-files.html", mimetype="text/html")
+
+
+@hub_bp.get("/api/hub/projects/<identifier>/filesystem/api/session")
+def filesystem_session(identifier):
+    return jsonify(ProjectFiles(_hub(), identifier).session())
+
+
+@hub_bp.get("/api/hub/projects/<identifier>/filesystem/api/list")
+def filesystem_list(identifier):
+    return jsonify(ProjectFiles(_hub(), identifier).listing(request.args.get("path", "")))
+
+
+@hub_bp.get("/api/hub/projects/<identifier>/filesystem/api/preview")
+def filesystem_preview(identifier):
+    return jsonify(ProjectFiles(_hub(), identifier).preview(request.args.get("path", "")))

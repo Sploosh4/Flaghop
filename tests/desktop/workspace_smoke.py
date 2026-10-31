@@ -13,7 +13,7 @@ ARTIFACTS.mkdir(parents=True, exist_ok=True)
 (ROOT / ".tmp").mkdir(exist_ok=True)
 fixture = tempfile.TemporaryDirectory(dir=ROOT / ".tmp")
 os.environ["LEGION_HOME"] = str(Path(fixture.name) / "config")
-os.environ["LEGION_PROJECTS_DIR"] = str(Path(fixture.name) / "Documents/Hackathon")
+os.environ["LEGION_PROJECTS_DIR"] = str(Path(fixture.name) / "Documents/FlagHop")
 os.environ["TMPDIR"] = str(ROOT / ".tmp")
 os.environ["XDG_CACHE_HOME"] = str(ROOT / ".cache")
 
@@ -64,6 +64,10 @@ def record(name, source):
 
 
 def home():
+    record(
+        "Application branding is FlagHop",
+        "document.title === 'FlagHop' && document.querySelector('.hub-brand').textContent === 'FFlagHop'",
+    )
     record(
         "Home lists projects without tabs",
         """(() => {
@@ -122,20 +126,45 @@ def project():
         "Dedicated project sidebar replaces the project list",
         """(() => {
         const tabs = [...document.querySelectorAll('.hub-project-context nav button')];
-        return tabs.length === 1 && tabs[0].textContent === 'Overview'
-            && document.querySelector('.hub-project-heading').textContent === 'LGHarbour'
+        return tabs.length === 3 && tabs[0].textContent === 'Overview' && tabs[1].textContent === 'Project setup' && tabs[2].textContent === 'Files'
+            && document.querySelector('.hub-project-heading').textContent === 'FHHarbour'
             && !document.querySelector('.hub-projects')
             && document.querySelector('.hub-overview h1').textContent === 'Harbour';
     })()""",
     )
     record(
-        "Project files are in its Hackathon folder",
+        "Overview keeps the project identity without VPN or files",
         """(() => {
-        return document.querySelector('.hub-folder').textContent.includes('Documents/Hackathon/Harbour')
-            && document.querySelector('.hub-files').textContent.includes('scope.md');
+        return document.querySelector('.hub-folder').textContent.includes('Documents/FlagHop/Harbour')
+            && !document.getElementById('hub-project-vpn') && !document.querySelector('.hub-files');
+    })()""",
+    )
+    record(
+        "Project name and folder move to the upper left",
+        """(() => {
+        const title = document.querySelector('.hub-overview h1').getBoundingClientRect();
+        const folder = document.querySelector('.hub-folder').getBoundingClientRect();
+        const header = document.querySelector('.hub-header').getBoundingClientRect();
+        return title.left === header.left + 40 && title.top === header.bottom + 16
+            && folder.left === title.left && folder.top > title.bottom;
     })()""",
     )
     view.grab().save(str(ARTIFACTS / "foundation-project.png"))
+    record("Open project preferences", "document.querySelector('.hub-project-setup-tab').click(); true")
+    QTimer.singleShot(350, project_preferences)
+
+
+def project_preferences():
+    record(
+        "Project setup retains files and its own VPN preference",
+        """(() => {
+        return !!document.querySelector('.hub-project-setup') && !!document.getElementById('hub-project-vpn')
+            && document.querySelector('.hub-project-setup-tab').getAttribute('aria-current') === 'page'
+            && !document.querySelector('.hub-overview-tab').hasAttribute('aria-current')
+            && document.querySelector('.hub-files').textContent.includes('scope.md');
+    })()""",
+    )
+    view.grab().save(str(ARTIFACTS / "foundation-project-preferences.png"))
     record(
         "Project VPN can explicitly be None",
         """(() => {
@@ -185,7 +214,7 @@ def project_setup():
         "Setup keeps the project sidebar",
         """(() => {
         return !!document.querySelector('.hub-setup-page')
-            && document.querySelector('.hub-project-heading').textContent === 'LGSwitchyard'
+            && document.querySelector('.hub-project-heading').textContent === 'FHSwitchyard'
             && !document.querySelector('.hub-projects')
             && !document.querySelector('.hub-overview-tab').hasAttribute('aria-current');
     })()""",
@@ -201,7 +230,7 @@ def project_returned():
         "document.querySelector('.hub-overview h1').textContent === 'Switchyard'",
     )
     record(
-        "Legion returns home and removes tabs",
+        "FlagHop returns home and removes tabs",
         """(() => {
         document.querySelector('.hub-brand').click();
         return true;
@@ -224,6 +253,15 @@ def setup():
 
 
 def setup_visible():
+    record(
+        "Default save folder is beneath VPN",
+        """(() => {
+        const vpn = document.getElementById('hub-default-vpn');
+        const folder = document.getElementById('hub-save-folder');
+        return folder.value.endsWith('Documents/FlagHop')
+            && folder.getBoundingClientRect().top > vpn.getBoundingClientRect().bottom;
+    })()""",
+    )
     record(
         "Setup shows computer with deferred VPN controls",
         """(() => {
@@ -295,7 +333,7 @@ def created():
         "New project opens and has a dedicated folder",
         """(() => {
         return document.querySelector('.hub-overview h1').textContent === 'Quiet lab'
-            && document.querySelector('.hub-folder').textContent.endsWith('Documents/Hackathon/Quiet lab')
+            && document.querySelector('.hub-folder').textContent.endsWith('Documents/FlagHop/Quiet lab')
             && !document.querySelector('.hub-modal');
     })()""",
     )
@@ -363,7 +401,7 @@ def context_save():
 
 
 def settings_controls():
-    record("Save completed", "document.querySelector('[role=status]').textContent === 'Saved'")
+    record("Save completed", "document.querySelector('.hub-status-announcement').textContent === 'Saved'")
     record("Open Setup for original settings", "document.getElementById('hub-setup').click(); true")
     QTimer.singleShot(100, settings_open)
 

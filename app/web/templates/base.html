@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Legion{% endblock %}</title>
+    <title>{% block title %}FlagHop{% endblock %}</title>
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -23,10 +23,10 @@
 {% endif %}
 <div id="legacy-workspace"{% if not workspace_part %} hidden inert{% endif %}>
 <aside class="workspace-sidebar" aria-label="Workspace navigation">
-    <div class="sidebar-brand"><span class="brand-glyph" aria-hidden="true">L</span><strong>Legion</strong><button id="sidebar-toggle" class="quiet-icon" type="button" title="Collapse sidebar" aria-label="Collapse sidebar"><i class="fa-solid fa-sidebar" aria-hidden="true"></i><span aria-hidden="true">‹</span></button></div>
+    <div class="sidebar-brand"><span class="brand-glyph" aria-hidden="true">F</span><strong>FlagHop</strong><button id="sidebar-toggle" class="quiet-icon" type="button" title="Collapse sidebar" aria-label="Collapse sidebar"><i class="fa-solid fa-sidebar" aria-hidden="true"></i><span aria-hidden="true">‹</span></button></div>
     <button class="sidebar-search" id="workspace-search-button" type="button"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span>Search workspace</span><kbd>Ctrl K</kbd></button>
     <div class="sidebar-section-label">Workspace<button type="button" class="quiet-icon" data-proxy="ribbon-workspace-new-action-button" title="New workspace" aria-label="New workspace">+</button></div>
-    <button class="workspace-project" type="button" data-view="overview"><span class="project-avatar" aria-hidden="true">LG</span><span id="workspace-identity-sidebar"><strong id="sidebar-project-name">Untitled workspace</strong><small id="sidebar-project-kind">Local project</small></span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+    <button class="workspace-project" type="button" data-view="overview"><span class="project-avatar" aria-hidden="true">FH</span><span id="workspace-identity-sidebar"><strong id="sidebar-project-name">Untitled workspace</strong><small id="sidebar-project-kind">Local project</small></span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
     <nav class="workspace-nav" aria-label="Views">
         <button type="button" data-view="overview" aria-current="page"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Overview</span></button>
         <button type="button" data-view="hosts"><i class="fa-solid fa-desktop" aria-hidden="true"></i><span>Hosts</span><span class="nav-count" data-mirror="stat-hosts">0</span></button>
@@ -46,7 +46,7 @@
 <div class="sidebar-resizer" id="sidebar-resizer" role="separator" tabindex="0" aria-label="Resize sidebar" aria-orientation="vertical" aria-valuemin="210" aria-valuemax="340" aria-valuenow="250"></div>
 <div class="shell workspace-shell">
     <header class="topbar">
-        <div class="workspace-breadcrumb"><button type="button" class="quiet-icon" id="sidebar-reopen" title="Show sidebar" aria-label="Show sidebar">☰</button><span class="project-avatar" aria-hidden="true">LG</span><span id="workspace-identity-title"><span id="breadcrumb-project">Workspace</span></span><span class="breadcrumb-divider">/</span><strong id="breadcrumb-view">Overview</strong></div>
+        <div class="workspace-breadcrumb"><button type="button" class="quiet-icon" id="sidebar-reopen" title="Show sidebar" aria-label="Show sidebar">☰</button><span class="project-avatar" aria-hidden="true">FH</span><span id="workspace-identity-title"><span id="breadcrumb-project">Workspace</span></span><span class="breadcrumb-divider">/</span><strong id="breadcrumb-view">Overview</strong></div>
         <div class="workspace-top-actions"><button type="button" class="quiet-icon" id="workspace-context-toggle" title="Workspace details" aria-label="Workspace details" aria-expanded="false"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></button><button type="button" class="quiet-icon" data-view="activity" title="Activity" aria-label="Activity"><i class="fa-solid fa-terminal" aria-hidden="true"></i></button></div>
     </header>
     <div id="workspace-commandbar" class="workspace-commandbar" aria-label="Application commands"></div>

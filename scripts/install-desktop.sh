@@ -27,7 +27,7 @@ def quote(value):
 
 guard = root / 'skills/project-storage-cap/scripts/storage_guard.py'
 units.joinpath('legion.service').write_text(f'''[Unit]
-Description=Legion local workspace backend
+Description=FlagHop local workspace backend
 After=graphical-session.target
 
 [Service]
@@ -48,7 +48,7 @@ RestartSec=3
 WantedBy=default.target
 ''')
 units.joinpath('legion-storage-guard.service').write_text(f'''[Unit]
-Description=Legion project storage budget watcher
+Description=FlagHop project storage budget watcher
 
 [Service]
 Type=simple
@@ -60,7 +60,7 @@ RestartSec=5
 WantedBy=default.target
 ''')
 units.joinpath('legion-desktop.service').write_text(f'''[Unit]
-Description=Legion desktop application
+Description=FlagHop desktop application
 After=graphical-session.target
 
 [Service]
@@ -68,25 +68,33 @@ Type=simple
 WorkingDirectory={str(root).replace('%', '%%')}
 ExecStart={quote(root / 'scripts/launch-desktop.sh')}
 ''')
-launcher = bin_dir / 'legion'
+launcher = bin_dir / 'flaghop'
 launcher.write_text('#!/usr/bin/env bash\nexec ' + shlex.quote(str(root / 'scripts/launch-desktop.sh')) + ' "$@"\n')
 launcher.chmod(0o755)
-apps.joinpath('legion.desktop').write_text(f'''[Desktop Entry]
+# Preserve the existing command as a compatibility alias.
+legacy_launcher = bin_dir / 'legion'
+if not legacy_launcher.exists() or str(root) in legacy_launcher.read_text():
+    legacy_launcher.write_text(launcher.read_text())
+    legacy_launcher.chmod(0o755)
+apps.joinpath('flaghop.desktop').write_text(f'''[Desktop Entry]
 Type=Application
-Name=Legion
+Name=FlagHop
 Comment=Local security investigation workspace
 Exec="{launcher}"
-Icon={root}/images/icons/Legion-N_128x128.svg
+Icon={root}/images/icons/flaghop.svg
 Terminal=false
 Categories=Network;Development;
-Keywords=Legion;Nmap;CTF;Security;
+Keywords=FlagHop;Legion;Nmap;CTF;Security;
 StartupNotify=true
-StartupWMClass=legion
+StartupWMClass=FlagHop
 ''')
+old_entry = apps / 'legion.desktop'
+if old_entry.exists() and str(root) in old_entry.read_text():
+    old_entry.unlink()
 PY
 systemctl --user daemon-reload
 systemctl --user enable --now legion.service legion-storage-guard.service
 if command -v update-desktop-database >/dev/null; then
     update-desktop-database "$HOME/.local/share/applications"
 fi
-printf '%s\n' 'Installed. Search Applications for Legion, or run legion.'
+printf '%s\n' 'Installed. Search Applications for FlagHop, or run flaghop.'
