@@ -12,7 +12,7 @@ ARTIFACTS = ROOT / ".artifacts/disposable/window-chrome"
 ARTIFACTS.mkdir(parents=True, exist_ok=True)
 fixture = tempfile.TemporaryDirectory(dir=ROOT / ".tmp")
 os.environ["LEGION_HOME"] = str(Path(fixture.name) / "config")
-os.environ["LEGION_PROJECTS_DIR"] = str(Path(fixture.name) / "Documents/Hackathon")
+os.environ["LEGION_PROJECTS_DIR"] = str(Path(fixture.name) / "Documents/FlagHop")
 os.environ["TMPDIR"] = str(ROOT / ".tmp")
 os.environ["XDG_CACHE_HOME"] = str(ROOT / ".cache")
 
@@ -45,6 +45,7 @@ def evaluate(name, source):
 
 
 def ready():
+    record("Desktop identity is FlagHop", window.windowTitle() == "FlagHop")
     record("Native title bar is replaced", bool(window.windowFlags() & Qt.WindowType.FramelessWindowHint))
     evaluate("Desktop bridge is ready", "!!window.legionDesktop")
     evaluate("Window controls are visible", "document.querySelectorAll('.hub-window-controls button').length === 3")

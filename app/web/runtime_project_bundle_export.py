@@ -21,9 +21,9 @@ def build_project_bundle_zip(runtime) -> Tuple[str, str]:
     except Exception:
         process_history = []
     timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d-%H%M%SZ")
-    bundle_name = f"legion-session-{timestamp}.zip"
-    root_name = f"legion-session-{timestamp}"
-    tmp = tempfile.NamedTemporaryFile(prefix="legion-session-", suffix=".zip", delete=False)
+    bundle_name = f"flaghop-session-{timestamp}.zip"
+    root_name = f"flaghop-session-{timestamp}"
+    tmp = tempfile.NamedTemporaryFile(prefix="flaghop-session-", suffix=".zip", delete=False)
     bundle_path = tmp.name
     tmp.close()
 

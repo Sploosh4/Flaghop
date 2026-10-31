@@ -2,7 +2,7 @@
 set -euo pipefail
 legion_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 if [[ -f "$legion_root/.project-storage.json" ]] && ! mountpoint --quiet "$legion_root"; then
-    printf '%s\n' 'The capped Legion project filesystem is not mounted. Refusing to create uncapped runtime files.' >&2
+    printf '%s\n' 'The capped FlagHop project filesystem is not mounted. Refusing to create uncapped runtime files.' >&2
     exit 1
 fi
 export LEGION_HOME="$legion_root/.state/config"
@@ -19,5 +19,5 @@ for attempt in {1..100}; do
     fi
     sleep 0.2
 done
-printf '%s\n' 'Legion did not become ready. View its log with: journalctl --user -u legion.service -n 50' >&2
+printf '%s\n' 'FlagHop did not become ready. View its log with: journalctl --user -u legion.service -n 50' >&2
 exit 1

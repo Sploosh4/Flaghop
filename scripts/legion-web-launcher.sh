@@ -56,7 +56,7 @@ export LEGION_HOME="$DATA_DIR"
 cd "$INSTALL_DIR"
 
 if [[ ! -x "$VENV_PY" ]]; then
-  log_error "Legion side-by-side install is not fully installed at $INSTALL_DIR."
+  log_error "FlagHop side-by-side install is not fully installed at $INSTALL_DIR."
   log_error "Re-run the installer or update the environment."
   exit 1
 fi

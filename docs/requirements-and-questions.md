@@ -2,13 +2,26 @@
 
 Updated 31 October 2026. This separates working changes from requests still waiting. Nothing below authorises starting a deferred integration.
 
+- Application renamed FlagHop; upstream attribution and compatible workspace formats remain.
+- Default save folder is configurable below VPN in Setup. New projects use `Documents/FlagHop/[project name]`; native export dialogs start in that project's `exports` folder. Changing the default affects new projects; an explicit migration can move existing folders after file readers have stopped.
+- Existing projects were moved from the old Hackathon root to FlagHop. All 409 files passed size and hash verification; project IDs and reader state were preserved. An old-path compatibility link keeps historical artifact references working, and the reader now uses the new root.
+- Map direction: laptop and VPN side by side beneath discovered devices, Obsidian-like connections, initially zoomed out with automatic zoom-out as the graph fills. Node size and spacing are chosen by the design, without exposed customization controls. The initial five visual-design questions are now answered; the Terra map-design agent is working in Figma through computer use.
+- Device artwork has hostname, OS and IP underneath when found; missing values are omitted. Device shortcut numbers sit small at the top left. Links are straight. The right action panel is narrow and resizable, about 320–360 px.
+- Josh rejected the first map draft and requested a restart with frequent critique. The immediate task is an editable, faithful replica of the current 1520 × 960 Harbour app screenshot, before adding a map or action panel. Typography, colours, spacing, icons, borders and window controls must match the existing app. Review the replica, topology and action panel as separate checkpoints. The first draft's typography, contrast, spacing, incomplete controls and loose connection endpoints did not meet the current app's standard.
+- The rebuilt editable shell is available in [FlagHop UI](https://www.figma.com/design/LWCW4k3IdiQWJMoMPoX5Um/FlagHop-UI?node-id=4-118). It passed repeated visual comparisons and corrections against the app screenshot. Josh accepted this styling and asked Terra to add the map and action panel with continued review and corrections. Preserve the accepted shell while designing those additions.
+- Josh requested two comparable Figma views: the existing device artwork and simpler rounded outline icons, without coloured backgrounds. Keep their layouts, labels, controls and action panels the same so the artwork is the comparison.
+- Josh scrapped the proposed vulnerability-colour view after discussing its usefulness. Keep device icons neutral; do not add severity palettes or assessed/unassessed colouring. Connection colours still distinguish link types, and the selection outline still identifies the selected target.
+- Both editable concepts are ready for visual review: [artwork](https://www.figma.com/design/LWCW4k3IdiQWJMoMPoX5Um/FlagHop-UI?node-id=4-290) and [outline](https://www.figma.com/design/LWCW4k3IdiQWJMoMPoX5Um/FlagHop-UI?node-id=4-433). Their exported sidebars, title bars and project headings match the accepted replica; the action panels match each other. Reviewed corrections covered label alignment, connection endpoints, text overlap, queued/interrupted states, Run/Open controls, stage filtering and Deep scan placement. These are static Figma concepts, not implemented app interactions.
+- Josh prefers the picture/artwork version. He requested an outline following the selected picture's silhouette instead of the purple circle. The [picture-contour concept](https://www.figma.com/design/LWCW4k3IdiQWJMoMPoX5Um/FlagHop-UI?node-id=4-560) keeps the original picture and uses a separate editable purple outer contour. Purple identifies the selected device that filters the panel; it does not indicate severity. The previous two views remain available for comparison.
+- At Josh's request in Filesystem-Access, the main app now integrates workspace-specific reader Start/Pause, real Working/result alerts, persistent dismissal, and the local filesystem/editor. The configured Hub ID/folder determines scope; switching views does not resume readers. A fresh worker registration is required for Start, and Pause requested remains distinct from confirmed worker shutdown. Real A/B acceptance covered decoding, synthetic password recovery, retained paused work and result/source integrity. Remote SSH browsing remains in its separate workbench; its main-app session mapping is still pending. See [workspace readers](background-workspaces.md).
+
 ## Project foundation in this pass
 
 - [x] Click a project row to open its own home page and Overview.
-- [x] Opening a project replaces the project list with a dedicated sidebar: project name at the top, Overview below, Setup at the bottom. It does not expand a dropdown in the list. Click Legion to return to all projects.
+- [x] Opening a project replaces the project list with a dedicated sidebar: project name at the top, Overview and Project setup below, Setup at the bottom. It does not expand a dropdown in the list. Click FlagHop to return to all projects.
 - [x] Hide the old Hosts, Services, Graph, Activity, Credentials, Approvals and quick-action navigation, plus the old ribbon. Keep the reusable parts isolated for now; remove anything the replacement doesn't use later.
-- [x] Create and switch named projects, with saved files under `Documents/Hackathon/[project name]`. Duplicate names get separate folders.
-- [x] Show project files in Overview, with file access kept inside that project's folder.
+- [x] Create and switch named projects, with saved files under `Documents/FlagHop/[project name]` by default. Duplicate names get separate folders.
+- [x] Move the project name and folder path to the upper left of Overview. Move the project VPN preference and file list to Project setup, with file access kept inside that project's folder. Keep the bottom computer Setup separate.
 - [x] Put Setup with a gear at the bottom of the sidebar and show this computer there.
 - [x] Press Setup again to return to the previous page, including its selected host/inspector. Remember that return destination across reloads.
 - [x] Detect the Kali/Ubuntu installation profile automatically; remove the platform selector and show only matching install hints. Unsupported profiles keep the audit but cannot queue automatic installs.
@@ -27,7 +40,7 @@ The first foundation pass made these controls inaccessible. They are now availab
 - Sidebar collapse/reopen and remembered width, with pointer and keyboard resizing.
 - Sidebar double-click and breadcrumb click to rename the current project, with validation and Enter/Escape handling. Renaming changes the display name; its existing folder is retained.
 - A project context menu with Rename, Save, Save as, Export ZIP and Workspace details. Right-click or Shift F10 opens it; arrows, Home/End, Enter and Escape operate it. Ctrl S saves; Ctrl Shift S opens Save as.
-- Open an existing `.legion` path and restore a workspace ZIP from the project home. External/restored workspaces are copied into the managed Hackathon folder. Save as creates a separate named project there and copies its documents; the original is preserved. Export/restore includes project documents as well as the existing session/tool-output bundle.
+- Open an existing `.legion` path and restore a workspace ZIP from the project home. External/restored workspaces are copied into the configured save folder. Save as creates a separate named project there and copies its documents; the original is preserved. Export/restore includes project documents as well as the existing session/tool-output bundle.
 - Ctrl K command search across projects, views, actions and hosts. A project remains selected while searching. Views and tool dialogs open on demand; their old navigation and quick actions remain hidden.
 - Application/tool, interface, scheduler and device-category settings from Setup or command search. Existing dialogs and inspectors are reused in an isolated same-origin panel, with their original handlers and close controls.
 - Workspace details, live running/queued job counts, action status, version, bind/auth information and connection state. Snapshot updates use the existing WebSocket invalidations, with polling fallback.
@@ -57,7 +70,7 @@ The tool audit now covers the retained local discovery and protocol tools. Remov
 
 Keep the local protocol checks for optional deeper actions: SMTP, SMB/RDP, IPMI and Cisco Smart Install add coverage beyond the Device Design classifier. Their presence does not mean every check should run automatically. The separate Device Design prototype is unchanged.
 
-Automatic decoding and a bounded file-hash recovery queue are still planned. Removing credential capture does not remove those requirements. Website integration is deferred for a later design, with the old suite removed now. VPN discovery and the Figma workflow remain paused.
+Automatic decoding and a bounded file-hash recovery queue are still planned. Removing credential capture does not remove those requirements. Website integration is deferred for a later design, with the old suite removed now. VPN discovery remains deferred; the Terra Figma map workflow has resumed at Josh's request.
 
 Useful future settings: workflow-specific tool selections, executable/wordlist paths in the UI, per-project targets/exclusions, CPU/RAM/time limits for decoding and recovery, file backup/retention controls, and editable keyboard bindings. Some related values already exist in configuration or Scheduler settings; the gap is a coherent project-facing UI.
 
@@ -93,18 +106,18 @@ Useful future settings: workflow-specific tool selections, executable/wordlist p
 - Limit John the Ripper/Hashcat background work so the laptop stays responsive; process one hash target at a time and support interruption/resume.
 - Keep hash-format alternatives and source context. An integrity checksum is not automatically a password hash.
 - Verify file integrity when a trusted reference checksum is available, or detect later changes against a recorded baseline. Decide how to show those different outcomes.
-- Add a file browser/editor. Editing original evidence must save a copy under `Documents/Hackathon/[project name]`.
+- Add a file browser/editor. Editing original evidence must save a copy in the configured project folder, normally `Documents/FlagHop/[project name]`.
 
 ### Website tools and Figma
 
 - Website integration remains a later phase. The old web checks and screenshot suite have been removed. Agree the smaller replacement before implementing it.
 - Authenticated website investigation is deferred: login sessions, cookies, tokens and authenticated views come after the basic integration.
-- **The Terra Figma workflow is paused.** Resume only after Josh reviews the foundation and asks to continue. No new Figma work is authorised by this log.
+- **The Terra Figma map workflow has resumed at Josh's request**, through computer use after the first five visual questions were answered. This authorises a design draft; implementing the map remains separate work.
 - Keep the near-black T3-inspired style, minimal visible text and no extra tips or explanatory UI copy.
 
 ## UI questions
 
-1. Review the dedicated project-page layout. What should the new Overview contain beyond files and VPN preference?
+1. The topology map will live directly in Overview. The project name and folder path sit at the upper left; VPN preference and files are in Project setup. Editor placement and action-filter grouping still need a decision.
 2. Should renaming also rename its folder later? Inline rename is restored; it currently keeps the existing folder.
 3. Should the file browser cover local files only, remote files, or both? Where should the editor and terminal dock?
 4. Which connection categories, colours and line styles should the map use? How should multiple missing traceroute hops look?

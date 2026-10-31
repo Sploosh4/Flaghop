@@ -6,7 +6,7 @@ import {Icon} from './Icon';
 import {useDesktopWindow} from './desktop';
 import {WindowControls} from './WindowControls';
 import {ProjectLabel} from './ProjectLabel';
-import {ProjectOverview, Setup} from './pages';
+import {ProjectOverview, ProjectSetup, Setup} from './pages';
 import {Dialog} from './Dialog';
 import {Menu} from './Menu';
 import {Palette} from './Palette';
@@ -14,11 +14,14 @@ import type {Command} from './Palette';
 import {ReusedPanel, actionParts, partTitles, settingParts, viewParts} from './parts';
 import {readPreference, useSidebarWidth, writePreference} from './preferences';
 import {useLiveWorkspace} from './live';
+import {useBackground} from './reader/useBackground';
+import {BackgroundControl, BackgroundPanel} from './reader/BackgroundPanel';
+import {FilesView} from './reader/FilesView';
 
 const message = (error: unknown) => error instanceof Error ? error.message : String(error);
-type Page = 'home' | 'project' | 'setup' | 'part';
+type Page = 'home' | 'project' | 'project-setup' | 'setup' | 'part' | 'files';
 type Form = 'create' | 'save-as' | 'open' | 'details' | null;
-type SetupOrigin = {page: 'home' | 'project' | 'part'; part?: string; host?: number; panelReturn: Page};
+type SetupOrigin = {page: Exclude<Page, 'setup'>; part?: string; host?: number; panelReturn: Page};
 type Navigation = {project?: string; page: Page; part?: string; host?: number; setupOrigin?: SetupOrigin};
 
 export function ProjectHub() {
@@ -28,6 +31,8 @@ export function ProjectHub() {
   const titlebarDoubleClick = (event: MouseEvent) => {if (titlebarTarget(event.target)) desktop?.toggleMaximize();};
   const [projects, setProjects] = useState<HubProject[]>([]), [settings, setSettings] = useState<HubSettings | null>(null);
   const [selected, setSelected] = useState<HubProject | null>(null), [page, setPage] = useState<Page>('home');
+  const [fileWorkspaces, setFileWorkspaces] = useState<Record<string, {project: HubProject; resultId?: string}>>({});
+  const background = useBackground(selected, openFiles);
   const [query, setQuery] = useState(''), [dialog, setDialog] = useState<Form>(null), [name, setName] = useState('');
   const [error, setError] = useState(''), [status, setStatus] = useState('Ready'), [busy, setBusy] = useState(false);
   const [palette, setPalette] = useState(false), [ready, setReady] = useState(false), [renameRequest, setRenameRequest] = useState(0);
@@ -64,12 +69,14 @@ export function ProjectHub() {
       const saved = readPreference<Navigation | null>('hubNavigation', null);
       if (!active || navigation.current || !saved) return;
       const origin = saved.setupOrigin;
-      if (origin && ['home', 'project', 'part'].includes(origin.page) && (origin.page !== 'part' || (origin.part && partTitles[origin.part]))) setupOrigin.current = origin;
+      if (origin && ['home', 'project', 'project-setup', 'part', 'files'].includes(origin.page) && (origin.page !== 'part' || (origin.part && partTitles[origin.part]))) setupOrigin.current = origin;
       const project = rows.find(row => row.id === saved.project);
       if (project) {
         await run(() => api.openProject(project.id));
         if (!active || navigation.current !== 1) return;
         if (saved.page === 'setup') setPage('setup');
+        if (saved.page === 'project-setup') setPage('project-setup');
+        if (saved.page === 'files') {setFileWorkspaces(current => ({...current, [project.id]: {project}})); setPage('files');}
         if (saved.page === 'part' && saved.part && partTitles[saved.part]) {setPart(saved.part); setHost(saved.host); setPage('part');}
       } else if (saved.page === 'setup' && !saved.project) setPage('setup');
     }).catch(error => {if (active) setError(message(error));}).finally(() => {if (active) setReady(true);});
@@ -97,16 +104,22 @@ export function ProjectHub() {
       const previous = setupOrigin.current;
       setPart(previous?.part || ''); setHost(previous?.host);
       returnPage.current = previous?.panelReturn || (selected ? 'project' : 'home');
-      setPage(previous?.page === 'project' && !selected ? 'home' : previous?.page || (selected ? 'project' : 'home'));
+      setPage((previous?.page === 'project' || previous?.page === 'project-setup') && !selected ? 'home' : previous?.page || (selected ? 'project' : 'home'));
     } else {
       setupOrigin.current = {page, part, host, panelReturn: returnPage.current};
       setPage('setup');
     }
   }
   function overview() {navigation.current++; setPage('project'); setError('');}
+  function projectSetup() {navigation.current++; setPage('project-setup'); setError('');}
+  function openFiles(resultId?: string) {
+    if (!selected) return;
+    navigation.current++; setPage('files'); setError('');
+    setFileWorkspaces(current => ({...current, [selected.id]: {project: selected, resultId}}));
+  }
   function toggleSidebar(collapsed: boolean) {focusSidebar.current = true; setSidebarCollapsed(collapsed);}
   function form(next: Form, value = '') {setMenu(null); setError(''); setName(value); setDialog(next);}
-  function openPart(next: string, hostId?: number) {navigation.current++; returnPage.current = page === 'setup' ? 'setup' : selected ? 'project' : 'home'; setPart(next); setHost(hostId); setPage('part'); setError('');}
+  function openPart(next: string, hostId?: number) {navigation.current++; if (page !== 'part') returnPage.current = page; setPart(next); setHost(hostId); setPage('part'); setError('');}
   function closePart() {setPage(returnPage.current); live.refresh();}
   function displayChanged(enabled: boolean) {document.body.classList.toggle('colorful-background', enabled); setColorful(enabled);}
   async function ensureProject(project: HubProject) {if (selected?.id !== project.id) await run(() => api.openProject(project.id));}
@@ -147,6 +160,8 @@ export function ProjectHub() {
   ];
   if (selected) {
     commands.push({id: 'overview', label: 'Overview', detail: 'View', run: overview});
+    commands.push({id: 'project-setup', label: 'Project setup', detail: 'View', run: projectSetup});
+    commands.push({id: 'files', label: 'Files', detail: 'View', run: () => openFiles()});
     for (const [id, label] of Object.entries({...viewParts, ...actionParts})) commands.push({id, label, detail: viewParts[id] ? 'View' : 'Action', run: () => openPart(id)});
     for (const [id, label] of Object.entries({rename: 'Rename project', save: 'Save project', 'save-as': 'Save project as', export: 'Export ZIP', details: 'Workspace details'})) commands.push({id, label, detail: 'Action', run: () => ignore(projectAction(selected, id))});
     const hosts = live.snapshot?.hosts;
@@ -158,32 +173,38 @@ export function ProjectHub() {
   const metadata = document.getElementById('project-hub-root')?.dataset;
   const currentDetails = live.snapshot?.project.name === selected?.path ? live.snapshot?.project : null;
   const menuItems = menu ? Object.entries({rename: 'Rename project', save: 'Save', 'save-as': 'Save as…', export: 'Export ZIP', details: 'Workspace details'}).map(([action, label]) => ({label, disabled: busy, run: () => ignore(projectAction(menu.project, action))})) : [];
-  const title = page === 'setup' ? 'Setup' : page === 'part' ? partTitles[part] : 'Overview';
+  const title = page === 'setup' ? 'Setup' : page === 'project-setup' ? 'Project setup' : page === 'files' ? 'Files' : page === 'part' ? partTitles[part] : 'Overview';
   return <div className={`hub-app${sidebarCollapsed ? ' hub-collapsed' : ''}${desktop ? ' hub-desktop' : ''}`} style={{'--hub-sidebar-width': `${width}px`} as CSSProperties}>
     {colorful && <div className="logo-watermark" aria-hidden="true"><pre>{(window as typeof window & {LEGION_CONSOLE_LOGO_ART?: string}).LEGION_CONSOLE_LOGO_ART || ''}</pre></div>}
     <aside id="hub-sidebar" className="hub-sidebar" aria-label="Projects" hidden={sidebarCollapsed}>
-      <div className="hub-brand-row" onPointerDown={titlebarPointer} onDoubleClick={titlebarDoubleClick}><button className="hub-brand" onClick={home}><span className="hub-logo" aria-hidden="true">L</span>Legion</button><button id="hub-sidebar-toggle" className="hub-sidebar-toggle" aria-label="Collapse sidebar" title="Collapse sidebar" aria-controls="hub-sidebar" aria-expanded={!sidebarCollapsed} onClick={() => toggleSidebar(true)}><Icon kind="left"/></button></div>
+      <div className="hub-brand-row" onPointerDown={titlebarPointer} onDoubleClick={titlebarDoubleClick}><button className="hub-brand" onClick={home}><span className="hub-logo" aria-hidden="true">F</span>FlagHop</button><button id="hub-sidebar-toggle" className="hub-sidebar-toggle" aria-label="Collapse sidebar" title="Collapse sidebar" aria-controls="hub-sidebar" aria-expanded={!sidebarCollapsed} onClick={() => toggleSidebar(true)}><Icon kind="left"/></button></div>
       {selected ? <div className="hub-project-context">
-        <div className="hub-project-heading" onContextMenu={event => context(event, selected)} onKeyDown={event => context(event, selected)} tabIndex={0} aria-label={`${selected.name} project actions`}><span className="hub-avatar" aria-hidden="true">LG</span><ProjectLabel key={selected.id} name={selected.name} onRename={rename} request={renameRequest} doubleClick/></div>
+        <div className="hub-project-heading" onContextMenu={event => context(event, selected)} onKeyDown={event => context(event, selected)} tabIndex={0} aria-label={`${selected.name} project actions`}><span className="hub-avatar" aria-hidden="true">FH</span><ProjectLabel key={selected.id} name={selected.name} onRename={rename} request={renameRequest} doubleClick/></div>
         <button className="hub-search" onClick={() => setPalette(true)}><Icon kind="search"/><span>Search workspace</span><kbd>Ctrl K</kbd></button>
-        <nav aria-label={`${selected.name} tabs`}><button className="hub-overview-tab" aria-current={page === 'project' ? 'page' : undefined} onClick={overview}><Icon kind="home"/>Overview</button></nav>
+        <nav aria-label={`${selected.name} tabs`}>
+          <button className="hub-overview-tab" aria-current={page === 'project' ? 'page' : undefined} onClick={overview}><Icon kind="home"/>Overview</button>
+          <button className="hub-overview-tab hub-project-setup-tab" aria-current={page === 'project-setup' ? 'page' : undefined} onClick={projectSetup}><Icon kind="gear"/>Project setup</button>
+          <button className="hub-overview-tab" aria-current={page === 'files' ? 'page' : undefined} onClick={() => openFiles()}><Icon kind="file"/>Files</button>
+        </nav>
       </div> : <>
         <label className="hub-search"><Icon kind="search"/><input id="hub-search" aria-label="Search projects" placeholder="Search projects" value={query} onChange={event => setQuery(event.target.value)}/><button aria-label="Search workspace" onClick={() => setPalette(true)}><kbd>Ctrl K</kbd></button></label>
         <div className="hub-section-label"><span>Projects</span><button id="hub-new-project" aria-label="New project" disabled={busy} onClick={() => form('create')}>+</button></div>
-        <div className="hub-projects">{visible.map(project => <button key={project.id} className="hub-project" data-hub-project={project.id} disabled={busy} onContextMenu={event => context(event, project)} onKeyDown={event => context(event, project)} onClick={() => ignore(run(() => api.openProject(project.id)))}><span className="hub-avatar" aria-hidden="true">LG</span><span>{project.name}</span></button>)}</div>
+        <div className="hub-projects">{visible.map(project => <button key={project.id} className="hub-project" data-hub-project={project.id} disabled={busy} onContextMenu={event => context(event, project)} onKeyDown={event => context(event, project)} onClick={() => ignore(run(() => api.openProject(project.id)))}><span className="hub-avatar" aria-hidden="true">FH</span><span>{project.name}</span></button>)}</div>
       </>}
       <button id="hub-setup" className="hub-setup needs-setup" onClick={setup} aria-label="Setup — VPN not configured" aria-current={page === 'setup' ? 'page' : undefined}><Icon kind="gear"/><span>Setup</span><span className="hub-dot"/></button>
       <div className="hub-resizer" role="separator" aria-label="Resize sidebar" aria-orientation="vertical" aria-valuemin={210} aria-valuemax={340} aria-valuenow={width} tabIndex={0} {...resize}/>
     </aside>
     <main className="hub-main">
-      <header className="hub-header" onPointerDown={titlebarPointer} onDoubleClick={titlebarDoubleClick}>{sidebarCollapsed && <button id="hub-sidebar-reopen" className="hub-sidebar-toggle" aria-label="Show sidebar" title="Show sidebar" aria-controls="hub-sidebar" aria-expanded="false" onClick={() => toggleSidebar(false)}><Icon kind="right"/></button>}{sidebarCollapsed && <button className="hub-collapsed-brand" onClick={home}>Legion</button>}{selected ? <><span className="hub-avatar" aria-hidden="true">LG</span><ProjectLabel key={selected.id} name={selected.name} onRename={rename}/><span className="hub-divider">/</span><span>{title}</span></> : <span>{page === 'setup' || page === 'part' ? title : 'Projects'}</span>}<button className="hub-header-details" aria-label="Workspace details" title="Workspace details" onClick={() => form('details')}>ⓘ</button>{desktop && <WindowControls desktop={desktop}/>}</header>
+      <header className="hub-header" onPointerDown={titlebarPointer} onDoubleClick={titlebarDoubleClick}>{sidebarCollapsed && <button id="hub-sidebar-reopen" className="hub-sidebar-toggle" aria-label="Show sidebar" title="Show sidebar" aria-controls="hub-sidebar" aria-expanded="false" onClick={() => toggleSidebar(false)}><Icon kind="right"/></button>}{sidebarCollapsed && <button className="hub-collapsed-brand" onClick={home}>FlagHop</button>}{selected ? <><span className="hub-avatar" aria-hidden="true">FH</span><ProjectLabel key={selected.id} name={selected.name} onRename={rename}/><span className="hub-divider">/</span><span>{title}</span></> : <span>{page === 'setup' || page === 'part' ? title : 'Projects'}</span>}{selected && <BackgroundControl {...background}/>}<button className="hub-header-details" aria-label="Workspace details" title="Workspace details" onClick={() => form('details')}>ⓘ</button>{desktop && <WindowControls desktop={desktop}/>}</header>
       {error && !dialog && <p className="hub-error" role="alert">{error}</p>}
-      <div className={`hub-content${page === 'part' ? ' hub-content-part' : ''}`}>
-        {page === 'home' && <section className="hub-home" aria-label="Project home"><span className="hub-home-mark">L</span><h1>Projects</h1><div className="hub-home-list">{visible.map(project => <button key={project.id} disabled={busy} onContextMenu={event => context(event, project)} onKeyDown={event => context(event, project)} onClick={() => ignore(run(() => api.openProject(project.id)))}><span className="hub-avatar" aria-hidden="true">LG</span><span>{project.name}</span></button>)}</div><div className="hub-home-actions"><button className="hub-create-link" disabled={busy} onClick={() => form('create')}>+ New project</button><button disabled={busy} onClick={() => form('open')}>Open project</button><button disabled={busy} onClick={() => restoreInput.current?.click()}>Restore ZIP</button></div></section>}
-        {page === 'project' && selected && <ProjectOverview key={selected.id} project={selected} onChange={next => setSelected(current => current?.id === next.id ? next : current)}/>}
-        {page === 'setup' && <Setup settings={settings} openPart={openPart}/>}
+      <div className="hub-workspace-body"><div className={`hub-content${page === 'part' ? ' hub-content-part' : ''}${page === 'project' || page === 'project-setup' ? ' hub-content-project' : ''}${page === 'files' ? ' hub-content-files' : ''}`}>
+        {page === 'home' && <section className="hub-home" aria-label="Project home"><span className="hub-home-mark">F</span><h1>Projects</h1><div className="hub-home-list">{visible.map(project => <button key={project.id} disabled={busy} onContextMenu={event => context(event, project)} onKeyDown={event => context(event, project)} onClick={() => ignore(run(() => api.openProject(project.id)))}><span className="hub-avatar" aria-hidden="true">FH</span><span>{project.name}</span></button>)}</div><div className="hub-home-actions"><button className="hub-create-link" disabled={busy} onClick={() => form('create')}>+ New project</button><button disabled={busy} onClick={() => form('open')}>Open project</button><button disabled={busy} onClick={() => restoreInput.current?.click()}>Restore ZIP</button></div></section>}
+        {page === 'project' && selected && <ProjectOverview project={selected}/>}
+        {page === 'project-setup' && selected && <ProjectSetup key={selected.id} project={selected} onChange={next => setSelected(current => current?.id === next.id ? next : current)}/>}
+        {page === 'setup' && <Setup settings={settings} openPart={openPart} onSettingsChange={setSettings}/>}
         {page === 'part' && <ReusedPanel part={part} host={host} close={closePart} displayChanged={displayChanged} statusChanged={setStatus}/>}
-      </div>
+        {Object.entries(fileWorkspaces).map(([id, item]) => <FilesView key={id} {...item} active={page === 'files' && selected?.id === id}/>)}
+      </div>{selected && ['project', 'project-setup', 'files'].includes(page) && <BackgroundPanel {...background}/>}</div>
       <span className="hub-status-announcement" role="status">{busy ? 'Working…' : status}</span>
     </main>
     {desktop && !desktop.maximized && <div className="hub-window-edges" aria-hidden="true">{['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map(edge => <div key={edge} data-window-edge={edge} onPointerDown={event => {if (event.button === 0) {event.preventDefault(); desktop.resizeEdge(edge);}}}/>)}</div>}

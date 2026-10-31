@@ -1,4 +1,4 @@
-import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {ProjectHub} from './ProjectHub';
@@ -22,6 +22,7 @@ beforeEach(() => {
   vi.mocked(api.files).mockResolvedValue({files: [], truncated: false});
   vi.mocked(api.snapshot).mockResolvedValue({project: {name: harbour.path}, jobs: [], hosts: [{id: 7, ip: '192.0.2.7', hostname: 'fixture'}]});
   vi.mocked(api.setProjectVpn).mockResolvedValue({status: 'ok'});
+  vi.mocked(api.background).mockImplementation(async id => backgroundState(id, false));
 });
 
 it('collapses the sidebar, remembers it after reload and restores focus when reopened', async () => {
@@ -35,7 +36,7 @@ it('collapses the sidebar, remembers it after reload and restores focus when reo
   render(<ProjectHub/>);
   expect(screen.queryByRole('complementary', {name: 'Projects'})).toBeNull();
   await user.click(screen.getByRole('button', {name: 'Show sidebar'}));
-  expect(sidebar().getByRole('button', {name: 'Legion'})).toBeTruthy();
+  expect(sidebar().getByRole('button', {name: 'FlagHop'})).toBeTruthy();
   expect(document.activeElement).toBe(screen.getByRole('button', {name: 'Collapse sidebar'}));
   expect(localStorage.getItem('legion.workspace.sidebarCollapsed')).toBe('false');
 });
@@ -62,12 +63,12 @@ it('opens a dedicated project page instead of expanding the project list', async
   expect(screen.queryByRole('navigation')).toBeNull();
   await userEvent.setup().click(sidebar().getByRole('button', {name: 'Harbour'}));
   await waitFor(() => expect(screen.getByRole('heading', {name: 'Harbour'})).toBeTruthy());
-  expect(screen.getByRole('navigation', {name: 'Harbour tabs'}).textContent).toBe('Overview');
+  expect(screen.getByRole('navigation', {name: 'Harbour tabs'}).textContent).toBe('OverviewProject setupFiles');
   expect(sidebar().queryByRole('button', {name: 'Switchyard'})).toBeNull();
   expect(sidebar().queryByRole('textbox', {name: 'Search projects'})).toBeNull();
   expect(sidebar().getByText('Harbour')).toBeTruthy();
   expect(screen.queryByRole('button', {name: 'Hosts'})).toBeNull();
-  await userEvent.setup().click(sidebar().getByRole('button', {name: 'Legion'}));
+  await userEvent.setup().click(sidebar().getByRole('button', {name: 'FlagHop'}));
   expect(screen.queryByRole('navigation')).toBeNull(); expect(screen.getByRole('heading', {name: 'Projects'})).toBeTruthy();
 });
 
@@ -76,7 +77,7 @@ it('returns to the selected project after switching between projects', async () 
   await waitFor(() => expect(sidebar().getByRole('button', {name: 'Harbour'})).toBeTruthy());
   await user.click(sidebar().getByRole('button', {name: 'Harbour'}));
   await waitFor(() => expect(screen.getByRole('heading', {name: 'Harbour'})).toBeTruthy());
-  await user.click(sidebar().getByRole('button', {name: 'Legion'}));
+  await user.click(sidebar().getByRole('button', {name: 'FlagHop'}));
   await user.click(sidebar().getByRole('button', {name: 'Switchyard'}));
   await waitFor(() => expect(screen.getByRole('heading', {name: 'Switchyard'})).toBeTruthy());
   expect(screen.queryByRole('navigation', {name: 'Harbour tabs'})).toBeNull();
@@ -129,7 +130,30 @@ it('shows the computer and honest, inactive VPN controls without discovery', asy
   expect(screen.getByRole('heading', {name: 'Projects'})).toBeTruthy();
 });
 
-it('creates a named project and presents its files and VPN preference', async () => {
+it('saves the default folder below VPN and keeps an invalid path editable', async () => {
+  const settings = {vpn_status: 'unconfigured' as const, computer: {name: 'Fixture laptop', system: 'Linux'}, projects_folder: '/Documents/FlagHop', vpns: []};
+  vi.mocked(api.settings).mockResolvedValue(settings);
+  vi.mocked(api.setSaveFolder).mockRejectedValueOnce(new Error('The save folder is not writable.'));
+  const first = render(<ProjectHub/>); const user = userEvent.setup();
+  await user.click(screen.getByRole('button', {name: 'Setup — VPN not configured'}));
+  const input = screen.getByRole('textbox', {name: 'Default save folder'}) as HTMLInputElement;
+  await waitFor(() => expect(input.value).toBe('/Documents/FlagHop'));
+  expect(screen.getByRole('combobox', {name: 'Default VPN'}).compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  await user.clear(input); await user.type(input, '/custom/FlagHop');
+  await user.click(screen.getByRole('button', {name: 'Save'}));
+  await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('not writable'));
+  expect(input.value).toBe('/custom/FlagHop');
+  const saved = {...settings, projects_folder: '/custom/FlagHop'};
+  vi.mocked(api.setSaveFolder).mockResolvedValue(saved);
+  await user.click(screen.getByRole('button', {name: 'Save'}));
+  await waitFor(() => expect((screen.getByRole('button', {name: 'Save'}) as HTMLButtonElement).disabled).toBe(true));
+  expect(api.setSaveFolder).toHaveBeenCalledWith('/custom/FlagHop');
+  vi.mocked(api.settings).mockResolvedValue(saved);
+  first.unmount(); render(<ProjectHub/>);
+  await waitFor(() => expect((screen.getByRole('textbox', {name: 'Default save folder'}) as HTMLInputElement).value).toBe('/custom/FlagHop'));
+});
+
+it('keeps Overview clear and moves working files and VPN preferences into Project setup', async () => {
   vi.mocked(api.createProject).mockResolvedValue(opened(harbour));
   vi.mocked(api.files).mockResolvedValue({files: [{path: 'notes.md', size: 8}], truncated: false});
   vi.mocked(api.fileUrl).mockReturnValue('/fixture-file');
@@ -139,9 +163,33 @@ it('creates a named project and presents its files and VPN preference', async ()
   await user.click(screen.getByRole('button', {name: 'Create'}));
   await waitFor(() => expect(screen.getByRole('heading', {name: 'Harbour'})).toBeTruthy());
   expect(api.createProject).toHaveBeenCalledWith('Harbour');
-  expect(screen.getByRole('link', {name: /notes.md/}).getAttribute('href')).toBe('/fixture-file');
+  expect(screen.getByText(harbour.folder)).toBeTruthy();
+  expect(screen.queryByRole('combobox', {name: 'VPN'})).toBeNull();
+  expect(screen.queryByRole('heading', {name: 'Files'})).toBeNull();
+  await user.click(sidebar().getByRole('button', {name: 'Project setup'}));
+  await waitFor(() => expect(screen.getByRole('link', {name: /notes.md/}).getAttribute('href')).toBe('/fixture-file'));
   await user.selectOptions(screen.getByRole('combobox', {name: 'VPN'}), 'none');
   await waitFor(() => expect(api.setProjectVpn).toHaveBeenCalledWith('one', 'none'));
+  await user.click(sidebar().getByRole('button', {name: 'Overview'}));
+  expect(screen.getByRole('heading', {name: 'Harbour'})).toBeTruthy();
+  expect(screen.queryByRole('combobox', {name: 'VPN'})).toBeNull();
+});
+
+it('restores Project setup after reload and after toggling the bottom Setup button', async () => {
+  let mounted = render(<ProjectHub/>); const user = userEvent.setup();
+  await waitFor(() => expect(sidebar().getByRole('button', {name: 'Harbour'})).toBeTruthy());
+  await user.click(sidebar().getByRole('button', {name: 'Harbour'}));
+  await waitFor(() => expect(screen.getByRole('heading', {name: 'Harbour'})).toBeTruthy());
+  await user.click(sidebar().getByRole('button', {name: 'Project setup'}));
+  mounted.unmount(); mounted = render(<ProjectHub/>);
+  await waitFor(() => expect(screen.getByRole('heading', {name: 'Project setup'})).toBeTruthy());
+  expect(sidebar().getByRole('button', {name: 'Project setup'}).getAttribute('aria-current')).toBe('page');
+  await user.click(sidebar().getByRole('button', {name: 'Setup — VPN not configured'}));
+  mounted.unmount(); render(<ProjectHub/>);
+  await waitFor(() => expect(screen.getByRole('heading', {name: 'Fixture laptop'})).toBeTruthy());
+  await user.click(sidebar().getByRole('button', {name: 'Setup — VPN not configured'}));
+  expect(screen.getByRole('heading', {name: 'Project setup'})).toBeTruthy();
+  expect(screen.getByRole('combobox', {name: 'VPN'})).toBeTruthy();
 });
 
 it('keeps the home page and shows the reason when a project cannot be opened', async () => {
@@ -159,7 +207,7 @@ it('does not reopen a project when its pending response arrives after Home', asy
   render(<ProjectHub/>);
   await waitFor(() => expect(sidebar().getByRole('button', {name: 'Harbour'})).toBeTruthy());
   fireEvent.click(sidebar().getByRole('button', {name: 'Harbour'}));
-  fireEvent.click(sidebar().getByRole('button', {name: 'Legion'}));
+  fireEvent.click(sidebar().getByRole('button', {name: 'FlagHop'}));
   resolve(opened(harbour));
   await waitFor(() => expect((sidebar().getByRole('button', {name: 'Harbour'}) as HTMLButtonElement).disabled).toBe(false));
   expect(screen.queryByRole('navigation')).toBeNull();
@@ -189,7 +237,7 @@ it('renames the project from the sidebar and updates the breadcrumb and catalog'
   await user.clear(input); await user.type(input, 'Harbour lab{Enter}');
   await waitFor(() => expect(api.renameProject).toHaveBeenCalledWith('one', 'Harbour lab'));
   await waitFor(() => expect(screen.getByRole('heading', {name: 'Harbour lab'})).toBeTruthy());
-  await user.click(sidebar().getByRole('button', {name: 'Legion'}));
+  await user.click(sidebar().getByRole('button', {name: 'FlagHop'}));
   expect(sidebar().getByRole('button', {name: 'Harbour lab'})).toBeTruthy();
 });
 
@@ -201,7 +249,7 @@ it('runs Save from the project context menu using arrow keys', async () => {
   expect(document.activeElement).toBe(screen.getByRole('menuitem', {name: 'Rename project'}));
   await user.keyboard('{ArrowDown}{Enter}');
   await waitFor(() => expect(api.saveProject).toHaveBeenCalledWith('one'));
-  await waitFor(() => expect(screen.getByRole('status').textContent).toBe('Saved'));
+  await waitFor(() => expect(screen.getByText('Saved', {selector: '[role="status"]'})).toBeTruthy());
   expect(screen.queryByRole('menu')).toBeNull();
 });
 
@@ -278,4 +326,66 @@ it('exposes native window controls only when the desktop bridge is available', a
     await user.click(screen.getByRole('button', {name: 'Close window'}));
     expect(desktop.close).toHaveBeenCalledOnce();
   } finally {delete window.legionDesktop;}
+});
+
+function backgroundState(id: string, running: boolean): api.BackgroundStatus {
+  return {project_id: id, project: '/configured/' + id, running, requested_state: running ? 'running' : 'paused', control_configured: true,
+    observed_state: 'unsupported', worker_observation: 'unsupported', worker: {available: true, engines: ['cipher', 'password']},
+    alerts: [], working: [], node_states: {}, hash_states: {}, pause_semantics: 'Workspace only'};
+}
+it('retains independent pause requests while navigating between workspaces without auto-starting', async () => {
+  const states = {one: true, two: false};
+  vi.mocked(api.background).mockImplementation(async id => backgroundState(id, states[id as keyof typeof states]));
+  vi.mocked(api.controlBackground).mockImplementation(async (id, running) => {states[id as keyof typeof states] = running; return backgroundState(id, running);});
+  render(<ProjectHub/>); const user = userEvent.setup();
+  await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
+  await user.click(await screen.findByRole('button', {name: 'Pause background jobs for Harbour'}));
+  await screen.findByText('Pause requested');
+  await user.click(sidebar().getByRole('button', {name: 'FlagHop'}));
+  await user.click(await sidebar().findByRole('button', {name: 'Switchyard'}));
+  await user.click(await screen.findByRole('button', {name: 'Start background jobs for Switchyard'}));
+  await screen.findByRole('button', {name: 'Pause background jobs for Switchyard'});
+  await user.click(sidebar().getByRole('button', {name: 'FlagHop'}));
+  await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
+  await screen.findByRole('button', {name: 'Start background jobs for Harbour'});
+  expect(states).toEqual({one: false, two: true});
+  expect(vi.mocked(api.controlBackground).mock.calls).toEqual([['one', false], ['two', true]]);
+  await user.click(sidebar().getByRole('button', {name: 'Files'}));
+  expect(api.controlBackground).toHaveBeenCalledTimes(2);
+});
+it('opens a saved result in the project filesystem editor and dismisses only its notification', async () => {
+  const alert: api.ReaderAlert = {id: 'actual-artifact', result_path: 'ciphey/artifacts/result.bin', size: 8, completed: 123, state: 'done', label: 'Derived artifact', origins: [{path: 'input.txt'}], transformations: ['base64']};
+  let dismissed = false;
+  vi.mocked(api.background).mockImplementation(async id => ({...backgroundState(id, false), alerts: dismissed ? [] : [alert]}));
+  vi.mocked(api.readerResult).mockResolvedValue({status: 'ok', artifact: alert, data_b64: 'ZXZpZGVuY2U=', size: 8, truncated: false});
+  vi.mocked(api.dismissAlert).mockImplementation(async () => {dismissed = true; return {status: 'ok'};});
+  vi.mocked(api.filesystemUrl).mockImplementation((id, result) => '/api/hub/projects/' + id + '/filesystem?result=' + (result || ''));
+  render(<ProjectHub/>); const user = userEvent.setup();
+  await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
+  await user.click(await screen.findByRole('button', {name: 'Open'}));
+  expect((await screen.findByTitle('Harbour files and editor')).getAttribute('src')).toContain('/one/filesystem?result=actual-artifact');
+  await user.click(await screen.findByRole('button', {name: 'Dismiss'}));
+  await waitFor(() => expect(screen.queryByText('result.bin')).toBeNull());
+  expect(api.dismissAlert).toHaveBeenCalledWith('one', 'actual-artifact');
+  expect(api.controlBackground).not.toHaveBeenCalled();
+});
+
+it('does not open a late result after leaving a workspace and returning to it', async () => {
+  const alert: api.ReaderAlert = {id: 'late', result_path: 'ciphey/artifacts/late.bin', size: 4, completed: 1, state: 'done', label: 'Saved result', origins: [], transformations: ['base64']};
+  vi.mocked(api.background).mockImplementation(async id => ({...backgroundState(id, false), alerts: id === 'one' ? [alert] : []}));
+  let resolve!: (value: api.ReaderResult) => void;
+  const pendingResult = new Promise<api.ReaderResult>(done => {resolve = done;});
+  vi.mocked(api.readerResult).mockReturnValue(pendingResult);
+  render(<ProjectHub/>); const user = userEvent.setup();
+  await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
+  await user.click(await screen.findByRole('button', {name: 'Open'}));
+  await user.click(sidebar().getByRole('button', {name: 'FlagHop'}));
+  await user.click(await sidebar().findByRole('button', {name: 'Switchyard'}));
+  await screen.findByRole('heading', {name: 'Switchyard'});
+  await user.click(sidebar().getByRole('button', {name: 'FlagHop'}));
+  await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
+  await screen.findByRole('heading', {name: 'Harbour'});
+  await act(async () => {resolve({status: 'ok', data_b64: 'dGVzdA==', size: 4, truncated: false, artifact: alert}); await pendingResult;});
+  expect(screen.queryByTitle('Harbour files and editor')).toBeNull();
+  expect(sidebar().getByRole('button', {name: 'Overview'}).getAttribute('aria-current')).toBe('page');
 });

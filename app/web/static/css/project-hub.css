@@ -53,6 +53,27 @@ body.workspace-part[data-workspace-part="app-settings"] .tool-audit-table-wrap c
 #project-hub-root .hub-setup.needs-setup {color:#ca7e7e;}
 #project-hub-root .hub-dot {width:5px;height:5px;background:#c76e6e;border-radius:100%;margin-left:auto;}
 #project-hub-root .hub-main {display:flex;flex-direction:column;min-width:0;min-height:0;}
+#project-hub-root .hub-workspace-body {display:flex;flex:1;min-height:0;min-width:0;}
+#project-hub-root .hub-background-control {margin-left:auto;display:flex;align-items:center;gap:10px;white-space:nowrap;}
+#project-hub-root .hub-background-control>span {color:#888;font-size:11px;}
+#project-hub-root .hub-background-control>button {border:1px solid #303030;background:#191919;padding:4px 10px;font-size:12px;}
+#project-hub-root .hub-app .hub-background-control+.hub-header-details {margin-left:0;}
+#project-hub-root .hub-background-panel {width:340px;flex-shrink:0;border-left:1px solid #232323;background:#0b0b0b;padding:14px;display:flex;flex-direction:column;gap:14px;min-height:0;box-sizing:border-box;}
+#project-hub-root .hub-result-alerts {flex:1;min-height:0;overflow:auto;}
+#project-hub-root .hub-result-alert {border:1px solid #232323;background:#111;border-radius:6px;padding:12px;margin-bottom:8px;overflow-wrap:anywhere;}
+#project-hub-root .hub-result-title {font-size:13px;margin-bottom:6px;}
+#project-hub-root .hub-result-alert small,#project-hub-root .hub-result-path {display:block;color:#888;font-size:11px;line-height:1.5;}
+#project-hub-root .hub-result-actions {display:flex;gap:8px;margin-top:8px;}
+#project-hub-root .hub-result-actions button {border:1px solid #303030;background:#222;padding:5px 10px;font-size:12px;}
+#project-hub-root #hub-background-working {border-top:1px solid #232323;padding-top:12px;max-height:40%;overflow:auto;}
+#project-hub-root #hub-background-working summary {cursor:pointer;font-size:12px;color:#aaa;}
+#project-hub-root .hub-background-job {padding:10px 0;border-bottom:1px solid #232323;display:grid;gap:4px;font-size:12px;}
+#project-hub-root .hub-background-job small,#project-hub-root .hub-background-job code {color:#888;font-size:11px;}
+#project-hub-root .hub-content.hub-content-files {padding:0;overflow:hidden;}
+#project-hub-root .hub-files-view {height:100%;}
+#project-hub-root .hub-files-view[hidden] {display:none;}
+#project-hub-root .hub-files-view iframe {width:100%;height:100%;display:block;border:0;}
+@media(max-width:900px){#project-hub-root .hub-background-panel{width:280px}#project-hub-root .hub-background-control>span{display:none}}
 #project-hub-root .hub-header {height:56px;border-bottom:1px solid #202020;padding:0 26px;display:flex;align-items:center;gap:13px;flex-shrink:0;font-size:13px;}
 #project-hub-root .hub-divider {color:#555;margin:0 3px;}
 #project-hub-root .hub-content {flex:1;overflow:auto;padding:40px;min-height:0;}
@@ -64,11 +85,15 @@ body.workspace-part[data-workspace-part="app-settings"] .tool-audit-table-wrap c
 #project-hub-root .hub-home-list button {width:100%;display:flex;gap:12px;align-items:center;background:#0d0d0d;padding:13px 15px;border-radius:0;}
 #project-hub-root .hub-home-list button+button {border-top:1px solid #222;}
 #project-hub-root .hub-app .hub-create-link {padding:8px 0;color:#a6a6a6;margin-top:14px;font-size:12px;}
-#project-hub-root .hub-overview,#project-hub-root .hub-setup-page {max-width:840px;margin:18px auto;}
+#project-hub-root .hub-content.hub-content-project {padding:16px 40px;}
+#project-hub-root .hub-overview,#project-hub-root .hub-project-setup {margin:0;}
+#project-hub-root .hub-setup-page {max-width:840px;margin:18px auto;}
 #project-hub-root .hub-folder {font-size:12px;color:#777;overflow-wrap:anywhere;margin-bottom:42px;}
 #project-hub-root .hub-property {min-height:56px;display:flex;align-items:center;gap:18px;border-bottom:1px solid #212121;}
 #project-hub-root .hub-property>label:first-child,#project-hub-root .hub-property>span:first-child {min-width:110px;}
 #project-hub-root .hub-property select {background:#111;color:#c8c8c8;border:1px solid #303030;border-radius:5px;padding:6px 24px 6px 9px;font-size:12px;min-width:140px;}
+#project-hub-root .hub-save-folder input {flex:1;min-width:120px;background:#111;color:#c8c8c8;border:1px solid #303030;border-radius:5px;padding:8px 9px;}
+#project-hub-root .hub-setup-page .hub-property>label:first-child,#project-hub-root .hub-setup-page .hub-property>span:first-child {min-width:150px;}
 #project-hub-root .hub-muted {color:#777;font-size:12px;}
 #project-hub-root .hub-files-header {display:flex;justify-content:space-between;align-items:center;margin:34px 0 12px;}
 #project-hub-root .hub-app .hub-quiet {padding:4px 8px;font-size:16px;color:#888;}
@@ -114,7 +139,7 @@ body.workspace-part[data-workspace-part="app-settings"] .tool-audit-table-wrap c
 #project-hub-root .hub-reused-panel {position:relative;height:100%;}
 #project-hub-root .hub-reused-panel iframe {border:0;display:block;height:100%;width:100%;}
 #project-hub-root .hub-app .hub-part-close {position:absolute;right:14px;top:8px;z-index:10;background:#171717;color:#aaa;font-size:20px;padding:3px 10px;}
-@media(max-width:800px){#project-hub-root .hub-content{padding:24px}#project-hub-root .hub-property{flex-wrap:wrap;padding:10px 0;gap:10px}#project-hub-root .hub-search kbd{display:none}}
+@media(max-width:800px){#project-hub-root .hub-content{padding:24px}#project-hub-root .hub-content.hub-content-project{padding:16px 24px}#project-hub-root .hub-property{flex-wrap:wrap;padding:10px 0;gap:10px}#project-hub-root .hub-search kbd{display:none}}
 
 /* One compact title bar, shared by the sidebar and workspace. */
 #project-hub-root .hub-sidebar {padding-top:0;}

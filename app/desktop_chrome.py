@@ -98,7 +98,7 @@ def install_window_chrome(page, window, origin, trusted):
 })();
 """.replace("EXPECTED_ORIGIN", json.dumps(origin))
     script = QWebEngineScript()
-    script.setName("Legion local window controls")
+    script.setName("FlagHop local window controls")
     script.setWorldId(QWebEngineScript.ScriptWorldId.MainWorld)
     script.setInjectionPoint(QWebEngineScript.InjectionPoint.DocumentReady)
     script.setRunsOnSubFrames(False)

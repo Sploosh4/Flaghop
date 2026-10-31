@@ -28,7 +28,7 @@ MIN_SUPPORTED_PYTHON = (3, 12)
 
 # Python 3.12's logging task-name capture uses asyncio.current_task().
 # In this environment that segfaults after sqlalchemy/greenlet imports,
-# so disable it before importing Legion modules.
+# so disable it before importing FlagHop modules.
 if hasattr(logging, "logAsyncioTasks"):
     logging.logAsyncioTasks = False
 
@@ -81,7 +81,7 @@ def format_python_runtime_error(version_info=None, executable=None, prefix=None,
     required_version = ".".join(str(part) for part in MIN_SUPPORTED_PYTHON)
     current_version = f"{major}.{minor}.{micro}"
     return (
-        f"Legion requires Python {required_version}+.\n"
+        f"FlagHop requires Python {required_version}+.\n"
         f"Current interpreter: {resolved_executable} ({current_version}, {runtime_scope}).\n"
         "Recreate or activate a compatible environment first, for example:\n"
         "  python3.12 -m venv .venv\n"
@@ -168,16 +168,16 @@ def format_web_dependency_environment_error(
     )
     local_venv_python = _find_local_venv_python()
     lines = [
-        "Legion detected an incompatible Flask/Werkzeug environment for web mode.",
+        "FlagHop detected an incompatible Flask/Werkzeug environment for web mode.",
         f"Interpreter: {resolved_executable}",
         f"Flask: {str(flask_version or 'unknown').strip() or 'unknown'} from {str(flask_origin or 'not found').strip() or 'not found'}",
         f"Werkzeug: {str(werkzeug_version or 'unknown').strip() or 'unknown'} from {str(werkzeug_origin or 'not found').strip() or 'not found'}",
-        "This usually means the system interpreter is mixing distro packages with pip-installed packages instead of using Legion's virtualenv.",
+        "This usually means the system interpreter is mixing distro packages with pip-installed packages instead of using FlagHop's virtualenv.",
     ]
     if local_venv_python:
         lines.extend(
             [
-                "Use Legion's local virtualenv instead:",
+                "Use FlagHop's local virtualenv instead:",
                 f"  {local_venv_python} legion.py --web",
                 "or:",
                 f"  source {os.path.dirname(local_venv_python)}/activate",
@@ -248,9 +248,9 @@ def doPathSetup():
 def build_arg_parser():
     import argparse
 
-    parser = argparse.ArgumentParser(description="Start Legion")
+    parser = argparse.ArgumentParser(description="Start FlagHop")
     audit_group = parser.add_mutually_exclusive_group()
-    parser.add_argument("--web", action="store_true", help="Run Legion with the local workspace web interface")
+    parser.add_argument("--web", action="store_true", help="Run FlagHop with the local workspace web interface")
     audit_group.add_argument("--tool-audit", action="store_true", help="Print a tool availability audit and exit")
     audit_group.add_argument(
         "--tool-install-plan",
@@ -383,7 +383,7 @@ if __name__ == "__main__":
         from app.web.runtime import WebRuntime
 
         web_bind_host = resolve_web_bind_host(args)
-        startupLog.info("Starting Legion web interface on http://%s:%s", web_bind_host, args.web_port)
+        startupLog.info("Starting FlagHop web interface on http://%s:%s", web_bind_host, args.web_port)
         logic = create_default_logic()
         runtime = WebRuntime(logic)
         config = {

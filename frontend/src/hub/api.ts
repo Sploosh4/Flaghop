@@ -5,6 +5,9 @@ export type HubProject = components['schemas']['HubProject'];
 export type HubSettings = components['schemas']['HubSettings'];
 export type HubFile = components['schemas']['HubFile'];
 export type Snapshot = components['schemas']['ActivitySnapshot'];
+export type BackgroundStatus = components['schemas']['BackgroundStatus'];
+export type ReaderAlert = components['schemas']['ReaderAlert'];
+export type ReaderResult = components['schemas']['ReaderResult'];
 
 function result<T>({data, error, response}: {data?: T; error?: unknown; response: Response}): T {
   if (!data) throw failure(error, response.status);
@@ -12,6 +15,7 @@ function result<T>({data, error, response}: {data?: T; error?: unknown; response
 }
 export async function projects() {return result(await client.GET('/api/hub/projects')).projects;}
 export async function settings() {return result(await client.GET('/api/hub/settings'));}
+export async function setSaveFolder(path: string) {return result(await client.POST('/api/hub/settings/save-folder', {body: {path}}));}
 export async function createProject(name: string) {return result(await client.POST('/api/hub/projects', {body: {name}}));}
 export async function openProject(id: string) {
   return result(await client.POST('/api/hub/projects/{identifier}/open', {params: {path: {identifier: id}}}));
@@ -43,3 +47,8 @@ export async function restoreZip(file: File) {
 }
 export function bundleUrl(id: string) {return `/api/hub/projects/${encodeURIComponent(id)}/bundle`;}
 export async function snapshot() {return result(await client.GET('/api/snapshot'));}
+export async function background(id: string) {return result(await client.GET('/api/hub/projects/{identifier}/background', {params: {path: {identifier: id}}}));}
+export async function controlBackground(id: string, running: boolean) {return result(await client.POST('/api/hub/projects/{identifier}/background/control', {params: {path: {identifier: id}}, body: {running}}));}
+export async function dismissAlert(id: string, alertId: string) {return result(await client.POST('/api/hub/projects/{identifier}/background/alerts/{alert_id}/dismiss', {params: {path: {identifier: id, alert_id: alertId}}}));}
+export async function readerResult(id: string, alertId: string) {return result(await client.GET('/api/hub/projects/{identifier}/background/results/{alert_id}', {params: {path: {identifier: id, alert_id: alertId}}}));}
+export function filesystemUrl(id: string, alertId?: string) {return `/api/hub/projects/${encodeURIComponent(id)}/filesystem${alertId ? `?${new URLSearchParams({result: alertId})}` : ''}`;}

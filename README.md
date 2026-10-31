@@ -1,4 +1,6 @@
-# Legion
+# FlagHop
+
+Projects default to `~/Documents/FlagHop/[project name]`. Change the base folder in Setup, below VPN. Desktop exports start in the project's `exports` folder; browser downloads use the browser's download settings. Existing `.legion` workspaces remain supported.
 
 A desktop app for CTFs. Run scans and tools, keep the results in a project, and see what's running.
 
@@ -8,14 +10,17 @@ The plan is to bring the device map, Metasploit, file analysis and website tools
 
 - [x] Desktop app, scans, evidence graph, jobs and approvals.
 - [x] Backend cleanup and React/FastAPI workspace and activity panels.
+- [x] Per-workspace reader controls, saved-result alerts, file browser and editor.
 - [ ] Map devices and show connection types with coloured lines. Run commands from the map.
 - [ ] Add Metasploit and a panel on the right for actions, decoded text, found files and hashes to try cracking.
-- [ ] Bring in the file watcher and decoders, with a file browser and text editor.
+- [ ] Package the reader setup and connect remote filesystem sessions.
 - [ ] Revisit website targets and web tools after the network workflow.
 
 [Full plan and open questions](docs/ctf-workspace-roadmap.md).
 
 [Unfinished requests and UI/non-UI questions](docs/requirements-and-questions.md).
+
+[Workspace reader setup and controls](docs/background-workspaces.md).
 
 ## Run
 
