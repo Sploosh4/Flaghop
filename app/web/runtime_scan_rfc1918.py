@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextvars import copy_context
 from typing import Any, Dict, List
+from app.services.project_networks import NetworkHeld
 
 
 def run_rfc1918_chunked_scan_and_import(
@@ -67,6 +69,7 @@ def run_rfc1918_chunked_scan_and_import(
                 tool_name=str(stage.get("tool_name", "nmap-rfc1918_discovery") or "nmap-rfc1918_discovery"),
                 tab_title=stage_tab_title,
                 host_ip=target_label,
+                network_targets=tuple(batch_targets),
                 port="",
                 protocol="",
                 command=str(stage.get("command", "") or ""),
@@ -76,6 +79,8 @@ def run_rfc1918_chunked_scan_and_import(
             )
             _ = int(process_id or 0)
             if not executed:
+                if str(reason).startswith("held:"):
+                    raise NetworkHeld(reason)
                 raise RuntimeError(
                     f"Nmap stage '{stage.get('tool_name', 'nmap-rfc1918_discovery')}' failed ({reason}). "
                     f"Command: {stage.get('command', '')}"
@@ -98,7 +103,7 @@ def run_rfc1918_chunked_scan_and_import(
             next_batch_index, next_batch_targets = next(batch_iter)
         except StopIteration:
             return False
-        future = pool.submit(_run_rfc_batch, int(next_batch_index), list(next_batch_targets))
+        future = pool.submit(copy_context().run, _run_rfc_batch, int(next_batch_index), list(next_batch_targets))
         pending[future] = int(next_batch_index)
         return True
 

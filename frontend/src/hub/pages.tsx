@@ -4,6 +4,7 @@ import type {HubFile, HubProject, HubSettings} from './api';
 import {Icon} from './Icon';
 import {settingParts} from './parts';
 import {ConnectorInstall} from './ConnectorInstall';
+import {NetworkSettings} from './NetworkSettings';
 const message = (error: unknown) => error instanceof Error ? error.message : String(error);
 
 export function ProjectOverview({project}: {project: HubProject}) {
@@ -29,6 +30,7 @@ export function ProjectSetup({project, onChange}: {project: HubProject; onChange
     <h1>Project setup</h1>
     <div className="hub-property"><label htmlFor="hub-project-vpn">Connector</label><select id="hub-project-vpn" value={project.connector || 'networkmanager'} disabled={saving} onChange={event => {void connector(event.target.value as api.Connector);}}><option value="networkmanager">NetworkManager</option><option value="openvpn">OpenVPN</option><option value="wireguard">WireGuard</option></select><span className="hub-muted">Not configured</span></div>
     {error && <p className="hub-error" role="alert">{error}</p>}
+    <NetworkSettings key={`${project.id}-${project.connector}`} projectId={project.id}/>
     <div className="hub-files-header"><h2>Files</h2><button className="hub-quiet" aria-label="Refresh files" onClick={() => {void api.files(project.id).then(data => {setFiles(data.files); setTruncated(data.truncated); setError('');}).catch(error => setError(message(error)));}}>↻</button></div>
     <div className="hub-files">{files.map(file => <a key={file.path} href={api.fileUrl(project.id, file.path)} download><Icon kind="file"/><span>{file.path}</span><small>{file.size < 1024 ? `${file.size} B` : `${Math.ceil(file.size / 1024)} KB`}</small></a>)}{!files.length && <span className="hub-muted">—</span>}</div>
     {truncated && <p className="hub-muted">First 500 files</p>}

@@ -38,6 +38,7 @@ class ProcessOutput(Process):
     next_offset: int
     completed: bool
     progress: ProcessProgress = Field(default_factory=ProcessProgress)
+    network_context: dict[str, JsonValue] = Field(default_factory=dict)
 
 
 class ActivityRequest(BaseModel):

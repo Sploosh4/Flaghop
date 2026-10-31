@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import json
 import subprocess
 import time
 
@@ -17,12 +18,44 @@ def execute_command(runtime, **kwargs):
     from types import SimpleNamespace
     from app.processes.models import CommandRequest, ExecutionPorts
     from app.processes.runner import ProcessRunner
+    from app.services.project_networks import network_service
+    from app.services.network_guard import NetworkLease
+
+    request = CommandRequest(**kwargs)
+    guard = NetworkLease(network_service(runtime), request)
+    with runtime._lock:
+        execution_project = runtime._require_active_project()
 
     def repository():
         with runtime._lock:
-            project = runtime._require_active_project()
             runtime._ensure_process_tables()
-            return project.repositoryContainer.processRepository
+            return execution_project.repositoryContainer.processRepository
+
+    def record_network(process_id, lease):
+        if not lease.report:
+            return
+        context = {**(lease.reference or {}), "revision": lease.report["revision"], "observation": lease.report}
+        if getattr(lease, "snapshot", None):
+            context.update(
+                settings=lease.snapshot["prefs"].model_dump(),
+                connector=lease.snapshot["connector"],
+                execution_environment="local",
+            )
+        session = execution_project.database.session()
+        try:
+            session.execute(
+                text(
+                    "INSERT INTO process_network_context (process_id, context) VALUES (:id, :context) "
+                    "ON CONFLICT(process_id) DO UPDATE SET context = excluded.context"
+                ),
+                {"id": process_id, "context": json.dumps(context)},
+            )
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
 
     registry = getattr(runtime, "process_registry", None)
     if registry is None:
@@ -44,12 +77,14 @@ def execute_command(runtime, **kwargs):
         unregister_job_process=runtime._unregister_job_process,
         update_process_progress=runtime._update_process_progress,
         write_process_output_partial=runtime._write_process_output_partial,
+        network_guard=guard,
+        record_network_context=record_network,
     )
     return ProcessRunner(
         ports,
         reader_exit_grace=_PROCESS_READER_EXIT_GRACE_SECONDS,
         crash_min_runtime=_PROCESS_CRASH_MIN_RUNTIME_SECONDS,
-    ).run(CommandRequest(**kwargs))
+    ).run(request)
 
 
 def run_command_with_tracking(runtime, *, return_metadata=False, **kwargs):

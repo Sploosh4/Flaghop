@@ -121,6 +121,8 @@ class ProcessRunner:
             self._monitor()
             return self._finish()
         except Exception as exc:
+            from app.services.project_networks import NetworkHeld
+
             self.state.process_repo.storeProcessProblemStatus(str(self.state.process_id))
             try:
                 self.state.process_repo.storeProcessProgress(str(self.state.process_id), estimated_remaining=None)
@@ -129,8 +131,23 @@ class ProcessRunner:
             self.state.process_repo.storeProcessOutput(
                 str(self.state.process_id), f"[error] {exc}\n{''.join(self.state.output_parts)}"
             )
-            return self._build_result(False, f"error: {exc}", int(self.state.process_id))
+            reason = str(exc) if isinstance(exc, NetworkHeld) else f"error: {exc}"
+            self._record_network()
+            return self._build_result(False, reason, int(self.state.process_id))
         finally:
+            if self.ports.network_guard is not None:
+                try:
+                    self.ports.network_guard.close()
+                except Exception as exc:
+                    try:
+                        self.ports.network_guard.block(f"Network cleanup incomplete: {exc}")
+                    except Exception:
+                        logging.getLogger(__name__).exception("Unable to record network cleanup problem")
+                    logging.getLogger(__name__).exception("Network restriction retained after cleanup failure")
+                try:
+                    self._record_network()
+                except Exception:
+                    logging.getLogger(__name__).exception("Unable to persist final network observation")
             with self.ports.registry.lock:
                 self.ports.registry.active.pop(int(self.state.process_id), None)
                 self.ports.registry.kill_requests.discard(int(self.state.process_id))
@@ -138,15 +155,21 @@ class ProcessRunner:
             self.ports.emit_ui_invalidation("processes", "overview", throttle_seconds=0.1)
 
     def _start_process(self):
+        guarded = self.ports.network_guard is not None
+        argv = self.ports.network_guard.prepare() if guarded else self.request.command
+        self._record_network()
+        env = build_tool_execution_env()
+        if guarded:
+            env["NMAP_UNPRIVILEGED"] = "1"
         self.state.proc = subprocess.Popen(
-            self.request.command,
-            shell=True,
+            argv,
+            shell=not guarded,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
             start_new_session=os.name != "nt",
-            env=build_tool_execution_env(),
+            env=env,
         )
         self.state.process_repo.storeProcessRunningStatus(str(self.state.process_id), str(self.state.proc.pid))
         with self.ports.registry.lock:
@@ -157,8 +180,14 @@ class ProcessRunner:
         reader_thread = threading.Thread(target=self._reader, args=(self.state.proc.stdout,), daemon=True)
         reader_thread.start()
 
+    def _record_network(self):
+        if self.ports.network_guard is not None and self.ports.record_network_context is not None:
+            self.ports.record_network_context(self.state.process_id, self.ports.network_guard)
+
     def _monitor(self):
         while True:
+            if self.ports.network_guard is not None and self.state.proc.poll() is None:
+                self.ports.network_guard.verify()
             changed = False
             while True:
                 try:
@@ -384,5 +413,6 @@ class ProcessRunner:
                 "artifact_refs": (
                     self.ports.collect_command_artifacts(self.request.outputfile) if process_id > 0 else []
                 ),
+                "network": self.ports.network_guard.report if self.ports.network_guard is not None else None,
             },
         )

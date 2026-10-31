@@ -3,6 +3,7 @@ from __future__ import annotations
 from db.schema import ensure_column
 
 import os
+import json
 import signal
 import subprocess
 from typing import Any, Dict, Optional
@@ -160,6 +161,10 @@ def get_process_output(runtime, process_id: int, offset: int = 0, max_chars: int
                 raise KeyError(f"Unknown process id: {process_id}")
             keys = result.keys()
             data = dict(zip(keys, row))
+            network = session.execute(
+                text("SELECT context FROM process_network_context WHERE process_id = :id"), {"id": int(process_id)}
+            ).scalar()
+            data["network_context"] = json.loads(network) if network else {}
         finally:
             session.close()
 
@@ -274,6 +279,12 @@ def ensure_process_tables(runtime):
                 "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 "output TEXT"
                 ")"
+            )
+        )
+        session.execute(
+            text(
+                "CREATE TABLE IF NOT EXISTS process_network_context "
+                "(process_id INTEGER PRIMARY KEY, context TEXT NOT NULL)"
             )
         )
         for column_name, column_type in (

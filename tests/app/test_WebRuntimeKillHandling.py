@@ -205,6 +205,17 @@ class WebRuntimeKillHandlingTest(unittest.TestCase):
     def _make_runtime(self, repo):
         from app.web.runtime import WebRuntime
 
+        # These tests isolate process timing/cancellation. Network policy has its own
+        # fixture and real-tunnel acceptance coverage, and must not touch the host here.
+        lease = patch(
+            "app.services.network_guard.NetworkLease",
+            side_effect=lambda _service, request: SimpleNamespace(
+                prepare=lambda: ["/bin/sh", "-c", request.command], verify=lambda: None, close=lambda: None, report=None
+            ),
+        )
+        lease.start()
+        self.addCleanup(lease.stop)
+
         runtime = WebRuntime.__new__(WebRuntime)
         runtime._lock = threading.RLock()
         runtime._process_runtime_lock = threading.Lock()

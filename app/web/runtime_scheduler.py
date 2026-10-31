@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextvars import copy_context
 from typing import Any, Dict, List
 
 from app.web import runtime_scheduler_ai_host_updates as observed_host_updates
@@ -108,7 +109,7 @@ def execute_scheduler_task_batch(runtime, tasks: List[Dict[str, Any]], max_concu
 
     results: List[Dict[str, Any]] = []
     with ThreadPoolExecutor(max_workers=concurrency, thread_name_prefix="legion-scheduler") as pool:
-        future_map = {pool.submit(execute_scheduler_task, runtime, task): task for task in tasks}
+        future_map = {pool.submit(copy_context().run, execute_scheduler_task, runtime, task): task for task in tasks}
         for future in as_completed(future_map):
             task = future_map[future]
             try:

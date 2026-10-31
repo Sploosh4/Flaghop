@@ -46,7 +46,7 @@ class ProjectResponse(BaseModel):
 class Job(ExtensibleModel):
     id: int
     type: str
-    status: Literal["queued", "running", "completed", "failed", "cancelled"]
+    status: Literal["queued", "running", "completed", "failed", "cancelled", "held"]
     created_at: str = ""
     started_at: str | None = ""
     finished_at: str | None = ""

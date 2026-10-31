@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 from app.importers.nmap_runner import import_nmap_xml_into_project
 from app.web import runtime_scan_nmap_jobs as web_runtime_scan_nmap_jobs
 from app.web import runtime_scan_rfc1918 as web_runtime_scan_rfc1918
+from app.services.project_networks import NetworkHeld
 
 start_subnet_rescan_job = web_runtime_scan_nmap_jobs.start_subnet_rescan_job
 start_nmap_xml_import_job = web_runtime_scan_nmap_jobs.start_nmap_xml_import_job
@@ -139,6 +140,7 @@ def run_nmap_scan_and_import(
                 tool_name=stage["tool_name"],
                 tab_title=stage["tab_title"],
                 host_ip=target_label,
+                network_targets=tuple(targets),
                 port="",
                 protocol="",
                 command=stage["command"],
@@ -158,6 +160,8 @@ def run_nmap_scan_and_import(
                 }
             )
             if not executed:
+                if str(reason).startswith("held:"):
+                    raise NetworkHeld(reason)
                 raise RuntimeError(
                     f"Nmap stage '{stage['tool_name']}' failed ({reason}). " f"Command: {stage['command']}"
                 )

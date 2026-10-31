@@ -1095,7 +1095,8 @@
               "running",
               "completed",
               "failed",
-              "cancelled"
+              "cancelled",
+              "held"
             ],
             "title": "Status",
             "type": "string"
@@ -1130,6 +1131,249 @@
         "type": "object"
       },
       "JsonValue": {},
+      "NetworkCheckRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "port": {
+            "anyOf": [
+              {
+                "maximum": 65535.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Port"
+          },
+          "target": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target"
+        ],
+        "title": "NetworkCheckRequest",
+        "type": "object"
+      },
+      "NetworkContext": {
+        "properties": {
+          "config_id": {
+            "title": "Config Id",
+            "type": "string"
+          },
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "connector": {
+            "enum": [
+              "networkmanager",
+              "openvpn",
+              "wireguard"
+            ],
+            "title": "Connector",
+            "type": "string"
+          },
+          "enforcement_available": {
+            "title": "Enforcement Available",
+            "type": "boolean"
+          },
+          "enforcement_reason": {
+            "title": "Enforcement Reason",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "recent_checks": {
+            "items": {
+              "$ref": "#/components/schemas/NetworkReport"
+            },
+            "title": "Recent Checks",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/NetworkPreferences"
+          }
+        },
+        "required": [
+          "project_id",
+          "config_id",
+          "revision",
+          "connector",
+          "configured",
+          "settings",
+          "enforcement_available",
+          "enforcement_reason"
+        ],
+        "title": "NetworkContext",
+        "type": "object"
+      },
+      "NetworkPreferences": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_ports": {
+            "items": {
+              "maximum": 65535.0,
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "maxItems": 128,
+            "title": "Allowed Ports",
+            "type": "array"
+          },
+          "allowed_targets": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "Allowed Targets",
+            "type": "array"
+          },
+          "exclusions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "Exclusions",
+            "type": "array"
+          },
+          "execution_environment": {
+            "const": "local",
+            "default": "local",
+            "title": "Execution Environment",
+            "type": "string"
+          },
+          "interface": {
+            "default": "",
+            "maxLength": 15,
+            "pattern": "^[a-zA-Z0-9_.:-]*$",
+            "title": "Interface",
+            "type": "string"
+          },
+          "mode": {
+            "default": "local",
+            "enum": [
+              "local",
+              "openvpn",
+              "wireguard"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Name",
+            "type": "string"
+          },
+          "profile_id": {
+            "default": "",
+            "maxLength": 4096,
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "required_services": {
+            "items": {
+              "$ref": "#/components/schemas/RequiredService"
+            },
+            "maxItems": 16,
+            "title": "Required Services",
+            "type": "array"
+          },
+          "scope_source": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Scope Source",
+            "type": "string"
+          }
+        },
+        "title": "NetworkPreferences",
+        "type": "object"
+      },
+      "NetworkReport": {
+        "properties": {
+          "checked_at": {
+            "title": "Checked At",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "routes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Routes",
+            "type": "array"
+          },
+          "services": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Services",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "held",
+              "no_response"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target": {
+            "default": "",
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reason",
+          "checked_at",
+          "revision"
+        ],
+        "title": "NetworkReport",
+        "type": "object"
+      },
+      "NetworkUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/NetworkPreferences"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "settings"
+        ],
+        "title": "NetworkUpdate",
+        "type": "object"
+      },
       "OpenHubPath": {
         "additionalProperties": false,
         "properties": {
@@ -1399,6 +1643,13 @@
             ],
             "default": "",
             "title": "Name"
+          },
+          "network_context": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Network Context",
+            "type": "object"
           },
           "next_offset": {
             "title": "Next Offset",
@@ -1817,6 +2068,29 @@
           "name"
         ],
         "title": "RenameProject",
+        "type": "object"
+      },
+      "RequiredService": {
+        "additionalProperties": false,
+        "properties": {
+          "port": {
+            "maximum": 65535.0,
+            "minimum": 1.0,
+            "title": "Port",
+            "type": "integer"
+          },
+          "target": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "port"
+        ],
+        "title": "RequiredService",
         "type": "object"
       },
       "RetriedProcess": {
@@ -3136,6 +3410,231 @@
           }
         },
         "summary": "Filesystem Session"
+      }
+    },
+    "/api/hub/projects/{identifier}/network": {
+      "get": {
+        "operationId": "getProjectNetwork",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "title": "Identifier",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkContext"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Project Network"
+      },
+      "put": {
+        "operationId": "saveProjectNetwork",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "title": "Identifier",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NetworkUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkContext"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Save Project Network"
+      }
+    },
+    "/api/hub/projects/{identifier}/network/check": {
+      "post": {
+        "operationId": "checkProjectNetwork",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "title": "Identifier",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NetworkCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Check Project Network"
       }
     },
     "/api/hub/projects/{identifier}/open": {

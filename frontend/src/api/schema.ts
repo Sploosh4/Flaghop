@@ -260,6 +260,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/hub/projects/{identifier}/network": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Project Network */
+        get: operations["getProjectNetwork"];
+        /** Save Project Network */
+        put: operations["saveProjectNetwork"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hub/projects/{identifier}/network/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check Project Network */
+        post: operations["checkProjectNetwork"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/hub/projects/{identifier}/open": {
         parameters: {
             query?: never;
@@ -1241,7 +1276,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "queued" | "running" | "completed" | "failed" | "cancelled";
+            status: "queued" | "running" | "completed" | "failed" | "cancelled" | "held";
             /** Type */
             type: string;
         } & {
@@ -1253,6 +1288,112 @@ export interface components {
             jobs: components["schemas"]["Job"][];
         };
         JsonValue: unknown;
+        /** NetworkCheckRequest */
+        NetworkCheckRequest: {
+            /** Port */
+            port?: number | null;
+            /** Target */
+            target: string;
+        };
+        /** NetworkContext */
+        NetworkContext: {
+            /** Config Id */
+            config_id: string;
+            /** Configured */
+            configured: boolean;
+            /**
+             * Connector
+             * @enum {string}
+             */
+            connector: "networkmanager" | "openvpn" | "wireguard";
+            /** Enforcement Available */
+            enforcement_available: boolean;
+            /** Enforcement Reason */
+            enforcement_reason: string;
+            /** Project Id */
+            project_id: string;
+            /** Recent Checks */
+            recent_checks?: components["schemas"]["NetworkReport"][];
+            /** Revision */
+            revision: number;
+            settings: components["schemas"]["NetworkPreferences"];
+        };
+        /** NetworkPreferences */
+        NetworkPreferences: {
+            /** Allowed Ports */
+            allowed_ports?: number[];
+            /** Allowed Targets */
+            allowed_targets?: string[];
+            /** Exclusions */
+            exclusions?: string[];
+            /**
+             * Execution Environment
+             * @default local
+             * @constant
+             */
+            execution_environment?: "local";
+            /**
+             * Interface
+             * @default
+             */
+            interface?: string;
+            /**
+             * Mode
+             * @default local
+             * @enum {string}
+             */
+            mode?: "local" | "openvpn" | "wireguard";
+            /**
+             * Name
+             * @default
+             */
+            name?: string;
+            /**
+             * Profile Id
+             * @default
+             */
+            profile_id?: string;
+            /** Required Services */
+            required_services?: components["schemas"]["RequiredService"][];
+            /**
+             * Scope Source
+             * @default
+             */
+            scope_source?: string;
+        };
+        /** NetworkReport */
+        NetworkReport: {
+            /** Checked At */
+            checked_at: string;
+            /** Reason */
+            reason: string;
+            /** Revision */
+            revision: number;
+            /** Routes */
+            routes?: {
+                [key: string]: unknown;
+            }[];
+            /** Services */
+            services?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ready" | "held" | "no_response";
+            /**
+             * Target
+             * @default
+             */
+            target?: string;
+        };
+        /** NetworkUpdate */
+        NetworkUpdate: {
+            /** Expected Revision */
+            expected_revision: number;
+            settings: components["schemas"]["NetworkPreferences"];
+        };
         /** OpenHubPath */
         OpenHubPath: {
             /** Path */
@@ -1359,6 +1500,10 @@ export interface components {
              * @default
              */
             name?: string | null;
+            /** Network Context */
+            network_context?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
             /** Next Offset */
             next_offset: number;
             /** Offset */
@@ -1566,6 +1711,13 @@ export interface components {
             expected_path?: string;
             /** Name */
             name: string;
+        };
+        /** RequiredService */
+        RequiredService: {
+            /** Port */
+            port: number;
+            /** Target */
+            target: string;
         };
         /** RetriedProcess */
         RetriedProcess: {
@@ -2563,6 +2715,188 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getProjectNetwork: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkContext"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    saveProjectNetwork: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NetworkUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkContext"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    checkProjectNetwork: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NetworkCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkReport"];
                 };
             };
             /** @description Bad Request */

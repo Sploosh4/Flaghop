@@ -14,6 +14,7 @@ from app.services.project_hub_requests import (
     HubSaveFolder,
 )
 from app.services.project_hub import ProjectHub
+from app.services.network_models import NetworkUpdate, NetworkCheckRequest
 from app.services.project_background import ProjectBackground
 from app.services.project_hub_requests import BackgroundControl
 from app.services.project_files import ProjectFiles
@@ -46,6 +47,23 @@ def hub_error(exc):
 @hub_bp.get("/api/hub/projects")
 def projects():
     return jsonify(_hub().list())
+
+
+@hub_bp.get("/api/hub/projects/<identifier>/network")
+def project_network(identifier):
+    return jsonify(_hub().networks.get(identifier))
+
+
+@hub_bp.put("/api/hub/projects/<identifier>/network")
+def save_project_network(identifier):
+    payload = NetworkUpdate.model_validate(request.get_json(silent=True) or {})
+    return jsonify(_hub().networks.save(identifier, payload))
+
+
+@hub_bp.post("/api/hub/projects/<identifier>/network/check")
+def check_project_network(identifier):
+    payload = NetworkCheckRequest.model_validate(request.get_json(silent=True) or {})
+    return jsonify(_hub().networks.check(identifier, payload))
 
 
 @hub_bp.post("/api/hub/projects")

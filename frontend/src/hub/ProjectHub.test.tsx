@@ -21,6 +21,7 @@ beforeEach(() => {
   vi.mocked(api.openProject).mockImplementation(async id => opened(id === 'one' ? harbour : other));
   vi.mocked(api.files).mockResolvedValue({files: [], truncated: false});
   vi.mocked(api.snapshot).mockResolvedValue({project: {name: harbour.path}, jobs: [], hosts: [{id: 7, ip: '192.0.2.7', hostname: 'fixture'}]});
+  vi.mocked(api.projectNetwork).mockImplementation(async project_id => ({project_id, config_id: `network-${project_id}`, revision: 0, connector: 'networkmanager', configured: false, settings: {}, enforcement_available: true, enforcement_reason: 'Fixture enforcement tools', recent_checks: []}));
   vi.mocked(api.setProjectConnector).mockResolvedValue({status: 'ok'});
   vi.mocked(api.background).mockImplementation(async id => backgroundState(id, false));
 });

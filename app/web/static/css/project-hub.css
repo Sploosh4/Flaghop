@@ -110,6 +110,19 @@ body.workspace-part[data-workspace-part="app-settings"] .tool-audit-table-wrap c
 #project-hub-root .hub-connector-install-buttons button {border:1px solid #303030;background:#111;padding:8px 12px;white-space:nowrap;}
 #project-hub-root .hub-connector-install p {margin:8px 0 0;max-width:360px;overflow-wrap:anywhere;padding:0;}
 #project-hub-root .hub-connection-default {flex-wrap:wrap;}
+#project-hub-root .hub-network-settings {margin:24px 0;border-bottom:1px solid #232323;padding-bottom:20px;max-width:900px;}
+#project-hub-root .hub-network-settings summary {cursor:pointer;padding:8px 0;}
+#project-hub-root .hub-network-settings fieldset {border:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:16px;min-width:0;}
+#project-hub-root .hub-network-settings label {display:flex;flex-direction:column;gap:7px;min-width:0;font-size:12px;color:#aaa;}
+#project-hub-root .hub-network-settings input,#project-hub-root .hub-network-settings textarea,#project-hub-root .hub-network-settings select {width:100%;box-sizing:border-box;background:#111;color:#d5d5d5;border:1px solid #303030;border-radius:5px;padding:8px;font:inherit;}
+#project-hub-root .hub-network-settings textarea {min-height:70px;resize:vertical;}
+#project-hub-root .hub-network-settings .hub-muted {line-height:1.6;}
+#project-hub-root .hub-network-actions {display:flex;align-items:end;gap:8px;flex-wrap:wrap;}
+#project-hub-root .hub-network-settings button {border:1px solid #303030;background:#171717;}
+#project-hub-root .hub-network-check {display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-top:22px;}
+#project-hub-root .hub-network-report {border-top:1px solid #232323;padding:12px 0;font-size:12px;overflow-wrap:anywhere;line-height:1.6;}
+#project-hub-root .hub-network-report>span {display:block;color:#888;}
+@media(max-width:900px){#project-hub-root .hub-network-settings fieldset{grid-template-columns:1fr}}
 #project-hub-root .hub-error {color:#db8d8d;font-size:12px;padding:10px 25px;margin:0;}
 #project-hub-root .hub-modal-backdrop {position:fixed;inset:0;display:grid;place-items:center;background:#0009;backdrop-filter:blur(3px);z-index:100;}
 #project-hub-root .hub-modal {width:min(390px,calc(100vw - 40px));padding:22px;background:#141414;border:1px solid #333;border-radius:10px;box-sizing:border-box;}
