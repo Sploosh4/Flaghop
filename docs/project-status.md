@@ -1,6 +1,6 @@
 # FlagHop delivery status
 
-Repository: [Sploosh4/Flagmap](https://github.com/Sploosh4/Flagmap). The GitHub repository has been renamed; existing local folder paths and the current FlagHop application branding remain.
+Repository: [Sploosh4/Flaghop](https://github.com/Sploosh4/Flaghop). The GitHub repository has been renamed; existing local folder paths and the current FlagHop application branding remain.
 
 Reviewed **31 October 2026**. This describes the project across its published repository, local development app and separate tools. It is a dated review, not a live monitor or a release announcement.
 
@@ -29,32 +29,38 @@ The independent local acceptance report records 29 checks for real A/B processin
 
 Reader engines and service live in separate tool directories. See [workspace readers](background-workspaces.md) for the integration contract and limits.
 
+## FastAPI-only migration and architecture improvements
+
+This revision replaces all remaining HTTP handlers, Jinja pages, uploads/downloads and static serving with native FastAPI routes. Flask, Flask-Sock, Werkzeug and the WSGI adapter are removed from requirements and application imports; there is no alternate transport flag. It builds on the earlier `ca4caea` scanner checkpoint. Local validation passed without those packages installed: 529 Python tests plus three transfer-lifecycle tests, Black/flake8, 56 React tests, generated contracts/types, reproducible production assets and 128 native desktop checks (66 workspace, 16 hardware, 15 documents, 13 scanner fixture, 18 window controls). The running localhost backend was restarted while idle and serves health, page and assets successfully. Older two-transport counts below describe their dated checkpoints, not a requirement to retain that stack.
+
+Josh authorised and this revision includes verified material improvements for all eight [architecture follow-ups](architecture-follow-ups.md), with before/after evidence and regression tests. The improvements add shared project lock ownership, typed scanner facts, settled job publication/restart recovery, bounded history polling, checked scanner updates and strict proxy IPC. It also supplements the standalone dependency audit with actual Chrome/WPScan application hashes. The frozen code passes 564 Python tests, 58 frontend tests, 51 scanner regressions, 13 supplemental behaviour checks, 128 native desktop checks. Native HEAD/OPTIONS compatibility is tested across the retained route inventory and checked on the running backend. The fresh real-browser gate passed four cases before the app acceptance run. Scale measurements cover 1,000 saved runs with bounded 200-card rendering. Fresh real app allowed/denied traffic, browser reproduction, settled import/evidence reopening and isolated WireGuard/OpenVPN guard/common-runner checks pass. Final scan retention is 493,081 bytes/44 files, with 186,010,745 bytes sampled temporary growth and no temporary leftovers; see the follow-up record for measurement limits.
+
 ## Active work
 
 This checkpoint implements a thin adapter around
 all 18 scanner modules: selected-device Deep scan jobs, revision/scope checks,
 guarded descendants and an owned-proxy handshake, validated profile/evidence
 import, service and role/finding views, and independent evidence reopening.
-The app fixture tests exercise both transports. Live privileged egress acceptance
+At the earlier `ca4caea` checkpoint, app fixture tests exercised both transports; this revision tests the retained native transport. Live privileged egress acceptance
 passed against an owned local fixture: normal-user execution, allowed/denied-port
 controls, real guarded browser proof, profile import and evidence reopening. No
 guard bypass was used. Post-launcher checks passed 529 Python tests and 56 React tests, with scanner fixtures
 and the existing desktop regressions passing on both transports. The scanner's
 owner completed fresh Python 3.12 compatibility validation and evidence review:
 51 regressions on each interpreter, 15 supplemental checks and three 28/28
-browser-gated runs. The Chrome ELF/WPScan entrypoint audit gap remains open. It is included in this `master` checkpoint. See [scanner integration](scanner-integration.md)
+browser-gated runs. That standalone audit remains narrower; this revision adds actual Chrome/WPScan implementation fingerprints in the app worker. See [scanner integration](scanner-integration.md)
 and [architecture](architecture.md).
 
 | Workstream | Current position | Remaining gate |
 | --- | --- | --- |
-| Scanner | Conditional five-stage profiler and device classifier; current Python 3.12 compatibility candidate passes 51 regressions on both interpreters, 15 supplemental checks and three matching browser-gated runs with 28/28 acceptance checks each. Source and evidence review completed. | Chrome ELF/WPScan implementation identity coverage remains incomplete. The owned-fixture app guard path passed separately; this does not establish every network/tool configuration. |
+| Scanner | Conditional five-stage profiler and device classifier; current Python 3.12 compatibility candidate passes 51 regressions on both interpreters, 15 supplemental checks and three matching browser-gated runs with 28/28 acceptance checks each. Source and evidence review completed. | The app now supplements the standalone audit with Chrome ELF/WPScan application fingerprints. Shared OS/Ruby dependency coverage remains incomplete. The owned-fixture app guard path passed separately; this does not establish every network/tool configuration. |
 | VPN/network setup | Included: shared scope/exclusions/ports, explicit profile/interface identity, Settings checks, original-project job references, held outcomes and guarded local execution. Real isolated WireGuard and userspace OpenVPN acceptance passed, including Nmap, denied destinations/ports and route-fallback blocking. | Profile discovery/import/connect/disconnect, raw-socket/DCO adapters, remote runners, callback verification and optional traceroute remain planned. |
 
 Acceptance scores describe their defined lab suite. They do not measure whole-app completion, exploit coverage or exact device identity. Metasploit is excluded from the scanner's staged evaluation.
 
 Network commands require local Linux enforcement tools and administrator access. WireGuard needs an existing nonzero transport fwmark; supported OpenVPN uses a userspace `tun` device. Missing enforcement holds a job rather than running it unrestricted. See [network settings and supported modes](project-network-settings.md).
 
-Combined-checkpoint validation: 505 Python tests, Black/flake8, 46 React tests, schema/type checks and a reproducible production bundle passed. Both ASGI and legacy desktop runs passed 66 checks each with no JavaScript errors. The network guard, runner and real-tunnel acceptance sources match the verified network handoff; live host routes and VPNs were not used as test targets.
+Earlier combined-checkpoint validation: 505 Python tests, Black/flake8, 46 React tests, schema/type checks and a reproducible production bundle passed. Both ASGI and legacy desktop runs passed 66 checks each with no JavaScript errors. The network guard, runner and real-tunnel acceptance sources match the verified network handoff; live host routes and VPNs were not used as test targets.
 
 ## Working separately
 
@@ -107,7 +113,7 @@ Authenticated web investigation is deferred until the basic integrated workflow 
 ## Problems to track
 
 1. **Broader integration:** selected-target scan, inventory, findings and saved evidence are verified locally. Full action/session wiring, observed-hop topology and remote Files remain separate work.
-2. **Scanner identity:** the Chrome ELF and WPScan implementation-entrypoint fingerprint gaps remain open despite the passing defined suites.
+2. **Scanner identity:** the local candidate adds actual Chrome ELF and selected WPScan application fingerprints with mutation tests. Shared OS/Ruby dependencies remain outside that audit; fresh local app/browser evidence passes. The earlier checkpoint retains the older scope.
 3. **Network support:** automatic connection management and unsupported privileged/remote adapters remain incomplete. The tested guard covers app-managed local commands only.
 4. **Pause observation:** requests are durable and cooperative; the app cannot confirm the instant every worker has stopped.
 5. **Evidence navigation/editing:** provenance exists, but return-to-source links, a visual version chain and durable edited-copy saving remain incomplete.

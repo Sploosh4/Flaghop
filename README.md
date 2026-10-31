@@ -1,6 +1,6 @@
 # FlagHop
 
-A desktop workspace for CTFs, built from Legion. The repository is [Sploosh4/Flagmap](https://github.com/Sploosh4/Flagmap); the current app name is FlagHop. Run local scans and tools, keep their evidence in a project, and track jobs and results.
+A desktop workspace for CTFs, built from Legion. The repository is [Sploosh4/Flaghop](https://github.com/Sploosh4/Flaghop); the current app name is FlagHop. Run local scans and tools, keep their evidence in a project, and track jobs and results.
 
 The next step is to connect device mapping, reconnaissance, Metasploit actions and file analysis in one workflow.
 
@@ -51,7 +51,7 @@ For the browser interface, use `requirements.txt` and run:
 .venv/bin/python legion.py --web
 ```
 
-Open <http://127.0.0.1:5000>. Frontend assets are included; Node.js is only needed for development. Build and test commands are in [MIGRATION.md](MIGRATION.md).
+Open <http://127.0.0.1:5000>. The local migration candidate serves all routes, pages, uploads, downloads and WebSockets through FastAPI/Uvicorn; it has no Flask fallback or `--web-stack` selector. Frontend assets are included; Node.js is only needed for development. Build and test commands are in [MIGRATION.md](MIGRATION.md).
 
 Projects default to `~/Documents/FlagHop/[project name]`. Change the base folder in Setup. Existing `.legion` workspaces remain supported; moving existing project folders is an explicit operation.
 

@@ -1,5 +1,7 @@
 # Legion Web Replatform Plan
 
+Historical plan, superseded by the FastAPI-only transport candidate. References to Flask below describe the original implementation, not current setup instructions. See [MIGRATION.md](../MIGRATION.md).
+
 > Historical replatform plan. For this fork's current product direction, see the [planned CTF workspace](ctf-workspace-roadmap.md). For the implemented FastAPI/React migration and remaining compatibility layer, see [MIGRATION.md](../MIGRATION.md). Earlier UI, framework and automation decisions below should not be treated as the current roadmap.
 
 ## Agreed Decisions

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flask import current_app, jsonify
+from starlette.responses import JSONResponse
 
 
 def as_bool(value, default: bool = False) -> bool:
@@ -25,18 +25,4 @@ def clamp_int(value, default: int, minimum: int, maximum: int) -> int:
 
 
 def json_error(message: str, status_code: int = 400):
-    return jsonify({"status": "error", "error": str(message)}), int(status_code)
-
-
-def runtime_from_app():
-    return current_app.extensions["legion_runtime"]
-
-
-def disable_api_cache(response):
-    from flask import request
-
-    if request.path.startswith("/api/"):
-        response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
-    return response
+    return JSONResponse({"status": "error", "error": str(message)}, status_code=int(status_code))

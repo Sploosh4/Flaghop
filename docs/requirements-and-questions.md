@@ -1,5 +1,7 @@
 # Requests and open questions
 
+Included transport: all HTTP routes, pages, ZIP transfer and WebSockets use FastAPI. The Flask fallback and transport selector are removed; existing project and reader formats are preserved. The separately authorised [architecture improvements](architecture-follow-ups.md) are included in this revision and verified locally.
+
 Updated 31 October 2026. This separates working changes from requests still waiting. Nothing below authorises starting a deferred integration.
 
 This file includes the current app, separate tools and reviewed designs. Design decisions do not imply implemented app interactions. See [delivery status](project-status.md) for the code/evidence boundary and [roadmap](ctf-workspace-roadmap.md) for delivery order.

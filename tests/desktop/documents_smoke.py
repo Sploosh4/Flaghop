@@ -17,7 +17,6 @@ os.environ["LEGION_HOME"] = str(Path(fixture.name) / "config")
 os.environ["LEGION_PROJECTS_DIR"] = str(Path(fixture.name) / "Documents/FlagHop")
 os.environ["TMPDIR"] = str(ROOT / ".tmp")
 os.environ["XDG_CACHE_HOME"] = str(ROOT / ".cache")
-
 from PyQt6 import sip
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QApplication
@@ -26,16 +25,14 @@ from app.desktop import LegionWindow, WorkspacePage
 from app.desktop_documents import DocumentPopupPage
 from app.services.project_background import atomic_json
 from app.services.project_files import ProjectFiles
-from app.web import create_app as create_legacy_app
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
-from tests.support.asgi_server import live_asgi_server, live_legacy_server
+from tests.support.asgi_server import live_asgi_server
 
 logic = create_default_logic()
 runtime = WebRuntime(logic)
-legacy = os.environ.get("LEGION_SMOKE_WEB_STACK") == "legacy"
-web = create_legacy_app(runtime) if legacy else create_app(runtime)
-hub = (web if legacy else web.state.legacy).extensions["project_hub"]
+web = create_app(runtime)
+hub = web.state.project_hub
 project = hub.create("Harbour")["project"]
 root = Path(project["folder"])
 (root / "input.txt").write_text("Synthetic source. Original bytes must stay unchanged.\n")
@@ -77,7 +74,7 @@ def tracked_listing(self, path):
 
 
 ProjectFiles.listing = tracked_listing
-server = live_legacy_server(web) if legacy else live_asgi_server(web)
+server = live_asgi_server(web)
 url = server.__enter__()
 app = QApplication([sys.argv[0]])
 checks, errors = [], []
@@ -90,7 +87,7 @@ def console(self, level, message, line, source):
 
 WorkspacePage.javaScriptConsoleMessage = console
 DocumentPopupPage.javaScriptConsoleMessage = console
-window = LegionWindow(url + "/", profile_dir=ARTIFACTS / ("profile-legacy" if legacy else "profile"))
+window = LegionWindow(url + "/", profile_dir=ARTIFACTS / "profile")
 window.show()
 page = window.page
 editor = None
@@ -213,7 +210,7 @@ def files_opened():
 
 
 def finish():
-    data = {"stack": "legacy" if legacy else "asgi", "checks": checks, "js_errors": errors}
+    data = {"stack": "asgi", "checks": checks, "js_errors": errors}
     (ARTIFACTS / ("checks-" + data["stack"] + ".json")).write_text(json.dumps(data, indent=2))
     print(json.dumps(data))
     app.exit(0 if all(row["result"] is True for row in checks) and not errors else 1)

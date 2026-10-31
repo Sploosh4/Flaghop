@@ -24,6 +24,104 @@ class WebJobManagerTest(unittest.TestCase):
         manager.cancel_job(job["id"])
         self.assertEqual(1, len(completed))
 
+    def test_terminal_state_and_exclusive_release_wait_for_persistence(self):
+        from app.web.jobs import WebJobManager
+
+        manager = WebJobManager(worker_count=2)
+        entered, release, following = threading.Event(), threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        published = []
+        manager._on_change = lambda row, event: published.append((row["id"], event))
+
+        def persist(row):
+            self.assertEqual("completed", row["status"])
+            # Reentrant reads must not deadlock, nor expose an unsettled result.
+            self.assertEqual("running", manager.get_job(row["id"])["status"])
+            from types import SimpleNamespace
+            from app.web.runtime_process_jobs import stop_job
+
+            response = stop_job(SimpleNamespace(jobs=manager), row["id"])
+            self.assertFalse(response["stopped"])
+            self.assertTrue(response["job"]["settling"])
+            self.assertIn("saving", response["message"])
+            entered.set()
+            release.wait(3)
+
+        first = manager.start("save-evidence", lambda: {"proof": "retained"}, exclusive=True, on_finish=persist)
+        self.assertTrue(entered.wait(1))
+        second = manager.start("next-project", lambda: (following.set(), {})[1])
+        self.assertEqual("running", manager.get_job(first["id"])["status"])
+        self.assertEqual("queued", manager.get_job(second["id"])["status"])
+        self.assertNotIn((first["id"], "completed"), published)
+        self.assertFalse(following.is_set())
+        release.set()
+        self.assertEqual("completed", self._wait_for_state(manager, first["id"], {"completed"})["status"])
+        self.assertTrue(following.wait(1))
+
+    def test_persistence_failure_is_visible_and_preserves_execution_result(self):
+        from app.web.jobs import WebJobManager
+
+        def fail(_row):
+            raise OSError("fixture disk full")
+
+        manager = WebJobManager()
+        with self.assertLogs("app.web.jobs", level="ERROR"):
+            job = manager.start("import", lambda: {"evidence": "original"}, on_finish=fail)
+            settled = self._wait_for_state(manager, job["id"], {"failed", "completed"})
+        self.assertEqual("failed", settled["status"])
+        self.assertEqual("completed", settled["result"]["execution_status"])
+        self.assertEqual("original", settled["result"]["evidence"])
+        self.assertIn("fixture disk full", settled["error"])
+
+    def test_queued_cancel_persists_before_notifying_and_does_not_execute(self):
+        from app.web.jobs import WebJobManager
+
+        manager = WebJobManager()
+        gate, entered = threading.Event(), threading.Event()
+        self.addCleanup(gate.set)
+        manager.start("blocker", lambda: (entered.set(), gate.wait(3), {})[-1])
+        self.assertTrue(entered.wait(1))
+        events = []
+        manager._on_change = lambda _row, event: events.append(event)
+        job = manager.start(
+            "cancel-me",
+            lambda: self.fail("Cancelled runner executed"),
+            on_finish=lambda row: events.append("persisted:" + row["status"]),
+        )
+        result = manager.cancel_job(job["id"])
+        self.assertEqual("cancelled", result["status"])
+        self.assertLess(events.index("persisted:cancelled"), events.index("cancelled"))
+        manager.cancel_job(job["id"])
+        self.assertEqual(1, events.count("persisted:cancelled"))
+        gate.set()
+
+    def test_active_queue_has_explicit_backpressure_without_dropping_pending_work(self):
+        from app.web.jobs import WebJobManager
+
+        gate, entered = threading.Event(), threading.Event()
+        self.addCleanup(gate.set)
+        manager = WebJobManager(max_jobs=20)
+        first = manager.start("blocker", lambda: (entered.set(), gate.wait(4), {})[-1])
+        self.assertTrue(entered.wait(1))
+        pending = [manager.start("queued", lambda: {}) for _ in range(19)]
+        with self.assertRaisesRegex(RuntimeError, "queue is full"):
+            manager.start("overflow", lambda: self.fail("Overflow ran"))
+        self.assertEqual(20, len(manager.list_jobs()))
+        self.assertTrue(all(manager.get_job(row["id"])["status"] == "queued" for row in pending))
+        gate.set()
+        self.assertEqual("completed", self._wait_for_state(manager, first["id"], {"completed"})["status"])
+
+    def test_invalid_runner_result_fails_without_losing_worker_or_exclusive_slot(self):
+        from app.web.jobs import WebJobManager
+
+        manager = WebJobManager()
+        broken = manager.start("bad-result", lambda: "not a dictionary", exclusive=True)
+        failed = self._wait_for_state(manager, broken["id"], {"failed"})
+        self.assertEqual("failed", failed["status"])
+        self.assertIn("result dictionary", failed["error"])
+        next_job = manager.start("next", lambda: {"ok": True})
+        self.assertEqual("completed", self._wait_for_state(manager, next_job["id"], {"completed"})["status"])
+
     def _wait_for_state(self, manager, job_id, states, timeout=1.5):
         deadline = time.time() + timeout
         while time.time() < deadline:

@@ -29,6 +29,16 @@ def save(project, run_id, host_id, target, digest, summary):
         return not bool(previous)
 
 
+def get(project, run_id):
+    """One primary-key read, independent of the size of the project history."""
+    with project.database.engine.begin() as connection:
+        table(connection)
+        value = connection.execute(
+            text("SELECT summary FROM flaghop_deep_scans WHERE run_id=:id"), {"id": run_id}
+        ).scalar()
+        return json.loads(value) if value is not None else None
+
+
 def summaries(project, host_id=None):
     with project.database.engine.begin() as connection:
         table(connection)

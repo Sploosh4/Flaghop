@@ -1,3 +1,4 @@
+from fastapi.testclient import TestClient
 import unittest
 
 
@@ -71,52 +72,46 @@ class _GraphReportRuntime:
 
 
 class WebGraphAndReportRoutesTest(unittest.TestCase):
+
     def setUp(self):
-        from app.web import create_app
+        from app.api import create_app
 
         self.runtime = _GraphReportRuntime()
-        self.client = create_app(self.runtime).test_client()
+        self.client = TestClient(create_app(self.runtime), raise_server_exceptions=False)
 
     def test_graph_routes_delegate_to_graph_service(self):
         graph = self.client.get("/api/graph?node_types=host&host_id=11&include_ai_suggested=false&limit_nodes=10")
         self.assertEqual(200, graph.status_code)
-        self.assertEqual(["host"], graph.json["meta"]["filters"]["node_types"])
-        self.assertEqual(11, graph.json["meta"]["filters"]["host_id"])
-        self.assertFalse(graph.json["meta"]["filters"]["include_ai_suggested"])
-
+        self.assertEqual(["host"], graph.json()["meta"]["filters"]["node_types"])
+        self.assertEqual(11, graph.json()["meta"]["filters"]["host_id"])
+        self.assertFalse(graph.json()["meta"]["filters"]["include_ai_suggested"])
         rebuild = self.client.post("/api/graph/rebuild", json={"host_id": 11})
         self.assertEqual(200, rebuild.status_code)
-        self.assertEqual("ok", rebuild.json["status"])
-
+        self.assertEqual("ok", rebuild.json()["status"])
         node_content = self.client.get("/api/graph/nodes/host-1/content?max_chars=42")
         self.assertEqual(200, node_content.status_code)
-        self.assertEqual("host-1", node_content.json["items"][0]["node_id"])
-
+        self.assertEqual("host-1", node_content.json()["items"][0]["node_id"])
         content = self.client.get("/api/graph/content/host-1?download=true")
         self.assertEqual(200, content.status_code)
         self.assertIn("attachment; filename=", content.headers.get("Content-Disposition", ""))
-
         layouts = self.client.get("/api/graph/layouts")
         self.assertEqual(200, layouts.status_code)
-        self.assertEqual("layout-1", layouts.json["layouts"][0]["layout_id"])
-
+        self.assertEqual("layout-1", layouts.json()["layouts"][0]["layout_id"])
         saved_layout = self.client.post(
             "/api/graph/layouts",
             json={"view_id": "default", "name": "ops", "layout": {"x": 10}, "layout_id": "layout-2"},
         )
         self.assertEqual(200, saved_layout.status_code)
-        self.assertEqual("layout-2", saved_layout.json["layout"]["layout_id"])
-
+        self.assertEqual("layout-2", saved_layout.json()["layout"]["layout_id"])
         annotations = self.client.get("/api/graph/annotations?target_ref=host-1&target_kind=node")
         self.assertEqual(200, annotations.status_code)
-        self.assertEqual("host-1", annotations.json["annotations"][0]["target_ref"])
-
+        self.assertEqual("host-1", annotations.json()["annotations"][0]["target_ref"])
         saved_annotation = self.client.post(
             "/api/graph/annotations",
             json={"target_kind": "node", "target_ref": "host-1", "body": "focus this node"},
         )
         self.assertEqual(200, saved_annotation.status_code)
-        self.assertEqual("focus this node", saved_annotation.json["annotation"]["body"])
+        self.assertEqual("focus this node", saved_annotation.json()["annotation"]["body"])
 
 
 if __name__ == "__main__":

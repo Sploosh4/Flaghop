@@ -199,26 +199,23 @@ class NetworkLease:
         if self.request.tool_name != "device-profile" or not self.request.proxy_channel:
             return
         path = Path(self.request.proxy_channel)
-        if not path.exists():
+        from app.scanning.proxy_channel import registration
+
+        try:
+            message = registration(path, self.request.proxy_token)
+        except (OSError, ValueError) as exc:
+            raise NetworkHeld(f"Invalid scan proxy registration: {exc}") from exc
+        if message is None or message.sequence == self.proxy_sequence:
             return
-        if path.is_symlink() or path.stat().st_size > 2048:
-            raise NetworkHeld("Invalid scan proxy registration.")
-        message = json.loads(path.read_text())
-        sequence, port = message.get("sequence"), message.get("port")
-        if sequence == self.proxy_sequence:
-            return
-        if not isinstance(sequence, str) or len(sequence) != 32 or message.get("token") != self.request.proxy_token:
-            raise NetworkHeld("Invalid scan proxy ownership token.")
-        if type(port) is not int or not 1 <= port <= 65535 or message.get("operation") not in {"open", "close"}:
-            raise NetworkHeld("Invalid scan proxy port/operation.")
-        if message["operation"] == "open":
+        sequence, port = message.sequence, message.port
+        if message.operation == "open":
             helper = Path(__file__).resolve().parents[1] / "scanning/listener.py"
             try:
                 command([sys.executable, "-I", str(helper), str(self.gid), str(port)], admin=True)
             except RuntimeError as exc:
                 raise NetworkHeld("Scan proxy listener does not belong to this job's private group.") from exc
         rules = f"flush set inet {self.table} scan_proxy\n"
-        if message["operation"] == "open":
+        if message.operation == "open":
             rules += f"add element inet {self.table} scan_proxy {{ {port} }}\n"
         command([executable("nft"), "-f", "-"], admin=True, input=rules)
         from app.services.project_background import atomic_json

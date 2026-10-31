@@ -1,5 +1,7 @@
 # FlagHop CTF workspace roadmap
 
+Included transport: all HTTP routes, pages, ZIP transfer and WebSockets use FastAPI. The Flask fallback and transport selector are removed; existing project and reader formats are preserved. The separately authorised [architecture improvements](architecture-follow-ups.md) are included in this revision and verified locally.
+
 Reviewed 31 October 2026. FlagHop is the app being developed in [Sploosh4/Flagmap](https://github.com/Sploosh4/Flagmap), a CTF-focused Legion fork. The [delivery status](project-status.md) separates this implementation checkpoint, separate tools and planned work.
 
 The goal is one workspace for device mapping, reconnaissance, commands, Metasploit and file investigation. The website replacement comes later.

@@ -8,7 +8,6 @@ import tempfile
 import threading
 import unittest
 from unittest.mock import patch
-
 from fastapi.testclient import TestClient
 from app.services.network_models import NetworkCheckRequest, NetworkUpdate
 from app.services.project_networks import NetworkHeld, ProjectNetworks
@@ -78,6 +77,7 @@ class FixtureProbe:
 
 
 class ProjectNetworksTest(unittest.TestCase):
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -263,23 +263,20 @@ class ProjectNetworksTest(unittest.TestCase):
         start_job(runtime, "file-analysis", lambda _: {"done": offline.set()})
         self.assertTrue(offline.wait(2))
 
-    def test_native_and_legacy_settings_routes_validate_without_network_work(self):
+    def test_network_routes_validate_without_network_work(self):
         from app.api import create_app
-        from app.web import create_app as legacy_app
 
         fake_hub = SimpleNamespace(networks=self.service)
-        for stack in ("native", "legacy"):
-            app = create_app() if stack == "native" else legacy_app(None)
-            (app.state.legacy if stack == "native" else app).extensions["project_hub"] = fake_hub
-            client = TestClient(app) if stack == "native" else app.test_client()
-            if stack == "native":
-                self.addCleanup(client.close)
-            get = client.get("/api/hub/projects/a/network")
-            self.assertEqual(200, get.status_code)
-            invalid = client.put(
-                "/api/hub/projects/a/network", json={"expected_revision": 1, "settings": {"interface": "bad;command"}}
-            )
-            self.assertEqual(422, invalid.status_code)
-            wrong = client.post("/api/hub/projects/a/network/check", json={"target": "198.51.100.7"})
-            body = wrong.json() if stack == "native" else wrong.get_json()
-            self.assertEqual("held", body["status"])
+        app = create_app()
+        app.state.project_hub = fake_hub
+        client = TestClient(app)
+        self.addCleanup(client.close)
+        get = client.get("/api/hub/projects/a/network")
+        self.assertEqual(200, get.status_code)
+        invalid = client.put(
+            "/api/hub/projects/a/network", json={"expected_revision": 1, "settings": {"interface": "bad;command"}}
+        )
+        self.assertEqual(422, invalid.status_code)
+        wrong = client.post("/api/hub/projects/a/network/check", json={"target": "198.51.100.7"})
+        body = wrong.json()
+        self.assertEqual("held", body["status"])

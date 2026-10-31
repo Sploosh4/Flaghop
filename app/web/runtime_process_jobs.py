@@ -70,6 +70,14 @@ def stop_job(runtime, job_id: int) -> Dict[str, Any]:
     if job is None:
         raise KeyError(f"Unknown job id: {job_id}")
 
+    if job.get("settling"):
+        return {
+            "stopped": False,
+            "job": job,
+            "killed_process_ids": [],
+            "message": "Job is saving its result; wait for completion.",
+        }
+
     status = str(job.get("status", "") or "").strip().lower()
     if status not in {"queued", "running"}:
         return {

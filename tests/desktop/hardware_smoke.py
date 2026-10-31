@@ -15,7 +15,6 @@ os.environ["LEGION_HOME"] = str(Path(fixture.name) / "config")
 os.environ["LEGION_PROJECTS_DIR"] = str(Path(fixture.name) / "Documents/FlagHop")
 os.environ["TMPDIR"] = str(ROOT / ".tmp")
 os.environ["XDG_CACHE_HOME"] = str(ROOT / ".cache")
-
 from PyQt6 import sip
 from PyQt6.QtCore import QPoint, QTimer, QUrl
 from PyQt6.QtTest import QTest
@@ -24,16 +23,14 @@ from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWidgets import QApplication
 from app.api import create_app
 from app.services.network_models import NetworkUpdate
-from app.web import create_app as create_legacy_app
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
-from tests.support.asgi_server import live_asgi_server, live_legacy_server
+from tests.support.asgi_server import live_asgi_server
 
 logic = create_default_logic()
 runtime = WebRuntime(logic)
-legacy = os.environ.get("LEGION_SMOKE_WEB_STACK") == "legacy"
-web = create_legacy_app(runtime) if legacy else create_app(runtime)
-hub = (web if legacy else web.state.legacy).extensions["project_hub"]
+web = create_app(runtime)
+hub = web.state.project_hub
 other = hub.create("Other lab")["project"]
 project = hub.create("Harbour")["project"]
 rows = [
@@ -69,9 +66,8 @@ hub.networks.record(
         "services": [],
     },
 )
-# Opening Overview must not initiate connection discovery or target checks.
 hub.networks.probe.interface = lambda *_: (_ for _ in ()).throw(AssertionError("Unexpected network probe"))
-server = live_legacy_server(web) if legacy else live_asgi_server(web)
+server = live_asgi_server(web)
 url = server.__enter__()
 app = QApplication([sys.argv[0]])
 checks, errors = [], []
@@ -240,7 +236,7 @@ def switched():
 
 
 def finish():
-    result = {"stack": "legacy" if legacy else "asgi", "checks": checks, "js_errors": errors}
+    result = {"stack": "asgi", "checks": checks, "js_errors": errors}
     (ARTIFACTS / f"checks-{result['stack']}.json").write_text(json.dumps(result, indent=2))
     print(json.dumps(result))
     app.exit(0 if all(item["result"] is True for item in checks) and not errors else 1)

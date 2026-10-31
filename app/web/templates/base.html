@@ -9,10 +9,10 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         referrerpolicy="no-referrer"
     >
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/legion.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/project-hub.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/hardware.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/legion.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/workspace.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/project-hub.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/hardware.css') }}">
 </head>
 <body class="workspace-ui{% if workspace_part %} workspace-part{% else %} project-foundation{% endif %}{% if legion_ui_opaque %} opaque-ui{% endif %}{% if legion_colorful_ascii_background %} colorful-background{% endif %}"{% if workspace_part %} data-workspace-part="{{ workspace_part }}"{% endif %}>
 <script id="scan-presets" type="application/json">{{ legion_scan_presets | tojson }}</script>
@@ -80,6 +80,6 @@
 <script>window.LEGION_OPAQUE_UI_ENABLED = {{ "true" if legion_ui_opaque else "false" }};</script>
 <script>window.LEGION_COLORFUL_ASCII_BACKGROUND_ENABLED = {{ "true" if legion_colorful_ascii_background else "false" }};</script>
 <script>window.LEGION_CONSOLE_LOGO_ART = {{ console_logo_art | tojson }};</script>
-<script type="module" src="{{ url_for('static', filename='bundles/workspace.js') }}"></script>
+<script type="module" src="{{ url_for('static', path='bundles/workspace.js') }}"></script>
 </body>
 </html>

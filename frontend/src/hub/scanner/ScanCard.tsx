@@ -1,3 +1,5 @@
+import {useEffect, useState} from 'react';
+import {deepScan} from '../api';
 import type {DeepScanRun, HubProject} from '../api';
 import {documentUrl} from '../api';
 import type {HardwareNode} from '../hardware/model';
@@ -13,15 +15,24 @@ export function ScanAction({node, scans}: {node: HardwareNode; scans: DeepScanCo
 }
 
 export function ScanCard({run, project, scans}: {run: DeepScanRun; project: HubProject; scans: DeepScanController}) {
-  const active = ['queued', 'running'].includes(run.status), summary = record(run.summary), classification = record(summary.classification);
+  const [expanded, setExpanded] = useState(false), [detail, setDetail] = useState<DeepScanRun | null>(null), [error, setError] = useState('');
+  useEffect(() => {
+    let active = true; setDetail(null); setError('');
+    if (expanded && run.summary_omitted) void deepScan(project.id, run.id).then(value => {if (active) setDetail(value);}).catch(e => {if (active) setError(String(e));});
+    return () => {active = false;};
+  }, [project.id, run.id, run.status, run.summary_omitted, run.profile_path, expanded]);
+  const active = ['queued', 'running'].includes(run.status), summary = record(detail?.summary ?? run.summary), classification = record(summary.classification);
   const roles = [record(classification.primary), ...rows(classification.alternatives)].filter(role => role.device_type);
   const root = `${project.folder}/${String(run.directory)}`, profile = run.profile_path;
   return <article className={`hub-scan-card${active ? ' hub-scan-active' : ''}`} data-scan-id={run.id}>
     <div className="hub-scan-heading"><span>{run.target_ip}</span><small>{run.status}</small>
-      {active ? <button onClick={() => {void scans.cancel(run);}}>Stop</button> : Boolean(profile || run.log_path) && <a href={documentUrl(project.id, `${project.folder}/${profile || String(run.log_path)}`)} target="_blank" rel="noopener">Open</a>}
+      {active ? <button disabled={run.settling} onClick={() => {void scans.cancel(run);}}>{run.settling ? 'Saving…' : 'Stop'}</button> : Boolean(profile || run.log_path) && <a href={documentUrl(project.id, `${project.folder}/${profile || String(run.log_path)}`)} target="_blank" rel="noopener">Open</a>}
     </div>
     {run.reason && <p className="hub-error">{run.reason}</p>}
-    {!active && <details><summary>Results</summary>
+    {!active && <details onToggle={event => setExpanded(event.currentTarget.open)}><summary>Results</summary>
+      {error && <p className="hub-error">{error}</p>}
+      {expanded && run.summary_omitted && !detail && !error && <small>Loading results…</small>}
+      {typeof detail?.implementation_audit_path === 'string' && <a href={documentUrl(project.id, `${project.folder}/${detail.implementation_audit_path}`)} target="_blank" rel="noopener">Tool identity audit</a>}
       {roles.length > 0 && <div className="hub-scan-observations"><span>Role hypotheses</span>{roles.map((role, i) => <small key={i} title={text(role.explanation)}>{text(role.device_type)} · {text(role.score)} · {text(role.confidence)}</small>)}</div>}
       {rows(summary.services).map((service, i) => <small className="hub-scan-observation" key={i}>{text(service.port)}/{text(service.protocol)} · {text(service.state)} · {text(record(service.fingerprint).product) || text(record(service.fingerprint).name)}</small>)}
       {(['candidates', 'reproduced'] as const).map(kind => rows(summary[kind]).map((finding, i) => <small className="hub-scan-observation" key={`${kind}-${i}`}>{kind === 'candidates' ? 'Candidate' : 'Reproduced'} · {text(finding.title) || text(finding.type) || text(finding.template_id) || text(finding.explanation)}</small>))}

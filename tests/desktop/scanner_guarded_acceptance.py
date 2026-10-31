@@ -31,9 +31,13 @@ from tests.support.scanner_acceptance import browser_proof, probe_guard, retain_
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tool-bin", type=Path)
+    parser.add_argument("--artifacts", type=Path, default=ARTIFACTS)
     options = parser.parse_args()
+    artifacts = options.artifacts.resolve()
+    if not artifacts.is_relative_to(ROOT):
+        parser.error("--artifacts must stay within the project storage cap")
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    ARTIFACTS.mkdir(parents=True, exist_ok=True)
+    artifacts.mkdir(parents=True, exist_ok=True)
     privilege = subprocess.run(["sudo", "-n", "true"], capture_output=True, text=True, timeout=5)
     if privilege.returncode or os.geteuid() == 0:
         report = {
@@ -41,7 +45,7 @@ def main():
             "reason": "Run as the normal project owner after sudo -v in the same terminal.",
             "guard_bypassed": False,
         }
-        (ARTIFACTS / "report.json").write_text(json.dumps(report, indent=2))
+        (artifacts / "report.json").write_text(json.dumps(report, indent=2))
         print(json.dumps(report))
         return 77
     if options.tool_bin:
@@ -97,7 +101,7 @@ def main():
     logic = create_default_logic()
     runtime = WebRuntime(logic)
     web = create_app(runtime)
-    hub = web.state.legacy.extensions["project_hub"]
+    hub = web.state.project_hub
     project = hub.create("Owned loopback scanner acceptance")["project"]
     session = logic.activeProject.database.session()
     host = hostObj(ip="127.0.0.2", hostname="owned-loopback", status="up")
@@ -177,6 +181,9 @@ def main():
             and report["supported_reproduction_observed"]
             and report["kernel_guard_probe"]["passed"]
             and report.get("guarded_browser", {}).get("passed")
+            and state["status"] == "completed"
+            and state.get("settlement") == "complete"
+            and state.get("implementation_unchanged") is True
             else "incomplete"
         )
         return 0 if report["status"] == "passed" else 2
@@ -196,7 +203,7 @@ def main():
         try:
             for source in (Path(project["folder"]) / "workspace-tool-output/deep-scans").glob("*"):
                 if source.is_dir() and not source.is_symlink():
-                    destination = ARTIFACTS / source.name
+                    destination = artifacts / source.name
                     retain_evidence(source, destination)
                     report["retained_evidence"] = str(destination.relative_to(ROOT))
         except OSError as exc:
@@ -204,8 +211,8 @@ def main():
             raise
         finally:
             identifier = (report.get("run") or {}).get("id", project["id"])
-            (ARTIFACTS / f"report-{identifier}.json").write_text(json.dumps(report, indent=2))
-            (ARTIFACTS / "report.json").write_text(json.dumps(report, indent=2))
+            (artifacts / f"report-{identifier}.json").write_text(json.dumps(report, indent=2))
+            (artifacts / "report.json").write_text(json.dumps(report, indent=2))
             print(json.dumps({k: v for k, v in report.items() if k not in {"source", "run"}}))
             server.shutdown()
             server.server_close()

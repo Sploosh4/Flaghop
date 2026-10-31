@@ -177,6 +177,41 @@ class ScannerGuardTest(TestCase):
             lease.sync_proxy()
             self.assertEqual("flush set inet flaghop_fixture scan_proxy\n", command.call_args.kwargs["input"])
 
+    def test_malformed_linked_and_blocking_proxy_messages_never_reach_privileged_helpers(self):
+        import os
+
+        lease = self.lease()
+        path = Path(self.request.proxy_channel)
+        valid = {"token": self.request.proxy_token, "sequence": "a" * 32, "operation": "open", "port": 34567}
+        malformed = [
+            "[1,2]",
+            "not json",
+            "x" * 2049,
+            json.dumps({**valid, "port": True}),
+            json.dumps({**valid, "sequence": "!" * 32}),
+            json.dumps({**valid, "operation": "exec", "command": "ignored"}),
+        ]
+        with patch("app.services.network_guard.command") as privileged:
+            for value in malformed:
+                path.write_text(value)
+                with self.subTest(value=value[:60]), self.assertRaises(NetworkHeld):
+                    lease.sync_proxy()
+            path.unlink()
+            outside = self.root / "outside.json"
+            outside.write_text(json.dumps(valid))
+            path.symlink_to(outside)
+            with self.assertRaises(NetworkHeld):
+                lease.sync_proxy()
+            path.unlink()
+            os.mkfifo(path)
+            with self.assertRaises(NetworkHeld):
+                lease.sync_proxy()
+            path.unlink()
+            os.link(outside, path)
+            with self.assertRaises(NetworkHeld):
+                lease.sync_proxy()
+            privileged.assert_not_called()
+
     def test_listener_proof_checks_real_group_and_socket_inode(self):
         proc = self.root / "proc"
         (proc / "net").mkdir(parents=True)

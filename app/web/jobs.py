@@ -69,6 +69,8 @@ class WebJobManager:
             "error": "",
         }
         with self._queue_cv:
+            if sum(row["status"] in {"queued", "running"} for row in self._jobs) >= self.max_jobs:
+                raise RuntimeError(f"Job queue is full ({self.max_jobs} active jobs). Wait or cancel queued work.")
             self._jobs.append(job)
             self._jobs_by_id[job_id] = job
             self._runners[job_id] = runner
@@ -145,27 +147,20 @@ class WebJobManager:
             job = self._jobs_by_id.get(target_id)
             if job is None:
                 return None
-
-            status = str(job.get("status", "") or "").strip().lower()
-            if status in {"completed", "partial", "failed", "cancelled", "held"}:
+            status = job["status"]
+            if status not in {"queued", "running"} or job.get("_settling"):
                 return self._copy_job(job)
-
             job["cancel_requested"] = True
             job["cancel_reason"] = cancel_reason
-
-            if status == "queued":
-                if target_id in self._pending_job_ids:
-                    self._pending_job_ids.remove(target_id)
-                if target_id in self._runners:
-                    del self._runners[target_id]
-                job["status"] = "cancelled"
-                job["error"] = cancel_reason
-                job["finished_at"] = self._utc_now()
-                self._trim_locked()
-
-            self._queue_cv.notify_all()
+            queued = status == "queued"
+            if queued:
+                self._pending_job_ids.remove(target_id)
+                self._runners.pop(target_id, None)
+                job["_settling"] = True
             copied = self._copy_job(job)
-        self._notify_change(copied, "cancelled")
+        if queued:
+            return self._settle(target_id, "cancelled", {}, cancel_reason, running=False)
+        self._notify_change(copied, "cancel_requested")
         return copied
 
     def is_cancel_requested(self, job_id: int) -> bool:
@@ -198,47 +193,56 @@ class WebJobManager:
 
             try:
                 result = runner() or {}
-                with self._lock:
-                    job = self._jobs_by_id.get(job_id)
-                    if not job:
-                        continue
-                    if bool(job.get("cancel_requested", False)):
-                        job["status"] = "cancelled"
-                        if not str(job.get("error", "") or "").strip():
-                            job["error"] = str(job.get("cancel_reason", "") or "cancelled by user")
-                    else:
-                        job["status"] = result.status if isinstance(result, JobOutcome) else "completed"
-                    job["result"] = result.result if isinstance(result, JobOutcome) else result
-                    if isinstance(result, JobOutcome) and result.error:
-                        job["error"] = result.error
+                status = result.status if isinstance(result, JobOutcome) else "completed"
+                error = result.error if isinstance(result, JobOutcome) else ""
+                result = result.result if isinstance(result, JobOutcome) else result
+                if not isinstance(result, dict):
+                    raise TypeError("Job runner must return a result dictionary or JobOutcome.")
             except Exception as exc:
                 from app.services.project_networks import NetworkHeld
 
-                with self._lock:
-                    job = self._jobs_by_id.get(job_id)
-                    if not job:
-                        continue
-                    if bool(job.get("cancel_requested", False)):
-                        job["status"] = "cancelled"
-                        cancel_reason = str(job.get("cancel_reason", "") or "").strip()
-                        job["error"] = cancel_reason or f"cancelled ({exc})"
-                    else:
-                        job["status"] = "held" if isinstance(exc, NetworkHeld) else "failed"
-                        job["error"] = str(exc)
-            finally:
-                finished_job = None
-                with self._queue_cv:
-                    job = self._jobs_by_id.get(job_id)
-                    if job:
-                        job["finished_at"] = self._utc_now()
-                        finished_job = self._copy_job(job)
-                    self._running_job_count = max(0, int(self._running_job_count) - 1)
-                    if int(self._running_exclusive_job_id or 0) == int(job_id):
-                        self._running_exclusive_job_id = 0
-                    self._trim_locked()
-                    self._queue_cv.notify_all()
-                if finished_job is not None:
-                    self._notify_change(finished_job, str(finished_job.get("status", "") or "updated"))
+                status = "held" if isinstance(exc, NetworkHeld) else "failed"
+                result, error = {}, str(exc)
+            self._settle(job_id, status, result, error, running=True)
+
+    def _settle(self, job_id, status, result, error, *, running):
+        """Keep the job active and its exclusive slot until persistence finishes.
+
+        Callbacks run without the queue lock: they may need domain/project locks,
+        and can safely query this manager. A failed callback is a failed job,
+        with the execution outcome retained separately for diagnosis.
+        """
+        with self._lock:
+            job = self._jobs_by_id[job_id]
+            job["_settling"] = True
+            candidate = self._copy_job(job)
+            if job.get("cancel_requested"):
+                status, error = "cancelled", error or job.get("cancel_reason") or "cancelled by user"
+            candidate.update(status=status, result=result, error=error, finished_at=self._utc_now())
+            callback = self._completion_callbacks.pop(job_id, None)
+        if callback:
+            try:
+                callback(self._copy_job(candidate))
+            except Exception as exc:
+                logging.getLogger(__name__).exception("Job result persistence failed for job %s", job_id)
+                candidate["result"] = {
+                    **candidate["result"],
+                    "execution_status": candidate["status"],
+                    "persistence_error": str(exc),
+                }
+                candidate.update(status="failed", error=f"Result persistence failed: {exc}")
+        with self._queue_cv:
+            job.update(candidate)
+            job.pop("_settling", None)
+            if running:
+                self._running_job_count -= 1
+                if self._running_exclusive_job_id == job_id:
+                    self._running_exclusive_job_id = 0
+            copied = self._copy_job(job)
+            self._trim_locked()
+            self._queue_cv.notify_all()
+        self._notify_change(copied, copied["status"])
+        return copied
 
     def _dequeue_next_runnable_locked(self):
         while self._pending_job_ids:
@@ -320,6 +324,7 @@ class WebJobManager:
             "type": job.get("type", ""),
             "status": job.get("status", ""),
             "exclusive": bool(job.get("exclusive", False)),
+            "settling": bool(job.get("_settling", False)),
             "cancel_requested": bool(job.get("cancel_requested", False)),
             "cancel_reason": job.get("cancel_reason", ""),
             "created_at": job.get("created_at", ""),
@@ -342,11 +347,3 @@ class WebJobManager:
                 self._on_change(dict(job), str(event_name or "updated"))
             except Exception:
                 logging.getLogger(__name__).exception("Job change callback failed for job %s", job.get("id"))
-        if job.get("status") not in {"queued", "running"}:
-            with self._lock:
-                finished = self._completion_callbacks.pop(job["id"], None)
-            if finished:
-                try:
-                    finished(dict(job))
-                except Exception:
-                    logging.getLogger(__name__).exception("Job result persistence failed for job %s", job.get("id"))

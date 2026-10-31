@@ -1,5 +1,7 @@
 # Scanner integration checkpoint
 
+The local FastAPI-only candidate uses one native transport for these routes and fixtures. Two-transport counts below belong to the earlier scanner checkpoint.
+
 Scanner integration checkpoint for `master`, developed on `codex/scanner-integration`.
 
 ## Implemented
@@ -84,9 +86,7 @@ scripts/check-maintainability.sh
 scripts/frontend.sh check
 QT_QPA_PLATFORM=offscreen QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu \
   .venv/bin/python tests/desktop/scanner_smoke.py
-LEGION_SMOKE_WEB_STACK=legacy QT_QPA_PLATFORM=offscreen \
-  QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu \
-  .venv/bin/python tests/desktop/scanner_smoke.py
+
 ```
 
 The opt-in live acceptance uses a temporary owned loopback HTTP fixture and the

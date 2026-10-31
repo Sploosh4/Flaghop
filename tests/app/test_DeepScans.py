@@ -6,9 +6,10 @@ from pathlib import Path
 import tempfile
 import threading
 import time
+from datetime import datetime, timezone
+import tracemalloc
 from unittest import TestCase
 from unittest.mock import patch
-
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 from app.api import create_app
@@ -20,15 +21,15 @@ from app.scanning.service import DeepScans
 from app.services.network_models import NetworkUpdate
 from app.services.project_hub import ProjectHub
 from app.services.project_networks import NetworkHeld
-from app.web import create_app as create_legacy_app
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
 from db.entities.host import hostObj
 from tests.app.test_ProjectNetworks import FixtureProbe
-from tests.support.scanner_fixture import write_profile
+from tests.support.scanner_fixture import write_profile, write_fixture_audit
 
 
 class DeepScansTest(TestCase):
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
@@ -91,6 +92,7 @@ class DeepScansTest(TestCase):
             self.assertNotIn("--sudo", config["argv"])
             output = Path(config["argv"][config["argv"].index("--out") + 1])
             profile = write_profile(output, target or self.request.target_ip, status, tasks)
+            write_fixture_audit(output.parent)
             if mutate:
                 mutate(profile)
                 (output / "device-profile.json").write_text(json.dumps(profile))
@@ -99,6 +101,326 @@ class DeepScansTest(TestCase):
             )
 
         return execute
+
+    def test_recovery_persists_interruption_without_replaying_a_reused_job_id(self):
+        from app.services.project_background import atomic_json
+
+        folder = self.service.folder() / ("a" * 32)
+        folder.mkdir(parents=True)
+        original = b"original evidence"
+        (folder / "proof.bin").write_bytes(original)
+        # A different job after restart can reuse the same numeric identifier.
+        job = self.runtime.jobs.start("different-work", lambda: {})
+        record = {
+            "id": folder.name,
+            "project_id": self.project["id"],
+            "host_id": self.host_id,
+            "target_ip": self.request.target_ip,
+            "status": "running",
+            "job_id": job["id"],
+            "created_at": "2026-10-31T00:00:00Z",
+            "summary": {},
+            "directory": str(folder.relative_to(self.project["folder"])),
+        }
+        atomic_json(folder / "run.json", record)
+        with patch("app.scanning.execution.execute_command") as launch:
+            recovered = self.service.list()["runs"][0]
+            self.assertEqual("interrupted", recovered["status"])
+            self.assertEqual("never-replay", recovered["recovery"]["policy"])
+            saved = (folder / "run.json").read_bytes()
+            self.assertEqual("interrupted", json.loads(saved)["status"])
+            stamp = (folder / "run.json").stat().st_mtime_ns
+            self.assertEqual("interrupted", self.service.list()["runs"][0]["status"])
+            self.assertEqual(stamp, (folder / "run.json").stat().st_mtime_ns)
+            self.assertEqual(original, (folder / "proof.bin").read_bytes())
+            launch.assert_not_called()
+
+    def test_project_switch_and_duplicate_scan_remain_blocked_during_settlement(self):
+        import app.scanning.lifecycle as lifecycle
+
+        other = self.hub.create("Other workspace")["project"]
+        self.hub.open(self.project["id"])
+        entered, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        real_settled = lifecycle.settled
+
+        def pause(owner, job):
+            entered.set()
+            release.wait(4)
+            real_settled(owner, job)
+
+        with (
+            patch("app.scanning.execution.execute_command", side_effect=self.executor()),
+            patch("app.scanning.service.settled", side_effect=pause),
+        ):
+            run = self.service.start(self.request)
+            self.assertTrue(entered.wait(2))
+            self.assertEqual("running", self.service.list()["runs"][0]["status"])
+            self.assertEqual(run["id"], self.service.start(self.request)["id"])
+            with self.assertRaises(RuntimeError):
+                self.hub.open(other["id"])
+            release.set()
+            saved, job = self.wait(run)
+            self.assertEqual(("completed", "completed"), (saved["status"], job["status"]))
+        self.hub.open(other["id"])
+
+    def test_two_hubs_and_network_capture_share_one_project_transaction(self):
+        second = ProjectHub(self.runtime)
+        entered, release, finished = threading.Event(), threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        failures = []
+
+        def edit_catalog():
+            try:
+                with second.workspace(self.project["id"]):
+                    entered.set()
+                    release.wait(2)
+                    second.set_vpn(self.project["id"], "inherit")
+            except Exception as exc:
+                failures.append(exc)
+
+        def capture():
+            try:
+                self.hub.networks.capture()
+            except Exception as exc:
+                failures.append(exc)
+            finally:
+                finished.set()
+
+        writer = threading.Thread(target=edit_catalog, daemon=True)
+        writer.start()
+        self.assertTrue(entered.wait(1))
+        reader = threading.Thread(target=capture, daemon=True)
+        reader.start()
+        self.assertFalse(finished.wait(0.05))
+        release.set()
+        writer.join(2)
+        reader.join(2)
+        self.assertTrue(finished.is_set())
+        self.assertFalse(writer.is_alive())
+        self.assertEqual([], failures)
+
+    def test_history_polling_reads_metadata_only_and_keeps_full_results_on_demand(self):
+        from app.scanning import history
+
+        folder = self.service.folder()
+        folder.mkdir(parents=True)
+        for index in range(1000):
+            identifier = f"{index:032x}"
+            parent = folder / identifier
+            parent.mkdir()
+            record = {
+                "id": identifier,
+                "project_id": self.project["id"],
+                "host_id": self.host_id,
+                "target_ip": self.request.target_ip,
+                "status": "completed",
+                "job_id": 0,
+                "created_at": datetime.fromtimestamp(1793404800 + index, timezone.utc).isoformat(),
+                "directory": str(parent.relative_to(self.project["folder"])),
+                "summary": {"candidates": [{"title": "fixture", "explanation": "evidence " * 8192}]},
+            }
+            (parent / "run.json").write_text(json.dumps(record))
+        baseline_bytes = sum(path.stat().st_size for path in folder.glob("*/run.json"))
+        with patch("app.scanning.history.read_record", wraps=history.read_record) as read:
+            tracemalloc.start()
+            try:
+                compact = self.service.list(compact=True)
+                _current, peak = tracemalloc.get_traced_memory()
+            finally:
+                tracemalloc.stop()
+            self.assertLess(peak, 12 * 1024 * 1024)
+            self.assertEqual(1000, read.call_count)
+            read.reset_mock()
+            again = self.service.list(compact=True)
+            self.assertEqual(0, read.call_count)
+        self.assertEqual(compact, again)
+        self.assertEqual(200, len(compact["runs"]))
+        from app.scanning.contracts import DeepScanList
+
+        payload_bytes = len(DeepScanList.model_validate(compact).model_dump_json().encode())
+        old_response_bytes = len(json.dumps(self.service.list()).encode())
+        self.assertLess(payload_bytes, baseline_bytes // 100)
+        self.assertLessEqual(self.hub._scan_history[1].bytes, history.MAX_CACHE)
+        detail = self.service.detail(compact["runs"][0]["id"])
+        self.assertGreater(len(detail["summary"]["candidates"][0]["explanation"]), 60_000)
+        # An external metadata edit must invalidate the cache without changing
+        # original evidence or requiring a restart.
+        path = folder / compact["runs"][0]["id"] / "run.json"
+        detail["reason"] = "changed"
+        path.write_text(json.dumps(detail))
+        self.assertEqual("changed", self.service.list(compact=True)["runs"][0]["reason"])
+        print(
+            json.dumps(
+                {
+                    "history_fixture": {
+                        "runs": 1000,
+                        "cold_python_allocation_peak_bytes": peak,
+                        "old_poll_read_bytes": baseline_bytes,
+                        "old_response_bytes": old_response_bytes,
+                        "compact_response_bytes": payload_bytes,
+                        "warm_poll_record_reads": 0,
+                        "cache_budget_bytes": history.MAX_CACHE,
+                    }
+                }
+            )
+        )
+
+    def test_missing_changed_and_unmeasured_implementation_audits_prevent_clean_completion(self):
+        for mode in ("missing", "changed", "unmeasured", "malformed"):
+            execute = self.executor()
+
+            def with_bad_audit(runtime, **kwargs):
+                result = execute(runtime, **kwargs)
+                path = Path(kwargs["argv"][-1]).with_name("implementation-audit.json")
+                if mode == "missing":
+                    path.unlink()
+                elif mode == "malformed":
+                    path.write_text('{"unchanged": true, "before": {}, "after": {}}')
+                else:
+                    audit = json.loads(path.read_text())
+                    audit["after"]["browser"] = {"status": "unmeasured", "reason": "fixture"}
+                    if mode == "unmeasured":
+                        audit["before"] = audit["after"]
+                    audit["unchanged"] = True  # A reported boolean must not bypass actual comparison.
+                    path.write_text(json.dumps(audit))
+                return result
+
+            with self.subTest(mode=mode), patch("app.scanning.execution.execute_command", side_effect=with_bad_audit):
+                run, job = self.wait(self.service.start(self.request))
+                self.assertEqual("failed" if mode == "malformed" else "partial", job["status"])
+                self.assertTrue((Path(self.project["folder"]) / run["directory"] / "profile/raw/nmap.xml").is_file())
+
+    def test_restart_after_failed_terminal_write_keeps_evidence_and_marks_unsettled_result(self):
+        from app.web.jobs import WebJobManager
+
+        with (
+            patch("app.scanning.execution.execute_command", side_effect=self.executor()),
+            patch("app.scanning.service.settled", side_effect=OSError("fixture metadata write failed")),
+        ):
+            run = self.service.start(self.request)
+            deadline = time.monotonic() + 4
+            while time.monotonic() < deadline:
+                job = self.runtime.jobs.get_job(run["job_id"])
+                if job["status"] == "failed":
+                    break
+                time.sleep(0.01)
+            self.assertEqual("failed", job["status"])
+            self.assertIn("persistence", job["error"])
+        path = Path(self.project["folder"]) / run["directory"] / "run.json"
+        self.assertEqual("pending", json.loads(path.read_text())["settlement"])
+        self.assertEqual(1, len(repository.summaries(self.logic.activeProject)))
+        self.runtime.jobs = WebJobManager()  # Simulated empty queue after restart.
+        recovered = self.service.list(compact=True)["runs"][0]
+        self.assertEqual("interrupted", recovered["status"])
+        self.assertEqual("interrupted", json.loads(path.read_text())["settlement"])
+        self.assertTrue((path.parent / "profile/raw/nmap.xml").is_file())
+        self.assertEqual(1, len(repository.summaries(self.logic.activeProject)))
+
+    def test_scope_lookup_releases_project_lock_and_rejects_project_or_revision_change(self):
+        for change in ("project", "revision"):
+            with self.subTest(change=change):
+                if change == "project":
+                    other = self.hub.create("Switch while resolving")["project"]
+                    self.hub.open(self.project["id"])
+                entered, release = threading.Event(), threading.Event()
+                errors = []
+                original = self.hub.networks.resolve_scope
+
+                def pause(values, deadline, cache=None):
+                    entered.set()
+                    if not release.wait(3):
+                        raise RuntimeError("Fixture lookup was not released")
+                    return original(values, deadline, cache)
+
+                def start():
+                    try:
+                        self.service.start(self.request)
+                    except Exception as exc:
+                        errors.append(exc)
+
+                with (
+                    patch.object(self.hub.networks, "resolve_scope", side_effect=pause),
+                    patch("app.scanning.execution.execute_command") as launch,
+                ):
+                    thread = threading.Thread(target=start, daemon=True)
+                    thread.start()
+                    try:
+                        self.assertTrue(entered.wait(1))
+                        # A separate thread must acquire the state lock while
+                        # the lookup is still waiting, rather than after timeout.
+                        self.assertTrue(self.hub.lock.acquire(timeout=0.5))
+                        try:
+                            if change == "project":
+                                self.hub.open(other["id"])
+                            else:
+                                self.hub.networks.save(
+                                    self.project["id"],
+                                    NetworkUpdate(expected_revision=1, settings=self.context["settings"]),
+                                )
+                        finally:
+                            self.hub.lock.release()
+                    finally:
+                        release.set()
+                        thread.join(3)
+                    self.assertFalse(thread.is_alive())
+                    self.assertEqual(1, len(errors))
+                    self.assertIsInstance(errors[0], RuntimeError)
+                    launch.assert_not_called()
+                self.assertFalse([job for job in self.runtime.jobs.list_jobs() if job["type"] == "deep-scan"])
+                if change == "project":
+                    self.hub.open(self.project["id"])
+
+    def test_import_write_faults_keep_evidence_and_record_actual_database_progress(self):
+        from app.services.project_background import atomic_json
+        from app.web.jobs import WebJobManager
+        from contextlib import ExitStack
+
+        for phase in ("inventory", "summary_database", "summary_file"):
+            with self.subTest(phase=phase), ExitStack() as patches:
+                patches.enter_context(patch("app.scanning.execution.execute_command", side_effect=self.executor()))
+                patches.enter_context(
+                    patch(
+                        "app.scanning.repository.summaries",
+                        side_effect=AssertionError("Import must not load the entire summary history"),
+                    )
+                )
+                if phase == "inventory":
+                    patches.enter_context(
+                        patch(
+                            "app.scanning.execution.import_nmap_xml_into_project",
+                            side_effect=OSError("fixture inventory write"),
+                        )
+                    )
+                elif phase == "summary_database":
+                    patches.enter_context(
+                        patch("app.scanning.repository.save", side_effect=OSError("fixture DB write"))
+                    )
+                else:
+
+                    def fail_summary(path, value):
+                        if path.name == "summary.json":
+                            raise OSError("fixture file write")
+                        return atomic_json(path, value)
+
+                    patches.enter_context(patch("app.scanning.execution.atomic_json", side_effect=fail_summary))
+                run, job = self.wait(self.service.start(self.request))
+                self.assertEqual("failed", job["status"])
+                progress = run["import_progress"]
+                self.assertEqual(("failed", phase), (progress["status"], progress["phase"]))
+                self.assertEqual(phase != "inventory", progress["inventory_committed"])
+                self.assertEqual(phase == "inventory", progress["inventory_may_be_partial"])
+                self.assertEqual(phase == "summary_file", progress["summary_committed"])
+                self.assertTrue((Path(self.project["folder"]) / run["profile_path"]).is_file())
+                self.assertEqual(
+                    phase == "summary_file", repository.get(self.logic.activeProject, run["id"]) is not None
+                )
+                self.runtime.jobs = WebJobManager()
+                with patch("app.scanning.execution.execute_command") as launch:
+                    recovered = self.service.detail(run["id"])
+                    self.assertEqual(progress, recovered["import_progress"])
+                    self.assertEqual("failed", recovered["status"])
+                    launch.assert_not_called()
 
     def test_invalid_mismatched_outside_excluded_and_stale_targets_do_not_enqueue(self):
         for value in ("example.test", "192.0.2.0/24", "192.0.2.10; id", "0.0.0.0"):
@@ -296,14 +618,14 @@ class DeepScansTest(TestCase):
         with self.assertRaises(ValueError):
             validate_profile(output, self.request.target_ip, identity)
 
-    def test_api_both_stacks_reject_extra_commands_and_other_projects(self):
+    def test_api_rejects_extra_commands_and_other_projects(self):
         other = self.hub.create("Other fixture")["project"]
-        for web in (create_app(self.runtime), create_legacy_app(self.runtime)):
-            legacy = web if hasattr(web, "test_client") else web.state.legacy
-            legacy.extensions["project_hub"] = self.hub
-            client = web.test_client() if hasattr(web, "test_client") else TestClient(web)
-            url = f"/api/hub/projects/{self.project['id']}/deep-scans"
-            self.assertEqual(409, client.get(url).status_code)
-            self.assertEqual(422, client.post(url, json={**self.request.model_dump(), "command": "id"}).status_code)
-            self.assertEqual(409, client.post(url, json=self.request.model_dump()).status_code)
-            self.assertEqual(200, client.get(f"/api/hub/projects/{other['id']}/deep-scans").status_code)
+        web = create_app(self.runtime)
+        legacy = web
+        legacy.state.project_hub = self.hub
+        client = TestClient(web)
+        url = f"/api/hub/projects/{self.project['id']}/deep-scans"
+        self.assertEqual(409, client.get(url).status_code)
+        self.assertEqual(422, client.post(url, json={**self.request.model_dump(), "command": "id"}).status_code)
+        self.assertEqual(409, client.post(url, json=self.request.model_dump()).status_code)
+        self.assertEqual(200, client.get(f"/api/hub/projects/{other['id']}/deep-scans").status_code)

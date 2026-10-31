@@ -1,9 +1,11 @@
+from fastapi.testclient import TestClient
 import unittest
 from pathlib import Path
 import tempfile
 
 
 class _WorkspaceRouteRuntime:
+
     def __init__(self, screenshot_path):
         self.calls = []
         self.screenshot_path = str(screenshot_path)
@@ -56,6 +58,9 @@ class _WorkspaceRouteRuntime:
     def get_workspace_overview(self):
         self.calls.append(("get_workspace_overview",))
         return {
+            "project": {"name": "fixture"},
+            "summary": {},
+            "scheduler": {},
             "hosts": [{"id": 11, "ip": "10.0.0.5"}],
             "scheduler_rationale_feed": [{"host_ip": "10.0.0.5", "headline": "smbmap"}],
         }
@@ -228,7 +233,7 @@ class _WorkspaceRouteRuntime:
 
     def start_process_retry_job(self, process_id, timeout=300):
         self.calls.append(("start_process_retry_job", int(process_id), int(timeout)))
-        return {"id": 703, "type": "process-retry"}
+        return {"id": 703, "type": "process-retry", "status": "queued"}
 
     def close_process(self, process_id):
         self.calls.append(("close_process", int(process_id)))
@@ -243,18 +248,28 @@ class _WorkspaceRouteRuntime:
         text_value = "sample output"
         start = max(0, min(int(offset), len(text_value)))
         chunk = text_value[start : start + int(max_chars)]
-        return {"process_id": int(process_id), "output": text_value, "output_chunk": chunk}
+        return {
+            "id": int(process_id),
+            "process_id": int(process_id),
+            "output": text_value,
+            "output_chunk": chunk,
+            "output_length": len(text_value),
+            "offset": start,
+            "next_offset": start + len(chunk),
+            "completed": True,
+        }
 
 
 class WebWorkspaceRoutesTest(unittest.TestCase):
+
     def setUp(self):
-        from app.web import create_app
+        from app.api import create_app
 
         self.tempdir = tempfile.TemporaryDirectory()
         self.screenshot_path = Path(self.tempdir.name) / "demo.png"
         self.screenshot_path.write_bytes(b"fake-image-bytes")
         self.runtime = _WorkspaceRouteRuntime(self.screenshot_path)
-        self.client = create_app(self.runtime).test_client()
+        self.client = TestClient(create_app(self.runtime), raise_server_exceptions=False)
 
     def tearDown(self):
         self.tempdir.cleanup()
@@ -262,67 +277,54 @@ class WebWorkspaceRoutesTest(unittest.TestCase):
     def test_workspace_routes_delegate_to_workspace_service(self):
         hosts = self.client.get("/api/workspace/hosts")
         self.assertEqual(200, hosts.status_code)
-        self.assertEqual("hide_down", hosts.json["filter"])
-        self.assertEqual(2, len(hosts.json["hosts"]))
+        self.assertEqual("hide_down", hosts.json()["filter"])
+        self.assertEqual(2, len(hosts.json()["hosts"]))
         self.assertEqual("no-store, max-age=0, must-revalidate", hosts.headers.get("Cache-Control"))
-
         all_hosts = self.client.get("/api/workspace/hosts?filter=show_all")
         self.assertEqual(200, all_hosts.status_code)
-        self.assertEqual("show_all", all_hosts.json["filter"])
-        self.assertEqual(3, len(all_hosts.json["hosts"]))
-
+        self.assertEqual("show_all", all_hosts.json()["filter"])
+        self.assertEqual(3, len(all_hosts.json()["hosts"]))
         multi_service_hosts = self.client.get("/api/workspace/hosts?service=smb&service=http")
         self.assertEqual(200, multi_service_hosts.status_code)
-        self.assertEqual(["smb", "http"], multi_service_hosts.json["services"])
-        self.assertEqual({"10.0.0.5", "10.0.0.7"}, {item["ip"] for item in multi_service_hosts.json["hosts"]})
-
+        self.assertEqual(["smb", "http"], multi_service_hosts.json()["services"])
+        self.assertEqual({"10.0.0.5", "10.0.0.7"}, {item["ip"] for item in multi_service_hosts.json()["hosts"]})
         overview = self.client.get("/api/workspace/overview")
         self.assertEqual(200, overview.status_code)
-        self.assertEqual("10.0.0.5", overview.json["scheduler_rationale_feed"][0]["host_ip"])
-
+        self.assertEqual("10.0.0.5", overview.json()["scheduler_rationale_feed"][0]["host_ip"])
         services = self.client.get("/api/workspace/services?host_id=11")
         self.assertEqual(200, services.status_code)
-        self.assertEqual(11, services.json["host_id"])
-        self.assertEqual(["kerberos", "smb"], [item["service"] for item in services.json["services"]])
-
+        self.assertEqual(11, services.json()["host_id"])
+        self.assertEqual(["kerberos", "smb"], [item["service"] for item in services.json()["services"]])
         tools = self.client.get("/api/workspace/tools?service=http")
         self.assertEqual(200, tools.status_code)
-        self.assertEqual(["whatweb-http"], [item["tool_id"] for item in tools.json["tools"]])
-
+        self.assertEqual(["whatweb-http"], [item["tool_id"] for item in tools.json()["tools"]])
         tool_targets = self.client.get("/api/workspace/tool-targets?service=http")
         self.assertEqual(200, tool_targets.status_code)
-        self.assertEqual("10.0.0.7", tool_targets.json["targets"][0]["host_ip"])
-
+        self.assertEqual("10.0.0.7", tool_targets.json()["targets"][0]["host_ip"])
         detail = self.client.get("/api/workspace/hosts/11")
         self.assertEqual(200, detail.status_code)
-        self.assertEqual("10.0.0.5", detail.json["host"]["ip"])
-
+        self.assertEqual("10.0.0.5", detail.json()["host"]["ip"])
         target_state = self.client.get("/api/workspace/hosts/11/target-state")
         self.assertEqual(200, target_state.status_code)
-        self.assertEqual("internal_recon", target_state.json["target_state"]["engagement_preset"])
-
+        self.assertEqual("internal_recon", target_state.json()["target_state"]["engagement_preset"])
         findings = self.client.get("/api/workspace/findings?host_id=11&limit=10")
         self.assertEqual(200, findings.status_code)
-        self.assertEqual("SMB signing not required", findings.json["findings"][0]["title"])
-
+        self.assertEqual("SMB signing not required", findings.json()["findings"][0]["title"])
         port_delete = self.client.post(
             "/api/workspace/ports/delete",
             json={"host_id": 11, "port": "445", "protocol": "tcp"},
         )
         self.assertEqual(200, port_delete.status_code)
-        self.assertEqual("port", port_delete.json["kind"])
-
+        self.assertEqual("port", port_delete.json()["kind"])
         service_delete = self.client.post(
             "/api/workspace/services/delete",
             json={"host_id": 11, "port": "445", "protocol": "tcp", "service": "smb"},
         )
         self.assertEqual(200, service_delete.status_code)
-        self.assertEqual("service", service_delete.json["kind"])
-
+        self.assertEqual("service", service_delete.json()["kind"])
         script_output = self.client.get("/api/workspace/scripts/501/output?offset=2&max_chars=32")
         self.assertEqual(200, script_output.status_code)
-        self.assertEqual("script output", script_output.json["output"])
-
+        self.assertEqual("script output", script_output.json()["output"])
         tool_run = self.client.post(
             "/api/workspace/tools/run",
             json={
@@ -334,7 +336,7 @@ class WebWorkspaceRoutesTest(unittest.TestCase):
             },
         )
         self.assertEqual(202, tool_run.status_code)
-        self.assertEqual("tool-run", tool_run.json["job"]["type"])
+        self.assertEqual("tool-run", tool_run.json()["job"]["type"])
         self.assertIn(
             (
                 "start_tool_run_job",
@@ -347,7 +349,6 @@ class WebWorkspaceRoutesTest(unittest.TestCase):
             ),
             self.runtime.calls,
         )
-
         parameterized_tool_run = self.client.post(
             "/api/workspace/tools/run",
             json={
@@ -371,30 +372,24 @@ class WebWorkspaceRoutesTest(unittest.TestCase):
             ),
             self.runtime.calls,
         )
-
         process_output = self.client.get("/api/processes/1/output?offset=7")
         self.assertEqual(200, process_output.status_code)
-        self.assertEqual("output", process_output.json["output_chunk"])
-
+        self.assertEqual("output", process_output.json()["output_chunk"])
         process_kill = self.client.post("/api/processes/1/kill", json={})
         self.assertEqual(200, process_kill.status_code)
-        self.assertTrue(process_kill.json["killed"])
-
+        self.assertTrue(process_kill.json()["killed"])
         process_retry = self.client.post("/api/processes/1/retry", json={"timeout": 123})
         self.assertEqual(202, process_retry.status_code)
-        self.assertEqual("process-retry", process_retry.json["job"]["type"])
-
+        self.assertEqual("process-retry", process_retry.json()["job"]["type"])
         process_close = self.client.post("/api/processes/1/close", json={})
         self.assertEqual(200, process_close.status_code)
-        self.assertTrue(process_close.json["closed"])
-
+        self.assertTrue(process_close.json()["closed"])
         process_clear = self.client.post("/api/processes/clear", json={"reset_all": True})
         self.assertEqual(200, process_clear.status_code)
-        self.assertTrue(process_clear.json["cleared"])
-
+        self.assertTrue(process_clear.json()["cleared"])
         remove_host = self.client.delete("/api/workspace/hosts/11")
         self.assertEqual(200, remove_host.status_code)
-        self.assertTrue(remove_host.json["deleted"])
+        self.assertTrue(remove_host.json()["deleted"])
 
 
 if __name__ == "__main__":

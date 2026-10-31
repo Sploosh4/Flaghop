@@ -37,42 +37,18 @@ jobs:
           QT_QPA_PLATFORM: offscreen
           QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
         run: .venv/bin/python tests/desktop/workspace_smoke.py
-      - name: Fixture desktop fallback compatibility
-        env:
-          QT_QPA_PLATFORM: offscreen
-          QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
-          LEGION_SMOKE_WEB_STACK: legacy
-        run: .venv/bin/python tests/desktop/workspace_smoke.py
       - name: Hardware map desktop states and project isolation
         env:
           QT_QPA_PLATFORM: offscreen
           QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
-        run: .venv/bin/python tests/desktop/hardware_smoke.py
-      - name: Hardware map fallback compatibility
-        env:
-          QT_QPA_PLATFORM: offscreen
-          QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
-          LEGION_SMOKE_WEB_STACK: legacy
         run: .venv/bin/python tests/desktop/hardware_smoke.py
       - name: Independent document windows and reader grouping
         env:
           QT_QPA_PLATFORM: offscreen
           QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
         run: .venv/bin/python tests/desktop/documents_smoke.py
-      - name: Independent document window fallback compatibility
-        env:
-          QT_QPA_PLATFORM: offscreen
-          QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
-          LEGION_SMOKE_WEB_STACK: legacy
-        run: .venv/bin/python tests/desktop/documents_smoke.py
       - name: Synthetic Deep scan job, import and evidence reopening
         env:
           QT_QPA_PLATFORM: offscreen
           QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
-        run: .venv/bin/python tests/desktop/scanner_smoke.py
-      - name: Synthetic Deep scan fallback compatibility
-        env:
-          QT_QPA_PLATFORM: offscreen
-          QTWEBENGINE_CHROMIUM_FLAGS: --disable-gpu --no-sandbox
-          LEGION_SMOKE_WEB_STACK: legacy
         run: .venv/bin/python tests/desktop/scanner_smoke.py

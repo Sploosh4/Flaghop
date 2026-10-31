@@ -1,0 +1,390 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/network"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/hub/projects/{identifier}/network"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects/{identifier}/network/check"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects/{identifier}/open"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/open-path"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects/{identifier}/rename"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects/{identifier}/save"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects/{identifier}/save-as"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/bundle"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/restore-zip"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/settings"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/settings/vpn"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/settings/save-folder"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects/{identifier}/vpn"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/files"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects/{identifier}/connector"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/connectors/install"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/file"
+  },
+  {
+    "method": "GET",
+    "path": "/health"
+  },
+  {
+    "method": "GET",
+    "path": "/api/project"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/rename"
+  },
+  {
+    "method": "GET",
+    "path": "/api/snapshot"
+  },
+  {
+    "method": "GET",
+    "path": "/api/jobs"
+  },
+  {
+    "method": "GET",
+    "path": "/api/jobs/{job_id}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/jobs/{job_id}/stop"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/background"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects/{identifier}/background/control"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects/{identifier}/background/alerts/{alert_id}/dismiss"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/background/results/{alert_id}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/filesystem"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/editor"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/filesystem/api/session"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/filesystem/api/list"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/filesystem/api/preview"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hub/projects/{identifier}/deep-scans"
+  },
+  {
+    "method": "POST",
+    "path": "/api/hub/projects/{identifier}/deep-scans"
+  },
+  {
+    "method": "GET",
+    "path": "/api/workspace/overview"
+  },
+  {
+    "method": "GET",
+    "path": "/api/processes"
+  },
+  {
+    "method": "GET",
+    "path": "/api/processes/{process_id}/output"
+  },
+  {
+    "method": "POST",
+    "path": "/api/processes/{process_id}/kill"
+  },
+  {
+    "method": "POST",
+    "path": "/api/processes/{process_id}/close"
+  },
+  {
+    "method": "POST",
+    "path": "/api/processes/{process_id}/retry"
+  },
+  {
+    "method": "POST",
+    "path": "/api/processes/clear"
+  },
+  {
+    "method": "GET",
+    "path": "/api/scans/history"
+  },
+  {
+    "method": "GET",
+    "path": "/api/scheduler/decisions"
+  },
+  {
+    "method": "GET",
+    "path": "/api/scheduler/approvals"
+  },
+  {
+    "method": "POST",
+    "path": "/api/scheduler/approvals/{approval_id}/approve"
+  },
+  {
+    "method": "POST",
+    "path": "/api/scheduler/approvals/{approval_id}/reject"
+  },
+  {
+    "method": "GET",
+    "path": "/api/workspace/tools"
+  },
+  {
+    "method": "GET",
+    "path": "/api/workspace/tool-targets"
+  },
+  {
+    "method": "POST",
+    "path": "/api/workspace/tools/run"
+  },
+  {
+    "method": "GET",
+    "path": "/api/graph"
+  },
+  {
+    "method": "POST",
+    "path": "/api/graph/rebuild"
+  },
+  {
+    "method": "GET",
+    "path": "/api/graph/nodes/{node_id}/content"
+  },
+  {
+    "method": "GET",
+    "path": "/api/graph/content/{node_id}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/graph/layouts"
+  },
+  {
+    "method": "POST",
+    "path": "/api/graph/layouts"
+  },
+  {
+    "method": "GET",
+    "path": "/api/graph/annotations"
+  },
+  {
+    "method": "POST",
+    "path": "/api/graph/annotations"
+  },
+  {
+    "method": "GET",
+    "path": "/api/settings/display"
+  },
+  {
+    "method": "POST",
+    "path": "/api/settings/display"
+  },
+  {
+    "method": "GET",
+    "path": "/api/settings/tool-audit"
+  },
+  {
+    "method": "GET",
+    "path": "/api/settings/tool-audit/install-plan"
+  },
+  {
+    "method": "POST",
+    "path": "/api/settings/tool-audit/install"
+  },
+  {
+    "method": "GET",
+    "path": "/"
+  },
+  {
+    "method": "GET",
+    "path": "/api/projects"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/new-temp"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/open"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/save-as"
+  },
+  {
+    "method": "GET",
+    "path": "/api/project/download-zip"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/restore-zip"
+  },
+  {
+    "method": "POST",
+    "path": "/api/nmap/import-xml"
+  },
+  {
+    "method": "POST",
+    "path": "/api/nmap/scan"
+  },
+  {
+    "method": "GET",
+    "path": "/api/network/interfaces"
+  },
+  {
+    "method": "POST",
+    "path": "/api/scan/passive-capture"
+  },
+  {
+    "method": "POST",
+    "path": "/api/workspace/hosts/{host_id}/rescan"
+  },
+  {
+    "method": "POST",
+    "path": "/api/workspace/subnets/rescan"
+  },
+  {
+    "method": "POST",
+    "path": "/api/workspace/ports/delete"
+  },
+  {
+    "method": "POST",
+    "path": "/api/workspace/services/delete"
+  },
+  {
+    "method": "GET",
+    "path": "/api/workspace/scripts/{script_id}/output"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/workspace/hosts/{host_id}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/workspace/hosts"
+  },
+  {
+    "method": "GET",
+    "path": "/api/workspace/services"
+  },
+  {
+    "method": "GET",
+    "path": "/api/workspace/hosts/{host_id}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/workspace/hosts/{host_id}/target-state"
+  },
+  {
+    "method": "GET",
+    "path": "/api/workspace/findings"
+  },
+  {
+    "method": "POST",
+    "path": "/api/scheduler/run"
+  },
+  {
+    "method": "GET",
+    "path": "/api/scheduler/preferences"
+  },
+  {
+    "method": "POST",
+    "path": "/api/scheduler/preferences"
+  },
+  {
+    "method": "GET",
+    "path": "/api/engagement-policy"
+  },
+  {
+    "method": "POST",
+    "path": "/api/engagement-policy"
+  },
+  {
+    "method": "POST",
+    "path": "/api/scheduler/approve-family"
+  },
+  {
+    "method": "GET",
+    "path": "/api/scheduler/plan-preview"
+  },
+  {
+    "method": "GET",
+    "path": "/api/scheduler/executions"
+  },
+  {
+    "method": "GET",
+    "path": "/api/scheduler/executions/{execution_id}"
+  }
+]

@@ -51,6 +51,7 @@ class Job(ExtensibleModel):
     started_at: str | None = ""
     finished_at: str | None = ""
     error: str = ""
+    settling: bool = False
     cancel_requested: bool = False
     cancel_reason: str = ""
     payload: dict[str, JsonValue] = Field(default_factory=dict)

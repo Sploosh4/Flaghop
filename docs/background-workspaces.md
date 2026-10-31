@@ -1,5 +1,7 @@
 # Workspace readers
 
+Local transport candidate: all HTTP routes, pages, ZIP transfer and WebSockets use FastAPI. The Flask fallback and transport selector are removed; existing project and reader formats are preserved. The separately authorised [architecture improvement goal](architecture-follow-ups.md) remains in progress.
+
 Status: app integration included in the 31 October 2026 checkpoint. This does not install the separate reader engines/service. See [delivery status](project-status.md) for the code and dependency boundary.
 
 The header's Start/Stop control applies to the selected project's registered
@@ -75,3 +77,10 @@ Acceptance evidence is stored locally under
 pausing A while B decodes and recovers a synthetic hash, returning to paused A,
 resuming its pending input, opening saved bytes, persistent dismissal and source
 integrity. The inputs are labelled synthetic local data.
+
+
+The local scanner candidate treats `implementation-audit.json` as internal
+provenance rather than a new cipher/password input. It remains available in scan
+results. Polling transfers small run metadata; expanding Results fetches full
+summaries. Closing a card releases its fetched summary, and late responses are
+ignored after a project/card change.

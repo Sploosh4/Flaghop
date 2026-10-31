@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Literal
+from app.scanning.models import TaskFacts, CandidateFinding, VerifiedFinding
 
 MAX_RETAINED = 16 * 1024 * 1024
 
@@ -74,10 +75,10 @@ class Profile(BaseModel):
     schema_version: Literal["1.0"]
     target: Target
     run: Run
-    tasks: list[dict] = Field(max_length=1000)
+    tasks: list[TaskFacts] = Field(max_length=1000)
     observations: list[dict] = Field(default_factory=list, max_length=1000)
-    assessment_findings: list[dict] = Field(default_factory=list, max_length=1000)
-    validated_vulnerabilities: list[dict] = Field(default_factory=list, max_length=1000)
+    assessment_findings: list[CandidateFinding] = Field(default_factory=list, max_length=1000)
+    validated_vulnerabilities: list[VerifiedFinding] = Field(default_factory=list, max_length=1000)
     artifacts: list[Artifact] = Field(max_length=248)
     classification: dict | None = None
     nmap: dict | None = None
@@ -104,18 +105,14 @@ def validate_profile(root, target, source_identity):
         if len(data) != item.bytes or hashlib.sha256(data).hexdigest() != item.sha256:
             raise ValueError("Scanner evidence size or checksum changed.")
         total += len(data)
+    for finding in profile.validated_vulnerabilities:
+        references = [finding.evidence] if isinstance(finding.evidence, str) else finding.evidence
+        if any(reference not in names for reference in references):
+            raise ValueError("Reproduced finding refers to evidence absent from its checksum manifest.")
+        if not any(item.path in references and item.bytes > 0 for item in profile.artifacts):
+            raise ValueError("Reproduced finding has no nonempty retained evidence.")
     if total > MAX_RETAINED:
         raise ValueError("Scanner retained evidence exceeds 16 MiB.")
-    # Paths in tasks are not opened implicitly. Reject escaping references even on failed tasks.
-    for task in profile.tasks:
-        if not isinstance(task.get("id"), str) or not isinstance(task.get("status"), str):
-            raise ValueError("Scanner task lacks an identifier/status.")
-        for key in ("stdout", "stderr", "result_artifact"):
-            value = task.get(key)
-            if value and (
-                not isinstance(value, str) or not value.startswith("raw/") or ".." in PurePosixPath(value).parts
-            ):
-                raise ValueError("Scanner task references evidence outside its output.")
     xml = None
     if profile.nmap is not None:
         if "raw/nmap.xml" not in names:

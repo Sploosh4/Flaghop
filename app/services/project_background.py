@@ -31,6 +31,7 @@ def internal_origins(origins):
                 "run.json",
                 "request.json",
                 "summary.json",
+                "implementation-audit.json",
                 "proxy.json",
                 "proxy.ack",
                 "log.txt",

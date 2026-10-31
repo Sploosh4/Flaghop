@@ -55,3 +55,12 @@ def write_profile(output, target="192.0.2.10", status="completed", tasks=None):
     }
     (output / "device-profile.json").write_text(json.dumps(profile))
     return profile
+
+
+def write_fixture_audit(parent):
+    """Explicit synthetic audit for synthetic writers; never live proof."""
+    from app.scanning.implementations import comparison
+
+    missing = {"browser": {"status": "missing"}, "wpscan": {"status": "missing"}}
+    report = {**comparison(missing, missing), "fixture_only": True}
+    (Path(parent) / "implementation-audit.json").write_text(json.dumps(report))

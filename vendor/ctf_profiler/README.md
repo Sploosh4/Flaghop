@@ -20,3 +20,20 @@ upstream Python 3.12 regressions unchanged. From this directory run
 `validation-provenance.json` records their hashes, the reviewed standalone report
 identities and test counts without copying private run evidence. Standalone
 acceptance does not establish the app's live guarded execution path.
+
+## Updating this snapshot
+
+From the repository root, run `.venv/bin/python scripts/update-scanner.py
+--source /path/to/reviewed/scanner --check`. It reports changed inputs and a
+candidate manifest digest without writing. Review the source diff and its
+standalone tests first. Apply that exact candidate with `--write
+--expected-manifest DIGEST`, then rerun the check, scanner compatibility tests,
+app import/guard regressions and browser-gated acceptance before claiming the
+new bundle is verified. A changed candidate rejects the review digest.
+
+The updater accepts only the explicit 18-module/three-input inventory and bounded
+ordinary files. Tools, environments, private evidence and evaluator files are
+never copied. New modules need an explicit inventory review. Inputs are staged;
+the manifest is published last so an interrupted update fails runtime identity
+checks. Rerun the same reviewed update to repair it. Historical validation
+provenance is not silently relabelled as evidence for a new source revision.

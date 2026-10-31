@@ -1,8 +1,9 @@
 """Deep scan wire contracts. API callers select targets, never commands or local paths."""
 
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.scanning.profile import literal_ip
+from app.scanning.models import ScanSummary, ImportProgress
 
 
 class DeepScanRequest(BaseModel):
@@ -29,11 +30,14 @@ class DeepScanRun(BaseModel):
         "queued", "running", "completed", "partial", "failed", "cancelled", "held", "planned", "interrupted"
     ]
     job_id: int = 0
+    settling: bool = False
+    summary_omitted: bool = False
     reason: str = ""
     profile_path: str = ""
     log_path: str = ""
     directory: str = ""
-    summary: dict[str, JsonValue] = Field(default_factory=dict)
+    import_progress: ImportProgress | None = None
+    summary: ScanSummary = Field(default_factory=ScanSummary)
 
 
 class DeepScanList(BaseModel):

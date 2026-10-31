@@ -6,6 +6,7 @@ UI plumbing and process lifecycle, not privileged egress enforcement or live cov
 """
 
 import json
+from datetime import datetime, timezone
 import os
 from pathlib import Path
 import sys
@@ -19,7 +20,6 @@ os.environ["XDG_CACHE_HOME"] = str(ROOT / ".cache")
 fixture = tempfile.TemporaryDirectory(dir=ROOT / ".tmp")
 os.environ["LEGION_HOME"] = str(Path(fixture.name) / "config")
 os.environ["LEGION_PROJECTS_DIR"] = str(Path(fixture.name) / "projects")
-
 from unittest.mock import patch
 from PyQt6 import sip
 from PyQt6.QtCore import QTimer
@@ -29,20 +29,29 @@ from app.desktop import LegionWindow, WorkspacePage
 from app.desktop_documents import DocumentPopupPage
 from app.scanning.source import scanner_source
 from app.services.network_models import NetworkUpdate
-from app.web import create_app as create_legacy_app
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
 from db.entities.host import hostObj
 from tests.app.test_ProjectNetworks import FixtureProbe
-from tests.support.asgi_server import live_asgi_server, live_legacy_server
+from tests.support.asgi_server import live_asgi_server
 
-ARTIFACTS = ROOT / ".artifacts/disposable/scanner-smoke"
+HISTORY_COUNT = int(os.environ.get("LEGION_SCANNER_SMOKE_HISTORY", "0"))
+if not 0 <= HISTORY_COUNT <= 5000:
+    raise ValueError("History fixture count must be between 0 and 5000.")
+ARTIFACTS = ROOT / (
+    f".artifacts/disposable/scanner-smoke-history-{HISTORY_COUNT}"
+    if HISTORY_COUNT
+    else ".artifacts/disposable/scanner-smoke"
+)
+if os.environ.get("LEGION_SCANNER_SMOKE_ARTIFACTS"):
+    ARTIFACTS = Path(os.environ["LEGION_SCANNER_SMOKE_ARTIFACTS"]).resolve()
+    if not ARTIFACTS.is_relative_to(ROOT / ".artifacts/disposable"):
+        raise ValueError("Visual fixture artifacts must remain in the project disposable directory.")
 ARTIFACTS.mkdir(parents=True, exist_ok=True)
 logic = create_default_logic()
 runtime = WebRuntime(logic)
-legacy = os.environ.get("LEGION_SMOKE_WEB_STACK") == "legacy"
-web = create_legacy_app(runtime) if legacy else create_app(runtime)
-hub = (web if legacy else web.state.legacy).extensions["project_hub"]
+web = create_app(runtime)
+hub = web.state.project_hub
 project = hub.create("Synthetic scanner lab")["project"]
 hub.networks.probe = FixtureProbe()
 hub.networks.save(
@@ -64,6 +73,27 @@ session.add(host)
 session.commit()
 host_id = host.id
 session.close()
+# Optional scale fixture for the same real UI assertions, never a scan source.
+for history_index in range(HISTORY_COUNT):
+    identifier = f"b{history_index:031x}"
+    directory = Path(logic.activeProject.properties.outputFolder) / "deep-scans" / identifier
+    directory.mkdir(parents=True)
+    (directory / "run.json").write_text(
+        json.dumps(
+            {
+                "id": identifier,
+                "project_id": project["id"],
+                "host_id": host_id,
+                "target_ip": "192.0.2.10",
+                "status": "completed",
+                "settlement": "complete",
+                "job_id": 0,
+                "created_at": datetime.fromtimestamp(1577836800 + history_index, timezone.utc).isoformat(),
+                "directory": str(directory.relative_to(project["folder"])),
+                "summary": {},
+            }
+        )
+    )
 original_source = scanner_source()[1]
 requests = []
 
@@ -87,7 +117,7 @@ class SyntheticLease:
         return [
             sys.executable,
             "-c",
-            "import sys,time; from tests.support.scanner_fixture import write_profile; print('Synthetic child running',flush=True); time.sleep(3); write_profile(sys.argv[1]); print('Synthetic evidence saved',flush=True)",
+            "import sys,time; from pathlib import Path; from tests.support.scanner_fixture import write_profile,write_fixture_audit; print('Synthetic child running',flush=True); time.sleep(3); write_profile(sys.argv[1]); write_fixture_audit(Path(sys.argv[1]).parent); print('Synthetic evidence saved',flush=True)",
             output,
         ]
 
@@ -100,7 +130,7 @@ class SyntheticLease:
 
 lease_patch = patch("app.services.network_guard.NetworkLease", SyntheticLease)
 lease_patch.start()
-server = live_legacy_server(web) if legacy else live_asgi_server(web)
+server = live_asgi_server(web)
 url = server.__enter__()
 app = QApplication([sys.argv[0]])
 checks, errors = [], []
@@ -186,6 +216,11 @@ def completed():
 
 
 def results():
+    if HISTORY_COUNT:
+        record(
+            "Large saved history renders only the bounded 200 scan cards",
+            "document.querySelectorAll('.hub-scan-card').length === 200",
+        )
     record(
         "Services and uncertain role hypotheses are visible",
         "document.querySelector('.hub-scan-card').textContent.includes('8080/tcp') && document.querySelector('.hub-scan-card').textContent.includes('Role hypotheses') && document.querySelector('.hub-scan-card').textContent.includes('server · 60 · medium')",
@@ -238,7 +273,7 @@ def editor():
 
 def finish():
     data = {
-        "stack": "legacy" if legacy else "asgi",
+        "stack": "asgi",
         "checks": checks,
         "js_errors": errors,
         "boundary": "Synthetic writer child and fixture lease; no connected-network scans or privileged egress proof.",

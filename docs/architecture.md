@@ -9,7 +9,7 @@ or dynamically loaded plug-ins.
 flowchart TD
   Desktop[Qt WebEngine windows] --> UI[React workspace and retained HTML views]
   Browser[Browser mode] --> UI
-  UI --> API[FastAPI and retained Flask routes]
+  UI --> API[FastAPI HTTP and WebSockets]
   API --> Services[Project, workspace, scheduler and process services]
   Services --> Jobs[Background job queue]
   Jobs --> Runner[Tracked process runner]
@@ -31,9 +31,9 @@ flowchart TD
 | [`frontend/src/activity`](../frontend/src/activity) | Jobs, processes, output, approvals and other migrated activity panels. |
 | [`app/desktop.py`](../app/desktop.py) and [`desktop_documents.py`](../app/desktop_documents.py) | Native windows around the same localhost app. Window controls use a narrow trusted-origin Qt bridge. |
 | [`app/api`](../app/api) | FastAPI routes and Pydantic request/response contracts. OpenAPI generates TypeScript client types. |
-| [`app/web`](../app/web) | Retained Flask endpoints, HTML/JavaScript views and compatibility adapters. FastAPI mounts this application for unmatched routes. |
+| [`app/web`](../app/web) | HTML/JavaScript assets, templates, job manager and framework-independent service adapters. There is no second web application. |
 | [`app/services`](../app/services) | Project catalog, workspace/session state, process registry, settings, events and network policy. |
-| [`app/web/jobs.py`](../app/web/jobs.py) | In-memory queue with background workers, exclusive jobs, cancellation and explicit partial outcomes. Completion callbacks persist scanner states independently of the queue. |
+| [`app/web/jobs.py`](../app/web/jobs.py) | Bounded in-memory queue with background workers, exclusive jobs and cancellation. Completion callbacks persist results before terminal publication and release; write failures become visible job failures. |
 | [`app/processes`](../app/processes) | Tracked child processes, output, activity/time limits and cancellation. Scanner argv bypasses shell interpretation; older command paths retain their compatibility API. |
 | [`app/services/network_guard.py`](../app/services/network_guard.py) | Checks the captured project network reference and enforces egress for a private process group/GID and its descendants. Failed verification holds work. |
 | [`app/scanning`](../app/scanning) | Thin scanner adapter: source verification, job ownership, proxy registration, profile validation, import and durable results. |
@@ -73,8 +73,10 @@ flowchart TD
 The project catalog maps stable project IDs to workspace files and folders.
 SQLite stores inventory, process history and imported scan summaries. Output files
 preserve the original evidence and hashes. The in-memory job queue does not
-survive a backend restart; unfinished scan records are shown as interrupted, while
-persisted completed, held and cancelled records remain available. Switching
+survive a backend restart. Recovery persists an explicit interruption marker and
+never replays network work. Pending final writes remain distinguishable from
+settled outcomes, even when a database summary already exists. Persisted complete,
+held and cancelled records remain available. Switching
 projects is blocked while scan jobs are queued/running.
 
 An event stream feeds WebSocket invalidations; polling remains available. The
@@ -87,7 +89,10 @@ does not control manual Deep scan jobs.
 `WebRuntime` is still a compatibility facade over many older domain functions.
 Some services depend on it, and the Nmap importer uses the existing database
 repositories. Host/service, graph and settings views are not all React yet.
-The shared runtime and locks therefore still matter: modular files do not make
+The project catalog and runtime now share one reentrant lock, eliminating their
+previous opposite acquisition orders. Scanner operations bind an explicit
+workspace transaction and recheck identity before import. The broad runtime
+facade still matters: modular files do not make
 each feature independently replaceable. This remains an incremental migration,
 not a completed clean-room rewrite.
 
@@ -100,11 +105,11 @@ they are not a claim that every inherited component had a written design record.
 | --- | --- | --- |
 | One modular application | Reuse the existing workspace, jobs, inventory and editor without adding deployment services for a local desktop tool. | Shared runtime state and locks can couple otherwise separate modules. |
 | Qt around a shared web interface | Desktop and browser modes share most UI code while Qt supplies independent native windows. | WebEngine adds memory/dependency cost, and native bridges need careful boundaries. |
-| FastAPI alongside Flask | Migrate routes and typed contracts incrementally while preserving existing views and handlers. | Two API paths require compatibility tests; this is migration overhead rather than an ideal permanent endpoint. |
+| One FastAPI host | Share HTTP, templates, uploads, downloads and asynchronous WebSockets without a WSGI bridge. Generate frontend contracts from OpenAPI. | Some retained handlers still rely on service-level dictionary validation; those contracts need further typing. |
 | Scanner as a child CLI | Isolate tool execution, support cancellation/deadlines, preserve the standalone scanner and reuse its verified behavior. | Adapters must manage processes, environment, logs and explicit import contracts. |
 | Byte-identified source bundle | Ship a portable, known scanner revision without copying its toolchains or depending on a developer's checkout. | Scanner updates require deliberate synchronization and revalidation; hashes identify content, not its correctness. |
 | Per-project SQLite and evidence files | Keep inventory/history queryable while retaining raw proof and portable project exports. | Database summaries and file metadata must remain consistent; atomic writes and validation are required. |
-| In-memory job queue, persisted outcomes | Reuse the existing local queue with durable results and explicit interruption records. | Work does not resume automatically after restart; callbacks and shared locks add lifecycle complexity. |
+| Bounded local job queue, persisted outcomes | Preserve exclusive ownership until evidence settles; reject a full active queue and record interruption after restart. | Work does not resume automatically. A runner and callback are still local Python callables, not a durable distributed queue. |
 | NetworkLease and an owned proxy | Enforce project scope for descendants while permitting only the browser/proxy listener owned by that scan. | Linux privilege, group, firewall and session behavior needs real platform testing. |
 | Separate candidate and reproduced outcomes | Tool completion and scanner alerts do not establish a vulnerability, device identity or successful session. | More states and evidence must be represented in APIs and the UI. |
 
@@ -112,10 +117,31 @@ The process-session fix, Python 3.12 wrapper-path fix and evidence-collector rac
 were responses to observed failures. They were not all anticipated in the initial
 plan. The boundaries above were planned; some implementation details were learned
 through integration. The largest design debt is the shared compatibility runtime,
-followed by the dual API stack and implicit task/profile dictionaries. Reducing
+followed by implicit task/profile dictionaries. The dual API stack has been removed in this revision. Reducing
 that coupling is a more useful next refactor than adding another framework or
 splitting this local tool into more services.
 
 The Deep scan implementation is included in this checkpoint for `master`.
 Its fixture tests, passing real guarded acceptance and remaining limitations are
 recorded in [scanner integration](scanner-integration.md).
+
+## Verified architecture improvements
+
+The application validates task outcomes and scan summaries at import/API
+boundaries while preserving extension fields. Available Chrome ELF and selected
+WPScan application files receive a separate before/after audit from the app
+worker; unknown layouts stay unmeasured and prevent a clean scan result. This
+supplements the standalone audit. Shared OS/browser libraries and arbitrary Ruby
+dependencies/plugins remain outside that added coverage.
+
+History polling uses compact metadata and a bounded serialized-entry cache;
+full results load when a card is expanded. Existing detail consumers can still
+request full rows. The first read of a restored/uncached history still reads its
+metadata files. Directory/stat work remains proportional to history size; this
+is not a database-backed history index or a hard RSS limit.
+
+Scanner updates use the explicit inventory and review-digest workflow in
+`scripts/update-scanner.py`. Proxy IPC uses typed messages and a single bounded,
+nonblocking descriptor read before any privileged command. The privileged
+listener checker remains isolated and unchanged. Current test evidence and the
+remaining platform limits are in [architecture follow-ups](architecture-follow-ups.md).
