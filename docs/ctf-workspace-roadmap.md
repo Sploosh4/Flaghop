@@ -9,7 +9,7 @@ Legion should let you map devices, run commands, use Metasploit and inspect file
 - [x] Desktop workspace, scans, evidence graph, jobs and approvals.
 - [x] Backend cleanup and React/FastAPI workspace/activity panels.
 - [ ] OpenVPN, WireGuard and local/direct network connections, with connection and target reachability checks in Settings.
-- [ ] Shared project network configuration and common checks before automatic network jobs run.
+- [x] Shared local project network configuration and common checks before automatic network jobs run; see [supported modes](project-network-settings.md).
 - [ ] Device map with coloured connection types and commands launched from selected devices.
 - [ ] Metasploit integration and a right-hand action/results panel.
 - [ ] File-watcher/decoder integration, found-file notifications and user-run hash jobs.
@@ -41,11 +41,11 @@ Agreed 31 October 2026. Keep connection diagnostics and per-target route/reachab
 - Record target/address, connector, execution environment, interface/source/gateway, probe method/port, result, reason and check time. Mark prior results as needing a recheck after VPN/routing changes, session loss, IP reuse or target resets, retaining history.
 - Check callback/listener reachability separately when a workflow needs it. Outbound access to a target service does not prove that the target can connect back.
 
-Implemented: installer buttons and persisted per-project connector selection. Profile discovery, connect/disconnect controls and the diagnostics above remain planned work. Do not start checks simply by opening a project or changing its connector.
+Implemented: installer buttons, persisted connector selection, shared Network settings, explicit target checks and guarded local command execution. Automatic profile discovery, connect/disconnect controls and optional traceroute remain planned work. Opening a project or changing its connector does not connect or probe a network.
 
 ### Shared project network configuration
 
-Agreed 31 October 2026; still to build. Store one authoritative network configuration per project and make every app-managed automatic network tool use it. Put its controls in **Project setup → Network settings**, with connection and per-target diagnostics in Settings, not on the map.
+Agreed 31 October 2026. Implemented for app-managed local commands in the connector-settings checkout: one network configuration per project, **Project setup → Network settings**, a shared read API, job references, scope/profile/route/service checks and Linux egress restrictions. See [setup, supported modes and tests](project-network-settings.md). Remote execution, callback verification and optional traceroute remain future work. Connection and per-target diagnostics stay in Settings, not on the map.
 
 | Setting | Purpose |
 | --- | --- |
@@ -73,7 +73,7 @@ Apply these checks at the common execution boundary, including integrated Metasp
 
 Invalidate observations after a configuration edit, VPN disconnect/reconnect, route/interface change, target reset, IP reuse or execution-session loss. Revalidate queued jobs against the new revision before starting. If a running network job loses its verified path, prevent further network steps and cancel or isolate active traffic as supported, preserving output and marking interruption; never silently resume it on a different network. Record the configuration revision, checked destination, execution environment, selected route, check time and decision with each run.
 
-Acceptance checks must use deterministic fixtures: two projects with overlapping private IP ranges and different profiles; local/direct access; an excluded destination; a hostname resolving outside scope; a missing VPN or wrong route; a queued retry after a configuration change; and a disconnect during a running job. Verify that offline work continues, blocked jobs explain why, and route/reachability diagnostics stay in Settings. These are planned checks, not completed tests.
+Acceptance uses deterministic fixtures for project isolation, local/direct access, excluded destinations, scope and hostname checks, missing/wrong routes, configuration revisions, held network work and continued offline jobs. Real isolated WireGuard and userspace OpenVPN tests exercise service access, extra-destination/port restrictions, route-change detection and packet-level fallback blocking. Keep this coverage as the remaining adapters are implemented.
 
 ### Actions on the right
 

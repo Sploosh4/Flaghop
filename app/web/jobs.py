@@ -129,7 +129,7 @@ class WebJobManager:
                 return None
 
             status = str(job.get("status", "") or "").strip().lower()
-            if status in {"completed", "failed", "cancelled"}:
+            if status in {"completed", "failed", "cancelled", "held"}:
                 return self._copy_job(job)
 
             job["cancel_requested"] = True
@@ -192,6 +192,8 @@ class WebJobManager:
                         job["status"] = "completed"
                     job["result"] = result
             except Exception as exc:
+                from app.services.project_networks import NetworkHeld
+
                 with self._lock:
                     job = self._jobs_by_id.get(job_id)
                     if not job:
@@ -201,7 +203,7 @@ class WebJobManager:
                         cancel_reason = str(job.get("cancel_reason", "") or "").strip()
                         job["error"] = cancel_reason or f"cancelled ({exc})"
                     else:
-                        job["status"] = "failed"
+                        job["status"] = "held" if isinstance(exc, NetworkHeld) else "failed"
                         job["error"] = str(exc)
             finally:
                 finished_job = None

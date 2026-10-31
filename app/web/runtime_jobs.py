@@ -1,6 +1,18 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
+import threading
+from app.services.project_networks import JOB_NETWORK, network_service, NetworkHeld
+
+NETWORK_JOB_TYPES = {
+    "nmap-scan",
+    "scheduler-run",
+    "scheduler-approval-execute",
+    "scheduler-dig-deeper",
+    "tool-run",
+    "process-retry",
+    "passive-capture-scan",
+}
 
 
 def emit_ui_invalidation(runtime, *channels, throttle_seconds=0.0):
@@ -46,18 +58,47 @@ def start_job(
         raise ValueError("runner_with_job_id must be callable.")
 
     job_ref = {"id": 0}
+    ready = threading.Event()
+    job_payload = dict(payload or {})
+    reference = JOB_NETWORK.get()
+    network_job = str(job_type) in NETWORK_JOB_TYPES or bool(job_payload.get("run_actions"))
+    if network_job:
+        reference = network_service(runtime).capture()
+        job_payload["network_context"] = reference
+    elif reference is None:
+        try:
+            reference = network_service(runtime).capture()
+        except (RuntimeError, AttributeError):
+            reference = None
 
     def _wrapped_runner():
-        return runner_with_job_id(int(job_ref.get("id", 0) or 0)) or {}
+        ready.wait()
+        token = JOB_NETWORK.set(reference)
+        try:
+            if network_job:
+                network_service(runtime).load(reference)
+            result = runner_with_job_id(int(job_ref.get("id", 0) or 0)) or {}
+            if result.get("executed") is False and str(result.get("reason", "")).startswith("held:"):
+                raise NetworkHeld(result["reason"])
+            return result
+        except NetworkHeld as exc:
+            if reference and not str(exc).startswith("held:"):
+                network_service(runtime).report(
+                    reference, list(job_payload.get("targets", [])), status="held", reason=str(exc)
+                )
+            raise
+        finally:
+            JOB_NETWORK.reset(token)
 
     job = runtime.jobs.start(
         str(job_type),
         _wrapped_runner,
-        payload=dict(payload or {}),
+        payload=job_payload,
         queue_front=bool(queue_front),
         exclusive=bool(exclusive),
     )
     job_ref["id"] = int(job.get("id", 0) or 0)
+    ready.set()
     return job
 
 

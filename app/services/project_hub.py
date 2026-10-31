@@ -31,6 +31,11 @@ class ProjectHub:
         self.root_overridden = bool(projects_dir or os.environ.get("LEGION_PROJECTS_DIR"))
         self.lock = threading.RLock()
         self.operations = ProjectHubOperations(self)
+        from app.services.project_networks import ProjectNetworks
+
+        self.networks = ProjectNetworks(self)
+        if runtime is not None:
+            runtime.project_networks = self.networks
 
     @property
     def root(self):
@@ -225,6 +230,9 @@ class ProjectHub:
             if row is None:
                 raise KeyError("Project not found.")
             row["connector"] = selection
+            network = data.get("networks", {}).get(identifier)
+            if network is not None:
+                network["revision"] = network.get("revision", 0) + 1
             self._write(data)
         return {"status": "ok"}
 

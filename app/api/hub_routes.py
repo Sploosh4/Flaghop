@@ -15,6 +15,7 @@ from app.api.hub_contracts import (
     OpenHubProject,
 )
 from app.services.project_hub import ProjectHub
+from app.services.network_models import NetworkContext, NetworkUpdate, NetworkCheckRequest, NetworkReport
 from app.services.project_hub_requests import (
     CreateHubProject,
     HubConnector,
@@ -35,6 +36,23 @@ def hub_service(request: Request):
 
 
 Hub = Annotated[ProjectHub, Depends(hub_service)]
+
+
+@router.get("/api/hub/projects/{identifier}/network", response_model=NetworkContext, operation_id="getProjectNetwork")
+def project_network(identifier: str, hub: Hub):
+    return hub.networks.get(identifier)
+
+
+@router.put("/api/hub/projects/{identifier}/network", response_model=NetworkContext, operation_id="saveProjectNetwork")
+def save_project_network(identifier: str, payload: NetworkUpdate, hub: Hub):
+    return hub.networks.save(identifier, payload)
+
+
+@router.post(
+    "/api/hub/projects/{identifier}/network/check", response_model=NetworkReport, operation_id="checkProjectNetwork"
+)
+def check_project_network(identifier: str, payload: NetworkCheckRequest, hub: Hub):
+    return hub.networks.check(identifier, payload)
 
 
 @router.get("/api/hub/projects", response_model=HubProjects, operation_id="listHubProjects")

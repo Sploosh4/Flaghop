@@ -15,6 +15,7 @@ class CommandRequest:
     outputfile: str
     timeout: int
     job_id: int = 0
+    network_targets: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,8 @@ class ExecutionPorts:
     unregister_job_process: Callable
     update_process_progress: Callable
     write_process_output_partial: Callable
+    network_guard: Any = None
+    record_network_context: Any = None
 
 
 @dataclass

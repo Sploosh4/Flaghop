@@ -9,6 +9,17 @@ export type Snapshot = components['schemas']['ActivitySnapshot'];
 export type BackgroundStatus = components['schemas']['BackgroundStatus'];
 export type ReaderAlert = components['schemas']['ReaderAlert'];
 export type ReaderResult = components['schemas']['ReaderResult'];
+export type NetworkContext = components['schemas']['NetworkContext'];
+export type NetworkPreferences = components['schemas']['NetworkPreferences'];
+export async function projectNetwork(id: string) {
+  return result(await client.GET('/api/hub/projects/{identifier}/network', {params: {path: {identifier: id}}}));
+}
+export async function saveProjectNetwork(id: string, revision: number, settings: NetworkPreferences) {
+  return result(await client.PUT('/api/hub/projects/{identifier}/network', {params: {path: {identifier: id}}, body: {expected_revision: revision, settings}}));
+}
+export async function checkProjectNetwork(id: string, target: string, port?: number) {
+  return result(await client.POST('/api/hub/projects/{identifier}/network/check', {params: {path: {identifier: id}}, body: {target, port}}));
+}
 
 function result<T>({data, error, response}: {data?: T; error?: unknown; response: Response}): T {
   if (!data) throw failure(error, response.status);

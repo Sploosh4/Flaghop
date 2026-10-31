@@ -189,6 +189,41 @@ class ProjectHubTest(TestCase):
         with self.assertRaises(ValueError):
             self.hub.set_vpn(None, "some-vpn")
 
+    def test_process_network_context_is_saved_with_the_workspace(self):
+        from types import SimpleNamespace
+
+        row = self.hub.create("Network audit fixture")["project"]
+        reference = self.hub.networks.capture()
+        report = {"revision": 1, "status": "ready", "reason": "Synthetic check"}
+        lease = SimpleNamespace(
+            reference=reference,
+            report=report,
+            snapshot=None,
+            prepare=lambda: ["/bin/sh", "-c", "printf fixture"],
+            verify=lambda: None,
+            close=lambda: None,
+        )
+        with patch("app.services.network_guard.NetworkLease", return_value=lease):
+            executed, reason, process_id = self.runtime._run_command_with_tracking(
+                tool_name="fixture",
+                tab_title="Fixture",
+                host_ip="192.0.2.7",
+                port="80",
+                protocol="tcp",
+                command="printf fixture",
+                outputfile="",
+                timeout=5,
+            )
+        self.assertTrue(executed, reason)
+        self.assertEqual("fixture", self.runtime.get_process_output(process_id)["output"])
+        # Reopening the SQLite workspace must retain the exact project/revision evidence.
+        self.hub.operations.save(row["id"])
+        self.runtime.open_project(row["path"])
+        context = self.runtime.get_process_output(process_id)["network_context"]
+        self.assertEqual(row["id"], context["project_id"])
+        self.assertEqual(1, context["revision"])
+        self.assertEqual("ready", context["observation"]["status"])
+
     def test_connector_preferences_persist_without_connecting_or_affecting_other_projects(self):
         first = self.hub.create("First")["project"]
         second = self.hub.create("Second")["project"]

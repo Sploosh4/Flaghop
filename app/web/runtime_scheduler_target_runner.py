@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextvars import copy_context
 from typing import Any, Dict, List, Optional, Tuple
 
 
@@ -45,7 +46,7 @@ def run_scheduler_targets(
     with ThreadPoolExecutor(
         max_workers=min(host_concurrency, len(target_groups)), thread_name_prefix="legion-scheduler-hosts"
     ) as pool:
-        futures = [pool.submit(run, targets=group, **request) for group in target_groups]
+        futures = [pool.submit(copy_context().run, run, targets=group, **request) for group in target_groups]
         for future in as_completed(futures):
             summaries.append(future.result())
     return merge_scheduler_run_summaries(

@@ -658,6 +658,7 @@ class _RuntimeJobsManager:
         self.started = None
 
     def start(self, job_type, runner, payload=None, queue_front=False, exclusive=False):
+        self.runner = runner
         job = {
             "id": 19,
             "type": str(job_type),
@@ -665,7 +666,7 @@ class _RuntimeJobsManager:
             "payload": dict(payload or {}),
             "queue_front": bool(queue_front),
             "exclusive": bool(exclusive),
-            "result": runner(),
+            "result": {},
         }
         self.started = dict(job)
         return job
@@ -681,6 +682,9 @@ class _RuntimeJobsRuntime:
         self._ui_events = []
         self._ui_last_emit_monotonic = {}
         self.jobs = _RuntimeJobsManager()
+        self.project_networks = SimpleNamespace(
+            capture=lambda: {"project_id": "fixture", "config_id": "network", "revision": 1}, load=lambda _ref: None
+        )
 
 
 class WebRuntimeDomainModulesTest(unittest.TestCase):
@@ -937,9 +941,12 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
             queue_front=True,
             exclusive=True,
         )
+        started["result"] = runtime.jobs.runner()
         selected = runtime_jobs.find_active_job(runtime, job_type="scheduler-dig-deeper", host_id=11)
 
         self.assertEqual(19, started["id"])
+        self.assertEqual(19, started["result"]["job_id"])
+        self.assertEqual("fixture", started["payload"]["network_context"]["project_id"])
         self.assertTrue(started["result"]["ok"])
         self.assertTrue(runtime.jobs.started["queue_front"])
         self.assertTrue(runtime.jobs.started["exclusive"])
