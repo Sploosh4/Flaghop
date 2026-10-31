@@ -1,5 +1,7 @@
 # Legion Qt Sunset Plan (Web + Headless CLI + MCP)
 
+> Historical plan. The current app retains its Qt WebEngine desktop shell alongside localhost browser mode. This document does not authorise removing it. Use the [current roadmap](ctf-workspace-roadmap.md), [delivery status](project-status.md) and [migration notes](../MIGRATION.md) for current scope and implementation.
+
 ## Goal
 Remove desktop Qt mode and eliminate PyQt/Qt requirements from the runtime paths we keep:
 - Web mode

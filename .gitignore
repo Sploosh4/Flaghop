@@ -134,7 +134,6 @@ huge_nmap.xml
 !tests/fixtures/scheduler-regression/*.xml
 
 legion.code-workspace
-docs/
 -ut/
 ut/
 LEGION_AI_PROMPT_IMPROVEMENT_PLAN.md

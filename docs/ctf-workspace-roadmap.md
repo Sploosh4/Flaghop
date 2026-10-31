@@ -1,101 +1,73 @@
-# Planned CTF workspace
+# FlagHop CTF workspace roadmap
 
-The plan for Sploosh4's Legion fork. Checked items are working; unchecked items are still to build. Suggestions and open questions are listed below.
+Reviewed 31 October 2026. FlagHop is the app being developed in [Sploosh4/Flagmap](https://github.com/Sploosh4/Flagmap), a CTF-focused Legion fork. The [delivery status](project-status.md) separates published code, verified local additions and separate tools. Checked local-development items below are not included in this documentation-only publication.
 
-Legion should let you map devices, run commands, use Metasploit and inspect files and websites in the same app.
+The goal is one workspace for device mapping, reconnaissance, commands, Metasploit and file investigation. The website replacement comes later.
 
-## Roadmap
+## Delivery checklist
 
-- [x] Desktop workspace, scans, evidence graph, jobs and approvals.
-- [x] Backend cleanup and React/FastAPI workspace/activity panels.
-- [ ] Device map with coloured connection types and commands launched from selected devices.
-- [ ] Metasploit integration and a right-hand action/results panel.
-- [ ] File-watcher/decoder integration, found-file notifications and user-run hash jobs.
-- [ ] File browser and text editor.
-- [ ] A unified workflow for website targets and web tools.
+- [x] Published: desktop/browser workspace, local scans/tools, inventory, evidence graph, jobs, approvals and history.
+- [x] Published: React/FastAPI workspace/activity panels and retained compatibility views.
+- [x] Local development: FlagHop branding and configurable project folders.
+- [x] Local development: project-specific reader Start/Pause, readiness, real Working/results and persistent dismissal.
+- [x] Local development: project file browser and tabbed editor, preserving original evidence.
+- [ ] Finish the separate scanner's repeatability and final evidence review.
+- [ ] Finish and verify shared network settings, scope/exclusions and OpenVPN/WireGuard route enforcement in the separate checkout.
+- [ ] Review and publish a coherent implementation checkpoint for the local additions.
+- [ ] Implement the reviewed topology map, classifier/profile wiring, contextual actions and bulk command bar.
+- [ ] Connect scanner jobs/results to the app's evidence and map.
+- [ ] Build the full action panel/terminal and unified Metasploit job/session workflow.
+- [ ] Map authenticated remote sessions into main Files; add source/version navigation and durable edited-copy saving.
+- [ ] Package the reader setup and verify fresh installation and recovery.
+- [ ] Revisit unified website targets after the basic integrated workflow.
 
-## What to build
+## Map and reconnaissance
 
-### Initial reconnaissance and a visible map
+The existing evidence graph is not the planned topology map. Show the user's laptop/VPN, targets and observed intermediate hops without inventing physical connections. Preserve unknown hops and evidence age/source. Reachability, an exposed service and a confirmed network hop are different observations.
 
-- Run initial reconnaissance automatically and add discoveries about the selected targets to the map.
-- Show the user's laptop, discovered devices and the links between them. Include an intermediate router or firewall when it has been observed.
-- Use different link colours for different connections, with a legend. The categories and colours are still undecided.
-- Use the approved device illustrations. Choose an image from the evidence about the device; the artwork alone doesn't establish its identity or NGFW capabilities.
+The reviewed picture/contour design is ready for implementation. Device artwork stays neutral; purple follows the selected picture's silhouette and filters its action panel. Connection colours represent connection types, with categories/colours still to settle. Device images alone do not establish identity or security capability.
 
-### Actions on the right
+Planned navigation includes Devices/Services/Files layers, stable device/action shortcuts, context menus and a bulk command bar. Protect terminal/editor typing from global shortcuts and define overflow behaviour before implementing it.
 
-- Show suggested actions from scan results in a panel on the right.
-- Run Metasploit actions through the same panel and job controls.
-- Show deciphered content, found files and suspected password hashes that can be queued for cracking.
-- Give each action a **Run** button, the tactic and technique where applicable, and enough context to choose it. The full card contents are still undecided.
-- Let the user run several actions. Show which are queued or running, and keep them visible until they finish.
-- Only remove actions from the active list after completion. Decide where completed, failed and cancelled work goes.
+The separate profiler supplies ranked device-role hypotheses with evidence, alternatives and uncertainty. Its rule strength is not calibrated probability. Connect its output through an explicit job/profile contract rather than assuming a completed scan has updated the app.
 
-### Incoming files, decoding and hashes
+## Actions, terminal and Metasploit
 
-- Notify the user in the same panel when files arrive.
-- Show recognised hashes, encodings or ciphers. Always offer **Open**, even when nothing is recognised.
-- Try supported decoders and ciphers automatically. Some inputs will remain encrypted or unrecognised, and detection can be wrong.
-- Queue suspected password hashes for the user to review and run.
-- Keep a file's integrity checksum separate from suspected password hashes found inside it.
+Use one selected-target/stage-filtered action panel with Run, applicability, explanation, output and queue state. Laptop/VPN selection is not a CTF target filter. Keep actions readable while queued/running. Completed output goes to History; failures/interruption return with a reason. Final running-card placement and completed Deep scan presentation remain open.
 
-### Filesystem and text editor
+Known terminal commands may provide structured observations; arbitrary terminal output must not be treated as parsed evidence. Integrate Metasploit through the shared jobs and outcome contracts. Existing profile import only moves inventory and a profile note into Metasploit; it does not implement module/session actions.
 
-- Include a file browser and text editor in the workspace.
-- Decide whether to browse local files, remote files through active sessions, or both, and how edits relate to original evidence.
+Keep execution completion, reproduced findings, sessions and privilege changes separate. Detailed pivoting and privilege-escalation interpretation remain unagreed.
 
-### Website targets
+## Files, decoding and password recovery
 
-- Add website targets and web tools to the same views, with commands, results and evidence kept together.
-- Choose which website tools to support first and how much to integrate them.
+The local development app already connects to the shared cipher/password reader through stable project IDs. Real A/B acceptance covered pausing A while B decoded and recovered a synthetic password, retained pending work, result opening, dismissal and source integrity. See [workspace readers](background-workspaces.md).
 
-## What works now
+The engines/service remain separate dependencies. They support bounded processing and preserve ambiguous hash formats and unresolved content. Supported archive/encoding layers do not establish arbitrary file-format or cipher coverage. Accepted plaintext remains a candidate until verified.
 
-The current app already contains persistent SQLite workspaces, host/service inventory, an evidence graph, tool execution, approval handling, background jobs and execution history. Workspace identity and activity panels have been migrated to React/TypeScript, with their API routes served by FastAPI. Other views still use the compatibility layer; see [the migration notes](../MIGRATION.md).
+Main Files currently covers local project files and saved results. Remote SSH browsing/collection works separately with explicit authentication and verified host identity. Add project/session/target mapping, clickable source/version navigation and durable edited-copy saving. Current text edits stay in browser drafts.
 
-Web-tool commands and some Metasploit command mappings already exist. The unified website workflow and deeper Metasploit integration described here remain planned work.
+Decide the brief automatic recovery versus user-run deeper policy, resource/time limits and retention. Keep source/result links, originals and derived content separate. An integrity checksum is not automatically a password hash or proof of authenticity.
 
-The evidence graph exists; the planned map of network paths from the laptop is still to build. A discovered host, a reachable service and a confirmed network hop are different observations.
+## Network settings
 
-A separate local file-watching prototype combines Watchdog, base64dump and Ciphey. It preserves originals, records source hashes and candidate locations, saves derived files and reports failures or partial processing. It is not integrated into Legion, and there is no working Legion importer for its proposed export. Archive/PDF extraction and general cipher detection are not implemented in that prototype.
+VPN Setup is actively implementing shared project configuration, targets/exclusions, profile selection and checks at the common execution boundary in `codex/connector-settings`. OpenVPN/WireGuard installation does not prove correct tunnel routing. Complete real local tunnel tests, job/Settings wiring and integration before claiming enforcement in the main app.
 
-The device images have been selected. They still need to be added to Legion and matched to supported device classifications.
+Define behaviour for intentional no-VPN events, missing/disconnected profiles, split routes and network changes. Settings diagnostics must distinguish a saved preference from an observed connection.
 
-## Suggestions
+## Deferred scope
 
-These still need a decision.
+Authenticated web investigation comes after the basic integrated workflow: login sessions, cookies, tokens and authenticated views are deferred. The smaller unified website replacement is also a later phase. Unauthenticated web reconnaissance remains in the separate scanner; the old main-app web/screenshot suite has been removed.
 
-| Area | Suggested behaviour |
-| --- | --- |
-| Map evidence | Distinguish reachability, observed hops and confirmed connections; retain unknown hops and show the source and age of a relationship. Supplement colours with labels or line styles. |
-| Action cards | Include target, reason for the suggestion, supporting evidence, expected outcome, tool, execution location, prerequisites, impact, progress and access to output. |
-| Queue behaviour | Prevent duplicate runs, limit concurrency, offer cancellation, keep failures actionable and retain completed work in searchable history. |
-| Panel organisation | Provide views for the selected device, the whole workspace, running work and new files. |
-| File attribution | Associate files with their actual collection job/session when known; ask for attribution when it is unknown instead of guessing from filenames. |
-| Evidence and editing | Preserve originals, save decoded results and editable copies separately, and retain the link between source and derived content. |
-| Analysis limits | Bound automatic processing, report unsupported or partial analysis, and present accepted plaintext as a candidate until verified. |
-| Recovery and storage | Preserve useful state across restarts, report interrupted jobs, avoid silently rerunning them, and agree a retention policy for accumulated files. |
+## Decisions and proposed build order
 
-## Open questions
+[Requests and open questions](requirements-and-questions.md) owns the detailed choices: map relationships/staleness, action metadata, stage/shortcut overflow, applicability, cancellation/concurrency, editor/session docking, recovery limits, retention and first Metasploit functions. Treat suggestions there as proposals until agreed.
 
-1. Does the file browser initially cover workspace files only, or remote machines as well?
-2. Should selecting a map node filter the action panel to that device, with a separate whole-workspace view?
-3. What inputs and scan depth should initial reconnaissance support: IPs, subnets, domains and/or imported scan results? How should the interface or VPN be chosen?
-4. Which relationship categories and colours should the map use?
-5. Which action-card fields are essential, and how should actions without a meaningful tactic/technique mapping appear?
-6. Where should completed, failed and cancelled actions go, and when may an action be suggested again?
-7. Which file types, encodings and cipher families should be supported first? What should a hash action require before it runs?
-8. Should the editor cover notes, scripts and other text files, and how should saving or running a script work?
-9. Which Metasploit actions and website tools should be integrated first, and what results should their cards show?
+1. Close scanner repeatability/final review and real network/tunnel verification.
+2. Review and publish the locally verified reader/files implementation checkpoint.
+3. Demonstrate one selected target → scanner job → profile/map evidence → saved result in the editor.
+4. Add the full action panel/terminal, Metasploit jobs and remote session mapping.
+5. Package setup and test fresh installation, interruption/recovery and representative CTF exercises.
+6. Agree the smaller website replacement after the basic workflow works.
 
-## Build order (proposed)
-
-1. Settle the open choices and define a useful first reconnaissance result.
-2. Build the map and action panel using the existing scans, jobs and evidence.
-3. Add file notifications and a basic file browser/editor.
-4. Add Metasploit, file analysis with processing limits, derived results and user-run hash jobs to the panel.
-5. Add website targets and the selected web tools.
-6. Try it in representative CTF exercises and fix what gets in the way.
-
-There are no delivery dates yet. Test how long it takes to find a useful lead, how many suggestions are irrelevant, whether results can be traced to their evidence, and what survives an interruption. The goal is less repeated work and less switching between tools; that benefit still needs to be tested.
+There are no delivery dates or work-hours estimates. Evaluate useful leads, irrelevant suggestions, traceability and interruption recovery. The intended benefit is less repeated work and less switching between tools; that benefit still needs representative testing.

@@ -1,21 +1,26 @@
-# Legion
+# FlagHop
 
-A desktop app for CTFs. Run scans and tools, keep the results in a project, and see what's running.
+A desktop workspace for CTFs, built from Legion. The repository is [Sploosh4/Flagmap](https://github.com/Sploosh4/Flagmap); the current app name is FlagHop. Run local scans and tools, keep their evidence in a project, and track jobs and results.
 
-The plan is to bring the device map, Metasploit, file analysis and website tools into the same app.
+The next step is to connect device mapping, reconnaissance, Metasploit actions and file analysis in one workflow.
 
-## Roadmap
+## Project status
 
-- [x] Desktop app, scans, evidence graph, jobs and approvals.
-- [x] Backend cleanup and React/FastAPI workspace and activity panels.
-- [ ] Map devices and show connection types with coloured lines. Run commands from the map.
-- [ ] Add Metasploit and a panel on the right for actions, decoded text, found files and hashes to try cracking.
-- [ ] Bring in the file watcher and decoders, with a file browser and text editor.
-- [ ] Revisit website targets and web tools after the network workflow.
+Reviewed 31 October 2026. The published code and the local development app are at different stages:
 
-[Full plan and open questions](docs/ctf-workspace-roadmap.md).
+| Stage | What works or is being built |
+| --- | --- |
+| Published foundation | Desktop/browser workspace, named projects, local scans and tools, inventory, evidence graph, jobs, approvals, history, save/restore and ZIP export. React/FastAPI workspace and activity panels. |
+| Verified in local development; code publication pending | FlagHop branding and configurable project folders. Per-workspace cipher/password reader Start/Pause, real Working/results, persistent alert dismissal, and a local file browser/editor. |
+| In progress separately | Final scanner verification and shared project network settings for OpenVPN/WireGuard, targets, exclusions and route checks. |
+| Still to integrate | The reviewed device-map design, scanner results in the app, unified action panel/terminal, Metasploit jobs, remote sessions in Files, and repeatable reader setup. |
+| Deferred | Unified website targets and authenticated web investigation after the basic network workflow. |
 
-[Unfinished requests and UI/non-UI questions](docs/requirements-and-questions.md).
+The current evidence graph and the planned network-topology map are separate views. Metasploit profile import exists in the separate profiler; the unified action/session workflow is still planned.
+
+Local reader integration has passed real two-workspace decoding and synthetic password-recovery checks. Pause is cooperative and displays **Pause requested** until stop observation is supported. Text edits currently stay in browser drafts. The reader engines/service remain separate dependencies; cloning this branch does not install them.
+
+[Delivery status and remaining problems](docs/project-status.md) · [Roadmap](docs/ctf-workspace-roadmap.md) · [Requests and open questions](docs/requirements-and-questions.md) · [Local reader integration](docs/background-workspaces.md)
 
 ## Run
 
@@ -36,6 +41,8 @@ For the browser interface, use `requirements.txt` and run:
 ```
 
 Open <http://127.0.0.1:5000>. Frontend assets are included; Node.js is only needed for development. Build and test commands are in [MIGRATION.md](MIGRATION.md).
+
+The published foundation uses `~/Documents/Hackathon/[project name]`. The local FlagHop development app defaults to `~/Documents/FlagHop/[project name]` and lets you change the base folder in Setup. Existing `.legion` workspaces remain supported. See the delivery status before relying on development-only features.
 
 ## Licence and credits
 
