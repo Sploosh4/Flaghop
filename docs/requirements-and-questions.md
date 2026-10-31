@@ -2,7 +2,7 @@
 
 Updated 31 October 2026. This separates working changes from requests still waiting. Nothing below authorises starting a deferred integration.
 
-This file includes the local development app and reviewed designs. It does not mean every change is published in this branch. See [delivery status](project-status.md) for the code/evidence boundary and [roadmap](ctf-workspace-roadmap.md) for delivery order.
+This file includes the current app, separate tools and reviewed designs. Design decisions do not imply implemented app interactions. See [delivery status](project-status.md) for the code/evidence boundary and [roadmap](ctf-workspace-roadmap.md) for delivery order.
 
 - Application renamed FlagHop; upstream attribution and compatible workspace formats remain.
 - Default save folder is configurable below VPN in Setup. New projects use `Documents/FlagHop/[project name]`; native export dialogs start in that project's `exports` folder. Changing the default affects new projects; an explicit migration can move existing folders after file readers have stopped.
@@ -15,6 +15,7 @@ This file includes the local development app and reviewed designs. It does not m
 - Josh scrapped the proposed vulnerability-colour view after discussing its usefulness. Keep device icons neutral; do not add severity palettes or assessed/unassessed colouring. Connection colours still distinguish link types, and the selection outline still identifies the selected target.
 - Both editable concepts are ready for visual review: [artwork](https://www.figma.com/design/LWCW4k3IdiQWJMoMPoX5Um/FlagHop-UI?node-id=4-290) and [outline](https://www.figma.com/design/LWCW4k3IdiQWJMoMPoX5Um/FlagHop-UI?node-id=4-433). Their exported sidebars, title bars and project headings match the accepted replica; the action panels match each other. Reviewed corrections covered label alignment, connection endpoints, text overlap, queued/interrupted states, Run/Open controls, stage filtering and Deep scan placement. These are static Figma concepts, not implemented app interactions.
 - Josh prefers the picture/artwork version. He requested an outline following the selected picture's silhouette instead of the purple circle. The [picture-contour concept](https://www.figma.com/design/LWCW4k3IdiQWJMoMPoX5Um/FlagHop-UI?node-id=4-560) keeps the original picture and uses a separate editable purple outer contour. Purple identifies the selected device that filters the panel; it does not indicate severity. The previous two views remain available for comparison.
+- All six device pictures use silhouette contours: no outline by default, light grey on hover, purple when selected. Josh approved the brighter hover treatment (`#b0aab9` at 90% opacity) after the first grey was too faint. These are Figma design states; production map wiring remains planned.
 - At Josh's request in Filesystem-Access, the main app now integrates workspace-specific reader Start/Pause, real Working/result alerts, persistent dismissal, and the local filesystem/editor. The configured Hub ID/folder determines scope; switching views does not resume readers. A fresh worker registration is required for Start, and Pause requested remains distinct from confirmed worker shutdown. Real A/B acceptance covered decoding, synthetic password recovery, retained paused work and result/source integrity. Remote SSH browsing remains in its separate workbench; its main-app session mapping is still pending. See [workspace readers](background-workspaces.md).
 
 ## Project foundation in this pass
@@ -31,7 +32,9 @@ This file includes the local development app and reviewed designs. It does not m
 - [x] Restore the sidebar collapse/reopen arrows and remember the collapsed state. Remove the decorative arrows from project rows.
 - [x] Show a red, **unconfigured** Setup state and inactive VPN controls. This does not report whether a real VPN is connected.
 - [x] Allow each project to use the global default or explicitly choose None. The global control currently shows No default.
-- [ ] Complete shared network settings, targets/exclusions, profile selection and common automatic-job route checks. VPN Setup is now implementing these in the separate `codex/connector-settings` checkout; main-app integration and real-tunnel verification remain pending. The earlier deferral was superseded by this assignment.
+- [x] Project Connector selection: NetworkManager, OpenVPN or WireGuard, persisted separately from connection state. Computer Setup can install the selected VPN client through the existing installer. Choosing or installing a connector does not connect it.
+- [x] Shared [Network settings](project-network-settings.md), allowed targets/exclusions/ports, scope source, explicit profile/interface identity and configuration revisions. App-managed local network jobs use the original project's settings and common scope/profile/route/service checks, with Linux egress restrictions and distinct held outcomes. Real isolated WireGuard and userspace OpenVPN acceptance passed.
+- [ ] Automatic connection-profile discovery/import/connect/disconnect, privileged/DCO adapters, remote runners, callback checks and optional traceroute remain planned. Opening a project or its settings does not connect or probe a network.
 - [ ] A real connected/disconnected indicator. Red currently means configuration is incomplete.
 - [ ] Josh's visual review of this foundation.
 
@@ -54,12 +57,12 @@ The earlier full shell remains hidden by default. Its settings/inspectors are bo
 
 ### Settings review
 
-The tool audit now covers the retained local discovery and protocol tools. Removed web, screenshot, relay and external-enrichment tools are no longer offered for installation. No tools were installed during this change.
+The tool audit covers the retained local discovery and protocol tools. Removed web, screenshot, relay and external-enrichment tools are no longer offered for installation. Connector client installation is explicit and separate from connecting a VPN.
 
 - Interface settings controls the evidence graph and optional ASCII background.
 - Scheduler settings controls deterministic follow-ups, approvals, concurrency and execution permissions. AI providers, prompt controls and alternate runners are removed.
 - Device categories defines labels and matching rules for ports, fingerprints and CPE values.
-- Main Setup currently contains this computer and incomplete VPN preferences. Expanded network settings/enforcement are active in the separate checkout, not verified as integrated here.
+- Main Setup contains this computer, default VPN preferences and connector installer buttons. Project setup contains the connector choice and shared Network settings, including explicit target checks. Discovery and connection management remain planned.
 
 ### Removed in this pass
 
@@ -119,7 +122,7 @@ Useful future settings: workflow-specific tool selections, executable/wordlist p
 
 ## UI questions
 
-1. The topology map will live directly in Overview. The project name and folder path sit at the upper left; VPN preference and files are in Project setup. Editor placement and action-filter grouping still need a decision.
+1. The topology map will live directly in Overview. The project name and folder path sit at the upper left; connector preference and network diagnostics are in Project setup. Editor placement and action-filter grouping still need a decision.
 2. Should renaming also rename its folder later? Inline rename is restored; it currently keeps the existing folder.
 3. Local Files is implemented. How should remote sessions join it, and where should the editor and terminal dock?
 4. Which connection categories, colours and line styles should the map use? How should multiple missing traceroute hops look?
@@ -128,15 +131,15 @@ Useful future settings: workflow-specific tool selections, executable/wordlist p
 7. What happens when there are more than nine devices or eleven visible actions? Keys should not silently change targets while a user is about to press them.
 8. Which card details remain visible, and which appear only when expanded? Where do the plain explanation and output go?
 9. Should a running card move entirely into Working or also remain marked in its original list? How should finished Deep scan results appear?
-10. Should intentional No VPN look different from disconnected, unknown or failed status? Future red status should not imply a connection check that never happened.
+10. Local/direct access is a normal mode. How should connection status distinguish unknown, disconnected and failed without implying a check that never happened?
 11. Project files/results now open in the integrated editor or a read-only preview. How should durable edited copies be saved and named, and should a system-app option be added?
 
 ## Non-UI questions
 
 1. What targets, scan depth and exclusions should initial reconnaissance accept? How is its execution location chosen: laptop/interface/VPN or a remote session?
-2. Which NetworkManager, OpenVPN/WireGuard and unmanaged-tunnel paths must the current network-settings assignment support, and what tests establish enforcement? Broader provider support remains to define.
-3. Does selecting a default VPN only remember it, or also connect it on project open? What happens when it is missing, disconnected or routes only some targets?
-4. How should events without a VPN work: downloadable challenges, browser-hosted targets or an on-site network? Which failures should block a job rather than just mark its status?
+2. Local/direct, NetworkManager and explicit OpenVPN/WireGuard identities are supported under the limits in the network guide. Which privileged or remote adapter should follow the current Linux runner?
+3. Connector/default selection only saves a preference. Profile discovery and explicit connection management remain to design; project opening must not connect automatically.
+4. Missing scope, wrong interface/profile/routes, unavailable enforcement and failed required services hold dependent network jobs. Offline file work can continue. Which additional diagnostics should be recorded without blocking?
 5. Which observations become stale after a target reset, IP reuse, VPN/routing change or session loss? Agree the useful stale indicators and refresh behaviour; a specific example was requested earlier.
 6. Which terminal tools can supply structured results? How should manually typed commands, exit status, output files and remote sessions be attributed to map entities?
 7. Where do card explanations come from: authored descriptions, tool/module metadata or reviewed generated drafts? How are tactic, technique and Kill Chain stage mapped separately?

@@ -2,15 +2,15 @@
 
 Workspace identity and activity now use React and FastAPI. This remains an incremental migration. Python, SQLite, the scheduler, approval checks, subprocess execution and the Qt WebEngine window remain in use.
 
-## Published shell and local development
+## Current shell and integrations
 
-The published foundation opens on a React project home with project-specific navigation, save/restore/export, command search, live status and remembered sidebar preferences. Its visible name is still Legion and its default project root is `Documents/Hackathon/[project name]`. Existing settings and inspectors load on demand in isolated same-origin panels; the hidden legacy shell does not run background loaders.
+The app opens on a React project home with project-specific navigation, save/restore/export, command search, live status and remembered sidebar preferences. Its visible name is FlagHop and its default project root is configurable, initially `Documents/FlagHop/[project name]`. Existing settings and inspectors load on demand in isolated same-origin panels; the hidden legacy shell does not run background loaders.
 
-The locally verified development app is named FlagHop, uses a configurable `Documents/FlagHop/[project name]` default, and adds project-ID-scoped reader controls, real Working/results and an integrated local filesystem/editor. Those implementation changes are not included by this documentation-only publication. The reader service/toolchains remain separate dependencies. See [delivery status](docs/project-status.md) and [workspace reader contracts](docs/background-workspaces.md).
+Project-ID-scoped reader controls, real Working/results and the local filesystem/editor are included. The reader service/toolchains remain separate dependencies. See [delivery status](docs/project-status.md) and [workspace reader contracts](docs/background-workspaces.md).
 
-Main-app VPN controls remain incomplete. Shared project network settings, scope/exclusions and common-runner route enforcement are being implemented in a separate checkout; tunnel verification and integration are pending. This supersedes the earlier blanket VPN deferral without claiming a working main-app connection.
+Shared project network settings, scope/exclusions, target checks and common-runner enforcement are included. Linux commands use per-command egress restrictions and retain the validated network context in their SQLite process history. Unconfigured or unsupported network work is held; offline work can continue. Real isolated WireGuard/userspace OpenVPN acceptance is recorded. Discovery, connect/disconnect controls, remote runners and callback checks remain planned. See [network setup and supported modes](docs/project-network-settings.md).
 
-The API and reproduction sections below describe the published foundation. Additional local-development reader/filesystem routes are listed separately in the reader contract.
+Reader/filesystem routes are listed in the reader contract. Both FastAPI and legacy transports also expose per-project `GET`/`PUT /api/hub/projects/{id}/network` and `POST /api/hub/projects/{id}/network/check`; writes use an expected configuration revision. Process output includes the saved `network_context`.
 
 ## Scope
 

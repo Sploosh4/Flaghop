@@ -1,6 +1,6 @@
 # FlagHop CTF workspace roadmap
 
-Reviewed 31 October 2026. FlagHop is the app being developed in [Sploosh4/Flagmap](https://github.com/Sploosh4/Flagmap), a CTF-focused Legion fork. The [delivery status](project-status.md) separates published code, verified local additions and separate tools. Checked local-development items below are not included in this documentation-only publication.
+Reviewed 31 October 2026. FlagHop is the app being developed in [Sploosh4/Flagmap](https://github.com/Sploosh4/Flagmap), a CTF-focused Legion fork. The [delivery status](project-status.md) separates this implementation checkpoint, separate tools and planned work.
 
 The goal is one workspace for device mapping, reconnaissance, commands, Metasploit and file investigation. The website replacement comes later.
 
@@ -8,12 +8,12 @@ The goal is one workspace for device mapping, reconnaissance, commands, Metasplo
 
 - [x] Published: desktop/browser workspace, local scans/tools, inventory, evidence graph, jobs, approvals and history.
 - [x] Published: React/FastAPI workspace/activity panels and retained compatibility views.
-- [x] Local development: FlagHop branding and configurable project folders.
-- [x] Local development: project-specific reader Start/Pause, readiness, real Working/results and persistent dismissal.
-- [x] Local development: project file browser and tabbed editor, preserving original evidence.
+- [x] FlagHop branding and configurable project folders.
+- [x] Project-specific reader Start/Pause, readiness, real Working/results and persistent dismissal; engines remain separate dependencies.
+- [x] Project file browser and tabbed editor, preserving original evidence.
+- [x] Shared network settings, scope/exclusions, explicit profile identity and Linux enforcement for app-managed local commands; real isolated WireGuard/userspace OpenVPN acceptance.
 - [ ] Finish the separate scanner's repeatability and final evidence review.
-- [ ] Finish and verify shared network settings, scope/exclusions and OpenVPN/WireGuard route enforcement in the separate checkout.
-- [ ] Review and publish a coherent implementation checkpoint for the local additions.
+- [ ] Add automatic profile discovery/import/connect/disconnect and separately enforced privileged/remote adapters.
 - [ ] Implement the reviewed topology map, classifier/profile wiring, contextual actions and bulk command bar.
 - [ ] Connect scanner jobs/results to the app's evidence and map.
 - [ ] Build the full action panel/terminal and unified Metasploit job/session workflow.
@@ -25,7 +25,7 @@ The goal is one workspace for device mapping, reconnaissance, commands, Metasplo
 
 The existing evidence graph is not the planned topology map. Show the user's laptop/VPN, targets and observed intermediate hops without inventing physical connections. Preserve unknown hops and evidence age/source. Reachability, an exposed service and a confirmed network hop are different observations.
 
-The reviewed picture/contour design is ready for implementation. Device artwork stays neutral; purple follows the selected picture's silhouette and filters its action panel. Connection colours represent connection types, with categories/colours still to settle. Device images alone do not establish identity or security capability.
+The reviewed picture/contour design is ready for implementation. Device artwork stays neutral; a light-grey silhouette contour marks hover and purple marks selection. Selected targets filter the action panel. Connection colours represent connection types, with categories/colours still to settle. Device images alone do not establish identity or security capability.
 
 Planned navigation includes Devices/Services/Files layers, stable device/action shortcuts, context menus and a bulk command bar. Protect terminal/editor typing from global shortcuts and define overflow behaviour before implementing it.
 

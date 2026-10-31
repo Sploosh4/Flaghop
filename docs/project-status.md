@@ -4,7 +4,7 @@ Repository: [Sploosh4/Flagmap](https://github.com/Sploosh4/Flagmap). The GitHub 
 
 Reviewed **31 October 2026**. This describes the project across its published repository, local development app and separate tools. It is a dated review, not a live monitor or a release announcement.
 
-The code baseline published when this review began was `57bfe85`. This documentation update does not publish the local implementation changes described below.
+This checkpoint combines the workspace/reader implementation, the published documentation review and the project network settings work. The app remains FlagHop; renaming its repository did not move local folders again.
 
 ## Published foundation
 
@@ -15,9 +15,9 @@ The code baseline published when this review began was `57bfe85`. This documenta
 
 Some earlier AI, web/screenshot, relay and external-enrichment integrations were removed. They are not part of the current product promise. The historical upstream changelog remains preserved.
 
-## Verified in the local development app
+## Included file and reader integration
 
-These additions are working locally but their implementation is not included by this documentation-only publication:
+This checkpoint includes:
 
 - FlagHop branding, configurable project save folders, and separate project/computer setup.
 - Stable project-ID routing for cipher/password reader controls, queues, results and local Files.
@@ -34,9 +34,13 @@ Reader engines and service live in separate tool directories. See [workspace rea
 | Workstream | Current position | Remaining gate |
 | --- | --- | --- |
 | Scanner | Separate conditional five-stage profiler and device classifier. Saved round-two acceptance reports 28/28 methods passing, 100/100; the observer records 39/39 original regressions. Three recorded source hashes matched at review. | Three consecutive matching full runs and independent final evidence/documentation/dependency review remain open. Six of eight milestones are complete. Scanner-to-app integration is separate. |
-| VPN/network setup | Active in the separate `codex/connector-settings` checkout. OpenVPN and WireGuard are installed; settings store and command guard are reported implemented. | Finish job/Settings wiring and verify real isolated tunnels, common execution enforcement and main-app integration. |
+| VPN/network setup | Included: shared scope/exclusions/ports, explicit profile/interface identity, Settings checks, original-project job references, held outcomes and guarded local execution. Real isolated WireGuard and userspace OpenVPN acceptance passed, including Nmap, denied destinations/ports and route-fallback blocking. | Profile discovery/import/connect/disconnect, raw-socket/DCO adapters, remote runners, callback verification and optional traceroute remain planned. |
 
 Acceptance scores describe their defined lab suite. They do not measure whole-app completion, exploit coverage or exact device identity. Metasploit is excluded from the scanner's staged evaluation.
+
+Network commands require local Linux enforcement tools and administrator access. WireGuard needs an existing nonzero transport fwmark; supported OpenVPN uses a userspace `tun` device. Missing enforcement holds a job rather than running it unrestricted. See [network settings and supported modes](project-network-settings.md).
+
+Combined-checkpoint validation: 505 Python tests, Black/flake8, 46 React tests, schema/type checks and a reproducible production bundle passed. Both ASGI and legacy desktop runs passed 66 checks each with no JavaScript errors. The network guard, runner and real-tunnel acceptance sources match the verified network handoff; live host routes and VPNs were not used as test targets.
 
 ## Working separately
 
@@ -49,7 +53,7 @@ Acceptance scores describe their defined lab suite. They do not measure whole-ap
 
 ## Planned and deferred
 
-The reviewed picture/contour map design is ready for implementation. Purple marks the selected device; connection colours represent connection types. It does not use vulnerability severity to colour device artwork.
+The reviewed picture/contour map design is ready for implementation. Hover uses a visible light-grey silhouette contour; purple marks the selected device. Connection colours represent connection types. It does not use vulnerability severity to colour device artwork. Figma states are design work, not production map interactions.
 
 Still to build: production topology and keyboard navigation, scanner-to-app profile/event wiring, full action panel and embedded terminal, unified Metasploit jobs, remote sessions in Files, and reader installation/recovery packaging. See the [roadmap](ctf-workspace-roadmap.md).
 
@@ -58,18 +62,17 @@ Authenticated web investigation is deferred until the basic integrated workflow 
 ## Problems to track
 
 1. **Integration:** no verified end-to-end path yet connects target selection, the new scanner, the production map, actions and remote Files.
-2. **Release checkpoint:** the local app contains modified/untracked implementation files beyond the published baseline. Freeze and review a coherent code revision before release claims.
-3. **Scanner sign-off:** acceptance passes while repeatability and final review remain open.
-4. **VPN verification:** current checkout work and package installation are not evidence of correct tunnel routing or main-app enforcement.
-5. **Pause observation:** requests are durable and cooperative; the app cannot confirm the instant every worker has stopped.
-6. **Evidence navigation/editing:** provenance exists, but return-to-source links, a visual version chain and durable edited-copy saving remain incomplete.
-7. **Packaging/storage:** separate reader dependencies are not a fresh-install experience. The Legion project has a 2,000,000,000-byte cap; measure before copying toolchains.
+2. **Scanner sign-off:** acceptance passes while repeatability and final review remain open.
+3. **Network support:** automatic connection management and unsupported privileged/remote adapters remain incomplete. The tested guard covers app-managed local commands only.
+4. **Pause observation:** requests are durable and cooperative; the app cannot confirm the instant every worker has stopped.
+5. **Evidence navigation/editing:** provenance exists, but return-to-source links, a visual version chain and durable edited-copy saving remain incomplete.
+6. **Packaging/storage:** separate reader dependencies are not a fresh-install experience. The project has a 2,000,000,000-byte cap; measure before copying toolchains.
 
 Earlier roadmap statements that treated all reader/file features as unbuilt have been reconciled in this update. Remove resolved problems when their evidence and implementation checkpoint are available.
 
 ## Proposed next milestone
 
-Finish scanner/network verification, then demonstrate one selected target → scan → evidence → saved-result workflow in the app. Follow with full action/session wiring, remote Files and repeatable setup. This is a proposed delivery order; no delivery date or work-hours estimate is agreed.
+Finish scanner verification, then demonstrate one selected target → scan → evidence → saved-result workflow in the app using the shared network guard. Follow with full action/session wiring, remote Files and repeatable setup. This is a proposed delivery order; no delivery date or work-hours estimate is agreed.
 
 ## Evidence ownership
 

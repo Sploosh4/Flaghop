@@ -1,6 +1,6 @@
 # Workspace readers
 
-Status: verified in the local development app on 31 October 2026. This documentation publication does not include its implementation or install the separate reader engines/service. See [delivery status](project-status.md) for the published-code boundary.
+Status: app integration included in the 31 October 2026 checkpoint. This does not install the separate reader engines/service. See [delivery status](project-status.md) for the code and dependency boundary.
 
 The header's Start/Pause control applies to the selected project's registered
 background readers: cipher analysis and password recovery. Selecting a project,

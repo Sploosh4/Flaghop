@@ -6,13 +6,14 @@ The next step is to connect device mapping, reconnaissance, Metasploit actions a
 
 ## Project status
 
-Reviewed 31 October 2026. The published code and the local development app are at different stages:
+Reviewed 31 October 2026. This checkpoint includes:
 
 | Stage | What works or is being built |
 | --- | --- |
-| Published foundation | Desktop/browser workspace, named projects, local scans and tools, inventory, evidence graph, jobs, approvals, history, save/restore and ZIP export. React/FastAPI workspace and activity panels. |
-| Verified in local development; code publication pending | FlagHop branding and configurable project folders. Per-workspace cipher/password reader Start/Pause, real Working/results, persistent alert dismissal, and a local file browser/editor. |
-| In progress separately | Final scanner verification and shared project network settings for OpenVPN/WireGuard, targets, exclusions and route checks. |
+| Workspace | Desktop/browser app, named projects, inventory, evidence graph, jobs, approvals, history, save/restore and ZIP export. React/FastAPI workspace and activity panels. |
+| Files and readers | FlagHop branding, configurable project folders, per-workspace reader Start/Pause, Working/results, persistent dismissal, and a local file browser/editor. Reader engines are separate dependencies. |
+| Network settings | Per-project targets, exclusions, ports and connection identity. Guarded local commands check scope, profile and routes, with Linux egress restrictions. |
+| Separate work | Final scanner verification and device classification; production app integration is pending. |
 | Still to integrate | The reviewed device-map design, scanner results in the app, unified action panel/terminal, Metasploit jobs, remote sessions in Files, and repeatable reader setup. |
 | Deferred | Unified website targets and authenticated web investigation after the basic network workflow. |
 
@@ -20,11 +21,13 @@ The current evidence graph and the planned network-topology map are separate vie
 
 Local reader integration has passed real two-workspace decoding and synthetic password-recovery checks. Pause is cooperative and displays **Pause requested** until stop observation is supported. Text edits currently stay in browser drafts. The reader engines/service remain separate dependencies; cloning this branch does not install them.
 
-[Delivery status and remaining problems](docs/project-status.md) · [Roadmap](docs/ctf-workspace-roadmap.md) · [Requests and open questions](docs/requirements-and-questions.md) · [Local reader integration](docs/background-workspaces.md)
+[Delivery status](docs/project-status.md) · [Roadmap](docs/ctf-workspace-roadmap.md) · [Open questions](docs/requirements-and-questions.md) · [Readers](docs/background-workspaces.md) · [Network setup and limits](docs/project-network-settings.md)
 
 ## Run
 
 Use Python 3.12+ on Linux, with Nmap and the tools you want to run.
+
+Network jobs require configured project scope, a matching interface/profile and administrator access for Linux enforcement. Unsupported or unconfigured jobs are held. Profile discovery and automatic connection management remain planned; see the network setup guide.
 
 This checkout uses a **2 GB storage cap**. Mount a capped filesystem at the project root before installing, and keep environments, caches and data inside it. The [storage guard](skills/project-storage-cap/SKILL.md) checks the cap; it doesn't create it.
 
@@ -42,7 +45,7 @@ For the browser interface, use `requirements.txt` and run:
 
 Open <http://127.0.0.1:5000>. Frontend assets are included; Node.js is only needed for development. Build and test commands are in [MIGRATION.md](MIGRATION.md).
 
-The published foundation uses `~/Documents/Hackathon/[project name]`. The local FlagHop development app defaults to `~/Documents/FlagHop/[project name]` and lets you change the base folder in Setup. Existing `.legion` workspaces remain supported. See the delivery status before relying on development-only features.
+Projects default to `~/Documents/FlagHop/[project name]`. Change the base folder in Setup. Existing `.legion` workspaces remain supported; moving existing project folders is an explicit operation.
 
 ## Licence and credits
 
