@@ -3,14 +3,13 @@
 from typing import Annotated
 from fastapi import Body, Path, Query, Response
 from app.api.dependencies import Runtime, native_router
-from app.api.activity_contracts import (
+from app.contracts.actions.activity import (
     ApprovalList,
     ApprovalResponse,
     ApproveApproval,
     ClearProcesses,
     ClearedProcesses,
     DecisionList,
-    Overview,
     ProcessAction,
     ProcessList,
     ProcessOutput,
@@ -19,6 +18,7 @@ from app.api.activity_contracts import (
     RetryProcess,
     ScanList,
 )
+from app.api.activity_contracts import Overview
 from app.web.services.process_service import ProcessService
 from app.web.services.runtime_service import RuntimeService
 from app.web.services.scan_service import ScanService

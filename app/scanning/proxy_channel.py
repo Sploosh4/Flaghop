@@ -1,5 +1,8 @@
 """Bounded, nonblocking local proxy IPC. Never evaluate shell or caller paths."""
 
+from app.contracts.actions.proxy import ProxyMessage
+
+
 import json
 import os
 from pathlib import Path
@@ -9,14 +12,6 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 MAX_MESSAGE = 2048
-
-
-class ProxyMessage(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True)
-    token: str
-    sequence: str = Field(pattern=r"^[a-f0-9]{32}$")
-    operation: Literal["open", "close"]
-    port: int = Field(ge=1, le=65535)
 
 
 def read_json(path):

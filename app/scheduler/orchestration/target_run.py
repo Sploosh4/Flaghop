@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Set
 from app.scheduler.planner import SchedulerPlanner
-from app.scheduler.orchestration.models import (
+from app.contracts.actions.orchestration import (
     SchedulerExecutionTask,
     SchedulerDecisionDisposition,
     ROOT_DOMAIN_SCOPED_TOOL_IDS,

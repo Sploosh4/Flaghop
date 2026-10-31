@@ -17,7 +17,7 @@ from app.scheduler.graph import (
     upsert_graph_annotation,
     upsert_graph_layout_state,
 )
-from app.scheduler.models import ActionSpec, ExecutionRecord, PlanStep
+from app.contracts.actions.planning import ActionSpec, ExecutionRecord, PlanStep
 from app.scheduler.orchestrator import (
     SchedulerDecisionDisposition,
     SchedulerExecutionTask,
@@ -26,9 +26,10 @@ from app.scheduler.orchestrator import (
     SchedulerTarget,
 )
 from app.scheduler.planner import ScheduledAction, SchedulerPlanner
-from app.scheduler.policy_engine import PolicyDecision, evaluate_policy_for_risk_tags
+from app.contracts.actions.policy import PolicyDecision
+from app.scheduler.policy_engine import evaluate_policy_for_risk_tags
+from app.contracts.actions.policy import EngagementPolicy
 from app.scheduler.policy import (
-    EngagementPolicy,
     ensure_scheduler_engagement_policy_table,
     get_project_engagement_policy,
     legacy_goal_profile_from_policy,
@@ -38,11 +39,8 @@ from app.scheduler.policy import (
     upsert_project_engagement_policy,
 )
 from app.scheduler.registry import ActionRegistry
-from app.scheduler.runners import (
-    LocalRunner,
-    RunnerExecutionRequest,
-    RunnerExecutionResult,
-)
+from app.scheduler.runners import LocalRunner
+from app.contracts.actions.runner import RunnerExecutionRequest, RunnerExecutionResult
 from app.scheduler.state import (
     build_artifact_entries,
     build_attempted_action_entry,
@@ -56,14 +54,8 @@ from app.scheduler.state import (
     target_state_to_legacy_ai_state,
     upsert_target_state,
 )
-from app.scheduler.strategy_packs import (
-    StrategyActionGuidance,
-    StrategyPack,
-    StrategyPackSelection,
-    evaluate_action_strategy,
-    get_default_strategy_packs,
-    select_strategy_packs,
-)
+from app.contracts.actions.strategy import StrategyActionGuidance, StrategyPack, StrategyPackSelection
+from app.scheduler.strategy_packs import evaluate_action_strategy, get_default_strategy_packs, select_strategy_packs
 
 __all__ = [
     "ActionRegistry",

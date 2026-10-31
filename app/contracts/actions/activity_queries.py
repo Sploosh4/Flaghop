@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from app.contracts.base import ActionData
+
 from dataclasses import dataclass
 from typing import Any
 
-from app.web.http_utils import clamp_int
+from app.core.contract_values import clamp_int
 
 
 @dataclass(frozen=True)
-class JobListQuery:
+class JobListQuery(ActionData):
     limit: int
 
     @classmethod
@@ -16,7 +18,7 @@ class JobListQuery:
 
 
 @dataclass(frozen=True)
-class ProcessListQuery:
+class ProcessListQuery(ActionData):
     limit: int
 
     @classmethod

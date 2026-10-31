@@ -15,7 +15,8 @@ from app.api.hub_contracts import (
     OpenHubProject,
 )
 from app.services.project_hub import ProjectHub
-from app.services.network_models import NetworkContext, NetworkUpdate, NetworkCheckRequest, NetworkReport
+from app.contracts.actions.network import NetworkContext, NetworkUpdate, NetworkCheckRequest
+from app.contracts.observations.network import NetworkReport
 from app.services.project_hub_requests import (
     CreateHubProject,
     HubConnector,

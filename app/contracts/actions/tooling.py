@@ -1,11 +1,12 @@
 """Curated external-tool descriptions and installation hints."""
 
+from app.contracts.base import ActionData
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 
 @dataclass(frozen=True)
-class ToolSpec:
+class ToolSpec(ActionData):
     key: str
     label: str
     commands: Tuple[str, ...]
@@ -20,7 +21,7 @@ class ToolSpec:
 
 
 @dataclass(frozen=True)
-class ToolAuditEntry:
+class ToolAuditEntry(ActionData):
     key: str
     label: str
     category: str

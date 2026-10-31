@@ -12,12 +12,13 @@ from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from app.processes.models import CommandRequest, ExecutionPorts
+from app.contracts.actions.process import CommandRequest
+from app.processes.models import ExecutionPorts
 from app.processes.runner import ProcessRunner
 from app.scanning.listener import listener_owned
 from app.scanning.worker import proxy_adapter
 from app.services.network_guard import NetworkLease
-from app.services.network_models import NetworkUpdate
+from app.contracts.actions.network import NetworkUpdate
 from app.services.project_networks import ProjectNetworks, NetworkHeld
 from app.web.runtime_process_control import signal_process_tree
 from tests.app.test_ProjectNetworks import FixtureHub, FixtureProbe

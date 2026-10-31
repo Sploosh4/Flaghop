@@ -1670,6 +1670,15 @@ export interface components {
              */
             run_now?: boolean;
         };
+        /** Artifact */
+        Artifact: {
+            /** Bytes */
+            bytes: number;
+            /** Path */
+            path: string;
+            /** Sha256 */
+            sha256: string;
+        };
         /** Autosave */
         Autosave: {
             /**
@@ -2244,13 +2253,9 @@ export interface components {
             /** Revision */
             revision: number;
             /** Routes */
-            routes?: {
-                [key: string]: unknown;
-            }[];
+            routes?: components["schemas"]["RouteObservation"][];
             /** Services */
-            services?: {
-                [key: string]: unknown;
-            }[];
+            services?: components["schemas"]["ServiceProbeObservation"][];
             /**
              * Status
              * @enum {string}
@@ -2547,9 +2552,7 @@ export interface components {
             /** Label */
             label: string;
             /** Origins */
-            origins: {
-                [key: string]: unknown;
-            }[];
+            origins: components["schemas"]["ReaderOrigin"][];
             /** Result Path */
             result_path: string;
             /** Size */
@@ -2558,6 +2561,30 @@ export interface components {
             state: string;
             /** Transformations */
             transformations: string[];
+        };
+        /**
+         * ReaderOrigin
+         * @description Source metadata; a historical hash label is not proof of authenticity.
+         */
+        ReaderOrigin: {
+            /** Connection Id */
+            connection_id?: string | number | null;
+            /** Id */
+            id?: string | null;
+            /** Path */
+            path?: string | null;
+            /** Session Id */
+            session_id?: string | number | null;
+            /** Sha256 */
+            sha256?: string | null;
+            /** Snapshot Id */
+            snapshot_id?: string | null;
+            /** Source Path */
+            source_path?: string | null;
+            /** Transport */
+            transport?: string | null;
+        } & {
+            [key: string]: unknown;
         };
         /** ReaderResult */
         ReaderResult: {
@@ -2648,6 +2675,19 @@ export interface components {
              */
             timeout?: number;
         };
+        /** RouteObservation */
+        RouteObservation: {
+            /** Destination */
+            destination: string;
+            /** Gateway */
+            gateway?: string | null;
+            /** Interface */
+            interface: string;
+            /** Source */
+            source?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
         /** Scan */
         Scan: {
             /**
@@ -2698,9 +2738,7 @@ export interface components {
         /** ScanSummary */
         ScanSummary: {
             /** Artifacts */
-            artifacts?: {
-                [key: string]: components["schemas"]["JsonValue"];
-            }[];
+            artifacts?: components["schemas"]["Artifact"][];
             /** Candidates */
             candidates?: components["schemas"]["CandidateFinding"][];
             /** Classification */
@@ -2740,6 +2778,15 @@ export interface components {
             state: string;
         } & {
             [key: string]: unknown;
+        };
+        /** ServiceProbeObservation */
+        ServiceProbeObservation: {
+            /** Address */
+            address: string;
+            /** Outcome */
+            outcome: string;
+            /** Port */
+            port: number;
         };
         /** StopJobResponse */
         StopJobResponse: {

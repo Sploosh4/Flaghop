@@ -3,6 +3,21 @@
 from __future__ import annotations
 
 import json
+import math
+from pydantic import BaseModel
+from app.contracts.actions.target_state import ManualTestSuggestion, AttemptedAction
+from app.contracts.artifacts.references import ArtifactReference, ScreenshotReference
+from app.contracts.observations.target import (
+    TechnologyObservation,
+    DeviceCategoryObservation,
+    FindingObservation,
+    FindingQualityObservation,
+    ServiceObservation,
+    UrlObservation,
+    CoverageGapObservation,
+    CredentialObservation,
+    SessionObservation,
+)
 from app.core.serialization import decode_json as _from_json
 from typing import Any, Dict, List
 from app.device_categories import slugify_device_category
@@ -28,6 +43,8 @@ def _safe_float(value: Any, default: float = 0.0, minimum: float = 0.0, maximum:
     try:
         parsed = float(value)
     except (TypeError, ValueError):
+        parsed = float(default)
+    if not math.isfinite(parsed):
         parsed = float(default)
     if parsed < minimum:
         return float(minimum)
@@ -73,6 +90,11 @@ def _merge_rows(
     return merged
 
 
+def _validated_rows(model: type[BaseModel], rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Validate canonical output while preserving historical missing optional keys."""
+    return [model.model_validate(row).model_dump(exclude_unset=True) for row in rows]
+
+
 def _normalize_technologies(items: Any, default_source: str = "observed") -> List[Dict[str, Any]]:
     if not isinstance(items, list):
         return []
@@ -102,7 +124,9 @@ def _normalize_technologies(items: Any, default_source: str = "observed") -> Lis
                 ),
             }
         )
-    return _merge_rows([], rows, key_fields=["name", "version", "cpe"], limit=240)
+    return _validated_rows(
+        TechnologyObservation, _merge_rows([], rows, key_fields=["name", "version", "cpe"], limit=240)
+    )
 
 
 def _normalize_device_categories(
@@ -143,7 +167,7 @@ def _normalize_device_categories(
         if reasons:
             row["reasons"] = reasons
         rows.append(row)
-    return _merge_rows([], rows, key_fields=["name"], limit=32)
+    return _validated_rows(DeviceCategoryObservation, _merge_rows([], rows, key_fields=["name"], limit=32))
 
 
 def _load_custom_device_category_rules() -> List[Dict[str, Any]]:
@@ -177,6 +201,8 @@ def _normalize_findings(items: Any, default_source: str = "observed") -> List[Di
             cvss_value = float(item.get("cvss", 0.0) or 0.0)
         except (TypeError, ValueError):
             cvss_value = 0.0
+        if not math.isfinite(cvss_value):
+            cvss_value = 0.0
         evidence_items = [
             str(token or "").strip()[:160]
             for token in list(item.get("evidence_items", []) or [])
@@ -208,7 +234,9 @@ def _normalize_findings(items: Any, default_source: str = "observed") -> List[Di
             if quality_action == "downgraded" and severity_before:
                 row["severity_before"] = severity_before
         rows.append(row)
-    return _merge_rows([], rows, key_fields=["title", "cve", "severity"], limit=260)
+    return _validated_rows(
+        FindingObservation, _merge_rows([], rows, key_fields=["title", "cve", "severity"], limit=260)
+    )
 
 
 def _normalize_finding_quality_events(items: Any, default_source: str = "observed") -> List[Dict[str, Any]]:
@@ -247,7 +275,10 @@ def _normalize_finding_quality_events(items: Any, default_source: str = "observe
             ),
         }
         rows.append(row)
-    return _merge_rows([], rows, key_fields=["title", "cve", "action", "reason", "evidence", "matched_url"], limit=260)
+    return _validated_rows(
+        FindingQualityObservation,
+        _merge_rows([], rows, key_fields=["title", "cve", "action", "reason", "evidence", "matched_url"], limit=260),
+    )
 
 
 def _normalize_manual_tests(items: Any, default_source: str = "ai_suggested") -> List[Dict[str, Any]]:
@@ -272,7 +303,7 @@ def _normalize_manual_tests(items: Any, default_source: str = "ai_suggested") ->
                 "observed": bool(item.get("observed", False)),
             }
         )
-    return _merge_rows([], rows, key_fields=["command", "why"], limit=200)
+    return _validated_rows(ManualTestSuggestion, _merge_rows([], rows, key_fields=["command", "why"], limit=200))
 
 
 def _normalize_service_inventory(items: Any) -> List[Dict[str, Any]]:
@@ -297,7 +328,9 @@ def _normalize_service_inventory(items: Any) -> List[Dict[str, Any]]:
                 "observed": bool(item.get("observed", True)),
             }
         )
-    return _merge_rows([], rows, key_fields=["port", "protocol", "service"], limit=320)
+    return _validated_rows(
+        ServiceObservation, _merge_rows([], rows, key_fields=["port", "protocol", "service"], limit=320)
+    )
 
 
 def _normalize_urls(items: Any) -> List[Dict[str, Any]]:
@@ -330,7 +363,7 @@ def _normalize_urls(items: Any) -> List[Dict[str, Any]]:
             str(item.get("url", "") or ""),
         )
     )
-    return _merge_rows([], rows, key_fields=["url"], limit=240)
+    return _validated_rows(UrlObservation, _merge_rows([], rows, key_fields=["url"], limit=240))
 
 
 def _normalize_coverage_gaps(items: Any) -> List[Dict[str, Any]]:
@@ -381,7 +414,7 @@ def _normalize_coverage_gaps(items: Any) -> List[Dict[str, Any]]:
                 "observed": bool(item.get("observed", False)),
             }
         )
-    return _merge_rows([], rows, key_fields=["gap_id"], limit=64)
+    return _validated_rows(CoverageGapObservation, _merge_rows([], rows, key_fields=["gap_id"], limit=64))
 
 
 def _normalize_attempted_actions(items: Any) -> List[Dict[str, Any]]:
@@ -425,7 +458,10 @@ def _normalize_attempted_actions(items: Any) -> List[Dict[str, Any]]:
                 "observed": bool(item.get("observed", True)),
             }
         )
-    return _merge_rows([], rows, key_fields=["tool_id", "status", "port", "protocol", "attempted_at"], limit=360)
+    return _validated_rows(
+        AttemptedAction,
+        _merge_rows([], rows, key_fields=["tool_id", "status", "port", "protocol", "attempted_at"], limit=360),
+    )
 
 
 def _normalize_credentials(items: Any) -> List[Dict[str, Any]]:
@@ -452,7 +488,9 @@ def _normalize_credentials(items: Any) -> List[Dict[str, Any]]:
                 "observed": bool(item.get("observed", True)),
             }
         )
-    return _merge_rows([], rows, key_fields=["username", "realm", "type", "secret_ref"], limit=160)
+    return _validated_rows(
+        CredentialObservation, _merge_rows([], rows, key_fields=["username", "realm", "type", "secret_ref"], limit=160)
+    )
 
 
 def _normalize_sessions(items: Any) -> List[Dict[str, Any]]:
@@ -481,7 +519,10 @@ def _normalize_sessions(items: Any) -> List[Dict[str, Any]]:
                 "observed": bool(item.get("observed", True)),
             }
         )
-    return _merge_rows([], rows, key_fields=["session_type", "username", "host", "port", "protocol"], limit=160)
+    return _validated_rows(
+        SessionObservation,
+        _merge_rows([], rows, key_fields=["session_type", "username", "host", "port", "protocol"], limit=160),
+    )
 
 
 def _normalize_screenshots(items: Any) -> List[Dict[str, Any]]:
@@ -519,7 +560,10 @@ def _normalize_screenshots(items: Any) -> List[Dict[str, Any]]:
             if value:
                 row[field] = value
         rows.append(row)
-    return _merge_rows([], rows, key_fields=["artifact_ref", "filename", "port", "protocol"], limit=160)
+    return _validated_rows(
+        ScreenshotReference,
+        _merge_rows([], rows, key_fields=["artifact_ref", "filename", "port", "protocol"], limit=160),
+    )
 
 
 def _normalize_artifacts(items: Any) -> List[Dict[str, Any]]:
@@ -544,4 +588,6 @@ def _normalize_artifacts(items: Any) -> List[Dict[str, Any]]:
                 "observed": bool(item.get("observed", True)),
             }
         )
-    return _merge_rows([], rows, key_fields=["ref", "kind", "tool_id", "port", "protocol"], limit=240)
+    return _validated_rows(
+        ArtifactReference, _merge_rows([], rows, key_fields=["ref", "kind", "tool_id", "port", "protocol"], limit=240)
+    )

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from app.web.scan_schema import (
+from app.contracts.actions.scan_requests import (
     DiscoveryRequest,
     NmapImportRequest,
     NmapScanRequest,
@@ -10,7 +10,7 @@ from app.web.scan_schema import (
     SubnetRescanRequest,
     TargetsImportRequest,
 )
-from app.web.response_schema import AcceptedJobResponse, ScanHistoryResponse
+from app.contracts.actions.responses import AcceptedJobResponse, ScanHistoryResponse
 
 
 class ScanService:

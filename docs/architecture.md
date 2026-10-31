@@ -30,7 +30,8 @@ flowchart TD
 | [`frontend/src/hub`](../frontend/src/hub) | Project navigation, hardware map, setup, reader and Deep scan panels. React state and project-ID guards prevent late responses replacing another workspace. |
 | [`frontend/src/activity`](../frontend/src/activity) | Jobs, processes, output, approvals and other migrated activity panels. |
 | [`app/desktop.py`](../app/desktop.py) and [`desktop_documents.py`](../app/desktop_documents.py) | Native windows around the same localhost app. Window controls use a narrow trusted-origin Qt bridge. |
-| [`app/api`](../app/api) | FastAPI routes and Pydantic request/response contracts. OpenAPI generates TypeScript client types. |
+| [`app/api`](../app/api) | FastAPI routes and application/page compositions. OpenAPI generates TypeScript client types from the canonical contracts. |
+| [`app/contracts`](../app/contracts) | Definition-only actions/results, observations and artifact references, using approved roots. Parsers, runners, storage and HTTP services stay outside. See [authoring and quality gate](contract-authoring.md). |
 | [`app/web`](../app/web) | HTML/JavaScript assets, templates, job manager and framework-independent service adapters. There is no second web application. |
 | [`app/services`](../app/services) | Project catalog, workspace/session state, process registry, settings, events and network policy. |
 | [`app/web/jobs.py`](../app/web/jobs.py) | Bounded in-memory queue with background workers, exclusive jobs and cancellation. Completion callbacks persist results before terminal publication and release; write failures become visible job failures. |
@@ -69,6 +70,12 @@ flowchart TD
    independent editor. No network hops are inferred from scanner output.
 
 ## Persistence and events
+
+The contract consolidation does not add durable
+job recovery or independent multi-project execution. Those remain separate work.
+The checker runs in the maintainability/CI gate and catches ownership, dependency,
+class, reference-type and import-cycle regressions. Behavioural and desktop fixture
+tests verify the consuming paths; a structural pass does not verify a finding.
 
 The project catalog maps stable project IDs to workspace files and folders.
 SQLite stores inventory, process history and imported scan summaries. Output files

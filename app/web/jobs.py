@@ -1,22 +1,10 @@
+from app.contracts.actions.jobs import JobOutcome
 import datetime
 import logging
 import itertools
 import threading
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional
-
-
-@dataclass
-class JobOutcome:
-    """Explicit terminal outcome for adapters that can retain partial evidence."""
-
-    status: str
-    result: dict
-    error: str = ""
-
-    def __post_init__(self):
-        if self.status not in {"completed", "partial", "failed", "cancelled", "held"}:
-            raise ValueError("Invalid terminal job outcome.")
 
 
 class WebJobManager:

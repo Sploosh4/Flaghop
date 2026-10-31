@@ -50,7 +50,7 @@ class SchedulerPlannerTest(unittest.TestCase):
 
     def test_deterministic_mode_follows_scheduler_mapping(self):
         from app.scheduler.config import SchedulerConfigManager
-        from app.scheduler.models import ActionSpec, PlanStep
+        from app.contracts.actions.planning import ActionSpec, PlanStep
         from app.scheduler.planner import SchedulerPlanner
 
         with tempfile.TemporaryDirectory() as tmpdir:

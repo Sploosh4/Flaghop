@@ -1,29 +1,17 @@
-from typing import Any, Literal
-from pydantic import BaseModel, Field
+from app.contracts.artifacts.reader import ReaderAlert
+
+from app.contracts.base import ActionModel
+from typing import Literal
+from pydantic import Field
 
 
-class ReaderWorker(BaseModel):
+class ReaderWorker(ActionModel):
     available: bool
     heartbeat_at: float | None = None
     engines: list[str]
 
 
-class ReaderAlert(BaseModel):
-    id: str
-    result_path: str
-    size: int
-    completed: float
-    origins: list[dict[str, Any]]
-    state: str
-    label: str
-    transformations: list[str]
-    kind: Literal["cipher", "hash"] = "cipher"
-    display_name: str = ""
-    internal: bool = False
-    history_reason: str = ""
-
-
-class BackgroundStatus(BaseModel):
+class BackgroundStatus(ActionModel):
     project_id: str
     project: str
     running: bool
@@ -41,7 +29,7 @@ class BackgroundStatus(BaseModel):
     pause_semantics: str
 
 
-class ReaderResult(BaseModel):
+class ReaderResult(ActionModel):
     status: Literal["ok"]
     data_b64: str
     truncated: bool

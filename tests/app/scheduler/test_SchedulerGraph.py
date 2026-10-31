@@ -14,7 +14,7 @@ from app.scheduler.graph import (
     upsert_graph_annotation,
     upsert_graph_layout_state,
 )
-from app.scheduler.models import ExecutionRecord, PlanStep
+from app.contracts.actions.planning import ExecutionRecord, PlanStep
 from app.scheduler.state import upsert_target_state
 from app.shell.DefaultShell import DefaultShell
 from db.RepositoryFactory import RepositoryFactory

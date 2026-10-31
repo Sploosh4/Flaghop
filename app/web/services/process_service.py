@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from app.web.process_schema import ProcessClearRequest, ProcessOutputQuery, ProcessRetryRequest
+from app.contracts.actions.process_requests import ProcessClearRequest, ProcessOutputQuery, ProcessRetryRequest
 
 
 class ProcessService:

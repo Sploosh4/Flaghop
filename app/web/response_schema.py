@@ -17,18 +17,6 @@ def _list_payload(value: Any, field_name: str) -> List[Any]:
 
 
 @dataclass(frozen=True)
-class AcceptedJobResponse:
-    job: Dict[str, Any]
-
-    @classmethod
-    def from_job(cls, job: Any) -> "AcceptedJobResponse":
-        return cls(job=_mapping_payload(job, "job"))
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {"status": "accepted", "job": dict(self.job)}
-
-
-@dataclass(frozen=True)
 class ProjectListResponse:
     projects: List[Any]
 
@@ -50,15 +38,3 @@ class ProjectOkResponse:
 
     def to_dict(self) -> Dict[str, Any]:
         return {"status": "ok", "project": dict(self.project)}
-
-
-@dataclass(frozen=True)
-class ScanHistoryResponse:
-    scans: List[Any]
-
-    @classmethod
-    def from_scans(cls, scans: Any) -> "ScanHistoryResponse":
-        return cls(scans=_list_payload(scans, "scans"))
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {"scans": list(self.scans)}

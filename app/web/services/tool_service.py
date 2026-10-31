@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from app.web.tool_schema import ToolRunRequest, WorkspaceToolTargetsQuery, WorkspaceToolsPageQuery
+from app.contracts.actions.tool_requests import ToolRunRequest, WorkspaceToolTargetsQuery, WorkspaceToolsPageQuery
 
 
 class ToolService:

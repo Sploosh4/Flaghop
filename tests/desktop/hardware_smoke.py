@@ -22,7 +22,7 @@ from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWidgets import QApplication
 from app.api import create_app
-from app.services.network_models import NetworkUpdate
+from app.contracts.actions.network import NetworkUpdate
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
 from tests.support.asgi_server import live_asgi_server

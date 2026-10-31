@@ -83,16 +83,3 @@ class WorkspaceServicesQuery:
             host_id=clamp_int(args.get("host_id", 0), 0, 0, 10**9),
             category=str(args.get("category", "") or "").strip(),
         )
-
-
-@dataclass(frozen=True)
-class WorkspaceFindingsQuery:
-    host_id: int
-    limit: int
-
-    @classmethod
-    def from_args(cls, args: Any) -> "WorkspaceFindingsQuery":
-        return cls(
-            host_id=clamp_int(args.get("host_id", 0), 0, 0, 10**9),
-            limit=clamp_int(args.get("limit", 1000), 1000, 1, 10000),
-        )

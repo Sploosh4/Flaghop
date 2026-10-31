@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from app.contracts.base import ActionData
+
 from dataclasses import dataclass
 from typing import Any
 
-from app.web.http_utils import as_bool, clamp_int
+from app.core.contract_values import as_bool, clamp_int
 
 
 @dataclass(frozen=True)
-class ProcessOutputQuery:
+class ProcessOutputQuery(ActionData):
     offset: int
     max_chars: int
 
@@ -20,7 +22,7 @@ class ProcessOutputQuery:
 
 
 @dataclass(frozen=True)
-class ProcessRetryRequest:
+class ProcessRetryRequest(ActionData):
     timeout: int
 
     @classmethod
@@ -35,7 +37,7 @@ class ProcessRetryRequest:
 
 
 @dataclass(frozen=True)
-class ProcessClearRequest:
+class ProcessClearRequest(ActionData):
     reset_all: bool
 
     @classmethod

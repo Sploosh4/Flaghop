@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from app.contracts.base import ActionData
+
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
-from app.web.http_utils import as_bool
+from app.core.contract_values import as_bool
 
 
 @dataclass(frozen=True)
-class TargetsImportRequest:
+class TargetsImportRequest(ActionData):
     path: str
 
     @classmethod
@@ -17,7 +19,7 @@ class TargetsImportRequest:
 
 
 @dataclass(frozen=True)
-class NmapImportRequest:
+class NmapImportRequest(ActionData):
     path: str
     run_actions: bool
 
@@ -31,7 +33,7 @@ class NmapImportRequest:
 
 
 @dataclass(frozen=True)
-class NmapScanRequest:
+class NmapScanRequest(ActionData):
     targets: List[str]
     discovery: bool
     staged: bool
@@ -64,7 +66,7 @@ class NmapScanRequest:
 
 
 @dataclass(frozen=True)
-class PassiveCaptureRequest:
+class PassiveCaptureRequest(ActionData):
     interface_name: str
     duration_minutes: int
     run_actions: bool
@@ -85,7 +87,7 @@ class PassiveCaptureRequest:
 
 
 @dataclass(frozen=True)
-class SubnetRescanRequest:
+class SubnetRescanRequest(ActionData):
     subnet: str
 
     @classmethod
@@ -95,7 +97,7 @@ class SubnetRescanRequest:
 
 
 @dataclass(frozen=True)
-class DiscoveryRequest:
+class DiscoveryRequest(ActionData):
     target: str
     run_actions: bool
 

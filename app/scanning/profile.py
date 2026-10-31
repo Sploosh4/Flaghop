@@ -1,26 +1,17 @@
 """Validate an untrusted profile and its bounded, project-owned evidence before import."""
 
+from app.contracts.observations.profile import Profile
+from app.core.contract_values import literal_ip
+
+
 import hashlib
-from datetime import datetime
-import ipaddress
 import json
 from pathlib import Path, PurePosixPath
 import re
 import stat
 import xml.etree.ElementTree as ET
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from typing import Literal
-from app.scanning.models import TaskFacts, CandidateFinding, VerifiedFinding
-
 MAX_RETAINED = 16 * 1024 * 1024
-
-
-def literal_ip(value):
-    address = ipaddress.ip_address(value)
-    if address.is_multicast or address.is_unspecified or "%" in value or value == "255.255.255.255":
-        raise ValueError("Use one literal unicast IP without a zone, hostname or range.")
-    return str(address)
 
 
 def owned_file(root, relative, limit=8 * 1024 * 1024):
@@ -38,50 +29,6 @@ def owned_file(root, relative, limit=8 * 1024 * 1024):
     if not stat.S_ISREG(info.st_mode) or info.st_size > limit:
         raise ValueError("Scanner evidence is not a bounded ordinary file.")
     return target
-
-
-class Target(BaseModel):
-    model_config = ConfigDict(extra="allow")
-    ip: str
-    scope: Literal["single_ip"]
-    dns_resolver: str | None = None
-
-
-class Run(BaseModel):
-    model_config = ConfigDict(extra="allow")
-    status: Literal["running", "completed", "partial", "dry_run"]
-    mode: Literal["active", "offline", "dry_run"]
-    started_at: str = Field(min_length=1, max_length=100)
-    finished_at: str = Field(min_length=1, max_length=100)
-
-    @field_validator("started_at", "finished_at")
-    @classmethod
-    def timestamp(cls, value):
-        parsed = datetime.fromisoformat(value)
-        if parsed.tzinfo is None:
-            raise ValueError("Scanner timestamps must include their timezone.")
-        return value
-
-
-class Artifact(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    path: str = Field(min_length=1, max_length=1000)
-    bytes: int = Field(ge=0, le=8 * 1024 * 1024, strict=True)
-    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
-
-
-class Profile(BaseModel):
-    model_config = ConfigDict(extra="allow")
-    schema_version: Literal["1.0"]
-    target: Target
-    run: Run
-    tasks: list[TaskFacts] = Field(max_length=1000)
-    observations: list[dict] = Field(default_factory=list, max_length=1000)
-    assessment_findings: list[CandidateFinding] = Field(default_factory=list, max_length=1000)
-    validated_vulnerabilities: list[VerifiedFinding] = Field(default_factory=list, max_length=1000)
-    artifacts: list[Artifact] = Field(max_length=248)
-    classification: dict | None = None
-    nmap: dict | None = None
 
 
 def validate_profile(root, target, source_identity):
@@ -105,6 +52,9 @@ def validate_profile(root, target, source_identity):
         if len(data) != item.bytes or hashlib.sha256(data).hexdigest() != item.sha256:
             raise ValueError("Scanner evidence size or checksum changed.")
         total += len(data)
+    for observation in profile.observations:
+        if observation.source and observation.source not in names:
+            raise ValueError("Scanner observation refers to evidence absent from its checksum manifest.")
     for finding in profile.validated_vulnerabilities:
         references = [finding.evidence] if isinstance(finding.evidence, str) else finding.evidence
         if any(reference not in names for reference in references):

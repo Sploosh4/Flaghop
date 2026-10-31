@@ -34,7 +34,7 @@ from app.timing import getTimestamp
 
 log = getAppLogger()
 
-from app.configuration.action_catalog import ActionCatalog
+from app.contracts.actions.catalog import ActionCatalog
 from app.configuration.migrations import Migrations
 from app.configuration.command_normalization import CommandNormalization
 from app.configuration.nmap_commands import NmapCommands

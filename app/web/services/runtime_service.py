@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from app.web.runtime_schema import JobListQuery, ProcessListQuery
+from app.contracts.actions.activity_queries import JobListQuery, ProcessListQuery
 
 
 class RuntimeService:

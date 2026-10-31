@@ -5,7 +5,8 @@ import unittest
 
 class WebJobManagerTest(unittest.TestCase):
     def test_partial_outcome_calls_its_completion_callback_once(self):
-        from app.web.jobs import WebJobManager, JobOutcome
+        from app.web.jobs import WebJobManager
+        from app.contracts.actions.jobs import JobOutcome
 
         completed = []
         manager = WebJobManager()

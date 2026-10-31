@@ -1,120 +1,23 @@
+from app.contracts.actions.policy import (
+    EngagementPolicy,
+    VALID_SCOPE,
+    VALID_INTENT,
+    VALID_RISK_MODE,
+    VALID_DETECTION_RISK_MODE,
+    VALID_APPROVAL_MODE,
+    VALID_RUNNER_PREFERENCE,
+    VALID_NOISE_BUDGET,
+    ENGAGEMENT_PRESET_LABELS,
+    ENGAGEMENT_PRESET_DESCRIPTIONS,
+    LEGACY_GOAL_TO_PRESET,
+    PRESET_DEFAULTS,
+)
+from app.core.action_values import VALID_ENGAGEMENT_PRESETS, legacy_goal_profile_from_policy
 import json
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, Optional
 
 from sqlalchemy import text
-
-VALID_ENGAGEMENT_PRESETS = {
-    "external_recon",
-    "external_pentest",
-    "internal_quick_recon",
-    "internal_recon",
-    "internal_pentest",
-    "custom",
-}
-VALID_SCOPE = {"internal", "external", "mixed"}
-VALID_INTENT = {"recon", "pentest"}
-VALID_RISK_MODE = {"blocked", "approval", "allowed"}
-VALID_DETECTION_RISK_MODE = {"low", "medium", "high"}
-VALID_APPROVAL_MODE = {"never", "risky", "always"}
-VALID_RUNNER_PREFERENCE = {"local"}
-VALID_NOISE_BUDGET = {"low", "medium", "high"}
-
-ENGAGEMENT_PRESET_LABELS = {
-    "external_recon": "External Recon",
-    "external_pentest": "External Pentest",
-    "internal_quick_recon": "Internal Quick Recon",
-    "internal_recon": "Internal Recon",
-    "internal_pentest": "Internal Pentest",
-    "custom": "Custom",
-}
-
-ENGAGEMENT_PRESET_DESCRIPTIONS = {
-    "external_recon": "Passive and low-noise external mapping. Focus on discovery, fingerprinting, and bounded validation.",
-    "external_pentest": "Broader external assessment with deeper active follow-up once recon confirms a target is worth it.",
-    "internal_quick_recon": "Fast internal low-hanging-fruit sweep. Focus on SMB, NetBIOS, NFS, printers, common admin panels, and other obvious exposures instead of broad coverage.",
-    "internal_recon": "Broader internal discovery and validation across exposed services with safer follow-up than pentest mode.",
-    "internal_pentest": "Deeper internal assessment with wider follow-up, credential-adjacent validation, and higher-noise exploration.",
-    "custom": "Manual override for engagements that do not fit the standard presets.",
-}
-
-LEGACY_GOAL_TO_PRESET = {
-    "internal_asset_discovery": "internal_recon",
-    "external_pentest": "external_pentest",
-    "internal_quick_recon": "internal_quick_recon",
-    "internal_recon": "internal_recon",
-    "external_recon": "external_recon",
-    "internal_pentest": "internal_pentest",
-    "custom": "custom",
-}
-
-PRESET_DEFAULTS = {
-    "external_recon": {
-        "scope": "external",
-        "intent": "recon",
-        "allow_exploitation": False,
-        "allow_lateral_movement": False,
-        "credential_attack_mode": "blocked",
-        "lockout_risk_mode": "blocked",
-        "stability_risk_mode": "approval",
-        "detection_risk_mode": "low",
-        "approval_mode": "risky",
-        "runner_preference": "local",
-        "noise_budget": "low",
-    },
-    "external_pentest": {
-        "scope": "external",
-        "intent": "pentest",
-        "allow_exploitation": True,
-        "allow_lateral_movement": False,
-        "credential_attack_mode": "approval",
-        "lockout_risk_mode": "approval",
-        "stability_risk_mode": "approval",
-        "detection_risk_mode": "medium",
-        "approval_mode": "risky",
-        "runner_preference": "local",
-        "noise_budget": "medium",
-    },
-    "internal_quick_recon": {
-        "scope": "internal",
-        "intent": "recon",
-        "allow_exploitation": False,
-        "allow_lateral_movement": False,
-        "credential_attack_mode": "blocked",
-        "lockout_risk_mode": "blocked",
-        "stability_risk_mode": "approval",
-        "detection_risk_mode": "low",
-        "approval_mode": "risky",
-        "runner_preference": "local",
-        "noise_budget": "low",
-    },
-    "internal_recon": {
-        "scope": "internal",
-        "intent": "recon",
-        "allow_exploitation": False,
-        "allow_lateral_movement": False,
-        "credential_attack_mode": "blocked",
-        "lockout_risk_mode": "blocked",
-        "stability_risk_mode": "approval",
-        "detection_risk_mode": "low",
-        "approval_mode": "risky",
-        "runner_preference": "local",
-        "noise_budget": "low",
-    },
-    "internal_pentest": {
-        "scope": "internal",
-        "intent": "pentest",
-        "allow_exploitation": True,
-        "allow_lateral_movement": True,
-        "credential_attack_mode": "approval",
-        "lockout_risk_mode": "approval",
-        "stability_risk_mode": "approval",
-        "detection_risk_mode": "medium",
-        "approval_mode": "risky",
-        "runner_preference": "local",
-        "noise_budget": "medium",
-    },
-}
 
 
 def _normalize_text(value: Any, *, default: str = "") -> str:
@@ -153,27 +56,6 @@ def preset_from_legacy_goal_profile(goal_profile: str) -> str:
     return LEGACY_GOAL_TO_PRESET.get(normalized, "internal_recon")
 
 
-def legacy_goal_profile_from_policy(
-    preset: str,
-    *,
-    scope: str = "internal",
-    intent: str = "recon",
-) -> str:
-    normalized_preset = _normalize_choice(preset, VALID_ENGAGEMENT_PRESETS, default="internal_recon")
-    if normalized_preset in {"external_recon", "external_pentest"}:
-        return "external_pentest"
-    if normalized_preset in {"internal_quick_recon", "internal_recon", "internal_pentest"}:
-        return "internal_asset_discovery"
-    if _normalize_text(scope, default="internal") == "external":
-        return "external_pentest"
-    if (
-        _normalize_text(intent, default="recon") == "pentest"
-        and _normalize_text(scope, default="internal") == "external"
-    ):
-        return "external_pentest"
-    return "internal_asset_discovery"
-
-
 def list_engagement_presets() -> list:
     return [
         {
@@ -190,46 +72,6 @@ def list_engagement_presets() -> list:
             "custom",
         )
     ]
-
-
-@dataclass(frozen=True)
-class EngagementPolicy:
-    preset: str
-    scope: str
-    intent: str
-    allow_exploitation: bool
-    allow_lateral_movement: bool
-    credential_attack_mode: str
-    lockout_risk_mode: str
-    stability_risk_mode: str
-    detection_risk_mode: str
-    approval_mode: str
-    runner_preference: str
-    noise_budget: str
-    custom_overrides: Dict[str, Any] = field(default_factory=dict)
-
-    @property
-    def preset_label(self) -> str:
-        return ENGAGEMENT_PRESET_LABELS.get(self.preset, self.preset.replace("_", " ").title())
-
-    @property
-    def preset_description(self) -> str:
-        return ENGAGEMENT_PRESET_DESCRIPTIONS.get(self.preset, "")
-
-    @property
-    def legacy_goal_profile(self) -> str:
-        return legacy_goal_profile_from_policy(
-            self.preset,
-            scope=self.scope,
-            intent=self.intent,
-        )
-
-    def to_dict(self) -> Dict[str, Any]:
-        payload = asdict(self)
-        payload["preset_label"] = self.preset_label
-        payload["preset_description"] = self.preset_description
-        payload["legacy_goal_profile"] = self.legacy_goal_profile
-        return payload
 
 
 def normalize_engagement_policy(

@@ -9,10 +9,10 @@ import threading
 import unittest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
-from app.services.network_models import NetworkCheckRequest, NetworkUpdate
+from app.contracts.actions.network import NetworkCheckRequest, NetworkUpdate
 from app.services.project_networks import NetworkHeld, ProjectNetworks
 from app.services.network_guard import NetworkLease
-from app.processes.models import CommandRequest
+from app.contracts.actions.process import CommandRequest
 from app.processes.models import ExecutionPorts
 from app.processes.runner import ProcessRunner
 from unittest.mock import MagicMock

@@ -1,6 +1,7 @@
 from typing import Literal
 from pydantic import BaseModel
-from app.api.contracts import Job, Project
+from app.contracts.actions.job_api import Job
+from app.api.contracts import Project
 from app.services.project_hub_requests import Connector
 
 

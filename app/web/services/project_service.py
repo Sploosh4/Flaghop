@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Any, Dict, Tuple
 
 from app.web.project_schema import ProjectListQuery, ProjectPathRequest, ProjectSaveRequest
-from app.web.response_schema import AcceptedJobResponse, ProjectListResponse, ProjectOkResponse
+from app.contracts.actions.responses import AcceptedJobResponse
+from app.web.response_schema import ProjectListResponse, ProjectOkResponse
 
 
 class ProjectService:

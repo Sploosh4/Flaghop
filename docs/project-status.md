@@ -1,5 +1,25 @@
 # FlagHop delivery status
 
+## Contract sweep
+
+31 October 2026 checkpoint, developed from `main` revision `877b794`.
+Action/result, observation and artifact-reference definitions now have dedicated
+definition-only packages and canonical application/test imports. A checker in the
+maintainability/CI gate enforces approved roots, ownership, pure dependencies,
+folder contents, import cycles and structured reference types. Contributor rules
+and rejection tests make violations actionable for future human/AI changes.
+Parser/target-state, network-report and reader-result boundaries use the shared
+models while services retain file ownership, links and checksum enforcement.
+This checkpoint includes the contract consolidation; persistent run recovery
+remains deferred.
+Final local validation passed 588 Python tests, Black/flake8, the contract checker,
+58 frontend tests, generated OpenAPI/TypeScript checks and the reproducible
+production bundle. Native fixtures passed 110 checks (66 workspace, 16 hardware,
+15 documents, 13 scanner) with no JavaScript errors. These fixtures do not add a
+new live network-enforcement claim. The storage guard passed within the existing
+2 GB cap. Earlier counts describe their own dated checkpoints. See
+[contract authoring](contract-authoring.md).
+
 Repository: [Sploosh4/Flaghop](https://github.com/Sploosh4/Flaghop). The GitHub repository has been renamed; existing local folder paths and the current FlagHop application branding remain.
 
 Reviewed **31 October 2026**. This describes the project across its published repository, local development app and separate tools. It is a dated review, not a live monitor or a release announcement.

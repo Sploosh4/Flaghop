@@ -1,6 +1,7 @@
 """Extract observations from retained local protocol checks."""
 
 from typing import Any, Dict
+from app.contracts.observations.parser import ParsedObservations
 from app.scheduler.observations.common import _merge_results, _dedupe_rows
 from app.scheduler.observations.network import (
     _parse_database_info_output,
@@ -38,4 +39,4 @@ def extract_tool_observations(tool_id: Any, output_text: Any, **kwargs) -> Dict[
         result = _merge_results(result, parser(tool, output))
     result["technologies"] = _dedupe_rows(result["technologies"], ("name", "version", "cpe", "evidence"), limit=64)
     result["findings"] = _dedupe_rows(result["findings"], ("title", "cve", "evidence"), limit=64)
-    return result
+    return ParsedObservations.model_validate(result).model_dump(exclude_unset=True)

@@ -8,7 +8,7 @@ from app.scheduler.execution import (
     list_execution_records,
     store_execution_record,
 )
-from app.scheduler.models import ExecutionRecord, PlanStep
+from app.contracts.actions.planning import ExecutionRecord, PlanStep
 from app.shell.DefaultShell import DefaultShell
 from db.RepositoryFactory import RepositoryFactory
 

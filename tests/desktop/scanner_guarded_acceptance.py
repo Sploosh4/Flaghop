@@ -84,7 +84,7 @@ def main():
     from fastapi.testclient import TestClient
     from app.api import create_app
     from app.scanning.source import scanner_source
-    from app.services.network_models import NetworkUpdate
+    from app.contracts.actions.network import NetworkUpdate
     from app.web.bootstrap import create_default_logic
     from app.web.runtime import WebRuntime
     from db.entities.host import hostObj

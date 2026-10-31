@@ -7,7 +7,8 @@ import re
 import time
 import uuid
 
-from app.services.network_models import NetworkPreferences, NetworkReport, scope_token
+from app.contracts.actions.network import NetworkPreferences, scope_token
+from app.contracts.observations.network import NetworkReport
 from app.services.network_probe import NetworkProbe, executable
 
 JOB_NETWORK = ContextVar("flaghop_job_network", default=None)
@@ -244,7 +245,7 @@ class ProjectNetworks:
         snapshot = None
         try:
             snapshot = self.inspect(reference, [request.target], request.port)
-            from app.services.network_models import RequiredService
+            from app.contracts.actions.network import RequiredService
 
             requested = RequiredService(target=request.target, port=request.port) if request.port else None
             services = self.services(snapshot, requested)

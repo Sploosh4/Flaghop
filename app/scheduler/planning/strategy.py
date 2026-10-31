@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Dict, List, Optional
-from app.scheduler.models import PlanStep
-from app.scheduler.policy import EngagementPolicy
+from app.contracts.actions.planning import PlanStep
+from app.contracts.actions.policy import EngagementPolicy
 from app.scheduler.strategy_packs import select_strategy_packs
 
 logger = logging.getLogger(__name__)

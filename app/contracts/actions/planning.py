@@ -1,9 +1,11 @@
+from app.contracts.base import ActionData
 import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
+from app.contracts.artifacts.references import ArtifactLocator
 
-from app.scheduler.policy import legacy_goal_profile_from_policy
-from app.scheduler.risk import risk_tags_to_legacy_categories
+from app.core.action_values import legacy_goal_profile_from_policy
+from app.core.action_values import risk_tags_to_legacy_categories
 
 WEB_SERVICE_IDS = {"http", "https", "ssl", "soap", "http-proxy", "http-alt", "https-alt"}
 
@@ -47,7 +49,7 @@ def _extract_parameter_schema(command_template: str) -> Dict[str, Any]:
 
 
 @dataclass(frozen=True)
-class ActionSpec:
+class ActionSpec(ActionData):
     action_id: str
     tool_id: str
     label: str
@@ -69,6 +71,22 @@ class ActionSpec:
     methodology_tags: List[str] = field(default_factory=list)
     pack_tags: List[str] = field(default_factory=list)
 
+    def __post_init__(self):
+        for name in ("action_id", "tool_id", "label", "description"):
+            value = self.__dict__[name]
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"ActionSpec.{name} must be non-empty text.")
+        if type(self.default_timeout) is not int or self.default_timeout <= 0:
+            raise ValueError("ActionSpec.default_timeout must be a positive integer.")
+        if not isinstance(self.parameter_schema, dict):
+            raise ValueError("ActionSpec.parameter_schema must be an object.")
+        properties = self.parameter_schema.get("properties", {})
+        required = self.parameter_schema.get("required", [])
+        if not isinstance(properties, dict) or not isinstance(required, list):
+            raise ValueError("ActionSpec parameter properties/required must be an object/list.")
+        if any(not isinstance(name, str) or name not in properties for name in required):
+            raise ValueError("ActionSpec required parameters must be declared in properties.")
+
     @property
     def primary_protocol(self) -> str:
         protocols = _normalize_text_list(self.protocol_scope)
@@ -76,7 +94,7 @@ class ActionSpec:
 
 
 @dataclass
-class PlanStep:
+class PlanStep(ActionData):
     step_id: str
     action: ActionSpec
     origin_mode: str
@@ -90,7 +108,7 @@ class PlanStep:
     success_criteria: List[str] = field(default_factory=list)
     approval_state: str = "not_required"
     status: str = "planned"
-    linked_evidence_refs: List[str] = field(default_factory=list)
+    linked_evidence_refs: List[ArtifactLocator] = field(default_factory=list)
     linked_graph_nodes: List[str] = field(default_factory=list)
     linked_graph_edges: List[str] = field(default_factory=list)
     selection_score: float = 0.0
@@ -128,7 +146,7 @@ class PlanStep:
         coverage_gap: str = "",
         coverage_notes: str = "",
         evidence_expectations: Optional[List[str]] = None,
-        linked_evidence_refs: Optional[List[str]] = None,
+        linked_evidence_refs: Optional[List[ArtifactLocator]] = None,
         linked_graph_nodes: Optional[List[str]] = None,
         linked_graph_edges: Optional[List[str]] = None,
         approval_state: Optional[str] = None,
@@ -334,7 +352,7 @@ class PlanStep:
 
 
 @dataclass
-class ExecutionRecord:
+class ExecutionRecord(ActionData):
     execution_id: str
     step_id: str
     started_at: str
@@ -343,7 +361,7 @@ class ExecutionRecord:
     exit_status: str
     stdout_ref: str = ""
     stderr_ref: str = ""
-    artifact_refs: List[str] = field(default_factory=list)
+    artifact_refs: List[ArtifactLocator] = field(default_factory=list)
     approval_id: str = ""
     observations_created: List[str] = field(default_factory=list)
     graph_mutations: List[str] = field(default_factory=list)
@@ -360,7 +378,7 @@ class ExecutionRecord:
         runner_type: str = "",
         stdout_ref: str = "",
         stderr_ref: str = "",
-        artifact_refs: Optional[List[str]] = None,
+        artifact_refs: Optional[List[ArtifactLocator]] = None,
         approval_id: str = "",
         observations_created: Optional[List[str]] = None,
         graph_mutations: Optional[List[str]] = None,

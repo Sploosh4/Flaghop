@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 import uuid
 
-from app.scanning.profile import literal_ip
+from app.core.contract_values import literal_ip
 from app.scanning.execution import execute_scan
 from app.scanning.lifecycle import settled, reconcile, TERMINAL
 from app.scanning.history import ScanHistory, compact_record, read_record

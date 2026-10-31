@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 import threading
 from app.services.project_networks import JOB_NETWORK, network_service, NetworkHeld
-from app.web.jobs import JobOutcome
+from app.contracts.actions.jobs import JobOutcome
 
 NETWORK_JOB_TYPES = {
     "deep-scan",

@@ -3,25 +3,7 @@ from __future__ import annotations
 from starlette.responses import JSONResponse
 
 
-def as_bool(value, default: bool = False) -> bool:
-    if value is None:
-        return bool(default)
-    if isinstance(value, bool):
-        return value
-    text = str(value).strip().lower()
-    if text in {"1", "true", "yes", "on"}:
-        return True
-    if text in {"0", "false", "no", "off"}:
-        return False
-    return bool(default)
-
-
-def clamp_int(value, default: int, minimum: int, maximum: int) -> int:
-    try:
-        resolved = int(value if value not in (None, "") else default)
-    except (TypeError, ValueError):
-        resolved = int(default)
-    return max(int(minimum), min(int(maximum), resolved))
+from app.core.contract_values import as_bool, clamp_int
 
 
 def json_error(message: str, status_code: int = 400):

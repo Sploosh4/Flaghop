@@ -1,5 +1,5 @@
 import unittest
-from app.scheduler.models import ActionSpec
+from app.contracts.actions.planning import ActionSpec
 from app.scheduler.policy import normalize_engagement_policy
 from app.scheduler.strategy_packs import evaluate_action_strategy, select_strategy_packs
 

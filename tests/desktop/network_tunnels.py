@@ -18,9 +18,9 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from app.processes.models import CommandRequest
+from app.contracts.actions.process import CommandRequest
 from app.services.network_guard import NetworkLease
-from app.services.network_models import NetworkCheckRequest, NetworkUpdate
+from app.contracts.actions.network import NetworkCheckRequest, NetworkUpdate
 from app.services.project_networks import NetworkHeld, ProjectNetworks
 from tests.app.test_ProjectNetworks import FixtureHub
 from tests.app.test_ProjectNetworks import ProjectNetworksTest

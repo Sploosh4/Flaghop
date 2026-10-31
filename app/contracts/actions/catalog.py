@@ -15,12 +15,10 @@ Copyright (c) 2025 Shane William Scott
 
 from __future__ import annotations
 
-from app.logging.legionLog import getAppLogger
-
-log = getAppLogger()
+from app.contracts.base import ActionConstants
 
 
-class ActionCatalog:
+class ActionCatalog(ActionConstants):
     SUPPORTED_PORT_ACTION_IDS = frozenset(
         [
             "broadcast-ms-sql-discover.nse",

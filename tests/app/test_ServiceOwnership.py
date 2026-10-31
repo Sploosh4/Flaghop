@@ -63,7 +63,8 @@ class ServiceOwnershipTest(unittest.TestCase):
     def test_process_runner_uses_explicit_ports_and_cleans_up_after_a_real_local_command(self):
         import shlex
         import sys
-        from app.processes.models import CommandRequest, ExecutionPorts, ExecutionResult
+        from app.contracts.actions.process import CommandRequest, ExecutionResult
+        from app.processes.models import ExecutionPorts
         from app.processes.runner import ProcessRunner
 
         registry = ProcessRegistry()

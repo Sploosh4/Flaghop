@@ -16,7 +16,8 @@ _PROCESS_CRASH_MIN_RUNTIME_SECONDS = 5.0
 def execute_command(runtime, **kwargs):
     """Application adapter; all process logic returns a consistent result object."""
     from types import SimpleNamespace
-    from app.processes.models import CommandRequest, ExecutionPorts
+    from app.contracts.actions.process import CommandRequest
+    from app.processes.models import ExecutionPorts
     from app.processes.runner import ProcessRunner
     from app.services.project_networks import network_service
     from app.services.network_guard import NetworkLease

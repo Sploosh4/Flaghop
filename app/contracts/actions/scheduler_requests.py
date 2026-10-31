@@ -1,35 +1,13 @@
-from __future__ import annotations
+"""Scheduler action requests and history queries."""
 
+from app.contracts.base import ActionData
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
-
-from app.web.http_utils import as_bool, clamp_int
-
-SCHEDULER_PREFERENCE_ALLOWED_FIELDS = {
-    "mode",
-    "goal_profile",
-    "engagement_policy",
-    "feature_flags",
-    "max_concurrency",
-    "max_host_concurrency",
-    "max_jobs",
-    "device_categories",
-    "dangerous_categories",
-}
+from app.core.contract_values import as_bool, clamp_int
 
 
 @dataclass(frozen=True)
-class SchedulerPreferencesPatch:
-    updates: Dict[str, Any]
-
-    @classmethod
-    def from_payload(cls, payload: Any) -> "SchedulerPreferencesPatch":
-        source = payload if isinstance(payload, dict) else {}
-        return cls({key: value for key, value in source.items() if key in SCHEDULER_PREFERENCE_ALLOWED_FIELDS})
-
-
-@dataclass(frozen=True)
-class SchedulerLogQuery:
+class SchedulerLogQuery(ActionData):
     limit: int
 
     @classmethod
@@ -38,7 +16,7 @@ class SchedulerLogQuery:
 
 
 @dataclass(frozen=True)
-class SchedulerDecisionQuery:
+class SchedulerDecisionQuery(ActionData):
     limit: int
 
     @classmethod
@@ -47,7 +25,7 @@ class SchedulerDecisionQuery:
 
 
 @dataclass(frozen=True)
-class SchedulerPlanPreviewQuery:
+class SchedulerPlanPreviewQuery(ActionData):
     host_id: int
     host_ip: str
     service: str
@@ -72,7 +50,7 @@ class SchedulerPlanPreviewQuery:
 
 
 @dataclass(frozen=True)
-class SchedulerApprovalListQuery:
+class SchedulerApprovalListQuery(ActionData):
     status: Optional[str]
     limit: int
 
@@ -83,7 +61,7 @@ class SchedulerApprovalListQuery:
 
 
 @dataclass(frozen=True)
-class SchedulerApprovalRequest:
+class SchedulerApprovalRequest(ActionData):
     approve_family: bool
     run_now: bool
     family_action: str
@@ -100,7 +78,7 @@ class SchedulerApprovalRequest:
 
 
 @dataclass(frozen=True)
-class SchedulerRejectionRequest:
+class SchedulerRejectionRequest(ActionData):
     reason: str
     family_action: str
 
@@ -114,7 +92,7 @@ class SchedulerRejectionRequest:
 
 
 @dataclass(frozen=True)
-class SchedulerFamilyApprovalRequest:
+class SchedulerFamilyApprovalRequest(ActionData):
     family_id: str
     metadata: Dict[str, Any]
 
@@ -132,7 +110,7 @@ class SchedulerFamilyApprovalRequest:
 
 
 @dataclass(frozen=True)
-class SchedulerExecutionQuery:
+class SchedulerExecutionQuery(ActionData):
     limit: int
     host_id: int
     host_ip: str
@@ -151,7 +129,7 @@ class SchedulerExecutionQuery:
 
 
 @dataclass(frozen=True)
-class SchedulerExecutionTraceQuery:
+class SchedulerExecutionTraceQuery(ActionData):
     max_chars: int
 
     @classmethod

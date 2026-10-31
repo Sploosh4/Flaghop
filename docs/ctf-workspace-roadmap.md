@@ -1,5 +1,12 @@
 # FlagHop CTF workspace roadmap
 
+Included foundation sweep: centralize tool action/results,
+observations and artifact references, update all consumers, and enforce class,
+ownership and dependency rules through [contract checks](contract-authoring.md).
+This is separate from new tool integration. Unified persistent run recovery is
+explicitly deferred until the application is further along; stable records and
+structured requests should support that later sweep.
+
 Included transport: all HTTP routes, pages, ZIP transfer and WebSockets use FastAPI. The Flask fallback and transport selector are removed; existing project and reader formats are preserved. The separately authorised [architecture improvements](architecture-follow-ups.md) are included in this revision and verified locally.
 
 Reviewed 31 October 2026. FlagHop is the app being developed in [Sploosh4/Flagmap](https://github.com/Sploosh4/Flagmap), a CTF-focused Legion fork. The [delivery status](project-status.md) separates this implementation checkpoint, separate tools and planned work.

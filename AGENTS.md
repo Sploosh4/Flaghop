@@ -6,6 +6,25 @@ Preserve upstream functionality and GPL notices. UI changes must retain existing
 
 Work on `codex/` branches. Keep `.state`, `.desktop-profile`, environments, test output and caches out of Git. Before publishing, inspect the staged diff and run the relevant existing checks. Store disposable visual checks in `.artifacts/disposable`.
 
+## Domain contracts: required for human and AI contributions
+
+Read `docs/contract-authoring.md` before adding or changing tool actions/results,
+observations or artifact references. Their single source is respectively
+`app/contracts/actions`, `app/contracts/observations`, and `app/contracts/artifacts`.
+Use the approved roots from `app/contracts/base.py`; reuse existing definitions
+instead of adding a similar class elsewhere. These folders contain data definitions
+and pure validation/conversion only. Keep services, runners, parsers, filesystem or
+database access, UI, tests, examples and documentation outside them.
+
+Run `.venv/bin/python -B scripts/check-contracts.py` and the relevant behavioural
+tests after each contract change. The checker reports a path, rule and repair hint;
+fix the owning definition rather than adding an exemption or weakening the gate.
+New checker rules require rejection tests as well as a valid example. Regenerate
+OpenAPI/TypeScript when wire shapes change and run the frontend contract check.
+Report actual checks and remaining limits; a structural checker does not prove a
+tool result is true. Keep candidates, reproduced findings, execution and sessions
+distinct. Do not add persistent run recovery until that deferred work is requested.
+
 ## Keep project descriptions current
 
 When a change alters user-visible capabilities, setup, limitations or agreed scope, update the relevant documentation in the same change:

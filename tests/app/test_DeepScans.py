@@ -13,12 +13,12 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 from app.api import create_app
-from app.processes.models import ExecutionResult
+from app.contracts.actions.process import ExecutionResult
 from app.scanning import repository
-from app.scanning.contracts import DeepScanRequest
+from app.contracts.actions.scanner import DeepScanRequest
 from app.scanning.profile import validate_profile
 from app.scanning.service import DeepScans
-from app.services.network_models import NetworkUpdate
+from app.contracts.actions.network import NetworkUpdate
 from app.services.project_hub import ProjectHub
 from app.services.project_networks import NetworkHeld
 from app.web.bootstrap import create_default_logic
@@ -236,7 +236,7 @@ class DeepScansTest(TestCase):
             self.assertEqual(0, read.call_count)
         self.assertEqual(compact, again)
         self.assertEqual(200, len(compact["runs"]))
-        from app.scanning.contracts import DeepScanList
+        from app.contracts.actions.scanner import DeepScanList
 
         payload_bytes = len(DeepScanList.model_validate(compact).model_dump_json().encode())
         old_response_bytes = len(json.dumps(self.service.list()).encode())

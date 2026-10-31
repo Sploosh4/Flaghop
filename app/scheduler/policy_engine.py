@@ -1,7 +1,9 @@
+from app.contracts.actions.policy import PolicyDecision
 from dataclasses import dataclass, field
 from typing import Iterable, List, Optional
 
-from app.scheduler.policy import EngagementPolicy, normalize_engagement_policy
+from app.contracts.actions.policy import EngagementPolicy
+from app.scheduler.policy import normalize_engagement_policy
 from app.scheduler.risk import (
     normalize_risk_tags,
     risk_tags_to_legacy_categories,
@@ -31,36 +33,6 @@ def _risk_mode_to_decision(value: str) -> str:
     if normalized in {"allowed", "blocked"}:
         return normalized
     return "allowed"
-
-
-@dataclass(frozen=True)
-class PolicyDecision:
-    state: str
-    risk_tags: List[str] = field(default_factory=list)
-    legacy_danger_categories: List[str] = field(default_factory=list)
-    reason: str = ""
-    risk_summary: str = ""
-    safer_alternative: str = ""
-    family_policy_state: str = ""
-
-    @property
-    def requires_approval(self) -> bool:
-        return self.state == "approval_required"
-
-    @property
-    def is_blocked(self) -> bool:
-        return self.state == "blocked"
-
-    def to_dict(self):
-        return {
-            "state": self.state,
-            "risk_tags": list(self.risk_tags),
-            "legacy_danger_categories": list(self.legacy_danger_categories),
-            "reason": self.reason,
-            "risk_summary": self.risk_summary,
-            "safer_alternative": self.safer_alternative,
-            "family_policy_state": self.family_policy_state,
-        }
 
 
 def _decision_rank(state: str) -> int:

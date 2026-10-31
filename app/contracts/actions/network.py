@@ -3,7 +3,9 @@
 import ipaddress
 import re
 from typing import Annotated, Literal
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from app.contracts.base import ActionModel
+from app.contracts.observations.network import NetworkReport
+from pydantic import ConfigDict, Field, field_validator
 
 
 def scope_token(value):
@@ -18,13 +20,13 @@ def scope_token(value):
         return token
 
 
-class RequiredService(BaseModel):
+class RequiredService(ActionModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     target: str = Field(min_length=1, max_length=253)
     port: int = Field(ge=1, le=65535, strict=True)
 
 
-class NetworkPreferences(BaseModel):
+class NetworkPreferences(ActionModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     name: str = Field(default="", max_length=120)
     scope_source: str = Field(default="", max_length=1000)
@@ -52,29 +54,19 @@ class NetworkPreferences(BaseModel):
         return sorted(set(values))
 
 
-class NetworkUpdate(BaseModel):
+class NetworkUpdate(ActionModel):
     model_config = ConfigDict(extra="forbid")
     expected_revision: int = Field(ge=0, strict=True)
     settings: NetworkPreferences
 
 
-class NetworkCheckRequest(BaseModel):
+class NetworkCheckRequest(ActionModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     target: str = Field(min_length=1, max_length=253)
     port: int | None = Field(default=None, ge=1, le=65535, strict=True)
 
 
-class NetworkReport(BaseModel):
-    status: Literal["ready", "held", "no_response"]
-    reason: str
-    checked_at: str
-    revision: int
-    target: str = ""
-    routes: list[dict] = Field(default_factory=list)
-    services: list[dict] = Field(default_factory=list)
-
-
-class NetworkContext(BaseModel):
+class NetworkContext(ActionModel):
     project_id: str
     config_id: str
     revision: int

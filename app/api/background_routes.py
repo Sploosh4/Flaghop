@@ -3,8 +3,8 @@
 from app.api.dependencies import native_router
 from app.api.hub_routes import Hub
 from app.api.hub_contracts import HubOk
-from app.api.background_contracts import BackgroundStatus, ReaderResult
-from app.services.project_hub_requests import BackgroundControl
+from app.contracts.actions.reader import BackgroundStatus, ReaderResult
+from app.contracts.actions.reader_control import BackgroundControl
 from app.services.project_background import ProjectBackground
 from app.services.project_files import ProjectFiles
 from fastapi.responses import FileResponse

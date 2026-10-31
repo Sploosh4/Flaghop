@@ -6,7 +6,7 @@ import ipaddress
 from typing import Any, Dict, Iterable, Optional, Set
 from app.hostsfile import registrable_root_domain
 from app.settings import AppSettings
-from app.scheduler.orchestration.models import ROOT_DOMAIN_SCOPED_TOOL_IDS, SchedulerTarget
+from app.contracts.actions.orchestration import ROOT_DOMAIN_SCOPED_TOOL_IDS, SchedulerTarget
 
 
 class Targeting:

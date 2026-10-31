@@ -4,7 +4,8 @@ from pathlib import Path
 import tempfile
 import unittest
 from pydantic import ValidationError
-from app.scanning.models import TaskFacts, ScanSummary
+from app.contracts.actions.scanner_facts import TaskFacts
+from app.contracts.observations.scanner import ScanSummary
 from app.scanning.profile import validate_profile
 from tests.support.scanner_fixture import write_profile
 

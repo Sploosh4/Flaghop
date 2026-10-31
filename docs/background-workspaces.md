@@ -1,5 +1,13 @@
 # Workspace readers
 
+This checkpoint centralizes reader control/status/result contracts
+under `app/contracts/actions`, and alert/origin definitions under
+`app/contracts/artifacts`. Reader results are validated at their service boundary;
+original provenance extensions and missing fields are retained. Relative result
+path validation supplements the existing project/link checks. Engine formats,
+queues and cooperative stop behaviour remain as described below. See
+[contract authoring](contract-authoring.md).
+
 Local transport candidate: all HTTP routes, pages, ZIP transfer and WebSockets use FastAPI. The Flask fallback and transport selector are removed; existing project and reader formats are preserved. The separately authorised [architecture improvement goal](architecture-follow-ups.md) remains in progress.
 
 Status: app integration included in the 31 October 2026 checkpoint. This does not install the separate reader engines/service. See [delivery status](project-status.md) for the code and dependency boundary.

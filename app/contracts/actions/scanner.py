@@ -1,12 +1,16 @@
 """Deep scan wire contracts. API callers select targets, never commands or local paths."""
 
+from app.core.contract_values import literal_ip
+
+from app.contracts.base import ActionModel
+
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from app.scanning.profile import literal_ip
-from app.scanning.models import ScanSummary, ImportProgress
+from pydantic import ConfigDict, Field, field_validator
+from app.contracts.observations.scanner import ScanSummary
+from app.contracts.actions.scanner_facts import ImportProgress
 
 
-class DeepScanRequest(BaseModel):
+class DeepScanRequest(ActionModel):
     model_config = ConfigDict(extra="forbid")
     host_id: int = Field(ge=1, strict=True)
     target_ip: str = Field(min_length=1, max_length=45, strict=True)
@@ -20,7 +24,7 @@ class DeepScanRequest(BaseModel):
         return literal_ip(value) if value is not None else None
 
 
-class DeepScanRun(BaseModel):
+class DeepScanRun(ActionModel):
     model_config = ConfigDict(extra="allow")
     id: str
     project_id: str
@@ -40,5 +44,5 @@ class DeepScanRun(BaseModel):
     summary: ScanSummary = Field(default_factory=ScanSummary)
 
 
-class DeepScanList(BaseModel):
+class DeepScanList(ActionModel):
     runs: list[DeepScanRun]

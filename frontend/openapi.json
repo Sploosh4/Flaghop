@@ -295,6 +295,7 @@
         "type": "object"
       },
       "ApprovalList": {
+        "additionalProperties": false,
         "properties": {
           "approvals": {
             "items": {
@@ -366,6 +367,35 @@
         "title": "ApproveApproval",
         "type": "object"
       },
+      "Artifact": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "maximum": 8388608.0,
+            "minimum": 0.0,
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "path": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Path",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "bytes",
+          "sha256"
+        ],
+        "title": "Artifact",
+        "type": "object"
+      },
       "Autosave": {
         "additionalProperties": true,
         "properties": {
@@ -413,6 +443,7 @@
         "type": "object"
       },
       "BackgroundStatus": {
+        "additionalProperties": false,
         "properties": {
           "alerts": {
             "items": {
@@ -785,6 +816,7 @@
         "type": "object"
       },
       "DecisionList": {
+        "additionalProperties": false,
         "properties": {
           "decisions": {
             "items": {
@@ -801,6 +833,7 @@
         "type": "object"
       },
       "DeepScanList": {
+        "additionalProperties": false,
         "properties": {
           "runs": {
             "items": {
@@ -1241,6 +1274,7 @@
         "type": "object"
       },
       "ImportProgress": {
+        "additionalProperties": false,
         "properties": {
           "inventory_committed": {
             "default": false,
@@ -1386,6 +1420,7 @@
         "type": "object"
       },
       "JobList": {
+        "additionalProperties": false,
         "properties": {
           "jobs": {
             "items": {
@@ -1432,6 +1467,7 @@
         "type": "object"
       },
       "NetworkContext": {
+        "additionalProperties": false,
         "properties": {
           "config_id": {
             "title": "Config Id",
@@ -1573,6 +1609,7 @@
         "type": "object"
       },
       "NetworkReport": {
+        "additionalProperties": false,
         "properties": {
           "checked_at": {
             "title": "Checked At",
@@ -1588,16 +1625,14 @@
           },
           "routes": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/RouteObservation"
             },
             "title": "Routes",
             "type": "array"
           },
           "services": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ServiceProbeObservation"
             },
             "title": "Services",
             "type": "array"
@@ -1839,6 +1874,7 @@
         "type": "object"
       },
       "ProcessList": {
+        "additionalProperties": false,
         "properties": {
           "processes": {
             "items": {
@@ -2177,8 +2213,10 @@
         "type": "object"
       },
       "ReaderAlert": {
+        "additionalProperties": false,
         "properties": {
           "completed": {
+            "minimum": 0.0,
             "title": "Completed",
             "type": "number"
           },
@@ -2216,17 +2254,19 @@
           },
           "origins": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ReaderOrigin"
             },
             "title": "Origins",
             "type": "array"
           },
           "result_path": {
+            "maxLength": 4096,
+            "minLength": 1,
             "title": "Result Path",
             "type": "string"
           },
           "size": {
+            "minimum": 0.0,
             "title": "Size",
             "type": "integer"
           },
@@ -2255,7 +2295,110 @@
         "title": "ReaderAlert",
         "type": "object"
       },
+      "ReaderOrigin": {
+        "additionalProperties": true,
+        "description": "Source metadata; a historical hash label is not proof of authenticity.",
+        "properties": {
+          "connection_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection Id"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
+          },
+          "source_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Path"
+          },
+          "transport": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transport"
+          }
+        },
+        "title": "ReaderOrigin",
+        "type": "object"
+      },
       "ReaderResult": {
+        "additionalProperties": false,
         "properties": {
           "artifact": {
             "$ref": "#/components/schemas/ReaderAlert"
@@ -2289,6 +2432,7 @@
         "type": "object"
       },
       "ReaderWorker": {
+        "additionalProperties": false,
         "properties": {
           "available": {
             "title": "Available",
@@ -2441,6 +2585,7 @@
         "type": "object"
       },
       "RetriedProcess": {
+        "additionalProperties": false,
         "properties": {
           "job": {
             "$ref": "#/components/schemas/Job"
@@ -2469,6 +2614,47 @@
           }
         },
         "title": "RetryProcess",
+        "type": "object"
+      },
+      "RouteObservation": {
+        "additionalProperties": true,
+        "properties": {
+          "destination": {
+            "title": "Destination",
+            "type": "string"
+          },
+          "gateway": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gateway"
+          },
+          "interface": {
+            "title": "Interface",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "required": [
+          "destination",
+          "interface"
+        ],
+        "title": "RouteObservation",
         "type": "object"
       },
       "Scan": {
@@ -2570,6 +2756,7 @@
         "type": "object"
       },
       "ScanList": {
+        "additionalProperties": false,
         "properties": {
           "scans": {
             "items": {
@@ -2590,10 +2777,7 @@
         "properties": {
           "artifacts": {
             "items": {
-              "additionalProperties": {
-                "$ref": "#/components/schemas/JsonValue"
-              },
-              "type": "object"
+              "$ref": "#/components/schemas/Artifact"
             },
             "title": "Artifacts",
             "type": "array"
@@ -2683,6 +2867,32 @@
           "state"
         ],
         "title": "ServiceFacts",
+        "type": "object"
+      },
+      "ServiceProbeObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "title": "Address",
+            "type": "string"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "port": {
+            "maximum": 65535.0,
+            "minimum": 1.0,
+            "title": "Port",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "address",
+          "port",
+          "outcome"
+        ],
+        "title": "ServiceProbeObservation",
         "type": "object"
       },
       "StopJobResponse": {

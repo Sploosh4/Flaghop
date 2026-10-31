@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from app.tooling import resolve_tool_install_platform
+
 import logging
 
 from typing import Any, Dict
@@ -12,11 +14,8 @@ from app.tooling import (
     tool_audit_summary,
 )
 from app.web.http_utils import as_bool
-from app.web.settings_schema import (
-    DisplaySettingsRequest,
-    ToolAuditInstallRequest,
-    ToolAuditPlanQuery,
-)
+from app.web.settings_schema import DisplaySettingsRequest
+from app.contracts.actions.tooling_requests import ToolAuditInstallRequest, ToolAuditPlanQuery
 
 
 def load_display_settings(runtime=None) -> Dict[str, Any]:
@@ -86,16 +85,17 @@ class SettingsService:
 
     def get_tool_install_plan(self, args: Any) -> Dict[str, Any]:
         query = ToolAuditPlanQuery.from_args(args)
+        platform = resolve_tool_install_platform(query.platform)
         runtime_getter = getattr(self.runtime, "get_tool_install_plan", None) if self.runtime is not None else None
         if callable(runtime_getter):
-            return runtime_getter(platform=query.platform, scope=query.scope, tool_keys=query.tool_keys)
+            return runtime_getter(platform=platform, scope=query.scope, tool_keys=query.tool_keys)
         settings = getattr(self.runtime, "settings", None) if self.runtime is not None else None
         if settings is None:
             settings = Settings(AppSettings())
         entries = audit_legion_tools(settings)
         return build_tool_install_plan(
             entries,
-            platform=query.platform,
+            platform=platform,
             scope=query.scope,
             tool_keys=query.tool_keys,
         )
@@ -105,8 +105,9 @@ class SettingsService:
         if not callable(runtime_start):
             raise NotImplementedError("Tool installation is unavailable in this runtime.")
         request = ToolAuditInstallRequest.from_payload(payload)
+        platform = resolve_tool_install_platform(request.platform)
         job = runtime_start(
-            platform=request.platform,
+            platform=platform,
             scope=request.scope,
             tool_keys=request.tool_keys,
         )

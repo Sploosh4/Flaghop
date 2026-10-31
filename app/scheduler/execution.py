@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy import text
 
-from app.scheduler.models import ExecutionRecord, PlanStep
+from app.contracts.actions.planning import ExecutionRecord, PlanStep
 
 
 from db.schema import ensure_column as _ensure_column

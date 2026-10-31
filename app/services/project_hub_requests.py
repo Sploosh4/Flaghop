@@ -34,8 +34,3 @@ class HubSaveFolder(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     path: str = Field(min_length=1, max_length=4096, strict=True)
     move_existing: bool = Field(default=False, strict=True)
-
-
-class BackgroundControl(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    running: bool = Field(strict=True)

@@ -93,7 +93,7 @@ class SchedulerOrchestratorTest(unittest.TestCase):
             project_manager.closeProject(project)
 
     def test_run_targets_routes_blocked_approval_and_execution_through_callbacks(self):
-        from app.scheduler.models import PlanStep
+        from app.contracts.actions.planning import PlanStep
         from app.scheduler.orchestrator import (
             SchedulerDecisionDisposition,
             SchedulerExecutionTask,
@@ -206,7 +206,7 @@ class SchedulerOrchestratorTest(unittest.TestCase):
         self.assertEqual(1, summary["skipped"])
 
     def test_run_targets_skips_host_root_banner_and_nmap_without_port(self):
-        from app.scheduler.models import PlanStep
+        from app.contracts.actions.planning import PlanStep
         from app.scheduler.orchestrator import (
             SchedulerExecutionTask,
             SchedulerOrchestrator,
@@ -312,7 +312,7 @@ class SchedulerOrchestratorTest(unittest.TestCase):
         self.assertEqual(3, summary["skipped"])
 
     def test_run_targets_uses_existing_attempts_even_without_feedback_loop(self):
-        from app.scheduler.models import PlanStep
+        from app.contracts.actions.planning import PlanStep
         from app.scheduler.orchestrator import SchedulerOrchestrator, SchedulerRunOptions, SchedulerTarget
 
         subfinder = PlanStep.from_legacy_fields(

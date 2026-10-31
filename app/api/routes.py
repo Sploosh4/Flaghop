@@ -2,15 +2,8 @@
 
 from typing import Annotated
 from fastapi import Path, Query
-from app.api.contracts import (
-    Health,
-    Project,
-    ProjectResponse,
-    RenameProject,
-    Job,
-    JobList,
-    StopJobResponse,
-)
+from app.api.contracts import Health, Project, ProjectResponse, RenameProject
+from app.contracts.actions.job_api import Job, JobList, StopJobResponse
 from app.web.services.project_service import ProjectService
 from app.web.services.runtime_service import RuntimeService
 from app.api.activity_contracts import ActivitySnapshot

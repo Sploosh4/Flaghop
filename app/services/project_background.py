@@ -8,6 +8,7 @@ import re
 import stat
 import time
 import uuid
+from app.contracts.artifacts.reader import ReaderAlert
 
 CONTENT_ID = re.compile(r"[a-f0-9]{64}\Z")
 
@@ -186,6 +187,7 @@ class ProjectBackground:
                 if source
                 else ("Recovered candidate" if row["kind"] == "hash" else "Cipher candidate")
             )
+        rows = [ReaderAlert.model_validate(row).model_dump(exclude_unset=True) for row in rows]
         return report, queue, sorted(rows, key=lambda row: (-row["completed"], row["id"]))
 
     def status(self):

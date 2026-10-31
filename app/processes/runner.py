@@ -10,7 +10,8 @@ from typing import List, Optional
 from app.settings import AppSettings
 from app.timing import getTimestamp
 from app.tooling import build_tool_execution_env
-from app.processes.models import CommandRequest, ExecutionResult, ExecutionState
+from app.contracts.actions.process import CommandRequest, ExecutionResult
+from app.processes.models import ExecutionState
 
 
 class _TrackedProcessStub:

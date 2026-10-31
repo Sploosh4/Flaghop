@@ -13,7 +13,7 @@ from app.scanning import repository
 from app.scanning.profile import summarize, validate_profile, owned_file
 from app.services.project_background import atomic_json
 from app.services.project_networks import NetworkHeld
-from app.web.jobs import JobOutcome
+from app.contracts.actions.jobs import JobOutcome
 from app.web.runtime_execution import execute_command
 
 ROOT = Path(__file__).resolve().parents[2]

@@ -2,13 +2,10 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from app.scheduler.models import ExecutionRecord
+from app.contracts.actions.planning import ExecutionRecord
 from app.scheduler.planner import ScheduledAction
-from app.scheduler.runners import (
-    RunnerExecutionRequest,
-    RunnerExecutionResult,
-    LocalRunner,
-)
+from app.contracts.actions.runner import RunnerExecutionRequest, RunnerExecutionResult
+from app.scheduler.runners import LocalRunner
 from app.settings import AppSettings
 from app.timing import getTimestamp
 

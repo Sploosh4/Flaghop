@@ -4,7 +4,7 @@ Helpers for locating optional security tooling in local-first installs.
 
 from __future__ import annotations
 
-from app.tooling_catalog import ToolSpec, ToolAuditEntry, _tool_specs
+from app.contracts.actions.tooling import ToolSpec, ToolAuditEntry, _tool_specs
 
 import os
 import re

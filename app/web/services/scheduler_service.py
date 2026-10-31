@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, Tuple
 
-from app.web.scheduler_schema import (
+from app.contracts.actions.scheduler_requests import (
     SchedulerApprovalListQuery,
     SchedulerApprovalRequest,
     SchedulerDecisionQuery,
@@ -12,10 +12,10 @@ from app.web.scheduler_schema import (
     SchedulerFamilyApprovalRequest,
     SchedulerLogQuery,
     SchedulerPlanPreviewQuery,
-    SchedulerPreferencesPatch,
     SchedulerRejectionRequest,
 )
-from app.web.response_schema import AcceptedJobResponse
+from app.contracts.actions.scheduler_preferences import SchedulerPreferencesPatch
+from app.contracts.actions.responses import AcceptedJobResponse
 
 
 class SchedulerService:

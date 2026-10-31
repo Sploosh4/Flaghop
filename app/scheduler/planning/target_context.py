@@ -9,7 +9,7 @@ import shlex
 from typing import Any, Dict, List, Optional, Set
 from app.hostsfile import normalize_hostname_alias, registrable_root_domain
 from app.scheduler.family import build_command_family_id
-from app.scheduler.models import PlanStep
+from app.contracts.actions.planning import PlanStep
 
 logger = logging.getLogger(__name__)
 ScheduledAction = PlanStep

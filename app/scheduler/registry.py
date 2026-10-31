@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from app.scheduler.family import build_command_family_id
-from app.scheduler.models import ActionSpec, WEB_SERVICE_IDS
+from app.contracts.actions.planning import ActionSpec, WEB_SERVICE_IDS
 from app.scheduler.risk import classify_risk_tags
 
 
@@ -34,7 +34,7 @@ def _merge_lists(*groups: Any) -> List[str]:
 
 
 def _extract_parameter_schema(command_template: str) -> Dict[str, Any]:
-    from app.scheduler.models import _extract_parameter_schema as _shared_extract_parameter_schema
+    from app.contracts.actions.planning import _extract_parameter_schema as _shared_extract_parameter_schema
 
     return _shared_extract_parameter_schema(command_template)
 
@@ -169,6 +169,10 @@ def _infer_pack_tags(
 class ActionRegistry:
     def __init__(self, specs: List[ActionSpec]):
         self._specs = list(specs or [])
+        if any(not isinstance(spec, ActionSpec) for spec in self._specs):
+            raise TypeError("ActionRegistry accepts canonical ActionSpec definitions only.")
+        if len({spec.action_id for spec in self._specs}) != len(self._specs):
+            raise ValueError("ActionRegistry action IDs must be unique; fix the owning definition.")
         self._by_action_id = {spec.action_id: spec for spec in self._specs}
         self._by_tool_id = {spec.tool_id: spec for spec in self._specs}
 

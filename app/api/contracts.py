@@ -1,11 +1,11 @@
 """Validated contracts for the first native API slice; extension fields remain compatible."""
 
+from app.contracts.base import ExtensibleModel
+from app.contracts.actions.job_api import Job
+
+
 from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator
-
-
-class ExtensibleModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
 
 
 class Autosave(ExtensibleModel):
@@ -41,33 +41,6 @@ class RenameProject(BaseModel):
 class ProjectResponse(BaseModel):
     status: Literal["ok"] = "ok"
     project: Project
-
-
-class Job(ExtensibleModel):
-    id: int
-    type: str
-    status: Literal["queued", "running", "completed", "partial", "failed", "cancelled", "held"]
-    created_at: str = ""
-    started_at: str | None = ""
-    finished_at: str | None = ""
-    error: str = ""
-    settling: bool = False
-    cancel_requested: bool = False
-    cancel_reason: str = ""
-    payload: dict[str, JsonValue] = Field(default_factory=dict)
-    result: dict[str, JsonValue] = Field(default_factory=dict)
-
-
-class JobList(BaseModel):
-    jobs: list[Job]
-
-
-class StopJobResponse(ExtensibleModel):
-    status: Literal["ok"] = "ok"
-    stopped: bool
-    job: Job
-    killed_process_ids: list[int] = Field(default_factory=list)
-    message: str = ""
 
 
 class Snapshot(ExtensibleModel):

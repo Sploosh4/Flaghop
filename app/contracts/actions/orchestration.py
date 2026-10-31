@@ -1,5 +1,6 @@
 """Shared scheduler run models and defaults."""
 
+from app.contracts.base import ActionData
 from dataclasses import dataclass, field
 from typing import Any, Dict
 
@@ -7,7 +8,7 @@ ROOT_DOMAIN_SCOPED_TOOL_IDS = set()
 
 
 @dataclass(frozen=True)
-class SchedulerTarget:
+class SchedulerTarget(ActionData):
     host_id: int = 0
     host_ip: str = ""
     hostname: str = ""
@@ -18,7 +19,7 @@ class SchedulerTarget:
 
 
 @dataclass(frozen=True)
-class SchedulerExecutionTask:
+class SchedulerExecutionTask(ActionData):
     decision: Any
     tool_id: str
     host_ip: str
@@ -35,14 +36,14 @@ class SchedulerExecutionTask:
 
 
 @dataclass(frozen=True)
-class SchedulerDecisionDisposition:
+class SchedulerDecisionDisposition(ActionData):
     action: str
     reason: str = ""
     approval_id: int = 0
 
 
 @dataclass(frozen=True)
-class SchedulerRunOptions:
+class SchedulerRunOptions(ActionData):
     scheduler_mode: str = "deterministic"
     scheduler_concurrency: int = 1
     host_concurrency: int = 1

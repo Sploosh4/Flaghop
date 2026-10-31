@@ -1,7 +1,7 @@
 """Local scheduler concurrency and timeout options."""
 
 from app.scheduler.preferences import scheduler_max_concurrency, scheduler_max_host_concurrency
-from app.scheduler.orchestration.models import SchedulerRunOptions
+from app.contracts.actions.orchestration import SchedulerRunOptions
 
 
 class Options:

@@ -3,7 +3,7 @@
 from fastapi import Query
 from app.api.dependencies import native_router
 from app.api.hub_routes import Hub
-from app.scanning.contracts import DeepScanRequest, DeepScanRun, DeepScanList
+from app.contracts.actions.scanner import DeepScanRequest, DeepScanRun, DeepScanList
 from app.scanning.service import DeepScans
 
 router = native_router()

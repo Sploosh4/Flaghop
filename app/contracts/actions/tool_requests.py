@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from app.contracts.base import ActionData
+
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from app.web.http_utils import clamp_int
+from app.core.contract_values import clamp_int
 
 
 @dataclass(frozen=True)
-class WorkspaceToolsPageQuery:
+class WorkspaceToolsPageQuery(ActionData):
     service: str
     port: str
     protocol: str
@@ -26,7 +28,7 @@ class WorkspaceToolsPageQuery:
 
 
 @dataclass(frozen=True)
-class WorkspaceToolTargetsQuery:
+class WorkspaceToolTargetsQuery(ActionData):
     service: str
     host_id: int
     limit: int
@@ -41,7 +43,7 @@ class WorkspaceToolTargetsQuery:
 
 
 @dataclass(frozen=True)
-class ToolRunRequest:
+class ToolRunRequest(ActionData):
     host_ip: str
     port: str
     protocol: str

@@ -1,5 +1,14 @@
 # Requests and open questions
 
+31 October 2026 contract decision: keep all tool action/result definitions,
+observation definitions and artifact references in their dedicated `app/contracts`
+folders, with no runtime/IO code, tests or documentation in those folders. Use
+approved class roots, one canonical owner, a local/CI checker with rejection
+tests, and contributor instructions for both people and AI agents. This
+checkpoint updates existing consumers together. Persistent
+run recovery is deferred; independent project execution remains separate work.
+See [the authoring standard](contract-authoring.md).
+
 Included transport: all HTTP routes, pages, ZIP transfer and WebSockets use FastAPI. The Flask fallback and transport selector are removed; existing project and reader formats are preserved. The separately authorised [architecture improvements](architecture-follow-ups.md) are included in this revision and verified locally.
 
 Updated 31 October 2026. This separates working changes from requests still waiting. Nothing below authorises starting a deferred integration.

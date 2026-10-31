@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from app.web.host_action_schema import (
+from app.contracts.actions.host_action_requests import (
     HostCategoriesRequest,
     HostNoteRequest,
     ScriptCreateRequest,

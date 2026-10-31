@@ -9,7 +9,7 @@ from app.scheduler.policy import (
     upsert_project_engagement_policy,
 )
 
-from app.scheduler.orchestration.models import (
+from app.contracts.actions.orchestration import (
     ROOT_DOMAIN_SCOPED_TOOL_IDS,
     SchedulerTarget,
     SchedulerExecutionTask,

@@ -1,5 +1,22 @@
 # FastAPI and React migration
 
+## Domain-contract consolidation
+
+This checkpoint, developed from `877b794` of `main`, moves tool action,
+result, observation and artifact-reference definitions into dedicated packages
+under `app/contracts`. Application and test imports use their canonical modules;
+the old definition modules are removed rather than maintained as copies.
+Application/page compositions, runtime handles, policy evaluation and IO stay
+outside these packages. [Authoring rules and checks](docs/contract-authoring.md)
+define allowed roots and the quality gate now run by maintainability/CI.
+
+Parser output and normalized target rows are checked against shared observation
+models. Network reports use typed route/service responses. Reader provenance
+retains extensions and missing fields; artifact manifests and relative result
+paths are typed without replacing byte/path ownership checks in the services.
+This sweep does not implement persistent run recovery, concurrent project
+execution or the planned Metasploit/session workflow.
+
 The HTTP server is now FastAPI-only. Workspace identity and activity use React; the remaining HTML/JavaScript views use the same native server. The UI migration remains incremental. Python, SQLite, the scheduler, approval checks, subprocess execution and the Qt WebEngine window remain in use.
 
 ## Current shell and integrations

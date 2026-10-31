@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from app.contracts.base import ActionData
+
 from dataclasses import dataclass
 from typing import Any, List
 
-from app.web.http_utils import as_bool, clamp_int
+from app.core.contract_values import as_bool, clamp_int
 
 
 @dataclass(frozen=True)
-class WorkspacePortMutationRequest:
+class WorkspacePortMutationRequest(ActionData):
     host_id: int
     port: str
     protocol: str
@@ -25,7 +27,7 @@ class WorkspacePortMutationRequest:
 
 
 @dataclass(frozen=True)
-class HostNoteRequest:
+class HostNoteRequest(ActionData):
     text_value: str
 
     @classmethod
@@ -35,7 +37,7 @@ class HostNoteRequest:
 
 
 @dataclass(frozen=True)
-class HostCategoriesRequest:
+class HostCategoriesRequest(ActionData):
     manual_categories: List[Any]
     override_auto: bool
 
@@ -53,7 +55,7 @@ class HostCategoriesRequest:
 
 
 @dataclass(frozen=True)
-class ScriptCreateRequest:
+class ScriptCreateRequest(ActionData):
     script_id: str
     port: str
     protocol: str
@@ -71,7 +73,7 @@ class ScriptCreateRequest:
 
 
 @dataclass(frozen=True)
-class ScriptOutputQuery:
+class ScriptOutputQuery(ActionData):
     offset: int
     max_chars: int
 

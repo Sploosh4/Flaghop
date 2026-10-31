@@ -2,11 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from app.web.workspace_schema import (
-    WorkspaceFindingsQuery,
-    WorkspaceHostsQuery,
-    WorkspaceServicesQuery,
-)
+from app.contracts.observations.queries import WorkspaceFindingsQuery
+from app.web.workspace_schema import WorkspaceHostsQuery, WorkspaceServicesQuery
 
 
 class WorkspaceService:

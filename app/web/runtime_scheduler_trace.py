@@ -9,7 +9,7 @@ from app.scheduler.execution import (
     list_execution_records,
     store_execution_record,
 )
-from app.scheduler.models import ExecutionRecord
+from app.contracts.actions.planning import ExecutionRecord
 from app.scheduler.planner import ScheduledAction
 
 

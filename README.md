@@ -21,7 +21,7 @@ The current evidence graph and the planned network-topology map are separate vie
 
 The `master` branch includes the picture-based [Hardware layer in Overview](docs/hardware-overview.md), using the current inventory and saved route observations. Scanner/profile import is included in this checkpoint; full action-card integration remains separate work.
 
-It also adds collapsible Hash/Cipher results, Working then History, green Start/red Stop, and independent Files/editor windows. Internal workspace decoding noise stays in History. Stop is cooperative and takes effect at the next bounded step; worker-stop observation is not supported. Merged into `master` on 31 October 2026. `main` remains at `3e31fb4`.
+It also adds collapsible Hash/Cipher results, Working then History, green Start/red Stop, and independent Files/editor windows. Internal workspace decoding noise stays in History. Stop is cooperative and takes effect at the next bounded step; worker-stop observation is not supported. This was merged into `master` on 31 October 2026; `main` subsequently received the scanner and FastAPI architecture checkpoint.
 
 The map labels selected VPN types and uses larger device shortcut numbers. An empty Cyber Kill Chain section sits above Hash; action integration is still planned.
 
@@ -30,6 +30,11 @@ Reader integration has passed real two-workspace decoding and synthetic password
 This checkpoint adds guarded Deep scan jobs and profile/evidence import. Live owned-fixture acceptance passed with a normal-user scanner, allowed/denied-port controls, real browser proof and saved evidence reopening. See [architecture](docs/architecture.md) and [scanner integration](docs/scanner-integration.md).
 
 [Delivery status](docs/project-status.md) · [Roadmap](docs/ctf-workspace-roadmap.md) · [Open questions](docs/requirements-and-questions.md) · [Readers](docs/background-workspaces.md) · [Network setup and limits](docs/project-network-settings.md)
+
+This checkpoint centralizes action/result, observation and artifact-reference
+definitions. [Contract authoring](docs/contract-authoring.md)
+describes approved classes and the checker required for human and AI contributions.
+Persistent run recovery remains deferred.
 
 ## Run
 

@@ -84,6 +84,21 @@ class ProjectBackgroundTest(TestCase):
         self.assertEqual("unsupported", self.service().status()["observed_state"])
         self.assertFalse(self.service().status()["running"])
 
+    def test_reader_service_rejects_malformed_origin_fields_before_presentation(self):
+        from pydantic import ValidationError
+
+        self.result_fixture()
+        path = self.root / "a/reader-report.json"
+        report = json.loads(path.read_text())
+        report["sources"][0]["origin"] = {
+            "sha256": "source-hash",
+            "path": "fixture.txt",
+            "transport": {"invalid": True},
+        }
+        atomic_json(path, report)
+        with self.assertRaises(ValidationError):
+            self.service().status()
+
     def test_reads_do_not_create_controls_or_resume_legacy_workspaces(self):
         path = self.root / "a/reader-control.json"
         path.unlink()

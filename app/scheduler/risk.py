@@ -1,21 +1,12 @@
+from app.core.action_values import (
+    VALID_RISK_TAGS,
+    LEGACY_CATEGORY_ALIASES,
+    LEGACY_CATEGORY_TO_RISK_TAGS,
+    normalize_risk_tags,
+    risk_tags_to_legacy_categories,
+)
 import re
 from typing import Any, Dict, Iterable, List, Optional, Set
-
-VALID_RISK_TAGS = {
-    "exploit_execution",
-    "credential_bruteforce",
-    "password_spray",
-    "account_lockout_risk",
-    "service_instability",
-    "network_flooding",
-    "destructive_write",
-    "persistence_action",
-    "lateral_movement",
-    "high_detection_likelihood",
-    "credential_capture_side_effect",
-    "browser_state_change",
-    "data_exfiltration_risk",
-}
 
 RISK_TAG_PATTERNS = {
     "exploit_execution": [
@@ -177,36 +168,9 @@ RISK_FAMILY_SAFE_ALTERNATIVES = (
     ),
 )
 
-LEGACY_CATEGORY_ALIASES = {
-    "destructive_write_actions": "destructive_write",
-}
-
-LEGACY_CATEGORY_TO_RISK_TAGS = {
-    "exploit_execution": {"exploit_execution"},
-    "credential_bruteforce": {
-        "credential_bruteforce",
-        "password_spray",
-        "account_lockout_risk",
-    },
-    "network_flooding": {"network_flooding"},
-    "destructive_write_actions": {"destructive_write"},
-}
-
 
 def _normalize_text(value: Any) -> str:
     return str(value or "").strip().lower()
-
-
-def normalize_risk_tags(values: Optional[Iterable[Any]]) -> List[str]:
-    normalized = []
-    seen: Set[str] = set()
-    for item in list(values or []):
-        tag = LEGACY_CATEGORY_ALIASES.get(_normalize_text(item), _normalize_text(item))
-        if not tag or tag not in VALID_RISK_TAGS or tag in seen:
-            continue
-        seen.add(tag)
-        normalized.append(tag)
-    return normalized
 
 
 def risk_tag_description(tag: str) -> str:
@@ -226,27 +190,6 @@ def safer_alternative_for_risk_tags(tags: Optional[Iterable[Any]]) -> str:
         if family_tags & tag_set:
             return message
     return "Prefer lower-impact validation before escalating to this action."
-
-
-def risk_tags_to_legacy_categories(
-    risk_tags: Optional[Iterable[Any]],
-    enabled_categories: Optional[Iterable[Any]] = None,
-) -> List[str]:
-    normalized_tags = set(normalize_risk_tags(risk_tags))
-    if enabled_categories is None:
-        requested = list(LEGACY_CATEGORY_TO_RISK_TAGS.keys())
-    else:
-        requested = []
-        for item in list(enabled_categories or []):
-            category = _normalize_text(item)
-            if category in LEGACY_CATEGORY_TO_RISK_TAGS and category not in requested:
-                requested.append(category)
-
-    categories = []
-    for category in requested:
-        if LEGACY_CATEGORY_TO_RISK_TAGS.get(category, set()) & normalized_tags:
-            categories.append(category)
-    return categories
 
 
 def classify_risk_tags(
