@@ -63,6 +63,17 @@ def filesystem(identifier: str, hub: Hub):
     )
 
 
+@router.get("/api/hub/projects/{identifier}/editor", response_class=FileResponse, operation_id="hubEditor")
+def editor(identifier: str, hub: Hub):
+    with hub.lock:
+        ProjectFiles(hub, identifier)
+    return FileResponse(
+        Path(__file__).parents[1] / "web/templates/hub-files.html",
+        media_type="text/html",
+        headers={"X-Content-Type-Options": "nosniff"},
+    )
+
+
 @router.get("/api/hub/projects/{identifier}/filesystem/api/session", operation_id="hubFilesystemSession")
 def filesystem_session(identifier: str, hub: Hub):
     with hub.lock:

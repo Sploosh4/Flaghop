@@ -1,10 +1,10 @@
 import unittest
 from io import StringIO
-
 import legion
 
 
 class LegionLauncherTest(unittest.TestCase):
+
     def test_tool_audit_flag_parses(self):
         args = legion.build_arg_parser().parse_args(["--tool-audit"])
         self.assertTrue(args.tool_audit)
@@ -75,34 +75,3 @@ class LegionLauncherTest(unittest.TestCase):
             )
         self.assertEqual(1, ctx.exception.code)
         self.assertIn("Python 3.12+", stderr.getvalue())
-
-    def test_known_flask_werkzeug_mismatch_detected(self):
-        self.assertTrue(legion.has_known_flask_werkzeug_mismatch("2.0.1", "3.1.6"))
-        self.assertFalse(legion.has_known_flask_werkzeug_mismatch("3.1.3", "3.1.6"))
-
-    def test_format_web_dependency_environment_error_mentions_venv_guidance(self):
-        message = legion.format_web_dependency_environment_error(
-            executable="/usr/bin/python3.12",
-            flask_version="2.0.1",
-            flask_origin="/usr/lib/python3/dist-packages/flask/__init__.py",
-            werkzeug_version="3.1.6",
-            werkzeug_origin="/usr/local/lib/python3.12/dist-packages/werkzeug/__init__.py",
-        )
-        self.assertIn("Flask/Werkzeug environment", message)
-        self.assertIn("/usr/bin/python3.12", message)
-        self.assertIn("2.0.1", message)
-        self.assertIn("3.1.6", message)
-
-    def test_ensure_web_dependency_compatibility_exits_on_known_mismatch(self):
-        stderr = StringIO()
-        with self.assertRaises(SystemExit) as ctx:
-            legion.ensure_web_dependency_compatibility(
-                executable="/usr/bin/python3.12",
-                flask_version="2.0.1",
-                flask_origin="/usr/lib/python3/dist-packages/flask/__init__.py",
-                werkzeug_version="3.1.6",
-                werkzeug_origin="/usr/local/lib/python3.12/dist-packages/werkzeug/__init__.py",
-                stderr=stderr,
-            )
-        self.assertEqual(1, ctx.exception.code)
-        self.assertIn("incompatible Flask/Werkzeug environment", stderr.getvalue())

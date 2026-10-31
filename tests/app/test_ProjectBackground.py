@@ -9,15 +9,14 @@ import threading
 import time
 from types import SimpleNamespace
 from unittest import TestCase
-
 from fastapi.testclient import TestClient
 from app.api import create_app
-from app.web import create_app as create_legacy_app
 from app.services.project_background import ProjectBackground, atomic_json
 from app.services.project_files import ProjectFiles
 
 
 class ProjectBackgroundTest(TestCase):
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -102,8 +101,37 @@ class ProjectBackgroundTest(TestCase):
         self.assertEqual([], self.service().status()["alerts"])
         self.assertEqual(b"actual saved evidence", path.read_bytes())
         self.assertEqual(identifier, self.service().result(identifier)["artifact"]["id"])
+        self.assertEqual(identifier, self.service().status()["history"][0]["id"])
         with self.assertRaises(KeyError):
             self.service("b").result(identifier)
+
+    def test_historical_application_files_do_not_create_discovery_notifications(self):
+        identifier, path = self.result_fixture()
+        report_path = self.root / "a/reader-report.json"
+        report = json.loads(report_path.read_text())
+        for source_path in (
+            "workspace.legion",
+            "workspace.autosave.legion",
+            "workspace-tool-output/legion-passwords.txt",
+            "workspace-tool-output/legion-usernames.txt",
+            "workspace-tool-output/deep-scans/" + "a" * 32 + "/profile/device-profile.json",
+            "workspace-tool-output/deep-scans/" + "a" * 32 + "/request.json",
+        ):
+            report["sources"][0]["path"] = source_path
+            atomic_json(report_path, report)
+            value = self.service().status()
+            self.assertEqual([], value["alerts"])
+            self.assertEqual(identifier, value["history"][0]["id"])
+            self.assertEqual("Internal application data", value["history"][0]["history_reason"])
+            self.assertEqual(b"actual saved evidence", path.read_bytes())
+        report["sources"][0]["path"] = "inputs/received.txt"
+        atomic_json(report_path, report)
+        self.assertEqual(identifier, self.service().status()["alerts"][0]["id"])
+        report["sources"][0]["path"] = (
+            "workspace-tool-output/deep-scans/" + "a" * 32 + "/profile/raw/http-found-file.txt"
+        )
+        atomic_json(report_path, report)
+        self.assertEqual(identifier, self.service().status()["alerts"][0]["id"])
 
     def test_linked_metadata_and_result_paths_are_rejected(self):
         identifier, path = self.result_fixture()
@@ -144,22 +172,22 @@ class ProjectBackgroundTest(TestCase):
         with self.assertRaisesRegex(ValueError, "ordinary files"):
             service.preview(str(fifo))
 
-    def test_both_transports_have_project_scoped_routes_and_strict_controls(self):
+    def test_native_routes_have_project_scoping_and_strict_controls(self):
         identifier, _ = self.result_fixture()
-        for native in (True, False):
-            app = create_app() if native else create_legacy_app(None)
-            legacy = app.state.legacy if native else app
-            legacy.extensions["project_hub"] = self.hub
-            with TestClient(app) if native else legacy.test_client() as client:
-                base = "/api/hub/projects/a"
-                get = lambda url: client.get(base + url)
-                response = get("/background")
-                self.assertEqual(200, response.status_code)
-                value = response.json() if native else response.get_json()
-                self.assertEqual("a", value["project_id"])
-                self.assertEqual(422, client.post(base + "/background/control", json={"running": "false"}).status_code)
-                self.assertEqual(200, client.post(base + "/background/control", json={"running": False}).status_code)
-                self.assertEqual(200, get("/background/results/" + identifier).status_code)
-                self.assertEqual(404, client.get("/api/hub/projects/b/background/results/" + identifier).status_code)
-                self.assertEqual(200, get("/filesystem").status_code)
-                self.assertEqual(200, get("/filesystem/api/session").status_code)
+        app = create_app()
+        legacy = app
+        legacy.state.project_hub = self.hub
+        with TestClient(app) as client:
+            base = "/api/hub/projects/a"
+            get = lambda url: client.get(base + url)
+            response = get("/background")
+            self.assertEqual(200, response.status_code)
+            value = response.json()
+            self.assertEqual("a", value["project_id"])
+            self.assertEqual(422, client.post(base + "/background/control", json={"running": "false"}).status_code)
+            self.assertEqual(200, client.post(base + "/background/control", json={"running": False}).status_code)
+            self.assertEqual(200, get("/background/results/" + identifier).status_code)
+            self.assertEqual(404, client.get("/api/hub/projects/b/background/results/" + identifier).status_code)
+            self.assertEqual(200, get("/filesystem").status_code)
+            self.assertEqual(200, get("/editor").status_code)
+            self.assertEqual(200, get("/filesystem/api/session").status_code)

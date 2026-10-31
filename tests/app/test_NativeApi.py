@@ -83,11 +83,11 @@ class NativeApiTest(unittest.TestCase):
         self.assertEqual(200, response.status_code, response.text)
         self.assertEqual("cancelled", response.json()["job"]["status"])
 
-    def test_unmigrated_routes_and_static_ui_remain_available(self):
+    def test_all_routes_and_static_ui_are_native(self):
         response = self.client.get("/api/projects")
         self.assertEqual(200, response.status_code, response.text)
         self.assertIn("projects", response.json())
-        self.assertNotIn("X-Legion-API", response.headers)
+        self.assertEqual("fastapi", response.headers["X-Legion-API"])
         self.assertEqual(200, self.client.get("/").status_code)
         self.assertEqual(200, self.client.get("/static/bundles/workspace.js").status_code)
 
@@ -153,7 +153,7 @@ class NativeApiTest(unittest.TestCase):
                 release_first.set()
                 first.join(timeout=2)
 
-    def test_workspace_bundle_download_survives_the_wsgi_boundary(self):
+    def test_workspace_bundle_download_streams_through_asgi(self):
         import io
         import zipfile
 

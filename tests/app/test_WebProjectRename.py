@@ -1,17 +1,18 @@
+from fastapi.testclient import TestClient
 import os
 import tempfile
 import unittest
-
 from tests.app import test_WebRuntimeProjectRestore as restore_tests
 
 
 class WebProjectRenameTest(unittest.TestCase):
+
     def setUp(self):
-        from app.web import create_app
+        from app.api import create_app
 
         self.manager, self.logic, self.runtime = restore_tests.WebRuntimeProjectRestoreTest()._create_runtime()
         self.logic.activeProject = self.manager.createNewProject(projectType="legion", isTemp=True)
-        self.client = create_app(self.runtime).test_client()
+        self.client = TestClient(create_app(self.runtime), raise_server_exceptions=False)
 
     def tearDown(self):
         self.runtime._close_active_project()
@@ -30,8 +31,8 @@ class WebProjectRenameTest(unittest.TestCase):
             },
         )
         self.assertEqual(200, response.status_code)
-        self.assertEqual('CTF "Blue" / café', response.json["project"]["display_name"])
-        self.assertEqual(path, response.json["project"]["name"])
+        self.assertEqual('CTF "Blue" / café', response.json()["project"]["display_name"])
+        self.assertEqual(path, response.json()["project"]["name"])
         self.assertEqual(output, self.logic.activeProject.properties.outputFolder)
         with tempfile.TemporaryDirectory() as folder:
             saved_path = os.path.join(folder, "saved.legion")
@@ -48,7 +49,7 @@ class WebProjectRenameTest(unittest.TestCase):
         for name in ("", "   ", "x" * 121, "line\nbreak", "tab\tname", 42, None):
             with self.subTest(name=name):
                 response = self.client.post("/api/project/rename", json={"name": name})
-                self.assertEqual(400, response.status_code)
+                self.assertEqual(422, response.status_code)
         self.assertEqual("", self.runtime.get_project_details()["display_name"])
 
     def test_stale_editor_cannot_rename_another_workspace(self):

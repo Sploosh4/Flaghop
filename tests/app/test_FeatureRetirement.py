@@ -6,9 +6,7 @@ import tempfile
 from unittest import TestCase
 from unittest.mock import patch
 from fastapi.testclient import TestClient
-
 from app.api import create_app
-from app.web import create_app as legacy_app
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
 from app.settings import AppSettings, Settings
@@ -16,6 +14,7 @@ from app.tooling import audit_legion_tools
 
 
 class FeatureRetirementTest(TestCase):
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.env = patch.dict(os.environ, {"LEGION_HOME": self.directory.name})
@@ -29,7 +28,7 @@ class FeatureRetirementTest(TestCase):
         self.env.stop()
         self.directory.cleanup()
 
-    def test_retired_endpoints_are_absent_on_both_transports(self):
+    def test_retired_endpoints_are_absent_on_the_native_transport(self):
         routes = [
             ("get", "/api/scheduler/provider/logs"),
             ("post", "/api/scheduler/provider/test"),
@@ -50,9 +49,8 @@ class FeatureRetirementTest(TestCase):
             ("post", "/api/workspace/project-report/push"),
         ]
         with TestClient(create_app(self.runtime)) as native:
-            legacy = legacy_app(self.runtime).test_client()
             for method, url in routes:
-                for client in (native, legacy):
+                for client in (native,):
                     with self.subTest(url=url, transport=type(client).__name__):
                         self.assertEqual(404, getattr(client, method)(url).status_code)
             self.assertEqual(200, native.get("/api/processes").status_code)
@@ -95,7 +93,7 @@ class FeatureRetirementTest(TestCase):
         self.assertIn("smb-security-mode.nse", ids)
 
     def test_current_settings_and_shell_do_not_render_retired_controls(self):
-        body = legacy_app(self.runtime).test_client().get("/").get_data(as_text=True)
+        body = TestClient(create_app(self.runtime), raise_server_exceptions=False).get("/").text
         for control in (
             "credential-capture-panel",
             "screenshots-modal",

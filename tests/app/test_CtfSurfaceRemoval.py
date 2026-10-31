@@ -1,17 +1,19 @@
 """Removed entrypoints must stay unavailable while the investigation core remains usable."""
 
+from fastapi.testclient import TestClient
+
 import contextlib
 import io
 import unittest
-
-from app.web import create_app
+from app.api import create_app
 from tests.app.test_WebApp import DummyRuntime
 
 
 class CtfSurfaceRemovalTest(unittest.TestCase):
+
     def setUp(self):
         self.runtime = DummyRuntime()
-        self.client = create_app(self.runtime).test_client()
+        self.client = TestClient(create_app(self.runtime), raise_server_exceptions=False)
 
     def test_removed_download_and_editor_endpoints_are_unavailable(self):
         for path in (
@@ -39,7 +41,7 @@ class CtfSurfaceRemovalTest(unittest.TestCase):
     def test_ui_keeps_direct_workspace_controls_without_removed_surfaces(self):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         for ident in (
             "startup-wizard-overlay",
             "ribbon-launch-wizard-button",
@@ -72,10 +74,10 @@ class CtfSurfaceRemovalTest(unittest.TestCase):
     def test_existing_findings_still_feed_internal_data_views(self):
         findings = self.client.get("/api/workspace/findings?host_id=11")
         self.assertEqual(200, findings.status_code)
-        self.assertEqual("SMB signing not required", findings.json["findings"][0]["title"])
+        self.assertEqual("SMB signing not required", findings.json()["findings"][0]["title"])
         graph = self.client.get("/api/graph")
         self.assertEqual(200, graph.status_code)
-        self.assertTrue(graph.json["nodes"])
+        self.assertTrue(graph.json()["nodes"])
         self.assertEqual(200, self.client.get("/api/settings/tool-audit").status_code)
 
     def test_removed_batch_and_mcp_flags_are_rejected(self):

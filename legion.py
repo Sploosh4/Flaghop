@@ -109,126 +109,6 @@ def ensure_supported_python_runtime(
     raise SystemExit(1)
 
 
-def _distribution_version(distribution_name: str) -> str:
-    try:
-        from importlib import metadata as importlib_metadata
-    except Exception:
-        return ""
-    try:
-        return str(importlib_metadata.version(str(distribution_name or "").strip()))
-    except Exception:
-        return ""
-
-
-def _module_origin(module_name: str) -> str:
-    try:
-        import importlib.util
-
-        spec = importlib.util.find_spec(str(module_name or "").strip())
-    except Exception:
-        return ""
-    if spec is None:
-        return ""
-    return str(getattr(spec, "origin", "") or "")
-
-
-def _coerce_distribution_version_tuple(version_text: str):
-    parts = [int(item) for item in re.findall(r"\d+", str(version_text or ""))]
-    while len(parts) < 3:
-        parts.append(0)
-    return tuple(parts[:3])
-
-
-def has_known_flask_werkzeug_mismatch(flask_version: str = "", werkzeug_version: str = "") -> bool:
-    if not str(flask_version or "").strip() or not str(werkzeug_version or "").strip():
-        return False
-    return _coerce_distribution_version_tuple(flask_version) < (2, 3, 0) and _coerce_distribution_version_tuple(
-        werkzeug_version
-    ) >= (3, 0, 0)
-
-
-def _find_local_venv_python() -> str:
-    for rel_path in ("venv/bin/python", ".venv/bin/python"):
-        abs_path = os.path.abspath(rel_path)
-        if os.path.isfile(abs_path) and os.access(abs_path, os.X_OK):
-            return abs_path
-    return ""
-
-
-def format_web_dependency_environment_error(
-    *,
-    executable: Optional[str] = None,
-    flask_version: str = "",
-    flask_origin: str = "",
-    werkzeug_version: str = "",
-    werkzeug_origin: str = "",
-) -> str:
-    resolved_executable = (
-        str(executable if executable is not None else getattr(sys, "executable", "python")).strip() or "python"
-    )
-    local_venv_python = _find_local_venv_python()
-    lines = [
-        "FlagHop detected an incompatible Flask/Werkzeug environment for web mode.",
-        f"Interpreter: {resolved_executable}",
-        f"Flask: {str(flask_version or 'unknown').strip() or 'unknown'} from {str(flask_origin or 'not found').strip() or 'not found'}",
-        f"Werkzeug: {str(werkzeug_version or 'unknown').strip() or 'unknown'} from {str(werkzeug_origin or 'not found').strip() or 'not found'}",
-        "This usually means the system interpreter is mixing distro packages with pip-installed packages instead of using FlagHop's virtualenv.",
-    ]
-    if local_venv_python:
-        lines.extend(
-            [
-                "Use FlagHop's local virtualenv instead:",
-                f"  {local_venv_python} legion.py --web",
-                "or:",
-                f"  source {os.path.dirname(local_venv_python)}/activate",
-                "  python legion.py --web",
-            ]
-        )
-    else:
-        lines.extend(
-            [
-                "Create a clean Python 3.12 virtualenv and reinstall requirements:",
-                "  python3.12 -m venv venv",
-                "  source venv/bin/activate",
-                "  python -m pip install --upgrade pip",
-                "  python -m pip install -r requirements.txt",
-                "  python legion.py --web",
-            ]
-        )
-    return "\n".join(lines)
-
-
-def ensure_web_dependency_compatibility(
-    *,
-    executable: Optional[str] = None,
-    flask_version: Optional[str] = None,
-    flask_origin: Optional[str] = None,
-    werkzeug_version: Optional[str] = None,
-    werkzeug_origin: Optional[str] = None,
-    stderr=None,
-):
-    resolved_flask_version = str(flask_version) if flask_version is not None else _distribution_version("Flask")
-    resolved_werkzeug_version = (
-        str(werkzeug_version) if werkzeug_version is not None else _distribution_version("Werkzeug")
-    )
-    resolved_flask_origin = str(flask_origin) if flask_origin is not None else _module_origin("flask")
-    resolved_werkzeug_origin = str(werkzeug_origin) if werkzeug_origin is not None else _module_origin("werkzeug")
-    if not has_known_flask_werkzeug_mismatch(resolved_flask_version, resolved_werkzeug_version):
-        return
-    stream = stderr if stderr is not None else sys.stderr
-    print(
-        format_web_dependency_environment_error(
-            executable=executable,
-            flask_version=resolved_flask_version,
-            flask_origin=resolved_flask_origin,
-            werkzeug_version=resolved_werkzeug_version,
-            werkzeug_origin=resolved_werkzeug_origin,
-        ),
-        file=stream,
-    )
-    raise SystemExit(1)
-
-
 startupLog = None
 
 
@@ -261,12 +141,6 @@ def build_arg_parser():
         "--tool-install",
         choices=("kali", "ubuntu"),
         help="Run the generated install plan for missing tools on the selected platform and exit",
-    )
-    parser.add_argument(
-        "--web-stack",
-        choices=("asgi", "legacy"),
-        default="asgi",
-        help="Select the native ASGI pilot or legacy Flask transport",
     )
     parser.add_argument("--web-port", type=int, default=5000, help="Local web interface port")
     parser.add_argument(
@@ -378,7 +252,6 @@ if __name__ == "__main__":
         sys.exit(0)
 
     if args.web:
-        ensure_web_dependency_compatibility()
         from app.web.bootstrap import create_default_logic
         from app.web.runtime import WebRuntime
 
@@ -391,18 +264,11 @@ if __name__ == "__main__":
             "LEGION_WEB_BIND_LABEL": describe_web_bind_host(web_bind_host),
             "LEGION_UI_OPAQUE": resolve_web_opaque_ui(args),
         }
-        if args.web_stack == "legacy":
-            from app.web import create_app
+        from app.api import create_app
+        import uvicorn
 
-            web_app = create_app(runtime)
-            web_app.config.update(config)
-            web_app.run(host=web_bind_host, port=args.web_port, debug=False, use_reloader=False)
-        else:
-            from app.api import create_app
-            import uvicorn
-
-            # One process owns the active workspace and job registry.
-            uvicorn.run(create_app(runtime, config=config), host=web_bind_host, port=args.web_port, workers=1)
+        # One process owns the active workspace and job registry.
+        uvicorn.run(create_app(runtime, config=config), host=web_bind_host, port=args.web_port, workers=1)
         sys.exit(0)
 
     from app.desktop import main

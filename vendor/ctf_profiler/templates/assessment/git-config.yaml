@@ -1,0 +1,17 @@
+id: profiler-exposed-git-config
+info:
+  name: Publicly accessible Git configuration
+  author: ctf-profiler
+  severity: medium
+  tags: exposure,git
+http:
+  - method: GET
+    path:
+      - "{{RootURL}}/.git/config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        condition: and
+        words: ["[core]", "repositoryformatversion"]

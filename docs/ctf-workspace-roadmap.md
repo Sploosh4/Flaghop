@@ -1,5 +1,7 @@
 # FlagHop CTF workspace roadmap
 
+Included transport: all HTTP routes, pages, ZIP transfer and WebSockets use FastAPI. The Flask fallback and transport selector are removed; existing project and reader formats are preserved. The separately authorised [architecture improvements](architecture-follow-ups.md) are included in this revision and verified locally.
+
 Reviewed 31 October 2026. FlagHop is the app being developed in [Sploosh4/Flagmap](https://github.com/Sploosh4/Flagmap), a CTF-focused Legion fork. The [delivery status](project-status.md) separates this implementation checkpoint, separate tools and planned work.
 
 The goal is one workspace for device mapping, reconnaissance, commands, Metasploit and file investigation. The website replacement comes later.
@@ -9,13 +11,17 @@ The goal is one workspace for device mapping, reconnaissance, commands, Metasplo
 - [x] Published: desktop/browser workspace, local scans/tools, inventory, evidence graph, jobs, approvals and history.
 - [x] Published: React/FastAPI workspace/activity panels and retained compatibility views.
 - [x] FlagHop branding and configurable project folders.
-- [x] Project-specific reader Start/Pause, readiness, real Working/results and persistent dismissal; engines remain separate dependencies.
+- [x] Project-specific reader Start/Stop, readiness, real Working/results and persistent dismissal; engines remain separate dependencies.
+- [x] Included in `master`: Hash/Cipher groups, Working then History, Start/Stop buttons and independent Files/editor windows. Stop remains cooperative; SSH session mapping is pending.
+- [x] Included in `master`: empty Cyber Kill Chain group above Hash, larger device shortcut numbers and selected VPN protocol labels. Kill-chain actions and live connection discovery remain separate work.
 - [x] Project file browser and tabbed editor, preserving original evidence.
 - [x] Shared network settings, scope/exclusions, explicit profile identity and Linux enforcement for app-managed local commands; real isolated WireGuard/userspace OpenVPN acceptance.
-- [ ] Finish the separate scanner's repeatability and final evidence review.
+- [x] Separate scanner repeatability/evidence reviewed; Chrome ELF/WPScan implementation fingerprints remain a documented limitation.
 - [ ] Add automatic profile discovery/import/connect/disconnect and separately enforced privileged/remote adapters.
-- [ ] Implement the reviewed topology map, classifier/profile wiring, contextual actions and bulk command bar.
-- [ ] Connect scanner jobs/results to the app's evidence and map.
+- [x] Local development: picture-based Hardware layer in Overview, selection contours, inventory/observed routes, shortcuts and a resizable results panel.
+- [x] Local scanner/classifier profiles, service inventory, role hypotheses, candidate/reproduced findings and saved evidence.
+- [ ] Observed intermediate hops, the full contextual action panel and bulk command bar.
+- [x] Local selected-device scanner jobs/results connected to inventory, History and evidence reopening; real guarded fixture passed.
 - [ ] Build the full action panel/terminal and unified Metasploit job/session workflow.
 - [ ] Map authenticated remote sessions into main Files; add source/version navigation and durable edited-copy saving.
 - [ ] Package the reader setup and verify fresh installation and recovery.
@@ -23,9 +29,19 @@ The goal is one workspace for device mapping, reconnaissance, commands, Metasplo
 
 ## Map and reconnaissance
 
+This checkpoint connects selected-device Deep scan jobs
+to guarded execution, profile import, service/role/finding views and saved evidence.
+Synthetic app/desktop checks and real guarded owned-fixture acceptance pass.
+The known implementation-fingerprint gaps remain documented.
+
 The existing evidence graph is not the planned topology map. Show the user's laptop/VPN, targets and observed intermediate hops without inventing physical connections. Preserve unknown hops and evidence age/source. Reachability, an exposed service and a confirmed network hop are different observations.
 
-The reviewed picture/contour design is ready for implementation. Device artwork stays neutral; a light-grey silhouette contour marks hover and purple marks selection. Selected targets filter the action panel. Connection colours represent connection types, with categories/colours still to settle. Device images alone do not establish identity or security capability.
+The picture/contour hardware design is included in `master` (merged from `codex/hardware-overview` on 31 October 2026).
+Device artwork stays neutral; a light-grey silhouette contour marks hover and
+purple marks selection. The selected host appears in the results panel; full
+target-filtered action cards remain planned. Saved route observations are drawn
+without inventing physical links. Broader connection categories/colours remain
+to settle. Device images alone do not establish identity or security capability.
 
 Planned navigation includes Devices/Services/Files layers, stable device/action shortcuts, context menus and a bulk command bar. Protect terminal/editor typing from global shortcuts and define overflow behaviour before implementing it.
 
@@ -113,9 +129,9 @@ Authenticated web investigation comes after the basic integrated workflow: login
 
 [Requests and open questions](requirements-and-questions.md) owns the detailed choices: map relationships/staleness, action metadata, stage/shortcut overflow, applicability, cancellation/concurrency, editor/session docking, recovery limits, retention and first Metasploit functions. Treat suggestions there as proposals until agreed.
 
-1. Close scanner repeatability/final review and real network/tunnel verification.
-2. Review and publish the locally verified reader/files implementation checkpoint.
-3. Demonstrate one selected target → scanner job → profile/map evidence → saved result in the editor.
+1. Completed: scanner repeatability review and the defined local network/tunnel acceptance.
+2. Completed: reader/files implementation checkpoint.
+3. Completed: selected target → guarded scanner job → inventory/findings → saved evidence reopening. Broader topology remains planned.
 4. Add the full action panel/terminal, Metasploit jobs and remote session mapping.
 5. Package setup and test fresh installation, interruption/recovery and representative CTF exercises.
 6. Agree the smaller website replacement after the basic workflow works.

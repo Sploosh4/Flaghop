@@ -1,0 +1,14 @@
+robots.txt
+sitemap.xml
+admin/
+login
+api/
+openapi.json
+swagger.json
+api-docs
+backup/
+backup.zip
+.git/config
+challenge.txt
+health
+status

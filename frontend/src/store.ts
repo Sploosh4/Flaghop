@@ -28,7 +28,7 @@ export function updateProject(value: unknown): void {
 
 export function updateJobs(value: unknown): void {
   if (!Array.isArray(value) || value.some(job => !job || !Number.isInteger(job.id) || typeof job.type !== 'string'
-      || !['queued', 'running', 'completed', 'failed', 'cancelled'].includes(job.status))) {
+      || !['queued', 'running', 'completed', 'partial', 'failed', 'cancelled', 'held'].includes(job.status))) {
     throw new Error('Invalid job response.');
   }
   jobsStore.set(value as Job[]);

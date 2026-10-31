@@ -1,5 +1,7 @@
 """Keep the web/backend independent of the optional desktop toolkit."""
 
+from fastapi.testclient import TestClient
+
 import os
 from pathlib import Path
 import subprocess
@@ -8,12 +10,12 @@ import tempfile
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
-
 from app.core.events import EventHook
 from app.web.services.settings_service import _refresh_runtime_settings
 
 
 class BackendIsolationTest(unittest.TestCase):
+
     def test_backend_starts_and_serves_without_qt(self):
         root = Path(__file__).resolve().parents[2]
         with tempfile.TemporaryDirectory() as folder:
@@ -22,26 +24,7 @@ class BackendIsolationTest(unittest.TestCase):
                 [
                     sys.executable,
                     "-c",
-                    """
-import sys
-sys.modules['PyQt6'] = None
-from app.web.bootstrap import create_default_logic
-from app.web.runtime import WebRuntime
-from app.web import create_app
-logic = create_default_logic()
-try:
-    client = create_app(WebRuntime(logic)).test_client()
-    assert client.get('/health').status_code == 200
-    assert client.get('/api/graph').status_code == 200
-    from app.api import create_app as create_native_app
-    from fastapi.testclient import TestClient
-    with TestClient(create_native_app(WebRuntime(logic))) as native:
-        assert native.get('/health').headers['X-Legion-API'] == 'fastapi'
-        assert native.get('/api/project').status_code == 200
-        assert native.get('/api/graph').status_code == 200
-finally:
-    logic.projectManager.closeProject(logic.activeProject)
-""",
+                    "\nimport sys\nsys.modules['PyQt6'] = None\nfrom app.web.bootstrap import create_default_logic\nfrom app.web.runtime import WebRuntime\nfrom app.api import create_app\nfrom fastapi.testclient import TestClient\nlogic = create_default_logic()\ntry:\n    client = TestClient(create_app(WebRuntime(logic)))\n    assert client.get('/health').status_code == 200\n    assert client.get('/api/graph').status_code == 200\n    from app.api import create_app as create_native_app\n    from fastapi.testclient import TestClient\n    with TestClient(create_native_app(WebRuntime(logic))) as native:\n        assert native.get('/health').headers['X-Legion-API'] == 'fastapi'\n        assert native.get('/api/project').status_code == 200\n        assert native.get('/api/graph').status_code == 200\nfinally:\n    logic.projectManager.closeProject(logic.activeProject)\n",
                 ],
                 cwd=root,
                 env=env,

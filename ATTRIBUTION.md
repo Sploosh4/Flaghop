@@ -6,5 +6,5 @@
 - Several additional `PortActions`, `PortTerminalActions`, and `SchedulerSettings` are credited to batmancrew.
 - The Nmap XML parsing engine was largely based on code by yunshu, modified by ketchup and SECFORCE.
 - `ms08-067_check` used by `smbenum.sh` is credited to Bernardo Damele A.G.
-- Legion depends heavily on Nmap, Hydra, Python, Flask, PyQt, SQLAlchemy, Selenium, Chromium/Firefox, and many other tools and projects.
+- Legion depends heavily on Nmap, Hydra, Python, FastAPI, PyQt, SQLAlchemy, Selenium, Chromium/Firefox, and many other tools and projects.
 - Special thanks to Dmitriy Dubson for continued contributions to the project.

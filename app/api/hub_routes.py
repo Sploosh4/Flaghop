@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import Depends, Request, Query
 from fastapi.responses import FileResponse
-from starlette.background import BackgroundTask
+from app.api.downloads import TemporaryFileResponse
 from starlette.concurrency import run_in_threadpool
 from pathlib import Path
 import tempfile
@@ -29,10 +29,7 @@ router = native_router()
 
 
 def hub_service(request: Request):
-    legacy = request.app.state.legacy
-    if "project_hub" not in legacy.extensions:
-        legacy.extensions["project_hub"] = ProjectHub(request.app.state.runtime)
-    return legacy.extensions["project_hub"]
+    return request.app.state.project_hub
 
 
 Hub = Annotated[ProjectHub, Depends(hub_service)]
@@ -93,11 +90,10 @@ def save_as(identifier: str, payload: CreateHubProject, hub: Hub):
 @router.get("/api/hub/projects/{identifier}/bundle", response_class=FileResponse, operation_id="downloadHubBundle")
 def bundle(identifier: str, hub: Hub):
     path, filename = hub.operations.bundle(identifier)
-    return FileResponse(
+    return TemporaryFileResponse(
         path,
         media_type="application/zip",
         filename=filename,
-        background=BackgroundTask(Path(path).unlink, missing_ok=True),
     )
 
 

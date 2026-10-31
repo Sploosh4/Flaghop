@@ -9,16 +9,15 @@ import zipfile
 from unittest import TestCase
 from unittest.mock import patch
 from fastapi.testclient import TestClient
-
 from app.api import create_app
 from app.services.project_hub import ProjectHub
 from app.services.project_storage import download_folder
-from app.web import create_app as create_legacy_app
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
 
 
 class ProjectHubTest(TestCase):
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
@@ -251,84 +250,69 @@ class ProjectHubTest(TestCase):
         self.assertEqual("none", opened["vpn"])
 
     def test_native_and_legacy_routes_use_the_same_project_service(self):
-        for stack in ("native", "legacy"):
-            with self.subTest(stack=stack):
-                if stack == "native":
-                    client = TestClient(create_app(self.runtime), raise_server_exceptions=False)
-                    self.addCleanup(client.close)
-                    post = lambda url, payload: client.post(url, json=payload)
-                    payload = lambda response: response.json()
-                    get = client.get
-                else:
-                    client = create_legacy_app(self.runtime).test_client()
-                    post = lambda url, body: client.post(url, json=body)
-                    payload = lambda response: response.get_json()
-                    get = client.get
-                response = post("/api/hub/projects", {"name": f"{stack} lab"})
-                self.assertEqual(200, response.status_code, response.data if stack == "legacy" else response.text)
-                row = payload(response)["project"]
-                connector_url = f"/api/hub/projects/{row['id']}/connector"
-                self.assertEqual(200, post(connector_url, {"selection": "wireguard"}).status_code)
-                self.assertEqual(422, post(connector_url, {"selection": "invalid"}).status_code)
-                self.assertEqual(422, post(connector_url, {"selection": "openvpn", "connect": True}).status_code)
-                reopened = post(f"/api/hub/projects/{row['id']}/open", {})
-                self.assertEqual("wireguard", payload(reopened)["project"]["connector"])
-                with (
-                    patch.object(
-                        self.runtime,
-                        "start_tool_install_job",
-                        return_value={
-                            "id": 99,
-                            "type": "tool-install",
-                            "status": "queued",
-                        },
-                    ) as install,
-                    patch("app.tooling.detect_supported_tool_install_platform", return_value="ubuntu"),
-                ):
-                    for connector in ("openvpn", "wireguard"):
-                        queued = post("/api/hub/connectors/install", {"connector": connector})
-                        self.assertEqual(202, queued.status_code)
-                        install.assert_called_with(platform="ubuntu", scope="missing", tool_keys=[connector])
-                    self.assertEqual(
-                        422, post("/api/hub/connectors/install", {"connector": "networkmanager"}).status_code
-                    )
-                    self.assertEqual(2, install.call_count)
-                self.assertEqual(200, get("/api/hub/settings").status_code)
-                folder = str(self.root / f"{stack} output")
-                changed = post("/api/hub/settings/save-folder", {"path": folder})
-                self.assertEqual(200, changed.status_code)
-                self.assertEqual(folder, payload(changed)["projects_folder"])
-                self.assertEqual(400, post("/api/hub/settings/save-folder", {"path": "relative"}).status_code)
-                self.assertEqual(422, post("/api/hub/settings/save-folder", {"path": 3}).status_code)
-                self.assertEqual(422, post("/api/hub/projects", {"name": 3}).status_code)
-                self.assertEqual(404, post("/api/hub/projects/missing/open", {}).status_code)
-                Path(row["folder"], "notes.txt").write_text("fixture notes")
-                downloaded = get(f"/api/hub/projects/{row['id']}/file?path=notes.txt")
-                self.assertEqual(200, downloaded.status_code)
-                self.assertIn("attachment", downloaded.headers["Content-Disposition"])
-                self.assertEqual("nosniff", downloaded.headers["X-Content-Type-Options"])
-                renamed = post(f"/api/hub/projects/{row['id']}/rename", {"name": f"{stack} renamed"})
-                self.assertEqual(200, renamed.status_code)
-                self.assertEqual(f"{stack} renamed", payload(renamed)["project"]["name"])
-                self.assertEqual(200, post(f"/api/hub/projects/{row['id']}/save", {}).status_code)
-                copy = post(f"/api/hub/projects/{row['id']}/save-as", {"name": f"{stack} copy"})
-                self.assertEqual(200, copy.status_code)
-                copied = payload(copy)["project"]
-                self.assertEqual(409, post(f"/api/hub/projects/{row['id']}/save", {}).status_code)
-                bundle = get(f"/api/hub/projects/{copied['id']}/bundle")
-                self.assertEqual(200, bundle.status_code)
-                data = bundle.data if stack == "legacy" else bundle.content
-                restored = (
-                    client.post("/api/hub/restore-zip", data=data, content_type="application/zip")
-                    if stack == "legacy"
-                    else client.post("/api/hub/restore-zip", content=data, headers={"Content-Type": "application/zip"})
-                )
-                self.assertEqual(200, restored.status_code)
-                self.assertEqual("fixture notes", Path(payload(restored)["project"]["folder"], "notes.txt").read_text())
-                self.assertEqual(200, post("/api/hub/open-path", {"path": row["path"]}).status_code)
-                self.assertEqual(
-                    404, post("/api/hub/open-path", {"path": str(self.root / "missing.legion")}).status_code
-                )
+        with self.subTest(stack="native"):
+            client = TestClient(create_app(self.runtime), raise_server_exceptions=False)
+            self.addCleanup(client.close)
+            post = lambda url, payload: client.post(url, json=payload)
+            payload = lambda response: response.json()
+            get = client.get
+            response = post("/api/hub/projects", {"name": f"{"native"} lab"})
+            self.assertEqual(200, response.status_code, response.text)
+            row = payload(response)["project"]
+            connector_url = f"/api/hub/projects/{row['id']}/connector"
+            self.assertEqual(200, post(connector_url, {"selection": "wireguard"}).status_code)
+            self.assertEqual(422, post(connector_url, {"selection": "invalid"}).status_code)
+            self.assertEqual(422, post(connector_url, {"selection": "openvpn", "connect": True}).status_code)
+            reopened = post(f"/api/hub/projects/{row['id']}/open", {})
+            self.assertEqual("wireguard", payload(reopened)["project"]["connector"])
+            with (
+                patch.object(
+                    self.runtime,
+                    "start_tool_install_job",
+                    return_value={
+                        "id": 99,
+                        "type": "tool-install",
+                        "status": "queued",
+                    },
+                ) as install,
+                patch("app.tooling.detect_supported_tool_install_platform", return_value="ubuntu"),
+            ):
+                for connector in ("openvpn", "wireguard"):
+                    queued = post("/api/hub/connectors/install", {"connector": connector})
+                    self.assertEqual(202, queued.status_code)
+                    install.assert_called_with(platform="ubuntu", scope="missing", tool_keys=[connector])
+                self.assertEqual(422, post("/api/hub/connectors/install", {"connector": "networkmanager"}).status_code)
+                self.assertEqual(2, install.call_count)
+            self.assertEqual(200, get("/api/hub/settings").status_code)
+            folder = str(self.root / f"{"native"} output")
+            changed = post("/api/hub/settings/save-folder", {"path": folder})
+            self.assertEqual(200, changed.status_code)
+            self.assertEqual(folder, payload(changed)["projects_folder"])
+            self.assertEqual(400, post("/api/hub/settings/save-folder", {"path": "relative"}).status_code)
+            self.assertEqual(422, post("/api/hub/settings/save-folder", {"path": 3}).status_code)
+            self.assertEqual(422, post("/api/hub/projects", {"name": 3}).status_code)
+            self.assertEqual(404, post("/api/hub/projects/missing/open", {}).status_code)
+            Path(row["folder"], "notes.txt").write_text("fixture notes")
+            downloaded = get(f"/api/hub/projects/{row['id']}/file?path=notes.txt")
+            self.assertEqual(200, downloaded.status_code)
+            self.assertIn("attachment", downloaded.headers["Content-Disposition"])
+            self.assertEqual("nosniff", downloaded.headers["X-Content-Type-Options"])
+            renamed = post(f"/api/hub/projects/{row["id"]}/rename", {"name": f"{"native"} renamed"})
+            self.assertEqual(200, renamed.status_code)
+            self.assertEqual(f"{"native"} renamed", payload(renamed)["project"]["name"])
+            self.assertEqual(200, post(f"/api/hub/projects/{row['id']}/save", {}).status_code)
+            copy = post(f"/api/hub/projects/{row["id"]}/save-as", {"name": f"{"native"} copy"})
+            self.assertEqual(200, copy.status_code)
+            copied = payload(copy)["project"]
+            self.assertEqual(409, post(f"/api/hub/projects/{row['id']}/save", {}).status_code)
+            bundle = get(f"/api/hub/projects/{copied['id']}/bundle")
+            self.assertEqual(200, bundle.status_code)
+            data = bundle.content
+            restored = client.post("/api/hub/restore-zip", content=data, headers={"Content-Type": "application/zip"})
+            self.assertEqual(200, restored.status_code)
+            self.assertEqual("fixture notes", Path(payload(restored)["project"]["folder"], "notes.txt").read_text())
+            self.assertEqual(200, post("/api/hub/open-path", {"path": row["path"]}).status_code)
+            self.assertEqual(404, post("/api/hub/open-path", {"path": str(self.root / "missing.legion")}).status_code)
 
     def test_restored_project_controls_update_catalog_and_preserve_copies(self):
         row = self.hub.create("Original")["project"]

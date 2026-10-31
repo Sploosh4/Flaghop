@@ -46,11 +46,12 @@ class ProjectResponse(BaseModel):
 class Job(ExtensibleModel):
     id: int
     type: str
-    status: Literal["queued", "running", "completed", "failed", "cancelled", "held"]
+    status: Literal["queued", "running", "completed", "partial", "failed", "cancelled", "held"]
     created_at: str = ""
     started_at: str | None = ""
     finished_at: str | None = ""
     error: str = ""
+    settling: bool = False
     cancel_requested: bool = False
     cancel_reason: str = ""
     payload: dict[str, JsonValue] = Field(default_factory=dict)

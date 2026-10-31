@@ -1,8 +1,8 @@
+from fastapi.testclient import TestClient
 import os
 import tempfile
 import unittest
 from types import SimpleNamespace
-
 from app.ProjectManager import ProjectManager
 from app.logging.legionLog import getAppLogger, getDbLogger
 from app.scheduler.approvals import (
@@ -19,7 +19,7 @@ from app.scheduler.insights import (
 )
 from app.scheduler.planner import SchedulerPlanner
 from app.shell.DefaultShell import DefaultShell
-from app.web import create_app
+from app.api import create_app
 from db.RepositoryFactory import RepositoryFactory
 from db.entities.host import hostObj
 
@@ -78,6 +78,7 @@ class _CompatibilityRuntime:
 
 
 class SchedulerCompatibilityBaselineTest(unittest.TestCase):
+
     def _create_project_manager(self):
         shell = DefaultShell()
         repository_factory = RepositoryFactory(getDbLogger())
@@ -275,12 +276,10 @@ class SchedulerCompatibilityBaselineTest(unittest.TestCase):
     def test_web_scheduler_preferences_api_round_trip_preserves_contract(self):
         runtime = _CompatibilityRuntime()
         app = create_app(runtime)
-        client = app.test_client()
-
+        client = TestClient(app, raise_server_exceptions=False)
         current = client.get("/api/scheduler/preferences")
         self.assertEqual(200, current.status_code)
-        self.assertEqual("deterministic", current.json["mode"])
-
+        self.assertEqual("deterministic", current.json()["mode"])
         updated = client.post(
             "/api/scheduler/preferences",
             json={
@@ -290,8 +289,8 @@ class SchedulerCompatibilityBaselineTest(unittest.TestCase):
             },
         )
         self.assertEqual(200, updated.status_code)
-        self.assertEqual("ai", updated.json["mode"])
-        self.assertEqual("external_pentest", updated.json["goal_profile"])
+        self.assertEqual("ai", updated.json()["mode"])
+        self.assertEqual("external_pentest", updated.json()["goal_profile"])
         self.assertEqual(
             {
                 "mode": "ai",

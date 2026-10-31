@@ -12,6 +12,44 @@ import uuid
 CONTENT_ID = re.compile(r"[a-f0-9]{64}\Z")
 
 
+def internal_origins(origins):
+    """Old reader graphs can contain app databases and generated input lists."""
+
+    def internal(origin):
+        if origin.get("transport") not in (None, "local"):
+            return False
+        path = Path(str(origin.get("path", "")))
+        parts = path.parts
+        if (
+            len(parts) >= 4
+            and parts[0].endswith("-tool-output")
+            and parts[1] == "deep-scans"
+            and re.fullmatch(r"[a-f0-9]{32}", parts[2])
+        ):
+            relative = "/".join(parts[3:])
+            if relative in {
+                "run.json",
+                "request.json",
+                "summary.json",
+                "implementation-audit.json",
+                "proxy.json",
+                "proxy.ack",
+                "log.txt",
+                "profile/device-profile.json",
+                "profile/raw/nmap.xml",
+            }:
+                return True
+        return (
+            len(path.parts) == 1
+            and ".legion" in path.name
+            or len(path.parts) == 2
+            and path.parts[0].endswith("-tool-output")
+            and path.name in {"legion-usernames.txt", "legion-passwords.txt"}
+        )
+
+    return bool(origins) and all(internal(origin) for origin in origins)
+
+
 def atomic_json(path, value):
     temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
     try:
@@ -132,6 +170,22 @@ class ProjectBackground:
                         "transformations": ["password-recovery"],
                     }
                 )
+        for row in rows:
+            row["kind"] = "hash" if row["id"].startswith("hash-") else "cipher"
+            row["internal"] = internal_origins(row["origins"])
+            source = next(
+                (
+                    origin.get("path") or origin.get("source_path")
+                    for origin in row["origins"]
+                    if origin.get("path") or origin.get("source_path")
+                ),
+                "",
+            )
+            row["display_name"] = (
+                Path(source).name
+                if source
+                else ("Recovered candidate" if row["kind"] == "hash" else "Cipher candidate")
+            )
         return report, queue, sorted(rows, key=lambda row: (-row["completed"], row["id"]))
 
     def status(self):
@@ -142,6 +196,26 @@ class ProjectBackground:
         # The existing reader treats an absent control as enabled. New Hub projects
         # explicitly start paused; GET must not change a legacy project's state.
         running = control.get("running") is True if control else True
+        alerts = [
+            row
+            for row in results
+            if row["id"] not in dismissed
+            and not row["internal"]
+            and not (row["transformations"] and all(kind.startswith("hypothesis:") for kind in row["transformations"]))
+        ][:100]
+        alert_ids = {row["id"] for row in alerts}
+        history = [
+            {
+                **row,
+                "history_reason": (
+                    "Internal application data"
+                    if row["internal"]
+                    else "Reviewed" if row["id"] in dismissed else "Unverified candidate"
+                ),
+            }
+            for row in results
+            if row["id"] not in alert_ids
+        ][:500]
         return {
             "project_id": self.identifier,
             "project": str(self.root),
@@ -151,14 +225,8 @@ class ProjectBackground:
             "observed_state": "unsupported",
             "worker_observation": "unsupported",
             "worker": self.worker(),
-            "alerts": [
-                row
-                for row in results
-                if row["id"] not in dismissed
-                and not (
-                    row["transformations"] and all(kind.startswith("hypothesis:") for kind in row["transformations"])
-                )
-            ][:100],
+            "alerts": alerts,
+            "history": history,
             "node_states": report.get("node_states", {}),
             "hash_states": report.get("hash_states", {}),
             "working": [

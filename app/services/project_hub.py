@@ -1,5 +1,6 @@
 """Project navigation and user-visible folders. No network or VPN discovery."""
 
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -29,13 +30,31 @@ class ProjectHub:
         self.config_path = Path(config_path or Path(get_legion_home()) / "project-hub.json")
         self.default_root = Path(projects_dir or os.environ.get("LEGION_PROJECTS_DIR") or default_save_folder())
         self.root_overridden = bool(projects_dir or os.environ.get("LEGION_PROJECTS_DIR"))
-        self.lock = threading.RLock()
+        # One reentrant owner for project state and its catalog. Separate hub
+        # locks inverted with runtime->network capture and raced across hubs.
+        self.lock = getattr(runtime, "_lock", None) or threading.RLock()
         self.operations = ProjectHubOperations(self)
         from app.services.project_networks import ProjectNetworks
 
         self.networks = ProjectNetworks(self)
         if runtime is not None:
             runtime.project_networks = self.networks
+
+    @contextmanager
+    def workspace(self, identifier=None, *, idle=False):
+        """Pin a workspace for a short state/import transaction, never a tool run.
+
+        Lock ownership belongs to the runtime. A bound operation must recheck
+        project identity after acquiring it; callers must not retain DB objects
+        across release or perform network waits inside this transaction.
+        """
+        with self.lock:
+            record = self._record(identifier) if identifier is not None else None
+            if record and self._current().get("name") != record["path"]:
+                raise RuntimeError("The active project changed. Reopen this project before continuing.")
+            if idle:
+                self._check_idle()
+            yield record
 
     @property
     def root(self):

@@ -28,21 +28,3 @@ def live_asgi_server(app):
         sock.close()
         if thread.is_alive():
             raise RuntimeError("Fixture ASGI server did not stop")
-
-
-@contextmanager
-def live_legacy_server(app):
-    """Run the fallback transport against the same desktop fixtures."""
-    from werkzeug.serving import make_server
-
-    server = make_server("127.0.0.1", 0, app, threaded=True)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
-        yield f"http://127.0.0.1:{server.server_port}"
-    finally:
-        server.shutdown()
-        thread.join(timeout=5)
-        server.server_close()
-        if thread.is_alive():
-            raise RuntimeError("Fixture legacy server did not stop")

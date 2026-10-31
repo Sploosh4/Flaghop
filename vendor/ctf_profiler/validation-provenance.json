@@ -1,0 +1,33 @@
+{
+  "reviewed_at": "2026-10-31T10:24:28.048335+00:00",
+  "standalone_report_sha256": "1df37a8005c448ee1efc5c115b7879e606e8e129260ef6982ced9647821e296e",
+  "standalone_review_sha256": "7f0cf8517d4ecb573ecbb5a053dc18e52f3e6a9ff65ecfa9e3a0db274fa65483",
+  "source_manifest_sha256": "a310d6fa9dba63f32203954457ed73b009c86e124ff70fdb5714a38e215f9068",
+  "regressions": {
+    "python312": 51,
+    "python314": 51
+  },
+  "supplemental_checks": 15,
+  "browser_gated_runs": [
+    {
+      "acceptance_checks": 28,
+      "browser_gate_checks": 4
+    },
+    {
+      "acceptance_checks": 28,
+      "browser_gate_checks": 4
+    },
+    {
+      "acceptance_checks": 28,
+      "browser_gate_checks": 4
+    }
+  ],
+  "compatibility_test_files": {
+    "tests/test_dependency_compat.py": "2280ef06f12b9df8a1bf7c13c231ac65d244c8378d3e2daa315510069108a6c4",
+    "tests/fixtures/single-target.xml": "2471e698c4c9252067a8f0defb2614c29afa96dac4a628c40069644288216f19"
+  },
+  "limits": [
+    "Standalone owned loopback evidence; does not verify the app guarded path.",
+    "Chrome ELF and WPScan implementation fingerprints remain incomplete."
+  ]
+}

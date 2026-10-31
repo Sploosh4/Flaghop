@@ -1,4 +1,4 @@
-"""Project controls shared by the native and comparison transports."""
+"""Project controls shared by the native API and domain callers."""
 
 import shutil
 import uuid

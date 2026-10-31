@@ -1,7 +1,8 @@
 """Shared native API runtime dependency and response conventions."""
 
 from typing import Annotated
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import Depends, Request, Response
+from app.api.protocol import ProtocolRouter
 from app.api.contracts import ApiError
 
 
@@ -20,7 +21,7 @@ Runtime = Annotated[object, Depends(get_runtime)]
 
 
 def native_router():
-    return APIRouter(
+    return ProtocolRouter(
         dependencies=[Depends(mark_native)],
         responses={
             400: {"model": ApiError},

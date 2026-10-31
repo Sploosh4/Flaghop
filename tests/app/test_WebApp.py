@@ -1,3 +1,4 @@
+from fastapi.testclient import TestClient
 import unittest
 import tempfile
 import io
@@ -150,6 +151,7 @@ class DummySchedulerConfig:
 
 
 class DummyRuntime:
+
     def __init__(self):
         self.scheduler_config = DummySchedulerConfig()
         self.project = {
@@ -1688,7 +1690,7 @@ class DummyRuntime:
         _ = family_action
         if int(approval_id) != 77:
             raise KeyError(approval_id)
-        return {"approval": {"id": 77, "status": "approved"}, "job": {"id": 99}}
+        return {"approval": {"id": 77, "status": "approved"}, "job": {"id": 99, "type": "fixture", "status": "queued"}}
 
     def reject_scheduler_approval(self, approval_id, reason="", family_action=""):
         _ = reason
@@ -1938,17 +1940,18 @@ class DummyRuntime:
 
 
 class WebAppTest(unittest.TestCase):
+
     def setUp(self):
-        from app.web import create_app
+        from app.api import create_app
 
         self.runtime = DummyRuntime()
         self.app = create_app(self.runtime)
-        self.client = self.app.test_client()
+        self.client = TestClient(self.app, raise_server_exceptions=False)
 
     def test_health_endpoint(self):
         response = self.client.get("/health")
         self.assertEqual(200, response.status_code)
-        self.assertEqual("ok", response.json.get("status"))
+        self.assertEqual("ok", response.json().get("status"))
 
     def test_tool_audit_route_returns_rows(self):
         self.runtime.settings = SimpleNamespace(
@@ -1963,7 +1966,7 @@ class WebAppTest(unittest.TestCase):
         )
         response = self.client.get("/api/settings/tool-audit")
         self.assertEqual(200, response.status_code)
-        body = response.get_json()
+        body = response.json()
         self.assertIn("summary", body)
         self.assertIn("tools", body)
         self.assertGreater(len(body["tools"]), 10)
@@ -1986,7 +1989,7 @@ class WebAppTest(unittest.TestCase):
         )
         response = self.client.get("/api/settings/tool-audit/install-plan?platform=ubuntu")
         self.assertEqual(200, response.status_code)
-        body = response.get_json()
+        body = response.json()
         self.assertEqual("ubuntu", body.get("platform"))
         self.assertIn("script", body)
         self.assertIn("commands", body)
@@ -2002,7 +2005,7 @@ class WebAppTest(unittest.TestCase):
             },
         )
         self.assertEqual(202, response.status_code)
-        body = response.get_json()
+        body = response.json()
         self.assertEqual("accepted", body.get("status"))
         self.assertEqual("tool-install", body.get("job", {}).get("type"))
         self.assertEqual("ubuntu", self.runtime.tool_install_requests[-1]["platform"])
@@ -2010,7 +2013,7 @@ class WebAppTest(unittest.TestCase):
     def test_index_renders(self):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         self.assertIn('<body class="workspace-ui project-foundation opaque-ui">', body)
         self.assertIn('id="legacy-workspace" hidden inert', body)
         self.assertIn('id="project-hub-root"', body)
@@ -2104,18 +2107,18 @@ class WebAppTest(unittest.TestCase):
         self.assertLess(body.index("<h2>Services</h2>"), body.index("<h2>Host Detail</h2>"))
 
     def test_index_renders_all_interfaces_chip_when_configured(self):
-        self.app.config["LEGION_WEB_BIND_HOST"] = "0.0.0.0"
-        self.app.config["LEGION_WEB_BIND_LABEL"] = "All interfaces"
+        self.app.state.config["LEGION_WEB_BIND_HOST"] = "0.0.0.0"
+        self.app.state.config["LEGION_WEB_BIND_LABEL"] = "All interfaces"
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         self.assertIn("All interfaces", body)
 
     def test_index_renders_opaque_ui_body_class_when_configured(self):
-        self.app.config["LEGION_UI_OPAQUE"] = True
+        self.app.state.config["LEGION_UI_OPAQUE"] = True
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         self.assertIn('<body class="workspace-ui project-foundation opaque-ui">', body)
         self.assertIn("window.LEGION_OPAQUE_UI_ENABLED = true", body)
 
@@ -2129,7 +2132,7 @@ class WebAppTest(unittest.TestCase):
         )
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         self.assertIn('id="graph-workspace-panel"', body)
         self.assertIn('data-graph-enabled="false"', body)
         self.assertIn(
@@ -2139,13 +2142,13 @@ class WebAppTest(unittest.TestCase):
     def test_index_renders_graph_workspace_interface_toggle(self):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         self.assertIn('id="interface-graph-workspace-enabled"', body)
 
     def test_index_renders_simplified_scheduler_engagement_profile(self):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         self.assertIn('id="engagement-preset-summary"', body)
         self.assertIn('id="engagement-derived-policy"', body)
         self.assertIn("Preset drives scope and intent for most runs.", body)
@@ -2156,7 +2159,7 @@ class WebAppTest(unittest.TestCase):
     def test_index_renders_nmap_scan_engagement_step(self):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         self.assertIn('id="nmap-wizard-indicator-1"', body)
         self.assertIn(">1. Engagement<", body)
         self.assertIn(">2. Mode<", body)
@@ -2187,7 +2190,7 @@ class WebAppTest(unittest.TestCase):
     def test_index_renders_viewport_bounded_output_modals(self):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         self.assertIn('id="process-output-modal"', body)
         self.assertIn('class="legion-modal output-modal"', body)
         self.assertIn('class="process-command-block process-output-block"', body)
@@ -2196,7 +2199,7 @@ class WebAppTest(unittest.TestCase):
     def test_index_renders_device_category_filters_and_modal(self):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         self.assertIn('id="hosts-category-filter-select"', body)
         self.assertIn('id="services-category-filter-select"', body)
         self.assertIn('id="host-detail-categories"', body)
@@ -2208,7 +2211,7 @@ class WebAppTest(unittest.TestCase):
     def test_index_renders_hosts_panel_menu(self):
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
+        body = response.text
         self.assertIn("hosts-reset-filter-button", body)
         self.assertIn("hosts-panel-menu-button", body)
         self.assertNotIn("hosts-export-json-button", body)
@@ -2218,9 +2221,9 @@ class WebAppTest(unittest.TestCase):
     def test_snapshot_endpoint(self):
         response = self.client.get("/api/snapshot")
         self.assertEqual(200, response.status_code)
-        self.assertEqual("demo", response.json["project"]["name"])
-        self.assertEqual(1, len(response.json["scheduler_rationale_feed"]))
-        self.assertEqual("smb-enum-users.nse, smbmap", response.json["scheduler_rationale_feed"][0]["headline"])
+        self.assertEqual("demo", response.json()["project"]["name"])
+        self.assertEqual(1, len(response.json()["scheduler_rationale_feed"]))
+        self.assertEqual("smb-enum-users.nse, smbmap", response.json()["scheduler_rationale_feed"][0]["headline"])
         self.assertEqual("no-store, max-age=0, must-revalidate", response.headers.get("Cache-Control"))
         self.assertEqual("no-cache", response.headers.get("Pragma"))
         self.assertEqual("0", response.headers.get("Expires"))
@@ -2228,31 +2231,27 @@ class WebAppTest(unittest.TestCase):
     def test_workspace_overview_endpoint_includes_rationale_feed(self):
         response = self.client.get("/api/workspace/overview")
         self.assertEqual(200, response.status_code)
-        self.assertIn("scheduler_rationale_feed", response.json)
-        self.assertEqual("10.0.0.5", response.json["scheduler_rationale_feed"][0]["host_ip"])
+        self.assertIn("scheduler_rationale_feed", response.json())
+        self.assertEqual("10.0.0.5", response.json()["scheduler_rationale_feed"][0]["host_ip"])
 
     def test_project_endpoints(self):
         details = self.client.get("/api/project")
         self.assertEqual(200, details.status_code)
-        self.assertEqual("demo", details.json["name"])
-
+        self.assertEqual("demo", details.json()["name"])
         listing = self.client.get("/api/projects?limit=10")
         self.assertEqual(200, listing.status_code)
-        self.assertEqual(2, len(listing.json["projects"]))
-        self.assertTrue(listing.json["projects"][0]["is_current"])
-
+        self.assertEqual(2, len(listing.json()["projects"]))
+        self.assertTrue(listing.json()["projects"][0]["is_current"])
         new_temp = self.client.post("/api/project/new-temp", json={})
         self.assertEqual(200, new_temp.status_code)
-        self.assertTrue(new_temp.json["project"]["is_temporary"])
-
+        self.assertTrue(new_temp.json()["project"]["is_temporary"])
         opened = self.client.post("/api/project/open", json={"path": "engagement.legion"})
         self.assertEqual(200, opened.status_code)
-        self.assertEqual("engagement.legion", opened.json["project"]["name"])
-
+        self.assertEqual("engagement.legion", opened.json()["project"]["name"])
         save = self.client.post("/api/project/save-as", json={"path": "saved.legion", "replace": True})
         self.assertEqual(202, save.status_code)
-        self.assertEqual("accepted", save.json.get("status"))
-        self.assertEqual("project-save-as", save.json["job"]["type"])
+        self.assertEqual("accepted", save.json().get("status"))
+        self.assertEqual("project-save-as", save.json()["job"]["type"])
 
     def test_project_open_returns_not_found(self):
         response = self.client.post("/api/project/open", json={"path": "missing.legion"})
@@ -2267,18 +2266,16 @@ class WebAppTest(unittest.TestCase):
 
     def test_project_restore_zip_endpoint(self):
         response = self.client.post(
-            "/api/project/restore-zip",
-            data={"bundle": (io.BytesIO(b"PK\x05\x06" + b"\x00" * 18), "session.zip")},
-            content_type="multipart/form-data",
+            "/api/project/restore-zip", files={"bundle": ("session.zip", io.BytesIO(b"PK\x05\x06" + b"\x00" * 18))}
         )
         self.assertEqual(202, response.status_code)
-        self.assertEqual("accepted", response.json.get("status"))
-        self.assertEqual("project-restore-zip", response.json["job"]["type"])
+        self.assertEqual("accepted", response.json().get("status"))
+        self.assertEqual("project-restore-zip", response.json()["job"]["type"])
 
     def test_workspace_hosts_endpoint_service_filter(self):
         response = self.client.get("/api/workspace/hosts?service=http")
         self.assertEqual(200, response.status_code)
-        payload = response.get_json()
+        payload = response.json()
         self.assertEqual("hide_down", payload["filter"])
         self.assertEqual("http", payload["service"])
         self.assertEqual(1, len(payload["hosts"]))
@@ -2287,8 +2284,7 @@ class WebAppTest(unittest.TestCase):
     def test_engagement_policy_endpoints(self):
         current = self.client.get("/api/engagement-policy")
         self.assertEqual(200, current.status_code)
-        self.assertEqual("internal_recon", current.json["preset"])
-
+        self.assertEqual("internal_recon", current.json()["preset"])
         updated = self.client.post(
             "/api/engagement-policy",
             json={
@@ -2298,66 +2294,62 @@ class WebAppTest(unittest.TestCase):
             },
         )
         self.assertEqual(200, updated.status_code)
-        self.assertEqual("internal_pentest", updated.json["preset"])
-        self.assertTrue(updated.json["allow_exploitation"])
+        self.assertEqual("internal_pentest", updated.json()["preset"])
+        self.assertTrue(updated.json()["allow_exploitation"])
 
     def test_scheduler_approve_family_endpoint(self):
         response = self.client.post("/api/scheduler/approve-family", json={"family_id": "fam123", "tool_id": "hydra"})
         self.assertEqual(200, response.status_code)
-        self.assertEqual("ok", response.json["status"])
+        self.assertEqual("ok", response.json()["status"])
         self.assertEqual(1, len(self.runtime.scheduler_config.state["preapproved_command_families"]))
 
     def test_scheduler_decisions_endpoint(self):
         response = self.client.get("/api/scheduler/decisions?limit=10")
         self.assertEqual(200, response.status_code)
-        self.assertEqual(1, len(response.json["decisions"]))
-        self.assertEqual("10.0.0.5", response.json["decisions"][0]["host_ip"])
+        self.assertEqual(1, len(response.json()["decisions"]))
+        self.assertEqual("10.0.0.5", response.json()["decisions"][0]["host_ip"])
 
     def test_scheduler_plan_preview_endpoint(self):
         response = self.client.get("/api/scheduler/plan-preview?host_id=11&mode=compare")
         self.assertEqual(200, response.status_code)
-        self.assertEqual("compare", response.json["requested_mode"])
-        self.assertEqual(1, response.json["target_count"])
-        self.assertEqual(["smb-security-mode"], response.json["targets"][0]["agreement"])
-        self.assertEqual("allowed", response.json["targets"][0]["deterministic"]["steps"][0]["policy_decision"])
+        self.assertEqual("compare", response.json()["requested_mode"])
+        self.assertEqual(1, response.json()["target_count"])
+        self.assertEqual(["smb-security-mode"], response.json()["targets"][0]["agreement"])
+        self.assertEqual("allowed", response.json()["targets"][0]["deterministic"]["steps"][0]["policy_decision"])
 
     def test_scheduler_execution_trace_endpoints(self):
         listing = self.client.get("/api/scheduler/executions?include_output=true")
         self.assertEqual(200, listing.status_code)
-        self.assertEqual(1, len(listing.json["executions"]))
-        self.assertEqual("exec-1", listing.json["executions"][0]["execution_id"])
-        self.assertEqual("sample trace", listing.json["executions"][0]["stdout_excerpt"])
-
+        self.assertEqual(1, len(listing.json()["executions"]))
+        self.assertEqual("exec-1", listing.json()["executions"][0]["execution_id"])
+        self.assertEqual("sample trace", listing.json()["executions"][0]["stdout_excerpt"])
         detail = self.client.get("/api/scheduler/executions/exec-1")
         self.assertEqual(200, detail.status_code)
-        self.assertEqual("smb-enum-users.nse", detail.json["tool_id"])
-        self.assertEqual("sample trace", detail.json["stdout_excerpt"])
+        self.assertEqual("smb-enum-users.nse", detail.json()["tool_id"])
+        self.assertEqual("sample trace", detail.json()["stdout_excerpt"])
 
     def test_scan_history_endpoint(self):
         response = self.client.get("/api/scans/history?limit=10")
         self.assertEqual(200, response.status_code)
-        self.assertEqual(1, len(response.json["scans"]))
-        self.assertEqual("nmap_scan", response.json["scans"][0]["submission_kind"])
-        self.assertEqual("10.0.0.0/24", response.json["scans"][0]["target_summary"])
+        self.assertEqual(1, len(response.json()["scans"]))
+        self.assertEqual("nmap_scan", response.json()["scans"][0]["submission_kind"])
+        self.assertEqual("10.0.0.0/24", response.json()["scans"][0]["target_summary"])
         self.assertEqual("no-store, max-age=0, must-revalidate", response.headers.get("Cache-Control"))
 
     def test_graph_api_endpoints(self):
         graph = self.client.get("/api/graph?node_type=technology&hide_ai_suggested=true&host_id=11")
         self.assertEqual(200, graph.status_code)
-        self.assertEqual(1, len(graph.json["nodes"]))
-        self.assertEqual("technology", graph.json["nodes"][0]["type"])
-        self.assertEqual(0, len(graph.json["edges"]))
-        self.assertFalse(graph.json["meta"]["filters"]["include_ai_suggested"])
-
+        self.assertEqual(1, len(graph.json()["nodes"]))
+        self.assertEqual("technology", graph.json()["nodes"][0]["type"])
+        self.assertEqual(0, len(graph.json()["edges"]))
+        self.assertFalse(graph.json()["meta"]["filters"]["include_ai_suggested"])
         rebuild = self.client.post("/api/graph/rebuild", json={"host_id": 11})
         self.assertEqual(200, rebuild.status_code)
-        self.assertEqual("ok", rebuild.json["status"])
-        self.assertEqual(2, rebuild.json["mutation_count"])
-
+        self.assertEqual("ok", rebuild.json()["status"])
+        self.assertEqual(2, rebuild.json()["mutation_count"])
         layouts = self.client.get("/api/graph/layouts")
         self.assertEqual(200, layouts.status_code)
-        self.assertEqual("attack_surface", layouts.json["layouts"][0]["view_id"])
-
+        self.assertEqual("attack_surface", layouts.json()["layouts"][0]["view_id"])
         save_layout = self.client.post(
             "/api/graph/layouts",
             json={
@@ -2367,13 +2359,11 @@ class WebAppTest(unittest.TestCase):
             },
         )
         self.assertEqual(200, save_layout.status_code)
-        self.assertEqual("ok", save_layout.json["status"])
-        self.assertEqual("focused", save_layout.json["layout"]["name"])
-
+        self.assertEqual("ok", save_layout.json()["status"])
+        self.assertEqual("focused", save_layout.json()["layout"]["name"])
         annotations = self.client.get("/api/graph/annotations?target_ref=graph-node-host&target_kind=node")
         self.assertEqual(200, annotations.status_code)
-        self.assertEqual(1, len(annotations.json["annotations"]))
-
+        self.assertEqual(1, len(annotations.json()["annotations"]))
         save_annotation = self.client.post(
             "/api/graph/annotations",
             json={
@@ -2384,18 +2374,15 @@ class WebAppTest(unittest.TestCase):
             },
         )
         self.assertEqual(200, save_annotation.status_code)
-        self.assertEqual("ok", save_annotation.json["status"])
-        self.assertEqual("Track this tech", save_annotation.json["annotation"]["body"])
-
+        self.assertEqual("ok", save_annotation.json()["status"])
+        self.assertEqual("Track this tech", save_annotation.json()["annotation"]["body"])
         content = self.client.get("/api/graph/nodes/graph-node-host/content")
         self.assertEqual(200, content.status_code)
-        self.assertEqual(2, content.json["entry_count"])
-        self.assertEqual("text", content.json["entries"][0]["kind"])
-
+        self.assertEqual(2, content.json()["entry_count"])
+        self.assertEqual("text", content.json()["entries"][0]["kind"])
         text_download = self.client.get("/api/graph/content/graph-node-artifact")
         self.assertEqual(200, text_download.status_code)
-        self.assertIn("Artifact preview line 1", text_download.get_data(as_text=True))
-
+        self.assertIn("Artifact preview line 1", text_download.text)
         image_download = self.client.get("/api/graph/content/graph-node-shot?download=1")
         self.assertEqual(200, image_download.status_code)
         self.assertIn("attachment;", image_download.headers.get("Content-Disposition", ""))
@@ -2403,15 +2390,14 @@ class WebAppTest(unittest.TestCase):
     def test_graph_api_hides_nmap_text_artifacts_and_optionally_hides_xml(self):
         default_graph = self.client.get("/api/graph")
         self.assertEqual(200, default_graph.status_code)
-        default_ids = {item["node_id"] for item in default_graph.json["nodes"]}
+        default_ids = {item["node_id"] for item in default_graph.json()["nodes"]}
         self.assertIn("graph-node-artifact-xml", default_ids)
         self.assertNotIn("graph-node-artifact-gnmap", default_ids)
-
         hide_xml = self.client.get("/api/graph?hide_nmap_xml_artifacts=true")
         self.assertEqual(200, hide_xml.status_code)
-        hidden_ids = {item["node_id"] for item in hide_xml.json["nodes"]}
+        hidden_ids = {item["node_id"] for item in hide_xml.json()["nodes"]}
         self.assertNotIn("graph-node-artifact-xml", hidden_ids)
-        self.assertTrue(hide_xml.json["meta"]["filters"]["hide_nmap_xml_artifacts"])
+        self.assertTrue(hide_xml.json()["meta"]["filters"]["hide_nmap_xml_artifacts"])
 
     def test_graph_api_mirrors_hosts_filter_for_down_hosts(self):
         self.runtime.graph_snapshot["nodes"].append(
@@ -2426,18 +2412,16 @@ class WebAppTest(unittest.TestCase):
                 "evidence_refs": ["host:10.0.0.6"],
             }
         )
-
         hidden = self.client.get("/api/graph?filter=hide_down")
         self.assertEqual(200, hidden.status_code)
-        hidden_ids = {item["node_id"] for item in hidden.json["nodes"]}
+        hidden_ids = {item["node_id"] for item in hidden.json()["nodes"]}
         self.assertNotIn("graph-node-down-host", hidden_ids)
-        self.assertTrue(hidden.json["meta"]["filters"]["hide_down_hosts"])
-
+        self.assertTrue(hidden.json()["meta"]["filters"]["hide_down_hosts"])
         shown = self.client.get("/api/graph?filter=show_all")
         self.assertEqual(200, shown.status_code)
-        shown_ids = {item["node_id"] for item in shown.json["nodes"]}
+        shown_ids = {item["node_id"] for item in shown.json()["nodes"]}
         self.assertIn("graph-node-down-host", shown_ids)
-        self.assertFalse(shown.json["meta"]["filters"]["hide_down_hosts"])
+        self.assertFalse(shown.json()["meta"]["filters"]["hide_down_hosts"])
 
     def test_graph_api_mirrors_host_service_and_category_filters(self):
         self.runtime.graph_snapshot["nodes"].append(
@@ -2477,15 +2461,14 @@ class WebAppTest(unittest.TestCase):
                 "evidence_refs": ["service banner"],
             }
         )
-
         response = self.client.get("/api/graph?service=http&category=Linux&filter=hide_down")
         self.assertEqual(200, response.status_code)
-        node_ids = {item["node_id"] for item in response.json["nodes"]}
+        node_ids = {item["node_id"] for item in response.json()["nodes"]}
         self.assertIn("graph-node-web-host", node_ids)
         self.assertIn("graph-node-web-tech", node_ids)
         self.assertNotIn("graph-node-host", node_ids)
-        self.assertEqual(["http"], response.json["meta"]["filters"]["service_filters"])
-        self.assertEqual("Linux", response.json["meta"]["filters"]["category_filter"])
+        self.assertEqual(["http"], response.json()["meta"]["filters"]["service_filters"])
+        self.assertEqual("Linux", response.json()["meta"]["filters"]["category_filter"])
 
     def test_graph_api_validation(self):
         missing_layout = self.client.post("/api/graph/layouts", json={"layout": {}})
@@ -2495,11 +2478,9 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual(400, missing_annotation.status_code)
 
     def test_scan_and_import_endpoints(self):
-
         nmap_import = self.client.post("/api/nmap/import-xml", json={"path": "/tmp/scan.xml", "run_actions": True})
         self.assertEqual(202, nmap_import.status_code)
-        self.assertEqual("import-nmap-xml", nmap_import.json["job"]["type"])
-
+        self.assertEqual("import-nmap-xml", nmap_import.json()["job"]["type"])
         scan = self.client.post(
             "/api/nmap/scan",
             json={
@@ -2513,14 +2494,12 @@ class WebAppTest(unittest.TestCase):
             },
         )
         self.assertEqual(202, scan.status_code)
-        self.assertEqual("nmap-scan", scan.json["job"]["type"])
-        self.assertEqual("-p- --reason", scan.json["job"]["payload"]["nmap_args"])
-        self.assertEqual("hard", scan.json["job"]["payload"]["scan_mode"])
-
+        self.assertEqual("nmap-scan", scan.json()["job"]["type"])
+        self.assertEqual("-p- --reason", scan.json()["job"]["payload"]["nmap_args"])
+        self.assertEqual("hard", scan.json()["job"]["payload"]["scan_mode"])
         interfaces = self.client.get("/api/network/interfaces")
         self.assertEqual(200, interfaces.status_code)
-        self.assertEqual("eth0", interfaces.json["default_interface"])
-
+        self.assertEqual("eth0", interfaces.json()["default_interface"])
         passive = self.client.post(
             "/api/scan/passive-capture",
             json={
@@ -2530,27 +2509,24 @@ class WebAppTest(unittest.TestCase):
             },
         )
         self.assertEqual(202, passive.status_code)
-        self.assertEqual("passive-capture-scan", passive.json["job"]["type"])
-        self.assertEqual("eth0", passive.json["job"]["payload"]["interface_name"])
-        self.assertEqual(15, passive.json["job"]["payload"]["duration_minutes"])
-        self.assertTrue(bool(passive.json["job"]["payload"]["run_actions"]))
+        self.assertEqual("passive-capture-scan", passive.json()["job"]["type"])
+        self.assertEqual("eth0", passive.json()["job"]["payload"]["interface_name"])
+        self.assertEqual(15, passive.json()["job"]["payload"]["duration_minutes"])
+        self.assertTrue(bool(passive.json()["job"]["payload"]["run_actions"]))
 
     def test_jobs_endpoints(self):
         listing = self.client.get("/api/jobs?limit=10")
         self.assertEqual(200, listing.status_code)
-        self.assertEqual(1, len(listing.json["jobs"]))
+        self.assertEqual(1, len(listing.json()["jobs"]))
         self.assertEqual("no-store, max-age=0, must-revalidate", listing.headers.get("Cache-Control"))
-
         details = self.client.get("/api/jobs/1")
         self.assertEqual(200, details.status_code)
-        self.assertEqual(1, details.json["id"])
+        self.assertEqual(1, details.json()["id"])
         self.assertEqual("no-store, max-age=0, must-revalidate", details.headers.get("Cache-Control"))
-
         stop = self.client.post("/api/jobs/1/stop", json={})
         self.assertEqual(200, stop.status_code)
-        self.assertEqual("ok", stop.json["status"])
-        self.assertTrue(stop.json["stopped"])
-
+        self.assertEqual("ok", stop.json()["status"])
+        self.assertTrue(stop.json()["stopped"])
         missing = self.client.get("/api/jobs/99")
         self.assertEqual(404, missing.status_code)
         missing_stop = self.client.post("/api/jobs/99/stop", json={})
@@ -2559,23 +2535,20 @@ class WebAppTest(unittest.TestCase):
     def test_scheduler_approval_endpoints(self):
         listing = self.client.get("/api/scheduler/approvals?status=pending")
         self.assertEqual(200, listing.status_code)
-        self.assertEqual(1, len(listing.json["approvals"]))
-
+        self.assertEqual(1, len(listing.json()["approvals"]))
         approve = self.client.post(
             "/api/scheduler/approvals/77/approve", json={"approve_family": True, "family_action": "allowed"}
         )
         self.assertIn(approve.status_code, {200, 202})
-        self.assertEqual("ok", approve.json["status"])
-
+        self.assertEqual("ok", approve.json()["status"])
         reject = self.client.post(
             "/api/scheduler/approvals/77/reject", json={"reason": "no", "family_action": "suppressed"}
         )
         self.assertEqual(200, reject.status_code)
-        self.assertEqual("ok", reject.json["status"])
-
+        self.assertEqual("ok", reject.json()["status"])
         scheduler_run = self.client.post("/api/scheduler/run", json={})
         self.assertEqual(202, scheduler_run.status_code)
-        self.assertEqual("accepted", scheduler_run.json["status"])
+        self.assertEqual("accepted", scheduler_run.json()["status"])
 
 
 if __name__ == "__main__":

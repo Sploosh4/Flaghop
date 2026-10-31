@@ -73,3 +73,11 @@ export async function controlBackground(id: string, running: boolean) {return re
 export async function dismissAlert(id: string, alertId: string) {return result(await client.POST('/api/hub/projects/{identifier}/background/alerts/{alert_id}/dismiss', {params: {path: {identifier: id, alert_id: alertId}}}));}
 export async function readerResult(id: string, alertId: string) {return result(await client.GET('/api/hub/projects/{identifier}/background/results/{alert_id}', {params: {path: {identifier: id, alert_id: alertId}}}));}
 export function filesystemUrl(id: string, alertId?: string) {return `/api/hub/projects/${encodeURIComponent(id)}/filesystem${alertId ? `?${new URLSearchParams({result: alertId})}` : ''}`;}
+export function editorUrl(id: string, alertId: string) {return `/api/hub/projects/${encodeURIComponent(id)}/editor?${new URLSearchParams({result: alertId})}`;}
+export type DeepScanRun = components['schemas']['DeepScanRun'];
+export async function deepScans(id: string) {return result(await client.GET('/api/hub/projects/{identifier}/deep-scans', {params: {path: {identifier: id}, query: {compact: true}}}));}
+export async function startDeepScan(id: string, body: components['schemas']['DeepScanRequest']) {return result(await client.POST('/api/hub/projects/{identifier}/deep-scans', {params: {path: {identifier: id}}, body}));}
+export async function stopDeepScan(jobId: number) {return result(await client.POST('/api/jobs/{job_id}/stop', {params: {path: {job_id: jobId}}}));}
+export function documentUrl(id: string, path: string) {return `/api/hub/projects/${encodeURIComponent(id)}/editor?${new URLSearchParams({path})}`;}
+
+export async function deepScan(id: string, scanId: string) {return result(await client.GET('/api/hub/projects/{identifier}/deep-scans/{scan_id}', {params: {path: {identifier: id, scan_id: scanId}}}));}

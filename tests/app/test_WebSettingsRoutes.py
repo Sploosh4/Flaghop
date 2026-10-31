@@ -1,3 +1,4 @@
+from fastapi.testclient import TestClient
 import unittest
 from unittest.mock import patch
 from types import SimpleNamespace
@@ -56,28 +57,26 @@ class _SettingsRouteRuntime:
 
 
 class WebSettingsRoutesTest(unittest.TestCase):
+
     def setUp(self):
-        from app.web import create_app
+        from app.api import create_app
 
         self.runtime = _SettingsRouteRuntime()
-        self.client = create_app(self.runtime).test_client()
+        self.client = TestClient(create_app(self.runtime), raise_server_exceptions=False)
 
     def test_settings_routes_delegate_to_settings_service(self):
         display = self.client.get("/api/settings/display")
         self.assertEqual(200, display.status_code)
-        self.assertFalse(display.json["colorful_ascii_background"])
+        self.assertFalse(display.json()["colorful_ascii_background"])
         self.assertEqual("no-store, max-age=0, must-revalidate", display.headers.get("Cache-Control"))
-
         audit = self.client.get("/api/settings/tool-audit")
         self.assertEqual(200, audit.status_code)
-        self.assertEqual("installed", audit.json["tools"][0]["status"])
-
+        self.assertEqual("installed", audit.json()["tools"][0]["status"])
         plan = self.client.get(
             "/api/settings/tool-audit/install-plan?platform=ubuntu&scope=missing&tool_keys=nmap,nikto"
         )
         self.assertEqual(200, plan.status_code)
-        self.assertEqual("ubuntu", plan.json["platform"])
-
+        self.assertEqual("ubuntu", plan.json()["platform"])
         install = self.client.post(
             "/api/settings/tool-audit/install",
             json={
@@ -87,8 +86,7 @@ class WebSettingsRoutesTest(unittest.TestCase):
             },
         )
         self.assertEqual(202, install.status_code)
-        self.assertEqual("tool-install", install.json["job"]["type"])
-
+        self.assertEqual("tool-install", install.json()["job"]["type"])
         self.assertEqual(
             [
                 ("get_tool_audit",),
@@ -106,10 +104,10 @@ class WebSettingsRoutesTest(unittest.TestCase):
             ):
                 response = self.client.get("/api/settings/tool-audit/install-plan?scope=missing")
                 self.assertEqual(200, response.status_code)
-                self.assertEqual(platform, response.json["platform"])
+                self.assertEqual(platform, response.json()["platform"])
                 response = self.client.post("/api/settings/tool-audit/install", json={"scope": "missing"})
                 self.assertEqual(202, response.status_code)
-                self.assertEqual(platform, response.json["job"]["payload"]["platform"])
+                self.assertEqual(platform, response.json()["job"]["payload"]["platform"])
         before = len(self.runtime.calls)
         with patch("app.tooling.detect_supported_tool_install_platform", return_value=""):
             self.assertEqual(400, self.client.get("/api/settings/tool-audit/install-plan").status_code)

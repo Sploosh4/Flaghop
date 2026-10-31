@@ -132,6 +132,7 @@ huge_nmap.xml
 # Version synthetic Nmap test inputs; real scan output remains ignored.
 !tests/parsers/nmap-fixtures/*.xml
 !tests/fixtures/scheduler-regression/*.xml
+!vendor/ctf_profiler/tests/fixtures/single-target.xml
 
 legion.code-workspace
 -ut/

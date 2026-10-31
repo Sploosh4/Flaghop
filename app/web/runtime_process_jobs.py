@@ -70,6 +70,14 @@ def stop_job(runtime, job_id: int) -> Dict[str, Any]:
     if job is None:
         raise KeyError(f"Unknown job id: {job_id}")
 
+    if job.get("settling"):
+        return {
+            "stopped": False,
+            "job": job,
+            "killed_process_ids": [],
+            "message": "Job is saving its result; wait for completion.",
+        }
+
     status = str(job.get("status", "") or "").strip().lower()
     if status not in {"queued", "running"}:
         return {
@@ -84,7 +92,10 @@ def stop_job(runtime, job_id: int) -> Dict[str, Any]:
         raise KeyError(f"Unknown job id: {job_id}")
 
     killed_process_ids = []
-    for process_id in job_active_process_ids(runtime, target_job_id):
+    # The profiler must get a chance to retain its partial profile and clean its scratch.
+    # Its runner observes cancellation without blocking this HTTP request.
+    process_ids = [] if job.get("type") == "deep-scan" else job_active_process_ids(runtime, target_job_id)
+    for process_id in process_ids:
         try:
             runtime.kill_process(int(process_id))
             killed_process_ids.append(int(process_id))
