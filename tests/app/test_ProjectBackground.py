@@ -102,8 +102,30 @@ class ProjectBackgroundTest(TestCase):
         self.assertEqual([], self.service().status()["alerts"])
         self.assertEqual(b"actual saved evidence", path.read_bytes())
         self.assertEqual(identifier, self.service().result(identifier)["artifact"]["id"])
+        self.assertEqual(identifier, self.service().status()["history"][0]["id"])
         with self.assertRaises(KeyError):
             self.service("b").result(identifier)
+
+    def test_historical_application_files_do_not_create_discovery_notifications(self):
+        identifier, path = self.result_fixture()
+        report_path = self.root / "a/reader-report.json"
+        report = json.loads(report_path.read_text())
+        for source_path in (
+            "workspace.legion",
+            "workspace.autosave.legion",
+            "workspace-tool-output/legion-passwords.txt",
+            "workspace-tool-output/legion-usernames.txt",
+        ):
+            report["sources"][0]["path"] = source_path
+            atomic_json(report_path, report)
+            value = self.service().status()
+            self.assertEqual([], value["alerts"])
+            self.assertEqual(identifier, value["history"][0]["id"])
+            self.assertEqual("Internal application data", value["history"][0]["history_reason"])
+            self.assertEqual(b"actual saved evidence", path.read_bytes())
+        report["sources"][0]["path"] = "inputs/received.txt"
+        atomic_json(report_path, report)
+        self.assertEqual(identifier, self.service().status()["alerts"][0]["id"])
 
     def test_linked_metadata_and_result_paths_are_rejected(self):
         identifier, path = self.result_fixture()
@@ -162,4 +184,5 @@ class ProjectBackgroundTest(TestCase):
                 self.assertEqual(200, get("/background/results/" + identifier).status_code)
                 self.assertEqual(404, client.get("/api/hub/projects/b/background/results/" + identifier).status_code)
                 self.assertEqual(200, get("/filesystem").status_code)
+                self.assertEqual(200, get("/editor").status_code)
                 self.assertEqual(200, get("/filesystem/api/session").status_code)

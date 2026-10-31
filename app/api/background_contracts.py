@@ -1,5 +1,5 @@
 from typing import Any, Literal
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ReaderWorker(BaseModel):
@@ -17,6 +17,10 @@ class ReaderAlert(BaseModel):
     state: str
     label: str
     transformations: list[str]
+    kind: Literal["cipher", "hash"] = "cipher"
+    display_name: str = ""
+    internal: bool = False
+    history_reason: str = ""
 
 
 class BackgroundStatus(BaseModel):
@@ -29,6 +33,7 @@ class BackgroundStatus(BaseModel):
     worker_observation: Literal["unsupported"]
     worker: ReaderWorker
     alerts: list[ReaderAlert]
+    history: list[ReaderAlert] = Field(default_factory=list)
     working: list[dict[str, str]]
     node_states: dict[str, int]
     hash_states: dict[str, int]

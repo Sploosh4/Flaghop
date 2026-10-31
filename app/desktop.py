@@ -34,20 +34,11 @@ def is_workspace_url(url, workspace_url=URL):
     )
 
 
-class ExternalPopupPage(QWebEnginePage):
-    def acceptNavigationRequest(self, url, _navigation_type, _is_main_frame):
-        if url.toString() == "about:blank":
-            return True
-        if url.scheme() in {"https", "http", "mailto"}:
-            QDesktopServices.openUrl(url)
-        self.deleteLater()
-        return False
-
-
 class WorkspacePage(QWebEnginePage):
     def __init__(self, profile, parent, workspace_url=URL):
         super().__init__(profile, parent)
         self.workspace_url = workspace_url
+        self.document_windows = []
 
     def acceptNavigationRequest(self, url, navigation_type, is_main_frame):
         if not is_main_frame or is_workspace_url(url, self.workspace_url) or url.toString() == "about:blank":
@@ -61,8 +52,11 @@ class WorkspacePage(QWebEnginePage):
         return False
 
     def createWindow(self, _window_type):
-        # Tool/help links open externally; never replace the investigation window.
-        return ExternalPopupPage(self.profile(), self)
+        from app.desktop_documents import DocumentPopupPage
+
+        return DocumentPopupPage(
+            self.profile(), self, lambda url: is_workspace_url(url, self.workspace_url), self.document_windows
+        )
 
 
 class LegionWindow(QMainWindow):
@@ -131,10 +125,17 @@ class LegionWindow(QMainWindow):
 
     def save_download(self, request):
         identifier = None
-        url = request.url()
-        parts = url.path().split("/")
-        if is_workspace_url(url, self.workspace_url) and parts[1:4] == ["api", "hub", "projects"] and len(parts) > 4:
-            identifier = parts[4]
+        page = request.page() if hasattr(request, "page") else None
+        urls = [request.url(), *([page.url()] if page else [])]
+        for url in urls:
+            parts = url.path().split("/")
+            if (
+                is_workspace_url(url, self.workspace_url)
+                and parts[1:4] == ["api", "hub", "projects"]
+                and len(parts) > 4
+            ):
+                identifier = parts[4]
+                break
         destination = download_folder(Path(get_legion_home()) / "project-hub.json", identifier)
         try:
             destination.mkdir(parents=True, exist_ok=True, mode=0o700)

@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/legion.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/project-hub.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hardware.css') }}">
 </head>
 <body class="workspace-ui{% if workspace_part %} workspace-part{% else %} project-foundation{% endif %}{% if legion_ui_opaque %} opaque-ui{% endif %}{% if legion_colorful_ascii_background %} colorful-background{% endif %}"{% if workspace_part %} data-workspace-part="{{ workspace_part }}"{% endif %}>
 <script id="scan-presets" type="application/json">{{ legion_scan_presets | tojson }}</script>

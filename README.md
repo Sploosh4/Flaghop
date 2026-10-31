@@ -11,15 +11,21 @@ Reviewed 31 October 2026. This checkpoint includes:
 | Stage | What works or is being built |
 | --- | --- |
 | Workspace | Desktop/browser app, named projects, inventory, evidence graph, jobs, approvals, history, save/restore and ZIP export. React/FastAPI workspace and activity panels. |
-| Files and readers | FlagHop branding, configurable project folders, per-workspace reader Start/Pause, Working/results, persistent dismissal, and a local file browser/editor. Reader engines are separate dependencies. |
+| Files and readers | FlagHop branding, configurable project folders, per-workspace reader Start/Stop, Working/results, persistent dismissal, and a local file browser/editor. Reader engines are separate dependencies. |
 | Network settings | Per-project targets, exclusions, ports and connection identity. Guarded local commands check scope, profile and routes, with Linux egress restrictions. |
 | Separate work | Final scanner verification and device classification; production app integration is pending. |
-| Still to integrate | The reviewed device-map design, scanner results in the app, unified action panel/terminal, Metasploit jobs, remote sessions in Files, and repeatable reader setup. |
+| Still to integrate | Scanner-fed topology, scanner results in the app, unified action panel/terminal, Metasploit jobs, remote sessions in Files, and repeatable reader setup. |
 | Deferred | Unified website targets and authenticated web investigation after the basic network workflow. |
 
 The current evidence graph and the planned network-topology map are separate views. Metasploit profile import exists in the separate profiler; the unified action/session workflow is still planned.
 
-Local reader integration has passed real two-workspace decoding and synthetic password-recovery checks. Pause is cooperative and displays **Pause requested** until stop observation is supported. Text edits currently stay in browser drafts. The reader engines/service remain separate dependencies; cloning this branch does not install them.
+The `codex/hardware-overview` checkpoint adds the picture-based [Hardware layer in Overview](docs/hardware-overview.md), using the current inventory and saved route observations. Scanner/profile import and action-card integration remain separate work.
+
+It also adds collapsible Hash/Cipher results, Working then History, green Start/red Stop, and independent Files/editor windows. Internal workspace decoding noise stays in History. Stop is cooperative and takes effect at the next bounded step; worker-stop observation is not supported. At the 31 October review, `main` and `master` remain at `3e31fb4`; these GUI changes are on the checkpoint branch.
+
+The map labels selected VPN types and uses larger device shortcut numbers. An empty Cyber Kill Chain section sits above Hash; action integration is still planned.
+
+Reader integration has passed real two-workspace decoding and synthetic password-recovery checks. Text edits stay in browser drafts. The reader engines/service remain separate dependencies; cloning this branch does not install them.
 
 [Delivery status](docs/project-status.md) · [Roadmap](docs/ctf-workspace-roadmap.md) · [Open questions](docs/requirements-and-questions.md) · [Readers](docs/background-workspaces.md) · [Network setup and limits](docs/project-network-settings.md)
 

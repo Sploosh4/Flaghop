@@ -73,3 +73,4 @@ export async function controlBackground(id: string, running: boolean) {return re
 export async function dismissAlert(id: string, alertId: string) {return result(await client.POST('/api/hub/projects/{identifier}/background/alerts/{alert_id}/dismiss', {params: {path: {identifier: id, alert_id: alertId}}}));}
 export async function readerResult(id: string, alertId: string) {return result(await client.GET('/api/hub/projects/{identifier}/background/results/{alert_id}', {params: {path: {identifier: id, alert_id: alertId}}}));}
 export function filesystemUrl(id: string, alertId?: string) {return `/api/hub/projects/${encodeURIComponent(id)}/filesystem${alertId ? `?${new URLSearchParams({result: alertId})}` : ''}`;}
+export function editorUrl(id: string, alertId: string) {return `/api/hub/projects/${encodeURIComponent(id)}/editor?${new URLSearchParams({result: alertId})}`;}

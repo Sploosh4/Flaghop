@@ -432,6 +432,13 @@
             "title": "Hash States",
             "type": "object"
           },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/ReaderAlert"
+            },
+            "title": "History",
+            "type": "array"
+          },
           "node_states": {
             "additionalProperties": {
               "type": "integer"
@@ -1911,8 +1918,32 @@
             "title": "Completed",
             "type": "number"
           },
+          "display_name": {
+            "default": "",
+            "title": "Display Name",
+            "type": "string"
+          },
+          "history_reason": {
+            "default": "",
+            "title": "History Reason",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
+            "type": "string"
+          },
+          "internal": {
+            "default": false,
+            "title": "Internal",
+            "type": "boolean"
+          },
+          "kind": {
+            "default": "cipher",
+            "enum": [
+              "cipher",
+              "hash"
+            ],
+            "title": "Kind",
             "type": "string"
           },
           "label": {
@@ -2986,6 +3017,68 @@
           }
         },
         "summary": "Project Connector"
+      }
+    },
+    "/api/hub/projects/{identifier}/editor": {
+      "get": {
+        "operationId": "hubEditor",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "title": "Identifier",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Editor"
       }
     },
     "/api/hub/projects/{identifier}/file": {

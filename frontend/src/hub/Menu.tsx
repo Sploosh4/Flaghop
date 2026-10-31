@@ -1,7 +1,7 @@
 import {useEffect, useLayoutEffect, useRef} from 'react';
 
 export interface MenuItem {label: string; run(): void; disabled?: boolean}
-export function Menu({items, x, y, close}: {items: MenuItem[]; x: number; y: number; close(): void}) {
+export function Menu({items, x, y, close, label = 'Project actions'}: {items: MenuItem[]; x: number; y: number; close(): void; label?: string}) {
   const root = useRef<HTMLDivElement>(null), previous = useRef(document.activeElement as HTMLElement | null);
   useLayoutEffect(() => {
     const menu = root.current!;
@@ -15,8 +15,9 @@ export function Menu({items, x, y, close}: {items: MenuItem[]; x: number; y: num
     window.addEventListener('pointerdown', outside); window.addEventListener('blur', close); window.addEventListener('resize', close);
     return () => {window.removeEventListener('pointerdown', outside); window.removeEventListener('blur', close); window.removeEventListener('resize', close);};
   }, [close]);
-  return <div className="hub-context-menu" role="menu" aria-label="Project actions" ref={root} style={{left: x, top: y}} onKeyDown={event => {
+  return <div className="hub-context-menu" role="menu" aria-label={label} ref={root} style={{left: x, top: y}} onKeyDown={event => {
     if (event.key === 'Escape' || event.key === 'Tab') {event.preventDefault(); close();}
+    if (/^[1-9]$/.test(event.key)) {event.preventDefault(); root.current!.querySelectorAll<HTMLButtonElement>('button')[Number(event.key) - 1]?.click();}
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
     const buttons = [...root.current!.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')], index = buttons.indexOf(document.activeElement as HTMLButtonElement);

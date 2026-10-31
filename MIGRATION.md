@@ -8,6 +8,10 @@ The app opens on a React project home with project-specific navigation, save/res
 
 Project-ID-scoped reader controls, real Working/results and the local filesystem/editor are included. The reader service/toolchains remain separate dependencies. See [delivery status](docs/project-status.md) and [workspace reader contracts](docs/background-workspaces.md).
 
+The `codex/hardware-overview` UI checkpoint uses independent Files/Text Editor windows (separate browser tabs), collapsible Hash/Cipher groups, and History below Working. Result opening does not mount the explorer. Native child windows share the desktop profile and project-bound download destination. Start/Stop labels retain the existing cooperative reader protocol; Stop does not confirm immediate termination. The Laptop source is local project storage; remote session mapping remains pending.
+
+The empty Cyber Kill Chain group is a UI placeholder. VPN labels reuse saved protocol/connector preferences; they add no discovery requests or new connection-state API.
+
 Shared project network settings, scope/exclusions, target checks and common-runner enforcement are included. Linux commands use per-command egress restrictions and retain the validated network context in their SQLite process history. Unconfigured or unsupported network work is held; offline work can continue. Real isolated WireGuard/userspace OpenVPN acceptance is recorded. Discovery, connect/disconnect controls, remote runners and callback checks remain planned. See [network setup and supported modes](docs/project-network-settings.md).
 
 Reader/filesystem routes are listed in the reader contract. Both FastAPI and legacy transports also expose per-project `GET`/`PUT /api/hub/projects/{id}/network` and `POST /api/hub/projects/{id}/network/check`; writes use an expected configuration revision. Process output includes the saved `network_context`.
@@ -49,6 +53,13 @@ Native activity queries reject malformed or out-of-range limits with 422 instead
 AI providers and feedback loops, web/screenshot integrations, alternate runners, credential capture/relay, external enrichment and report delivery have been removed. Their endpoints return 404 on both transports. Job, scan and decision histories now live inside Activity; the standalone logging dialogs are gone. Local execution, cancellation, approvals, project exports and Nmap XML import remain.
 
 ## UI ownership
+
+The `codex/hardware-overview` checkpoint adds a React Hardware layer directly in Overview, reusing
+the current snapshot, computer settings and project network read API. Its view
+model discards inventory from a different active project and ignores stale or
+mismatched route observations. Device selection and keyboard navigation are
+local UI state; they never execute a tool. No API routes or database formats
+changed. See [hardware behaviour and limits](docs/hardware-overview.md).
 
 React owns workspace identity, the Jobs and Processes tables, process output, scheduler rationale, decision and submitted-scan histories and approvals. It preserves existing control IDs, modal keyboard/backdrop handling, ANSI output, copy/download actions, process controls, approval risk/policy details and family actions. The old renderers and delegated action handlers for these elements have been removed. The script-output viewer, graph, host/service views, settings and scan forms still use their existing implementation.
 

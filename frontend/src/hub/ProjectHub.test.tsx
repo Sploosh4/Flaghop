@@ -1,4 +1,4 @@
-import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {ProjectHub} from './ProjectHub';
@@ -24,6 +24,9 @@ beforeEach(() => {
   vi.mocked(api.projectNetwork).mockImplementation(async project_id => ({project_id, config_id: `network-${project_id}`, revision: 0, connector: 'networkmanager', configured: false, settings: {}, enforcement_available: true, enforcement_reason: 'Fixture enforcement tools', recent_checks: []}));
   vi.mocked(api.setProjectConnector).mockResolvedValue({status: 'ok'});
   vi.mocked(api.background).mockImplementation(async id => backgroundState(id, false));
+  vi.spyOn(window, 'open').mockReturnValue(null);
+  vi.mocked(api.filesystemUrl).mockImplementation(id => '/api/hub/projects/' + id + '/filesystem');
+  vi.mocked(api.editorUrl).mockImplementation((id, result) => '/api/hub/projects/' + id + '/editor?result=' + result);
 });
 
 it('collapses the sidebar, remembers it after reload and restores focus when reopened', async () => {
@@ -82,7 +85,7 @@ it('returns to the selected project after switching between projects', async () 
   await user.click(sidebar().getByRole('button', {name: 'Switchyard'}));
   await waitFor(() => expect(screen.getByRole('heading', {name: 'Switchyard'})).toBeTruthy());
   expect(screen.queryByRole('navigation', {name: 'Harbour tabs'})).toBeNull();
-  expect(screen.getAllByRole('navigation')).toHaveLength(1);
+  expect(sidebar().getAllByRole('navigation')).toHaveLength(1);
 });
 
 it('keeps the project sidebar in Setup and lets Overview return to its new home', async () => {
@@ -357,12 +360,13 @@ it('retains independent pause requests while navigating between workspaces witho
   vi.mocked(api.controlBackground).mockImplementation(async (id, running) => {states[id as keyof typeof states] = running; return backgroundState(id, running);});
   render(<ProjectHub/>); const user = userEvent.setup();
   await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
-  await user.click(await screen.findByRole('button', {name: 'Pause background jobs for Harbour'}));
-  await screen.findByText('Pause requested');
+  await user.click(await screen.findByRole('button', {name: 'Stop background jobs for Harbour'}));
+  await screen.findByRole('button', {name: 'Start background jobs for Harbour'});
+  expect(screen.queryByText('Pause requested')).toBeNull();
   await user.click(sidebar().getByRole('button', {name: 'FlagHop'}));
   await user.click(await sidebar().findByRole('button', {name: 'Switchyard'}));
   await user.click(await screen.findByRole('button', {name: 'Start background jobs for Switchyard'}));
-  await screen.findByRole('button', {name: 'Pause background jobs for Switchyard'});
+  await screen.findByRole('button', {name: 'Stop background jobs for Switchyard'});
   await user.click(sidebar().getByRole('button', {name: 'FlagHop'}));
   await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
   await screen.findByRole('button', {name: 'Start background jobs for Harbour'});
@@ -371,39 +375,56 @@ it('retains independent pause requests while navigating between workspaces witho
   await user.click(sidebar().getByRole('button', {name: 'Files'}));
   expect(api.controlBackground).toHaveBeenCalledTimes(2);
 });
-it('opens a saved result in the project filesystem editor and dismisses only its notification', async () => {
-  const alert: api.ReaderAlert = {id: 'actual-artifact', result_path: 'ciphey/artifacts/result.bin', size: 8, completed: 123, state: 'done', label: 'Derived artifact', origins: [{path: 'input.txt'}], transformations: ['base64']};
+it('groups Cipher and Hash notifications and opens an independent editor link', async () => {
+  const alert: api.ReaderAlert = {id: 'actual-artifact', result_path: 'ciphey/artifacts/result.bin', size: 8, completed: 123, state: 'done', label: 'Derived artifact', origins: [{path: 'input.txt'}], transformations: ['base64'], display_name: 'input.txt'};
+  const hash = {...alert, id: 'hash-target', result_path: 'password-crackers/jobs/target/recovered.txt', display_name: 'credentials.txt'};
   let dismissed = false;
-  vi.mocked(api.background).mockImplementation(async id => ({...backgroundState(id, false), alerts: dismissed ? [] : [alert]}));
-  vi.mocked(api.readerResult).mockResolvedValue({status: 'ok', artifact: alert, data_b64: 'ZXZpZGVuY2U=', size: 8, truncated: false});
+  vi.mocked(api.background).mockImplementation(async id => ({...backgroundState(id, false), alerts: dismissed ? [hash] : [alert, hash], history: dismissed ? [alert] : []}));
   vi.mocked(api.dismissAlert).mockImplementation(async () => {dismissed = true; return {status: 'ok'};});
-  vi.mocked(api.filesystemUrl).mockImplementation((id, result) => '/api/hub/projects/' + id + '/filesystem?result=' + (result || ''));
   render(<ProjectHub/>); const user = userEvent.setup();
   await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
-  await user.click(await screen.findByRole('button', {name: 'Open'}));
-  expect((await screen.findByTitle('Harbour files and editor')).getAttribute('src')).toContain('/one/filesystem?result=actual-artifact');
-  await user.click(await screen.findByRole('button', {name: 'Dismiss'}));
-  await waitFor(() => expect(screen.queryByText('result.bin')).toBeNull());
+  await screen.findByText('credentials.txt');
+  const killChain = document.getElementById('hub-cyber-kill-chain')!;
+  expect(killChain.querySelector('summary')?.textContent).toBe('Cyber Kill Chain0');
+  expect(killChain.compareDocumentPosition(document.getElementById('hub-reader-hash')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  await user.click(within(killChain).getByText('Cyber Kill Chain'));
+  expect(killChain.hasAttribute('open')).toBe(true);
+  await user.click(within(killChain).getByText('Cyber Kill Chain'));
+  expect(killChain.hasAttribute('open')).toBe(false);
+  const cipher = document.getElementById('hub-reader-cipher')!;
+  const link = await within(cipher).findByRole('link', {name: 'Open'});
+  expect(link.getAttribute('href')).toBe('/api/hub/projects/one/editor?result=actual-artifact');
+  expect(link.getAttribute('target')).toBe('_blank');
+  expect(within(document.getElementById('hub-reader-hash')!).getByText('credentials.txt')).toBeTruthy();
+  expect(document.querySelector('.hub-files-view')).toBeNull();
+  await user.click(within(cipher).getByRole('button', {name: 'Dismiss input.txt'}));
+  await waitFor(() => expect(within(cipher).queryByText('input.txt')).toBeNull());
   expect(api.dismissAlert).toHaveBeenCalledWith('one', 'actual-artifact');
   expect(api.controlBackground).not.toHaveBeenCalled();
+  const working = document.getElementById('hub-background-working')!, history = document.getElementById('hub-background-history')!;
+  expect(working.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 
-it('does not open a late result after leaving a workspace and returning to it', async () => {
-  const alert: api.ReaderAlert = {id: 'late', result_path: 'ciphey/artifacts/late.bin', size: 4, completed: 1, state: 'done', label: 'Saved result', origins: [], transformations: ['base64']};
-  vi.mocked(api.background).mockImplementation(async id => ({...backgroundState(id, false), alerts: id === 'one' ? [alert] : []}));
-  let resolve!: (value: api.ReaderResult) => void;
-  const pendingResult = new Promise<api.ReaderResult>(done => {resolve = done;});
-  vi.mocked(api.readerResult).mockReturnValue(pendingResult);
+it('opens Files independently and leaves Overview selected', async () => {
   render(<ProjectHub/>); const user = userEvent.setup();
   await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
-  await user.click(await screen.findByRole('button', {name: 'Open'}));
+  await user.click(sidebar().getByRole('button', {name: 'Files'}));
+  expect(window.open).toHaveBeenCalledWith('/api/hub/projects/one/filesystem', '_blank', 'noopener');
+  expect(document.querySelector('.hub-files-view')).toBeNull();
+  expect(sidebar().getByRole('button', {name: 'Overview'}).getAttribute('aria-current')).toBe('page');
+});
+
+it('keeps result links bound to their original project when switching views', async () => {
+  const alert: api.ReaderAlert = {id: 'late', result_path: 'ciphey/artifacts/late.bin', size: 4, completed: 1, state: 'done', label: 'Saved result', origins: [], transformations: ['base64']};
+  vi.mocked(api.background).mockImplementation(async id => ({...backgroundState(id, false), alerts: id === 'one' ? [alert] : []}));
+  render(<ProjectHub/>); const user = userEvent.setup();
+  await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
+  const link = await screen.findByRole('link', {name: 'Open'});
+  expect(link.getAttribute('href')).toContain('/one/editor?result=late');
   await user.click(sidebar().getByRole('button', {name: 'FlagHop'}));
   await user.click(await sidebar().findByRole('button', {name: 'Switchyard'}));
   await screen.findByRole('heading', {name: 'Switchyard'});
-  await user.click(sidebar().getByRole('button', {name: 'FlagHop'}));
-  await user.click(await sidebar().findByRole('button', {name: 'Harbour'}));
-  await screen.findByRole('heading', {name: 'Harbour'});
-  await act(async () => {resolve({status: 'ok', data_b64: 'dGVzdA==', size: 4, truncated: false, artifact: alert}); await pendingResult;});
-  expect(screen.queryByTitle('Harbour files and editor')).toBeNull();
-  expect(sidebar().getByRole('button', {name: 'Overview'}).getAttribute('aria-current')).toBe('page');
+  expect(screen.queryByRole('link', {name: 'Open'})).toBeNull();
+  expect(window.open).not.toHaveBeenCalled();
+  expect(api.readerResult).not.toHaveBeenCalled();
 });
