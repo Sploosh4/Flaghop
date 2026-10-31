@@ -2,7 +2,6 @@ from app.scheduler.orchestration.target_run import TargetRun, RunBudget, Schedul
 import time
 from typing import Tuple, Any, Callable, Dict, Iterable, List, Optional, Sequence, Set
 from app.scheduler.planner import SchedulerPlanner
-from app.scheduler.tool_prompt_registry import get_scheduler_tool_prompt_info
 from app.scheduler.policy import (
     ensure_scheduler_engagement_policy_table,
     get_project_engagement_policy,
@@ -11,7 +10,6 @@ from app.scheduler.policy import (
 )
 
 from app.scheduler.orchestration.models import (
-    WEB_PARALLEL_FOLLOWUP_MAX_TOOLS,
     ROOT_DOMAIN_SCOPED_TOOL_IDS,
     SchedulerTarget,
     SchedulerExecutionTask,
@@ -19,10 +17,7 @@ from app.scheduler.orchestration.models import (
     SchedulerRunOptions,
 )
 
-from app.scheduler.orchestration.models import DEFAULT_AI_FEEDBACK_CONFIG
-
 __all__ = [
-    "DEFAULT_AI_FEEDBACK_CONFIG",
     "SchedulerOrchestrator",
     "SchedulerTarget",
     "SchedulerExecutionTask",
@@ -32,10 +27,9 @@ __all__ = [
 
 from app.scheduler.orchestration.targeting import Targeting
 from app.scheduler.orchestration.options import Options
-from app.scheduler.orchestration.reflection import Reflection
 
 
-class SchedulerOrchestrator(Targeting, Options, Reflection):
+class SchedulerOrchestrator(Targeting, Options):
     def __init__(self, config_manager, planner: Optional[SchedulerPlanner] = None):
         self.config_manager = config_manager
         self.planner = planner or SchedulerPlanner(config_manager)
@@ -204,69 +198,6 @@ class SchedulerOrchestrator(Targeting, Options, Reflection):
                 return str(action[2])
         return ""
 
-    @classmethod
-    def _web_parallel_followup_wave_tool_ids(
-        cls,
-        *,
-        target: SchedulerTarget,
-        decisions: Sequence[Any],
-        provider_payload: Optional[Dict[str, Any]],
-        options: SchedulerRunOptions,
-    ) -> List[str]:
-        service_name = cls._normalize_text_token(getattr(target, "service_name", ""))
-        if service_name not in SchedulerPlanner.WEB_SERVICE_IDS:
-            return []
-
-        payload = provider_payload if isinstance(provider_payload, dict) else {}
-        specialist_sidecars = payload.get("specialist_sidecars", [])
-        if not isinstance(specialist_sidecars, list) or not specialist_sidecars:
-            return []
-
-        wave_cap = min(
-            int(WEB_PARALLEL_FOLLOWUP_MAX_TOOLS),
-            max(1, int(options.scheduler_concurrency or 1)),
-            max(1, int(options.max_actions_per_round or 0) or int(WEB_PARALLEL_FOLLOWUP_MAX_TOOLS)),
-        )
-        if wave_cap < 2:
-            return []
-
-        decision_tool_ids = {
-            cls._normalize_text_token(getattr(item, "tool_id", ""))
-            for item in list(decisions or [])
-            if cls._normalize_text_token(getattr(item, "tool_id", ""))
-        }
-        if not decision_tool_ids:
-            return []
-
-        selected_tool_ids: List[str] = []
-        seen: Set[str] = set()
-        for sidecar in reversed(specialist_sidecars):
-            if not isinstance(sidecar, dict):
-                continue
-            for item in list(sidecar.get("selected_tool_ids", []) or []):
-                tool_id = cls._normalize_text_token(item)
-                if not tool_id or tool_id in seen:
-                    continue
-                seen.add(tool_id)
-                selected_tool_ids.append(tool_id)
-
-        if not selected_tool_ids:
-            return []
-
-        wave_tool_ids: List[str] = []
-        for tool_id in selected_tool_ids:
-            if tool_id not in decision_tool_ids:
-                continue
-            if not bool(get_scheduler_tool_prompt_info(tool_id).safe_parallel):
-                continue
-            wave_tool_ids.append(tool_id)
-            if len(wave_tool_ids) >= wave_cap:
-                break
-
-        if len(wave_tool_ids) < 2:
-            return []
-        return wave_tool_ids
-
     def run_targets(
         self,
         *,
@@ -277,9 +208,6 @@ class SchedulerOrchestrator(Targeting, Options, Reflection):
         should_cancel: Optional[Callable[[int], bool]] = None,
         existing_attempts: Optional[Callable[[SchedulerTarget], Set[str]]] = None,
         build_context: Optional[Callable[..., Dict[str, Any]]] = None,
-        on_ai_analysis: Optional[Callable[..., None]] = None,
-        reflect_progress: Optional[Callable[..., Dict[str, Any]]] = None,
-        on_reflection_analysis: Optional[Callable[..., None]] = None,
         handle_blocked: Optional[Callable[..., SchedulerDecisionDisposition]] = None,
         handle_approval: Optional[Callable[..., SchedulerDecisionDisposition]] = None,
         execute_batch: Optional[Callable[[List[SchedulerExecutionTask], int], List[Dict[str, Any]]]] = None,
@@ -293,17 +221,12 @@ class SchedulerOrchestrator(Targeting, Options, Reflection):
             "skipped": 0,
             "host_scope_count": len(list(targets or [])),
             "dig_deeper": bool(resolved_options.dig_deeper),
-            "reflections": 0,
-            "reflection_stops": 0,
         }
         budget = RunBudget(summary)
         callbacks = SchedulerCallbacks(
             should_cancel=should_cancel,
             existing_attempts=existing_attempts,
             build_context=build_context,
-            on_ai_analysis=on_ai_analysis,
-            reflect_progress=reflect_progress,
-            on_reflection_analysis=on_reflection_analysis,
             handle_blocked=handle_blocked,
             handle_approval=handle_approval,
             execute_batch=execute_batch,

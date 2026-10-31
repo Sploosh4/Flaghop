@@ -1,6 +1,6 @@
-import { copyCredentialCaptureHashesAction, downloadCredentialCaptureHashesAction, downloadCredentialCaptureLogAction, openCredentialCaptureConfigAction, openCredentialCaptureCredentialsAction, openCredentialCaptureLogAction, saveCredentialCaptureConfigAction, saveCredentialCaptureResponderModeQuickAction, startCredentialCaptureToolAction, stopCredentialCaptureToolAction } from "./credential_capture.js";
+
 import { buildDeviceCategoryRuleRow, saveDeviceCategorySettingsAction } from "./device_categories.js";
-import { closeDeviceCategorySettingsAction, closeGraphNoteModalAction, closeHostRemoveModalAction, closeHostSelectionModalAction, closeJobsModalAction, closeManualScanModalAction, closeNmapScanModalAction, closeProviderLogsModalAction, closeReportProviderModalAction, closeRibbonMenus, closeSchedulerDecisionsModalAction, closeSchedulerSettingsAction, closeScriptCveModalAction, closeSubmittedScansModalAction, openAddScanAction, openDeviceCategorySettingsAction, openHostSelectionAction, openJobsAction, openManualScanAction, openProviderLogsAction, openReportProviderAction, openSchedulerDecisionsAction, openSchedulerSettingsAction, openScriptCveAction, openSubmittedScansAction, toggleRibbonMenu } from "./dialogs.js";
+import { closeDeviceCategorySettingsAction, closeGraphNoteModalAction, closeHostRemoveModalAction, closeManualScanModalAction, closeNmapScanModalAction, closeRibbonMenus, closeSchedulerSettingsAction, openAddScanAction, openDeviceCategorySettingsAction, openManualScanAction, openSchedulerSettingsAction, toggleRibbonMenu } from "./dialogs.js";
 import { graphClearFocusAction, graphCollapseExpandedAction, graphFocusSelectionAction, graphOpenNoteModalAction, graphResetLayoutAction, graphSaveAnnotationAction, graphSaveLayoutAction, graphTidyLayoutAction, graphToggleExpandSelectionAction, graphTogglePinAction } from "./graph_actions.js";
 import { getGraphCanvasScrollNode, getGraphWorkspaceSection, graphHasActiveSelection, graphWorkspaceEnabled, resetGraphWorkspaceHeight, restoreGraphWorkspaceHeight, startGraphWorkspaceResize } from "./graph_common.js";
 import { graphRebuildAction, graphRefreshAction } from "./graph_data.js";
@@ -9,16 +9,14 @@ import { graphRenderWorkspace } from "./graph_render.js";
 import { confirmHostRemoveAction, handleHostActionButtonAction } from "./host_actions.js";
 import { resetHostFiltersAction, setHostCategoryFilterAction, setHostFilterAction, setHostServiceFilterPopoverOpen, setHostServiceFiltersAction, setServicesCategoryFilterAction } from "./host_filters.js";
 import { closeAppSettingsAction, closeInterfaceSettingsAction, openAppSettingsAction, openInterfaceSettingsAction, saveInterfaceSettingsAction } from "./interface_settings.js";
-import { closeCredentialCaptureConfigModalAction, closeCredentialsModalAction, closeProcessOutputModal, closeScreenshotModal, closeScriptOutputModal, copyScreenshotAction, copyScriptCommandAction, copyScriptOutputAction, downloadScreenshotAction, downloadScriptOutputAction, openScreenshotModal, openScriptOutputModal } from "./process_output.js";
-import { closeWorkspaceSwitchGuardAction, createNewTemporaryProject, downloadWorkspaceBundleAction, importNmapXmlFromRibbonAction, importTargetsFromRibbonAction, openWorkspaceFromRibbonAction, restoreWorkspaceBundleAction, restoreWorkspaceBundleSelectedAction, saveWorkspaceAction, saveWorkspaceAsAction, stopActiveWorkspaceWorkAndContinueAction } from "./projects.js";
-import { pushProjectAiReportAction } from "./report_delivery.js";
+import { closeProcessOutputModal, closeScriptOutputModal, copyScriptCommandAction, copyScriptOutputAction, downloadScriptOutputAction, openScriptOutputModal } from "./process_output.js";
+import { closeWorkspaceSwitchGuardAction, createNewTemporaryProject, downloadWorkspaceBundleAction, importNmapXmlFromRibbonAction, openWorkspaceFromRibbonAction, restoreWorkspaceBundleAction, restoreWorkspaceBundleSelectedAction, saveWorkspaceAction, saveWorkspaceAsAction, stopActiveWorkspaceWorkAndContinueAction } from "./projects.js";
 import { refreshNmapModeOptions, runNmapScan, setNmapWizardStep, updateNmapCommandPreview } from "./scan.js";
 import { resetNmapScanWizardState, syncNmapEngagementPresetControls } from "./scan_policy.js";
-import { testSchedulerProviderAction } from "./scheduler_preferences.js";
-import { graphWorkspaceState, nmapWizardState, processOutputState, ribbonMenuState, screenshotModalState, scriptOutputState, uiModalState } from "./state.js";
-import { copyToolInstallScriptAction, refreshToolAuditAction, refreshToolInstallPlanAction, startToolInstallAction, toggleCredentialCapturePanelAction } from "./tool_settings.js";
-import { addScriptEntry, deleteScript, handleManualToolContextChange, handleManualToolTargetChange, renderManualToolParameters, runManualTool, runSchedulerNow } from "./tools.js";
-import { refreshWorkspace, saveHostCategories, saveHostNote } from "./workspace_data.js";
+import { graphWorkspaceState, nmapWizardState, processOutputState, ribbonMenuState, scriptOutputState, uiModalState } from "./state.js";
+import { copyToolInstallScriptAction, refreshToolAuditAction, startToolInstallAction } from "./tool_settings.js";
+import { handleManualToolContextChange, handleManualToolTargetChange, renderManualToolParameters, runManualTool, runSchedulerNow } from "./tools.js";
+import { refreshWorkspace } from "./workspace_data.js";
 import { selectHost, setGraphPanelCollapsed, setServicesPanelCollapsed, toggleGraphPanelAction, toggleServicesPanelAction } from "./workspace_view.js";
 /** Workspace events. */
 
@@ -38,7 +36,6 @@ export function bindActionButtons() {
     bind("ribbon-workspace-download-action-button", downloadWorkspaceBundleAction);
     bind("ribbon-workspace-restore-action-button", restoreWorkspaceBundleAction);
     bind("ribbon-import-xml-action-button", importNmapXmlFromRibbonAction);
-    bind("ribbon-import-targets-action-button", importTargetsFromRibbonAction);
     bind("hosts-reset-filter-button", resetHostFiltersAction);
     bind("hosts-filter-show-all-button", () => setHostFilterAction("show_all"));
     bind("hosts-filter-hide-down-button", () => setHostFilterAction("hide_down"));
@@ -46,35 +43,14 @@ export function bindActionButtons() {
     bind("graph-panel-toggle-button", toggleGraphPanelAction);
     bind("ribbon-scan-add-action-button", openAddScanAction);
     bind("ribbon-scan-manual-action-button", openManualScanAction);
-    bind("ribbon-misc-host-selection-action-button", openHostSelectionAction);
-    bind("ribbon-misc-script-cve-action-button", openScriptCveAction);
-    bind("ribbon-logging-jobs-button", openJobsAction);
-    bind("ribbon-logging-submitted-scans-button", openSubmittedScansAction);
-    bind("ribbon-logging-scheduler-decisions-button", openSchedulerDecisionsAction);
-    bind("ribbon-logging-ai-provider-button", openProviderLogsAction);
-    bind("ribbon-credential-capture-toggle-button", toggleCredentialCapturePanelAction);
     bind("ribbon-scheduler-settings-button", openSchedulerSettingsAction);
     bind("ribbon-interface-settings-button", openInterfaceSettingsAction);
     bind("ribbon-device-category-settings-button", openDeviceCategorySettingsAction);
-    bind("ribbon-report-provider-settings-button", openReportProviderAction);
     bind("ribbon-app-settings-button", openAppSettingsAction);
-    bind("credential-capture-open-credentials-button", openCredentialCaptureCredentialsAction);
-    bind("credential-capture-open-config-button", openCredentialCaptureConfigAction);
-    bind("credential-capture-responder-start-button", () => startCredentialCaptureToolAction("responder"));
-    bind("credential-capture-responder-stop-button", () => stopCredentialCaptureToolAction("responder"));
-    bind("credential-capture-responder-view-log-button", () => openCredentialCaptureLogAction("responder"));
-    bind("credential-capture-responder-download-log-button", () => downloadCredentialCaptureLogAction("responder"));
-    bind("credential-capture-ntlmrelayx-start-button", () => startCredentialCaptureToolAction("ntlmrelayx"));
-    bind("credential-capture-ntlmrelayx-stop-button", () => stopCredentialCaptureToolAction("ntlmrelayx"));
-    bind("credential-capture-ntlmrelayx-view-log-button", () => openCredentialCaptureLogAction("ntlmrelayx"));
-    bind("credential-capture-ntlmrelayx-download-log-button", () => downloadCredentialCaptureLogAction("ntlmrelayx"));
 
     bind("workspace-refresh-button", refreshWorkspace);
-    bind("workspace-save-note-button", saveHostNote);
-    bind("workspace-save-categories-button", saveHostCategories);
     bind("workspace-run-tool-button", runManualTool);
     bind("workspace-run-scheduler-button", runSchedulerNow);
-    bind("workspace-add-script-button", addScriptEntry);
     bind("graph-refresh-button", graphRefreshAction);
     bind("graph-rebuild-button", graphRebuildAction);
     bind("graph-filters-toggle-button", () => graphSetFiltersExpanded(!graphWorkspaceState.filtersExpanded));
@@ -173,20 +149,6 @@ export function bindActionButtons() {
         });
     }
 
-    const responderQuickMode = document.getElementById("credential-capture-responder-mode-quick");
-    if (responderQuickMode) {
-        responderQuickMode.addEventListener("change", async () => {
-            await saveCredentialCaptureResponderModeQuickAction();
-        });
-    }
-
-    const credentialCaptureConfigForm = document.getElementById("credential-capture-config-form");
-    if (credentialCaptureConfigForm) {
-        credentialCaptureConfigForm.addEventListener("submit", async (event) => {
-            await saveCredentialCaptureConfigAction(event);
-        });
-    }
-
     const hostsBody = document.getElementById("hosts-body");
     if (hostsBody) {
         hostsBody.addEventListener("click", async (event) => {
@@ -206,21 +168,6 @@ export function bindActionButtons() {
                 return;
             }
             await selectHost(hostId, {syncGraph: true, preserveGraphDetail: true});
-        });
-    }
-
-    const hostDetailPortsBody = document.getElementById("host-detail-ports");
-    if (hostDetailPortsBody) {
-        hostDetailPortsBody.addEventListener("click", (event) => {
-            const btn = event.target.closest("button[data-screenshot-url]");
-            if (!btn) {
-                return;
-            }
-            openScreenshotModal(
-                btn.dataset.screenshotUrl,
-                btn.dataset.screenshotName,
-                btn.dataset.screenshotPort,
-            );
         });
     }
 
@@ -244,15 +191,12 @@ export function bindActionButtons() {
             if (!id) {
                 return;
             }
-            await deleteScript(id);
         });
     }
 
 
     bind("nmap-wizard-back", () => setNmapWizardStep(nmapWizardState.step - 1));
     bind("nmap-wizard-next", () => setNmapWizardStep(nmapWizardState.step + 1));
-    bind("scheduler-test-provider-button", testSchedulerProviderAction);
-    bind("project-report-push-button", pushProjectAiReportAction);
     bind("scheduler-modal-close", closeSchedulerSettingsAction);
     bind("interface-settings-modal-close", closeInterfaceSettingsAction);
     bind("interface-settings-save-button", saveInterfaceSettingsAction);
@@ -264,7 +208,6 @@ export function bindActionButtons() {
         }
     });
     bind("device-category-save-button", saveDeviceCategorySettingsAction);
-    bind("report-provider-modal-close", closeReportProviderModalAction);
     bind("settings-modal-close", closeAppSettingsAction);
     bind("settings-tool-audit-refresh-button", refreshToolAuditAction);
     bind("settings-tool-install-copy-button", copyToolInstallScriptAction);
@@ -274,39 +217,18 @@ export function bindActionButtons() {
     bind("workspace-switch-guard-stop-button", stopActiveWorkspaceWorkAndContinueAction);
     bind("nmap-scan-modal-close", closeNmapScanModalAction);
     bind("manual-scan-modal-close", closeManualScanModalAction);
-    bind("host-selection-modal-close", closeHostSelectionModalAction);
-    bind("script-cve-modal-close", closeScriptCveModalAction);
-    bind("jobs-modal-close", closeJobsModalAction);
-    bind("submitted-scans-modal-close", closeSubmittedScansModalAction);
-    bind("scheduler-decisions-modal-close", closeSchedulerDecisionsModalAction);
     bind("host-remove-modal-close", () => closeHostRemoveModalAction(true));
     bind("host-remove-modal-cancel", () => closeHostRemoveModalAction(true));
     bind("host-remove-modal-confirm", confirmHostRemoveAction);
-    bind("credentials-modal-close", closeCredentialsModalAction);
-    bind("credentials-copy-hashes-button", copyCredentialCaptureHashesAction);
-    bind("credentials-download-hashes-button", () => downloadCredentialCaptureHashesAction("txt"));
-    bind("credentials-download-json-button", () => downloadCredentialCaptureHashesAction("json"));
-    bind("credential-capture-config-modal-close", closeCredentialCaptureConfigModalAction);
     bind("script-output-modal-close", () => closeScriptOutputModal(true));
     bind("script-output-copy-button", copyScriptOutputAction);
     bind("script-output-command-copy", copyScriptCommandAction);
     bind("script-output-download-button", downloadScriptOutputAction);
-    bind("screenshot-modal-close", () => closeScreenshotModal(true));
-    bind("screenshot-copy-button", copyScreenshotAction);
-    bind("screenshot-download-button", downloadScreenshotAction);
     bind("graph-layout-tidy-button", graphTidyLayoutAction);
 
     const restoreZipInput = document.getElementById("project-restore-zip-file");
     if (restoreZipInput) {
         restoreZipInput.addEventListener("change", restoreWorkspaceBundleSelectedAction);
-    }
-
-    const toolInstallPlatformSelect = document.getElementById("settings-tool-install-platform");
-    if (toolInstallPlatformSelect) {
-        toolInstallPlatformSelect.addEventListener("change", async () => {
-            toolInstallPlatformSelect.dataset.userSelected = "true";
-            await refreshToolInstallPlanAction(false);
-        });
     }
 
     const ribbonMenuToggles = document.querySelectorAll("[data-ribbon-menu-toggle]");
@@ -353,15 +275,6 @@ export function bindActionButtons() {
         });
     }
 
-    const screenshotModal = document.getElementById("screenshot-modal");
-    if (screenshotModal) {
-        screenshotModal.addEventListener("click", (event) => {
-            if (event.target === screenshotModal) {
-                closeScreenshotModal(true);
-            }
-        });
-    }
-
     const nmapScanModal = document.getElementById("nmap-scan-modal");
     if (nmapScanModal) {
         nmapScanModal.addEventListener("click", (event) => {
@@ -394,78 +307,6 @@ export function bindActionButtons() {
         workspaceSwitchGuardModal.addEventListener("click", (event) => {
             if (event.target === workspaceSwitchGuardModal) {
                 closeWorkspaceSwitchGuardAction();
-            }
-        });
-    }
-
-    const hostSelectionModal = document.getElementById("host-selection-modal");
-    if (hostSelectionModal) {
-        hostSelectionModal.addEventListener("click", (event) => {
-            if (event.target === hostSelectionModal) {
-                closeHostSelectionModalAction();
-            }
-        });
-    }
-
-    const scriptCveModal = document.getElementById("script-cve-modal");
-    if (scriptCveModal) {
-        scriptCveModal.addEventListener("click", (event) => {
-            if (event.target === scriptCveModal) {
-                closeScriptCveModalAction();
-            }
-        });
-    }
-
-    const providerLogsModal = document.getElementById("provider-logs-modal");
-    if (providerLogsModal) {
-        providerLogsModal.addEventListener("click", (event) => {
-            if (event.target === providerLogsModal) {
-                closeProviderLogsModalAction();
-            }
-        });
-    }
-
-    const credentialsModal = document.getElementById("credentials-modal");
-    if (credentialsModal) {
-        credentialsModal.addEventListener("click", (event) => {
-            if (event.target === credentialsModal) {
-                closeCredentialsModalAction();
-            }
-        });
-    }
-
-    const credentialCaptureConfigModal = document.getElementById("credential-capture-config-modal");
-    if (credentialCaptureConfigModal) {
-        credentialCaptureConfigModal.addEventListener("click", (event) => {
-            if (event.target === credentialCaptureConfigModal) {
-                closeCredentialCaptureConfigModalAction();
-            }
-        });
-    }
-
-    const jobsModal = document.getElementById("jobs-modal");
-    if (jobsModal) {
-        jobsModal.addEventListener("click", (event) => {
-            if (event.target === jobsModal) {
-                closeJobsModalAction();
-            }
-        });
-    }
-
-    const submittedScansModal = document.getElementById("submitted-scans-modal");
-    if (submittedScansModal) {
-        submittedScansModal.addEventListener("click", (event) => {
-            if (event.target === submittedScansModal) {
-                closeSubmittedScansModalAction();
-            }
-        });
-    }
-
-    const schedulerDecisionsModal = document.getElementById("scheduler-decisions-modal");
-    if (schedulerDecisionsModal) {
-        schedulerDecisionsModal.addEventListener("click", (event) => {
-            if (event.target === schedulerDecisionsModal) {
-                closeSchedulerDecisionsModalAction();
             }
         });
     }
@@ -506,15 +347,6 @@ export function bindActionButtons() {
         });
     }
 
-    const reportProviderModal = document.getElementById("report-provider-modal");
-    if (reportProviderModal) {
-        reportProviderModal.addEventListener("click", (event) => {
-            if (event.target === reportProviderModal) {
-                closeReportProviderModalAction();
-            }
-        });
-    }
-
     const appSettingsModal = document.getElementById("app-settings-modal");
     if (appSettingsModal) {
         appSettingsModal.addEventListener("click", (event) => {
@@ -540,10 +372,6 @@ export function bindActionButtons() {
             closeScriptOutputModal(true);
             return;
         }
-        if (screenshotModalState.modalOpen) {
-            closeScreenshotModal(true);
-            return;
-        }
         if (uiModalState.nmapScanOpen) {
             closeNmapScanModalAction();
             return;
@@ -552,36 +380,10 @@ export function bindActionButtons() {
             closeManualScanModalAction();
             return;
         }
-        if (uiModalState.hostSelectionOpen) {
-            closeHostSelectionModalAction();
-            return;
-        }
-        if (uiModalState.scriptCveOpen) {
-            closeScriptCveModalAction();
-            return;
-        }
-        if (uiModalState.providerLogsOpen) {
-            closeProviderLogsModalAction();
-            return;
-        }
-        if (uiModalState.credentialsOpen) {
-            closeCredentialsModalAction();
-            return;
-        }
-        if (uiModalState.credentialCaptureConfigOpen) {
-            closeCredentialCaptureConfigModalAction();
-            return;
-        }
-        if (uiModalState.jobsOpen) {
-            closeJobsModalAction();
-            return;
-        }
         if (uiModalState.submittedScansOpen) {
-            closeSubmittedScansModalAction();
             return;
         }
         if (uiModalState.schedulerDecisionsOpen) {
-            closeSchedulerDecisionsModalAction();
             return;
         }
         if (uiModalState.hostRemoveOpen) {
@@ -604,10 +406,6 @@ export function bindActionButtons() {
             closeSchedulerSettingsAction();
             return;
         }
-        if (uiModalState.reportProviderOpen) {
-            closeReportProviderModalAction();
-            return;
-        }
         if (graphWorkspaceState.detailMode === "floating" && graphHasActiveSelection()) {
             graphDismissSelection();
             return;
@@ -616,32 +414,6 @@ export function bindActionButtons() {
 
     document.addEventListener("pointerdown", (event) => {
         if (graphWorkspaceState.detailMode !== "floating" || !graphHasActiveSelection()) {
-            return;
-        }
-        if (
-            ribbonMenuState.openMenuId
-            || processOutputState.modalOpen
-            || scriptOutputState.modalOpen
-            || screenshotModalState.modalOpen
-            || uiModalState.nmapScanOpen
-            || uiModalState.manualScanOpen
-            || uiModalState.hostSelectionOpen
-            || uiModalState.scriptCveOpen
-            || uiModalState.providerLogsOpen
-            || uiModalState.credentialsOpen
-            || uiModalState.credentialCaptureConfigOpen
-            || uiModalState.jobsOpen
-            || uiModalState.submittedScansOpen
-            || uiModalState.schedulerDecisionsOpen
-            || uiModalState.hostRemoveOpen
-            || uiModalState.graphNoteOpen
-            || uiModalState.interfaceSettingsOpen
-            || uiModalState.workspaceSwitchGuardOpen
-            || uiModalState.settingsOpen
-            || uiModalState.deviceCategorySettingsOpen
-            || uiModalState.schedulerOpen
-            || uiModalState.reportProviderOpen
-        ) {
             return;
         }
         const target = event.target;

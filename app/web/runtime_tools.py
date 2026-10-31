@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 
 from app.pipettes import find_pipette
 from app.scheduler.planner import SchedulerPlanner
-from app.screenshot_targets import apply_preferred_target_placeholders
+from app.command_targets import apply_preferred_target_placeholders
 from app.settings import AppSettings, Settings
 from app.timing import getTimestamp
 from app.web.runtime_tool_catalog import (
@@ -38,36 +38,6 @@ def find_command_template_for_tool(runtime, settings: Settings, tool_id: str) ->
     return str(action[2])
 
 
-def runner_type_for_tool(runtime, tool_id: str, command_template: str = "") -> str:
-    normalized_tool = str(tool_id or "").strip().lower()
-    if not normalized_tool and not str(command_template or "").strip():
-        return "local"
-    try:
-        registry = SchedulerPlanner.build_action_registry(runtime._get_settings(), dangerous_categories=[])
-        spec = registry.get_by_tool_id(normalized_tool)
-        if spec is not None and str(getattr(spec, "runner_type", "") or "").strip():
-            return str(spec.runner_type).strip().lower()
-    except Exception:
-        pass
-    if normalized_tool in {"screenshooter", "x11screen"}:
-        return "browser"
-    if normalized_tool in {"responder", "ntlmrelayx"}:
-        return "manual"
-    text = " ".join([normalized_tool, str(command_template or "")]).lower()
-    if any(token in text for token in ("manual", "operator", "clipboard")):
-        return "manual"
-    return "local"
-
-
-def runner_type_for_approval_item(runtime, item: Optional[Dict[str, Any]]) -> str:
-    payload = item if isinstance(item, dict) else {}
-    return runner_type_for_tool(
-        runtime,
-        str(payload.get("tool_id", "") or ""),
-        str(payload.get("command_template", "") or ""),
-    )
-
-
 def build_command(
     runtime,
     template: str,
@@ -83,32 +53,7 @@ def build_command(
     outputfile = os.path.normpath(outputfile).replace("\\", "/")
 
     command = str(template or "")
-    normalized_tool = str(tool_id or "").strip().lower()
-    scheduler_config = getattr(runtime, "scheduler_config", None)
-    if scheduler_config is not None and hasattr(scheduler_config, "load"):
-        scheduler_preferences = scheduler_config.load()
-    else:
-        scheduler_preferences = {}
     resolved_service_name = str(service_name or "").strip() or runtime._service_name_for_target(host_ip, port, protocol)
-    if normalized_tool == "banner":
-        command = AppSettings._ensure_banner_command(command)
-    if normalized_tool == "nuclei-web":
-        command = AppSettings._ensure_nuclei_auto_scan(command)
-    elif "nuclei" in normalized_tool or "nuclei" in str(command).lower():
-        command = AppSettings._ensure_nuclei_command(command, automatic_scan=False)
-    if str(tool_id or "").strip().lower() == "web-content-discovery":
-        command = AppSettings._ensure_web_content_discovery_command(command)
-    if normalized_tool == "httpx":
-        command = AppSettings._ensure_httpx_command(command)
-    if normalized_tool == "nikto":
-        command = AppSettings._ensure_nikto_command(command)
-    if normalized_tool == "wpscan":
-        command = AppSettings._ensure_wpscan_command(command)
-    if "wapiti" in str(command).lower():
-        normalized_tool = str(tool_id or "").strip().lower()
-        scheme = "https" if "https-wapiti" in normalized_tool else "http"
-        command = AppSettings._ensure_wapiti_command(command, scheme=scheme)
-    command = AppSettings._canonicalize_web_target_placeholders(command)
     if "nmap" in str(command).lower():
         command = AppSettings._ensure_nmap_stats_every(command)
     hostname = runtime._hostname_for_ip(host_ip)
@@ -119,11 +64,6 @@ def build_command(
         port=str(port),
         output=outputfile,
         service_name=resolved_service_name,
-        extra_placeholders=runtime._scheduler_command_placeholders(
-            host_ip=str(host_ip),
-            hostname=hostname,
-            preferences=scheduler_preferences,
-        ),
     )
     command = AppSettings._collapse_redundant_fallbacks(command)
     command = AppSettings._ensure_nmap_hostname_target_support(command, target_host)
@@ -225,3 +165,11 @@ def run_manual_tool(
         "reason": reason,
         "process_id": process_id,
     }
+
+
+def runner_type_for_tool(runtime, tool_id, command_template=""):
+    return "local"
+
+
+def runner_type_for_approval_item(runtime, item):
+    return "local"

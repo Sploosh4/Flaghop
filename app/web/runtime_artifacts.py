@@ -8,7 +8,6 @@ from sqlalchemy import text
 
 from app.scheduler.graph import rebuild_evidence_graph
 from app.scheduler.state import build_target_urls, get_target_state, upsert_target_state
-from app.screenshot_metadata import screenshot_metadata_path
 
 
 def path_within(base_path: str, candidate_path: str) -> bool:
@@ -52,60 +51,14 @@ def host_target_item_matches_port(item: Any, port: str, protocol: str) -> bool:
     return item_port == str(port or "").strip() and item_protocol == str(protocol or "tcp").strip().lower()
 
 
-def delete_project_artifact_refs(
-    runtime,
-    project,
-    *,
-    screenshots: List[Dict[str, Any]],
-    artifacts: List[Dict[str, Any]],
-) -> Dict[str, Any]:
-    screenshot_dir = os.path.join(project.properties.outputFolder, "screenshots")
-    candidate_paths: List[str] = []
-    for item in list(screenshots or []):
-        if not isinstance(item, dict):
-            continue
-        item_ref = str(item.get("artifact_ref", "") or item.get("ref", "") or item.get("url", "") or "").strip()
-        item_name = os.path.basename(str(item.get("filename", "") or item_ref).strip())
-        if item_ref.startswith("/api/screenshots/"):
-            api_name = os.path.basename(item_ref)
-            if api_name:
-                candidate_paths.append(os.path.join(screenshot_dir, api_name))
-        elif item_ref and is_project_artifact_path(runtime, project, item_ref):
-            candidate_paths.append(item_ref)
-        if item_name:
-            candidate_paths.append(os.path.join(screenshot_dir, item_name))
-
+def delete_project_artifact_refs(runtime, project, *, screenshots=None, artifacts=None):
+    removed = 0
     for item in list(artifacts or []):
-        if not isinstance(item, dict):
-            continue
-        item_ref = str(item.get("ref", "") or item.get("artifact_ref", "") or "").strip()
-        if item_ref.startswith("/api/screenshots/"):
-            api_name = os.path.basename(item_ref)
-            if api_name:
-                candidate_paths.append(os.path.join(screenshot_dir, api_name))
-        elif item_ref and is_project_artifact_path(runtime, project, item_ref):
-            candidate_paths.append(item_ref)
-
-    deleted_paths: List[str] = []
-    seen_paths = set()
-    for path in candidate_paths:
-        normalized = os.path.abspath(str(path or "").strip())
-        if not normalized or normalized in seen_paths:
-            continue
-        seen_paths.add(normalized)
-        if not os.path.isfile(normalized):
-            continue
-        if not is_project_artifact_path(runtime, project, normalized):
-            continue
-        try:
-            os.remove(normalized)
-            deleted_paths.append(normalized)
-        except Exception:
-            continue
-    return {
-        "deleted_files": len(deleted_paths),
-        "deleted_paths": deleted_paths,
-    }
+        path = str(item.get("ref", "") or item.get("artifact_ref", "")) if isinstance(item, dict) else str(item)
+        if path and is_project_artifact_path(runtime, project, path) and os.path.isfile(path):
+            os.remove(path)
+            removed += 1
+    return removed
 
 
 def prune_target_state_for_port(
@@ -352,133 +305,3 @@ def delete_workspace_service(
             "service": current_service,
             **deleted_file_info,
         }
-
-
-def delete_graph_screenshot(
-    runtime,
-    *,
-    host_id: int,
-    artifact_ref: str = "",
-    filename: str = "",
-    port: str = "",
-    protocol: str = "tcp",
-) -> Dict[str, Any]:
-    resolved_host_id = int(host_id or 0)
-    if resolved_host_id <= 0:
-        raise ValueError("host_id is required.")
-    resolved_artifact_ref = str(artifact_ref or "").strip()
-    resolved_filename = os.path.basename(str(filename or "").strip())
-    resolved_port = str(port or "").strip()
-    resolved_protocol = str(protocol or "tcp").strip().lower() or "tcp"
-    if not resolved_artifact_ref and not resolved_filename:
-        raise ValueError("artifact_ref or filename is required.")
-
-    with runtime._lock:
-        project = runtime._require_active_project()
-        host = runtime._resolve_host(resolved_host_id)
-        if host is None:
-            raise KeyError(f"Unknown host id: {host_id}")
-
-        screenshot_dir = os.path.join(project.properties.outputFolder, "screenshots")
-        candidate_paths: List[str] = []
-        if resolved_filename:
-            candidate_paths.append(os.path.join(screenshot_dir, resolved_filename))
-        if resolved_artifact_ref:
-            if resolved_artifact_ref.startswith("/api/screenshots/"):
-                api_filename = os.path.basename(resolved_artifact_ref)
-                if api_filename:
-                    candidate_paths.append(os.path.join(screenshot_dir, api_filename))
-            else:
-                candidate_paths.append(resolved_artifact_ref)
-        normalized_candidates: List[str] = []
-        for path in candidate_paths:
-            normalized = os.path.abspath(str(path or "").strip())
-            if normalized and normalized not in normalized_candidates:
-                normalized_candidates.append(normalized)
-                metadata_candidate = screenshot_metadata_path(normalized)
-                if metadata_candidate and metadata_candidate not in normalized_candidates:
-                    normalized_candidates.append(metadata_candidate)
-
-        deleted_files = 0
-        deleted_paths: List[str] = []
-        for path in normalized_candidates:
-            if not os.path.isfile(path):
-                continue
-            if not is_project_artifact_path(runtime, project, path):
-                continue
-            try:
-                os.remove(path)
-                deleted_files += 1
-                deleted_paths.append(path)
-            except Exception:
-                continue
-
-        target_state = get_target_state(project.database, resolved_host_id) or {}
-        filtered_screenshots = []
-        for item in list(target_state.get("screenshots", []) or []):
-            if not isinstance(item, dict):
-                continue
-            item_ref = str(item.get("artifact_ref", "") or item.get("ref", "") or item.get("url", "") or "").strip()
-            item_name = os.path.basename(str(item.get("filename", "") or item_ref).strip())
-            item_port = str(item.get("port", "") or "").strip()
-            item_protocol = str(item.get("protocol", "tcp") or "tcp").strip().lower() or "tcp"
-            matches_ref = bool(
-                resolved_artifact_ref
-                and (item_ref == resolved_artifact_ref or os.path.basename(item_ref) == resolved_filename)
-            )
-            matches_name = bool(resolved_filename and item_name == resolved_filename)
-            matches_target = True
-            if resolved_port:
-                matches_target = item_port == resolved_port
-            if matches_target and resolved_protocol:
-                matches_target = item_protocol == resolved_protocol
-            if (matches_ref or matches_name) and matches_target:
-                continue
-            filtered_screenshots.append(dict(item))
-
-        filtered_artifacts = []
-        for item in list(target_state.get("artifacts", []) or []):
-            if not isinstance(item, dict):
-                continue
-            item_ref = str(item.get("ref", "") or item.get("artifact_ref", "") or "").strip()
-            item_kind = str(item.get("kind", "") or "").strip().lower()
-            item_name = os.path.basename(item_ref)
-            matches_ref = bool(
-                resolved_artifact_ref
-                and (item_ref == resolved_artifact_ref or os.path.basename(item_ref) == resolved_filename)
-            )
-            matches_name = bool(resolved_filename and item_name == resolved_filename)
-            if item_kind == "screenshot" and (matches_ref or matches_name):
-                continue
-            filtered_artifacts.append(dict(item))
-
-        updated_state = dict(target_state)
-        updated_state["screenshots"] = filtered_screenshots
-        updated_state["artifacts"] = filtered_artifacts
-        upsert_target_state(project.database, resolved_host_id, updated_state, merge=False)
-        rebuild_evidence_graph(project.database, host_id=resolved_host_id)
-
-        return {
-            "deleted": True,
-            "host_id": resolved_host_id,
-            "artifact_ref": resolved_artifact_ref,
-            "filename": resolved_filename,
-            "deleted_files": int(deleted_files),
-            "deleted_paths": deleted_paths,
-        }
-
-
-def get_screenshot_file(runtime, filename: str) -> str:
-    safe_name = os.path.basename(str(filename or "").strip())
-    if safe_name != str(filename or "").strip():
-        raise ValueError("Invalid screenshot filename.")
-    if not safe_name.lower().endswith(".png"):
-        raise ValueError("Only PNG screenshots are supported.")
-
-    with runtime._lock:
-        project = runtime._require_active_project()
-        screenshot_dir = os.path.join(project.properties.outputFolder, "screenshots")
-        path = os.path.join(screenshot_dir, safe_name)
-        if not os.path.isfile(path):
-            raise FileNotFoundError(path)
-        return path

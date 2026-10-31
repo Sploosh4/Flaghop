@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from app.hostsfile import registrable_root_domain
-from app.scheduler.providers import determine_scheduler_phase
 from app.scheduler.context import excerpt
 from app.scheduler.context import host_ai_context
 from app.scheduler.context.ports import ContextPorts
@@ -36,7 +35,6 @@ def build_scheduler_target_context(
     if not evidence:
         return {}
     project = evidence["project"]
-    scheduler_preferences = evidence["scheduler_preferences"]
     hostname = evidence["hostname"]
     os_match = evidence["os_match"]
     service_name_db = evidence["service_name_db"]
@@ -196,8 +194,6 @@ def build_scheduler_target_context(
         "host_open_services": sorted(host_open_services)[:48],
         "host_open_ports": host_open_ports[:120],
         "host_banners": host_banner_hints[:80],
-        "grayhatwarfare_enabled": ports.grayhatwarfare_integration_enabled(scheduler_preferences),
-        "shodan_enabled": ports.shodan_integration_enabled(scheduler_preferences),
     }
     signals = signal_extraction.extract_scheduler_signals(
         ports,
@@ -208,7 +204,7 @@ def build_scheduler_target_context(
     )
     tool_audit = ports.scheduler_tool_audit_snapshot()
 
-    ai_state = ports.load_host_ai_analysis(project, int(host_id or 0), str(host_ip or ""))
+    ai_state = ports.load_host_observations(project, int(host_id or 0), str(host_ip or ""))
     ai_context_state, signals = host_ai_context.build_host_ai_context_state(
         ports,
         ai_state=ai_state if isinstance(ai_state, dict) else {},
@@ -260,19 +256,7 @@ def build_scheduler_target_context(
         inferred_technologies=inferred_technologies,
         analysis_mode=analysis_mode,
     )
-    current_phase = determine_scheduler_phase(
-        goal_profile=str(goal_profile or "internal_asset_discovery"),
-        service=str(target_data.get("service", "") or service_name or ""),
-        engagement_preset=str(engagement_preset or ""),
-        context={
-            "analysis_mode": str(analysis_mode or "standard"),
-            "signals": signals,
-            "coverage": coverage,
-            "attempted_tool_ids": sorted(
-                {str(item).strip().lower() for item in attempted_tool_ids if str(item).strip()}
-            ),
-        },
-    )
+    current_phase = "protocol_checks"
     context_summary = summary.build_scheduler_context_summary(
         target=target_data,
         analysis_mode=str(analysis_mode or "standard"),

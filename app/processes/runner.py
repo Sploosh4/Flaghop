@@ -369,16 +369,6 @@ class ProcessRunner:
         normalized_tool = str(self.request.tool_name or "").strip().lower()
         if normalized_tool not in {"responder", "ntlmrelayx", "ntlmrelay"}:
             return
-        try:
-            self.ports.persist_credential_capture_output(
-                tool_name=str(self.request.tool_name or ""),
-                output_text=str(output_text or ""),
-                default_source=str(self.request.host_ip or ""),
-            )
-        except Exception:
-            logging.getLogger(__name__).exception(
-                "Unable to persist credential capture output for process %s", self.state.process_id
-            )
 
     def _build_result(self, executed, reason, process_identifier):
         process_id = int(process_identifier or 0)

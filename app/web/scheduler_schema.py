@@ -9,17 +9,12 @@ SCHEDULER_PREFERENCE_ALLOWED_FIELDS = {
     "mode",
     "goal_profile",
     "engagement_policy",
-    "ai_feedback",
     "feature_flags",
-    "provider",
     "max_concurrency",
     "max_host_concurrency",
     "max_jobs",
-    "providers",
-    "integrations",
     "device_categories",
     "dangerous_categories",
-    "project_report_delivery",
 }
 
 

@@ -43,18 +43,6 @@ export function buildHostActionButton(action, hostId) {
         button.innerHTML = '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i>';
         return button;
     }
-    if (action === "refresh-screenshots") {
-        button.title = "Refresh screenshots";
-        button.setAttribute("aria-label", "Refresh screenshots");
-        button.innerHTML = '<i class="fa-solid fa-camera-retro" aria-hidden="true"></i>';
-        return button;
-    }
-    if (action === "dig-deeper") {
-        button.title = "Dig Deeper";
-        button.setAttribute("aria-label", "Dig Deeper");
-        button.innerHTML = '<i class="fa-solid fa-brain" aria-hidden="true"></i>';
-        return button;
-    }
     if (action === "remove") {
         button.classList.add("icon-btn-danger");
         button.title = "Remove host";
@@ -77,34 +65,6 @@ export function buildSubnetActionButton(action, subnet) {
         button.title = "Rescan subnet";
         button.setAttribute("aria-label", "Rescan subnet");
         button.innerHTML = '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i>';
-        return button;
-    }
-    return button;
-}
-
-
-export function buildScreenshotActionButton(action, payload) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "icon-btn";
-    button.dataset.screenshotAction = String(action || "");
-    button.dataset.hostId = String(payload?.hostId || "");
-    button.dataset.port = String(payload?.port || "");
-    button.dataset.protocol = String(payload?.protocol || "tcp");
-    button.dataset.artifactRef = String(payload?.artifactRef || "");
-    button.dataset.filename = String(payload?.filename || "");
-
-    if (action === "refresh") {
-        button.title = "Re-screenshot";
-        button.setAttribute("aria-label", "Re-screenshot");
-        button.innerHTML = '<i class="fa-solid fa-camera-retro" aria-hidden="true"></i>';
-        return button;
-    }
-    if (action === "delete") {
-        button.classList.add("icon-btn-danger");
-        button.title = "Delete screenshot";
-        button.setAttribute("aria-label", "Delete screenshot");
-        button.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
         return button;
     }
     return button;
@@ -340,14 +300,6 @@ export async function handleHostActionButtonAction(actionBtn) {
         await rescanHostAction(hostId);
         return true;
     }
-    if (action === "refresh-screenshots") {
-        await refreshHostScreenshotsAction(hostId);
-        return true;
-    }
-    if (action === "dig-deeper") {
-        await digDeeperHostAction(hostId);
-        return true;
-    }
     if (action === "remove") {
         requestHostRemoveAction(hostId);
         return true;
@@ -364,28 +316,6 @@ export async function handleSubnetActionButtonAction(actionBtn) {
     }
     if (action === "rescan") {
         await rescanSubnetAction(subnet);
-        return true;
-    }
-    return false;
-}
-
-
-export async function handleScreenshotActionButtonAction(actionBtn) {
-    const hostId = parseInt(actionBtn?.dataset?.hostId, 10);
-    const action = String(actionBtn?.dataset?.screenshotAction || "");
-    const port = String(actionBtn?.dataset?.port || "").trim();
-    const protocol = String(actionBtn?.dataset?.protocol || "tcp").trim().toLowerCase() || "tcp";
-    const artifactRef = String(actionBtn?.dataset?.artifactRef || "").trim();
-    const filename = String(actionBtn?.dataset?.filename || "").trim();
-    if (!hostId) {
-        return true;
-    }
-    if (action === "refresh") {
-        await refreshGraphScreenshotAction({hostId, port, protocol});
-        return true;
-    }
-    if (action === "delete") {
-        await deleteGraphScreenshotAction({hostId, port, protocol, artifactRef, filename});
         return true;
     }
     return false;
@@ -472,123 +402,6 @@ export async function rescanSubnetAction(subnet) {
 }
 
 
-export async function digDeeperHostAction(hostId) {
-    const id = parseInt(hostId, 10);
-    if (!id) {
-        return;
-    }
-    try {
-        const body = await postJson(`/api/workspace/hosts/${id}/dig-deeper`, {});
-        if (body?.job?.existing) {
-            setWorkspaceStatus(`Dig deeper already queued/running (job ${body?.job?.id || "?"})`);
-        } else {
-            setWorkspaceStatus(`Dig deeper queued (job ${body?.job?.id || "?"})`);
-        }
-        await pollSnapshot();
-    } catch (err) {
-        setWorkspaceStatus(`Dig deeper failed: ${err.message}`, true);
-    }
-}
-
-
-export async function refreshHostScreenshotsAction(hostId) {
-    const id = parseInt(hostId, 10);
-    if (!id) {
-        return;
-    }
-    try {
-        const body = await postJson(`/api/workspace/hosts/${id}/refresh-screenshots`, {});
-        const jobId = Number(body?.job?.id || 0);
-        if (body?.job?.existing) {
-            setWorkspaceStatus(`Screenshot refresh already queued/running (job ${jobId || "?"})`);
-            await pollSnapshot();
-            return;
-        }
-        setWorkspaceStatus(`Screenshot refresh queued (job ${jobId || "?"})`);
-        await pollSnapshot();
-        if (jobId > 0) {
-            waitForJobCompletion(jobId, 300000, 1500).then(async (job) => {
-                const result = job?.result || {};
-                const completed = Number(result.completed || 0);
-                const targetCount = Number(result.target_count || 0);
-                if (String(workspaceState.selectedHostId || "") === String(id)) {
-                    await loadHostDetail(id);
-                }
-                await pollSnapshot();
-                setWorkspaceStatus(
-                    targetCount > 0
-                        ? `Screenshot refresh completed (${completed}/${targetCount})`
-                        : "Screenshot refresh completed",
-                );
-            }).catch(async (err) => {
-                if (String(workspaceState.selectedHostId || "") === String(id)) {
-                    await loadHostDetail(id).catch(() => {});
-                }
-                await pollSnapshot();
-                setWorkspaceStatus(`Screenshot refresh failed: ${err.message}`, true);
-            });
-        }
-    } catch (err) {
-        setWorkspaceStatus(`Screenshot refresh failed: ${err.message}`, true);
-    }
-}
-
-
-export async function refreshGraphScreenshotAction(payload) {
-    const hostId = parseInt(payload?.hostId, 10);
-    const port = String(payload?.port || "").trim();
-    const protocol = String(payload?.protocol || "tcp").trim().toLowerCase() || "tcp";
-    if (!hostId || !port) {
-        return;
-    }
-    try {
-        const body = await postJson("/api/workspace/screenshots/refresh", {
-            host_id: hostId,
-            port,
-            protocol,
-        });
-        const jobId = Number(body?.job?.id || 0);
-        if (body?.job?.existing) {
-            setWorkspaceStatus(`Screenshot refresh already queued/running (job ${jobId || "?"})`);
-        } else {
-            setWorkspaceStatus(`Screenshot refresh queued (job ${jobId || "?"})`);
-        }
-        await pollSnapshot();
-    } catch (err) {
-        setWorkspaceStatus(`Screenshot refresh failed: ${err.message}`, true);
-    }
-}
-
-
-export async function deleteGraphScreenshotAction(payload) {
-    const hostId = parseInt(payload?.hostId, 10);
-    const port = String(payload?.port || "").trim();
-    const protocol = String(payload?.protocol || "tcp").trim().toLowerCase() || "tcp";
-    const artifactRef = String(payload?.artifactRef || "").trim();
-    const filename = String(payload?.filename || "").trim();
-    if (!hostId || (!artifactRef && !filename)) {
-        return;
-    }
-    const targetLabel = filename || artifactRef || "this screenshot";
-    if (!window.confirm(`Delete ${targetLabel}?`)) {
-        return;
-    }
-    try {
-        await postJson("/api/workspace/screenshots/delete", {
-            host_id: hostId,
-            port,
-            protocol,
-            artifact_ref: artifactRef,
-            filename,
-        });
-        setWorkspaceStatus(`Deleted screenshot ${targetLabel}`);
-        await pollSnapshot();
-    } catch (err) {
-        setWorkspaceStatus(`Delete screenshot failed: ${err.message}`, true);
-    }
-}
-
-
 export async function confirmHostRemoveAction() {
     const hostId = parseInt(hostRemoveState.hostId, 10);
     if (!hostId) {
@@ -611,7 +424,6 @@ export async function confirmHostRemoveAction() {
         if (workspaceState.selectedHostId === hostId) {
             workspaceState.selectedHostId = null;
             workspaceState.hostDetail = null;
-            renderHostDetail({host: {}, note: "", ports: [], cves: [], screenshots: []});
         }
         setWorkspaceStatus(`Removed host ${removedIp || hostId}`);
         await Promise.all([refreshWorkspace(), pollSnapshot(), loadApprovals()]);

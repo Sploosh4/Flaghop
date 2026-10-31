@@ -37,15 +37,6 @@ def scheduler_preferences_update():
         return json_error(str(exc), 500)
 
 
-@scheduler_bp.post("/api/scheduler/provider/test")
-def scheduler_provider_test():
-    service = _scheduler_service()
-    try:
-        return jsonify(service.test_provider(request.get_json(silent=True) or {}))
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
 @scheduler_bp.get("/api/engagement-policy")
 def engagement_policy_get():
     service = _scheduler_service()
@@ -57,15 +48,6 @@ def engagement_policy_update():
     service = _scheduler_service()
     try:
         return jsonify(service.update_engagement_policy(request.get_json(silent=True) or {}))
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
-@scheduler_bp.get("/api/scheduler/provider/logs")
-def scheduler_provider_logs():
-    service = _scheduler_service()
-    try:
-        return jsonify(service.get_provider_logs(request.args))
     except Exception as exc:
         return json_error(str(exc), 500)
 

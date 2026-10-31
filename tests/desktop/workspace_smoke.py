@@ -26,6 +26,7 @@ from app.api import create_app
 from app.web import create_app as create_legacy_app
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
+from app.tooling import detect_supported_tool_install_platform
 from tests.support.asgi_server import live_asgi_server, live_legacy_server
 
 logic = create_default_logic()
@@ -377,12 +378,39 @@ def settings_open():
 
 def application_settings():
     record(
+        "Retired features have no controls in reused panels",
+        """(() => {
+        const doc = document.querySelector('.hub-reused-panel iframe').contentDocument;
+        return ['credential-capture-panel', 'provider-logs-modal', 'report-provider-modal', 'host-selection-modal', 'script-cve-modal', 'scheduler-provider-select'].every(id => !doc.getElementById(id));
+        })()""",
+    )
+    record(
         "Original settings dialog is accessible and populated",
         """(() => {
         const doc = document.querySelector('.hub-reused-panel iframe').contentDocument;
         return doc.getElementById('app-settings-modal').classList.contains('is-open')
             && doc.querySelectorAll('#settings-tool-audit-body tr').length > 0;
     })()""",
+    )
+    record(
+        "Application settings fill the available page",
+        """(() => {
+        const frame = document.querySelector('.hub-reused-panel iframe');
+        const doc = frame.contentDocument;
+        const box = doc.querySelector('#app-settings-modal>.legion-modal').getBoundingClientRect();
+        return box.left === 0 && box.top === 0
+            && Math.abs(box.width - frame.clientWidth) <= 1
+            && Math.abs(box.height - frame.clientHeight) <= 1;
+    })()""",
+    )
+    record(
+        "Install platform is detected without a selector",
+        f"""(() => {{
+        const doc = document.querySelector('.hub-reused-panel iframe').contentDocument;
+        return !doc.getElementById('settings-tool-install-platform')
+            && doc.getElementById('settings-tool-install-script').value.includes({json.dumps('# Platform: ' + detect_supported_tool_install_platform())})
+            && doc.querySelectorAll('.tool-audit-table-wrap thead th').length === 5;
+    }})()""",
     )
     view.grab().save(str(ARTIFACTS / "restored-application-settings.png"))
     record(
@@ -414,10 +442,29 @@ def interface_settings():
 
 
 def restored_finish():
+    record("Bottom status bar is removed", "!document.querySelector('#project-hub-root footer')")
     record(
-        "Live status is displayed",
-        "['Live','Polling/API'].some(value => document.querySelector('.hub-footer-meta').textContent.includes(value))",
+        "Open status information in workspace details", "document.querySelector('.hub-header-details').click(); true"
     )
+    QTimer.singleShot(150, details_status)
+
+
+def details_status():
+    record(
+        "Live status and metadata are preserved in workspace details",
+        """(() => {
+        const rows = [...document.querySelectorAll('.hub-details dt')];
+        const field = name => rows.find(row => row.textContent === name)?.nextElementSibling.textContent;
+        return ['Live','Polling/API'].includes(field('Connection'))
+            && field('Authentication') === 'No auth'
+            && !!field('Running / queued jobs') && !!field('Status') && field('Version').startsWith('v');
+    })()""",
+    )
+    record("Close workspace details", "document.querySelector('.hub-modal-actions button').click(); true")
+    QTimer.singleShot(100, reload_project)
+
+
+def reload_project():
     record("Errors are absent", "document.querySelectorAll('#project-hub-root [role=alert]').length === 0")
     view.grab().save(str(ARTIFACTS / "restored-project-controls.png"))
     page.loadFinished.disconnect()
@@ -429,6 +476,38 @@ def reloaded():
     record(
         "Reload restores project, Setup and sidebar width",
         "!!document.querySelector('.hub-setup-page') && document.querySelector('.hub-project-heading .hub-name').textContent === 'Quiet lab renamed' && document.querySelector('.hub-resizer').getAttribute('aria-valuenow') === '340'",
+    )
+    record(
+        "Open retained Activity panel",
+        "document.dispatchEvent(new KeyboardEvent('keydown', {key: 'k', ctrlKey: true, bubbles: true})); true",
+    )
+    QTimer.singleShot(120, activity_search)
+
+
+def activity_search():
+    record(
+        "Search for Activity",
+        "(() => { const input = document.querySelector('#project-hub-root input[aria-label=\"Search views, actions, and hosts\"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Activity'); input.dispatchEvent(new Event('input', {bubbles: true})); return true; })()",
+    )
+    QTimer.singleShot(200, activity_open)
+
+
+def activity_open():
+    record(
+        "Open Activity from search",
+        "[...document.querySelectorAll('.hub-palette-results button')].find(button => button.querySelector('span').textContent === 'Activity').click(); true",
+    )
+    QTimer.singleShot(1800, activity_verified)
+
+
+def activity_verified():
+    record(
+        "Activity retains jobs and scan history without logging dialogs",
+        """(() => {
+        const frame = document.querySelector('.hub-reused-panel iframe');
+        const doc = frame?.contentDocument;
+        return !!doc && !!doc.querySelector('[data-workspace-view="activity"] #jobs-body') && !!doc.querySelector('[data-workspace-view="activity"] #scan-history-body') && !doc.getElementById('provider-logs-modal') && !doc.getElementById('jobs-modal');
+    })()""",
     )
     QTimer.singleShot(100, finish)
 

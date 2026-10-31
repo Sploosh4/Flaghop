@@ -32,21 +32,3 @@ export function ProcessOutputPanel({controller}: {controller: ActivityController
       <AnsiOutput id="process-output-text" text={state.text}/></div>
   </>;
 }
-
-export function ProviderLogsPanel({controller, close}: {controller: ActivityController; close(): void}) {
-  const state = useSyncExternalStore(controller.logs.subscribe, controller.logs.getSnapshot);
-  const structured = state.logs.filter(row => row.prompt_metadata?.structured_output_used).length;
-  const fallback = state.logs.filter(row => row.prompt_metadata?.structured_output_fallback).length;
-  return <>
-    <div className="panel-header modal-header"><h2 id="provider-logs-modal-title">Provider Logs</h2>
-      <p id="provider-logs-meta">{state.loading ? 'Loading logs...' : `Entries ${state.logs.length} | structured ${structured} | fallback ${fallback} | bytes ${state.text.length}`}</p>
-      <IconButton id="provider-logs-modal-close" className="modal-close-btn" label="Close dialog" icon="fa-solid fa-xmark" onClick={close}/></div>
-    <div className="modal-actions">
-      <button id="provider-logs-refresh-button" type="button" disabled={state.loading} onClick={() => {void controller.actions.loadProviderLogs();}}>Refresh</button>
-      <button id="provider-logs-copy-button" type="button" onClick={() => {void copyTextToClipboard(state.text, 'Provider logs copied to clipboard', 'No provider logs to copy');}}>Copy to Clipboard</button>
-      <button id="provider-logs-download-button" type="button" onClick={() => download(state.text, `provider-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`)}>Download .txt</button>
-    </div>
-    {state.error && <p role="alert">{state.error}</p>}
-    <label>Log Output<AnsiOutput id="provider-logs-text" text={state.text}/></label>
-  </>;
-}

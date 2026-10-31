@@ -2,7 +2,6 @@
 {% block title %}Legion{% endblock %}
 {% block content %}
 <main class="grid" id="workspace-views">
-    {% set credential_capture = snapshot.get('credential_capture', {}) %}
     <div class="state-cache" aria-hidden="true">
         <input id="project-open-path" type="text">
         <input id="project-save-path" type="text">
@@ -15,7 +14,7 @@
 
     {% include 'partials/ribbon-menu-button.html' %}
 
-    {% include 'partials/credential-capture.html' %}
+
 
     {% include 'partials/graph.html' %}
     {% include 'partials/hosts.html' %}
@@ -32,36 +31,37 @@
 
 {% include 'partials/script-output.html' %}
 
-{% include 'partials/screenshot.html' %}
+
 
 {% include 'partials/nmap-scan.html' %}
 
 {% include 'partials/manual-scan.html' %}
 
-{% include 'partials/host-selection.html' %}
 
-{% include 'partials/script-cve.html' %}
+
+
 
 {% include 'partials/device-category-settings.html' %}
 
 {% include 'partials/scheduler-settings.html' %}
 
-{% include 'partials/report-provider.html' %}
+
 
 {% include 'partials/interface-settings.html' %}
 
-{% include 'partials/credentials.html' %}
 
-{% include 'partials/credential-capture-config.html' %}
+
+
 
 {% include 'partials/app-settings.html' %}
 
 {% include 'partials/switch-guard.html' %}
 
-{% include 'partials/provider-logs.html' %}
 
-{% include 'partials/jobs.html' %}
 
+
+
+{% include 'partials/job-history.html' %}
 {% include 'partials/submitted-scans.html' %}
 
 {% include 'partials/scheduler-decisions.html' %}

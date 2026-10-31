@@ -16,8 +16,6 @@ class ArtifactsRuntime:
 
     _collect_command_artifacts = staticmethod(web_runtime_artifacts.collect_command_artifacts)
 
-    delete_graph_screenshot = web_runtime_artifacts.delete_graph_screenshot
-
     _host_target_item_matches_port = staticmethod(web_runtime_artifacts.host_target_item_matches_port)
 
     _delete_project_artifact_refs = web_runtime_artifacts.delete_project_artifact_refs
@@ -27,5 +25,3 @@ class ArtifactsRuntime:
     delete_workspace_port = web_runtime_artifacts.delete_workspace_port
 
     delete_workspace_service = web_runtime_artifacts.delete_workspace_service
-
-    get_screenshot_file = web_runtime_artifacts.get_screenshot_file

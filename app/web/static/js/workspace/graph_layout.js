@@ -142,9 +142,6 @@ export function graphGroupTypePriority(nodeType, groupBy) {
         if (type === "technology" || type === "cpe") {
             return 4;
         }
-        if (type === "screenshot") {
-            return 5;
-        }
         if (["host", "fqdn", "port", "subnet", "scope"].includes(type)) {
             return 6;
         }
@@ -159,9 +156,6 @@ export function graphGroupTypePriority(nodeType, groupBy) {
         }
         if (["finding", "cve", "exploit_reference"].includes(type)) {
             return 2;
-        }
-        if (type === "screenshot") {
-            return 3;
         }
         if (["host", "fqdn", "port"].includes(type)) {
             return 4;
@@ -180,9 +174,6 @@ export function graphGroupTypePriority(nodeType, groupBy) {
         }
         if (["credential", "identity", "session"].includes(type)) {
             return 3;
-        }
-        if (type === "screenshot") {
-            return 4;
         }
         return 5;
     }
@@ -283,9 +274,6 @@ export function graphViewLanePriority(nodeType, viewId, groupBy) {
         if (type === "port" || type === "service") {
             return 2;
         }
-        if (type === "url" || type === "screenshot") {
-            return 3;
-        }
         if (type === "technology" || type === "cpe") {
             return 4;
         }
@@ -304,9 +292,6 @@ export function graphViewLanePriority(nodeType, viewId, groupBy) {
         if (type === "port" || type === "service") {
             return 1;
         }
-        if (type === "url" || type === "screenshot") {
-            return 2;
-        }
         if (type === "technology" || type === "cpe") {
             return 3;
         }
@@ -318,9 +303,6 @@ export function graphViewLanePriority(nodeType, viewId, groupBy) {
     if (view === "web_application_map") {
         if (type === "host" || type === "fqdn" || type === "service") {
             return 0;
-        }
-        if (type === "url" || type === "screenshot") {
-            return 1;
         }
         if (type === "technology" || type === "cpe") {
             return 2;
@@ -351,9 +333,6 @@ export function graphViewLanePriority(nodeType, viewId, groupBy) {
         }
         if (type === "credential" || type === "identity" || type === "session") {
             return 2;
-        }
-        if (type === "action" || type === "artifact" || type === "screenshot" || type === "evidence_record") {
-            return 3;
         }
         return 4;
     }

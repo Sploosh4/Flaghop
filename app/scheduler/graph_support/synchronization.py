@@ -23,9 +23,6 @@ from app.scheduler.graph_support.sync_actions import (
 from app.scheduler.graph_support.sync_artifacts import (
     _sync_graph_artifacts,
 )
-from app.scheduler.graph_support.sync_credentials import (
-    _sync_graph_credentials,
-)
 from app.scheduler.graph_support.sync_findings import (
     _sync_graph_findings,
 )
@@ -155,7 +152,6 @@ def sync_target_state_to_evidence_graph(
         _sync_graph_urls(context, host_node_id, mutations, resolved_host_id, service_nodes, session)
         _sync_graph_technologies(context, host_node_id, mutations, resolved_host_id, session)
         _sync_graph_findings(context, host_node_id, mutations, resolved_host_id, session)
-        _sync_graph_credentials(context, host_node_id, mutations, resolved_host_id, session)
         artifact_nodes = _sync_graph_artifacts(context, host_node_id, mutations, resolved_host_id, session)
         _sync_graph_actions(artifact_nodes, context, host_ip, host_node_id, mutations, resolved_host_id, session)
 

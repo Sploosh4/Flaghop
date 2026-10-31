@@ -8,10 +8,8 @@ from typing import Callable
 class ContextPorts:
     load_evidence: Callable
     infer_technologies_from_observations: Callable
-    grayhatwarfare_integration_enabled: Callable
-    shodan_integration_enabled: Callable
     scheduler_tool_audit_snapshot: Callable
-    load_host_ai_analysis: Callable
+    load_host_observations: Callable
     persist_shared_target_state: Callable
     observation_text_for_analysis: Callable
     merge_technologies: Callable

@@ -36,7 +36,6 @@ class ExecutionPorts:
     jobs: Any
     collect_command_artifacts: Callable
     emit_ui_invalidation: Callable
-    persist_credential_capture_output: Callable
     process_progress_adapter_for_command: Callable
     process_tree_activity_changed: Callable
     register_job_process: Callable

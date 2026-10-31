@@ -224,7 +224,7 @@ def execute_approved_scheduler_item(
         protocol=str(item.get("protocol", "tcp") or "tcp"),
         score=100.0,
         rationale=str(item.get("rationale", "")),
-        mode=str(item.get("scheduler_mode", "ai") or "ai"),
+        mode="deterministic",
         goal_profile=str(item.get("goal_profile", "") or ""),
         family_id=str(item.get("command_family_id", "")),
         danger_categories=runtime._split_csv(str(item.get("risk_tags", "") or item.get("danger_categories", ""))),

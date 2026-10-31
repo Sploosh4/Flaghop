@@ -7,14 +7,6 @@ __modified_by = "ketchup"
 
 import parsers.CVE as CVE
 
-try:
-    from pyExploitDb import PyExploitDb
-except Exception as import_error:
-    PyExploitDb = None
-    PY_EXPLOIT_DB_IMPORT_ERROR = import_error
-else:
-    PY_EXPLOIT_DB_IMPORT_ERROR = None
-
 
 class Script:
     scriptId = ""
@@ -25,31 +17,8 @@ class Script:
             self.scriptId = ScriptNode.getAttribute("id")
             self.output = ScriptNode.getAttribute("output")
 
-    def processShodanScriptOutput(self, shodanOutput):
-        output = shodanOutput.replace("\t\t\t", "\t")
-        output = output.replace("\t\t", "\t")
-        output = output.replace("\t", ";")
-        output = output.replace("\n;", "\n")
-        output = output.replace(" ", "")
-        output = output.split("\n")
-        output = [entry for entry in output if len(entry) > 1]
-        print(str(output))
-
     def processVulnersScriptOutput(self, vulnersOutput):
         import re
-
-        pyExploitDb = None
-        if PyExploitDb is None:
-            print("[PyExploitDb] Module unavailable: {0}".format(PY_EXPLOIT_DB_IMPORT_ERROR))
-        else:
-            try:
-                pyExploitDb = PyExploitDb()
-                pyExploitDb.debug = False
-                pyExploitDb.autoUpdate = False
-                pyExploitDb.openFile()
-            except Exception as exc:
-                print("[PyExploitDb] Failed to initialise: {0}".format(exc))
-                pyExploitDb = None
 
         resultsDict = {}
         current_product = None
@@ -86,31 +55,7 @@ class Script:
                         "source": current_source,
                         "product": current_product,
                     }
-                    if pyExploitDb:
-                        try:
-                            exploitResults = pyExploitDb.searchCve(fields[0])
-                        except Exception as exc:
-                            print("[PyExploitDb] Lookup failed for {0}: {1}".format(fields[0], exc))
-                            exploitResults = None
-                        if isinstance(exploitResults, dict) and exploitResults:
-                            exploit_id = exploitResults.get("edbid") or exploitResults.get("id")
-                            if exploit_id:
-                                cve_dict["exploitId"] = exploit_id
-                                cve_dict["exploitUrl"] = "https://www.exploit-db.com/exploits/{0}".format(exploit_id)
-                            exploit_summary = (
-                                exploitResults.get("exploit")
-                                or exploitResults.get("description")
-                                or exploitResults.get("file")
-                            )
-                            if exploit_summary:
-                                cve_dict["exploit"] = exploit_summary
-                        elif exploitResults:
-                            print(
-                                "[PyExploitDb] Unexpected lookup result for {0}: {1}".format(
-                                    fields[0], type(exploitResults)
-                                )
-                            )
-                cve_list.append(cve_dict)
+                    cve_list.append(cve_dict)
                 continue
         # Save last product's CVEs
         if current_product and cve_list:

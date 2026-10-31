@@ -11,6 +11,8 @@ Updated 31 October 2026. This separates working changes from requests still wait
 - [x] Show project files in Overview, with file access kept inside that project's folder.
 - [x] Put Setup with a gear at the bottom of the sidebar and show this computer there.
 - [x] Press Setup again to return to the previous page, including its selected host/inspector. Remember that return destination across reloads.
+- [x] Detect the Kali/Ubuntu installation profile automatically; remove the platform selector and show only matching install hints. Unsupported profiles keep the audit but cannot queue automatic installs.
+- [x] Fill the main area with Application settings. Remove the bottom status bar; keep live status, job count and connection/version/bind/auth details under the existing information button.
 - [x] Restore the sidebar collapse/reopen arrows and remember the collapsed state. Remove the decorative arrows from project rows.
 - [x] Show a red, **unconfigured** Setup state and inactive VPN controls. This does not report whether a real VPN is connected.
 - [x] Allow each project to use the global default or explicitly choose None. The global control currently shows No default.
@@ -27,13 +29,37 @@ The first foundation pass made these controls inaccessible. They are now availab
 - A project context menu with Rename, Save, Save as, Export ZIP and Workspace details. Right-click or Shift F10 opens it; arrows, Home/End, Enter and Escape operate it. Ctrl S saves; Ctrl Shift S opens Save as.
 - Open an existing `.legion` path and restore a workspace ZIP from the project home. External/restored workspaces are copied into the managed Hackathon folder. Save as creates a separate named project there and copies its documents; the original is preserved. Export/restore includes project documents as well as the existing session/tool-output bundle.
 - Ctrl K command search across projects, views, actions and hosts. A project remains selected while searching. Views and tool dialogs open on demand; their old navigation and quick actions remain hidden.
-- Application/tool, interface, scheduler, device-category and report-delivery settings from Setup or command search. Existing dialogs and inspectors are reused in an isolated same-origin panel, with their original handlers and close controls.
+- Application/tool, interface, scheduler and device-category settings from Setup or command search. Existing dialogs and inspectors are reused in an isolated same-origin panel, with their original handlers and close controls.
 - Workspace details, live running/queued job counts, action status, version, bind/auth information and connection state. Snapshot updates use the existing WebSocket invalidations, with polling fallback.
 - Restore the selected project and page after reload, along with sidebar collapse and width preferences.
 
 The earlier full shell remains hidden by default. Its settings/inspectors are bootstrapped only when opened as a reused panel. No VPN discovery, connecting, scanning or new automatic tool execution is added by this restoration.
 
 ## Still to build
+
+### Settings review
+
+The tool audit now covers the retained local discovery and protocol tools. Removed web, screenshot, relay and external-enrichment tools are no longer offered for installation. No tools were installed during this change.
+
+- Interface settings controls the evidence graph and optional ASCII background.
+- Scheduler settings controls deterministic follow-ups, approvals, concurrency and execution permissions. AI providers, prompt controls and alternate runners are removed.
+- Device categories defines labels and matching rules for ports, fingerprints and CPE values.
+- Setup contains this computer and deferred VPN preferences. VPN discovery is still not implemented.
+
+### Removed in this pass
+
+- AI-assisted planning, provider connections, API-key storage, feedback/reflection loops and provider logs.
+- Dedicated web checks, HTTP bootstrap scans, web/remote screenshots and their installers.
+- Container, browser and manual execution adapters; commands still run locally with cancellation and output history.
+- Responder/NTLM capture and relay, captured-credential exports and their settings.
+- Shodan, Chaos, GrayhatWarfare and other external-enrichment launchers; external report delivery.
+- Unrestored host-note/manual-category and Add Script controls, target-text-file import, and standalone logging dialogs. Scan/job/decision history remains in Activity. Nmap XML import, project files, graph annotations, exports and approvals remain.
+
+Keep the local protocol checks for optional deeper actions: SMTP, SMB/RDP, IPMI and Cisco Smart Install add coverage beyond the Device Design classifier. Their presence does not mean every check should run automatically. The separate Device Design prototype is unchanged.
+
+Automatic decoding and a bounded file-hash recovery queue are still planned. Removing credential capture does not remove those requirements. Website integration is deferred for a later design, with the old suite removed now. VPN discovery and the Figma workflow remain paused.
+
+Useful future settings: workflow-specific tool selections, executable/wordlist paths in the UI, per-project targets/exclusions, CPU/RAM/time limits for decoding and recovery, file backup/retention controls, and editable keyboard bindings. Some related values already exist in configuration or Scheduler settings; the gap is a coherent project-facing UI.
 
 ### Map and navigation
 
@@ -71,7 +97,7 @@ The earlier full shell remains hidden by default. Its settings/inspectors are bo
 
 ### Website tools and Figma
 
-- Add website targets and unauthenticated web tools to the shared workflow.
+- Website integration remains a later phase. The old web checks and screenshot suite have been removed. Agree the smaller replacement before implementing it.
 - Authenticated website investigation is deferred: login sessions, cookies, tokens and authenticated views come after the basic integration.
 - **The Terra Figma workflow is paused.** Resume only after Josh reviews the foundation and asks to continue. No new Figma work is authorised by this log.
 - Keep the near-black T3-inspired style, minimal visible text and no extra tips or explanatory UI copy.

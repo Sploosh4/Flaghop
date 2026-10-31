@@ -143,21 +143,6 @@ export async function importNmapXmlFromRibbonAction() {
 }
 
 
-export async function importTargetsFromRibbonAction() {
-    closeRibbonMenus();
-    let path = getValue("targets-file-path").trim();
-    if (!path) {
-        const prompted = window.prompt("Enter targets text file path:", "");
-        path = String(prompted || "").trim();
-        if (!path) {
-            return;
-        }
-        setValue("targets-file-path", path);
-    }
-    await importTargetsFile();
-}
-
-
 export function setWorkspaceSwitchGuardModalOpen(open) {
     const overlay = document.getElementById("workspace-switch-guard-modal");
     if (!overlay) {

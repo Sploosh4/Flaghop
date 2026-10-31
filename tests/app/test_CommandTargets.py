@@ -4,9 +4,9 @@ from unittest.mock import patch
 
 
 class ScreenshotTargetSelectionTest(unittest.TestCase):
-    @patch("app.screenshot_targets.socket.getaddrinfo")
+    @patch("app.command_targets.socket.getaddrinfo")
     def test_choose_preferred_host_prefers_resolvable_hostname(self, mock_getaddrinfo):
-        from app.screenshot_targets import choose_preferred_host, resolve_hostname_addresses
+        from app.command_targets import choose_preferred_host, resolve_hostname_addresses
 
         resolve_hostname_addresses.cache_clear()
 
@@ -18,9 +18,9 @@ class ScreenshotTargetSelectionTest(unittest.TestCase):
 
         self.assertEqual("bing.com", actual)
 
-    @patch("app.screenshot_targets.socket.getaddrinfo", side_effect=socket.gaierror("nope"))
+    @patch("app.command_targets.socket.getaddrinfo", side_effect=socket.gaierror("nope"))
     def test_choose_preferred_host_falls_back_to_ip_when_hostname_does_not_resolve(self, _mock_getaddrinfo):
-        from app.screenshot_targets import choose_preferred_host, resolve_hostname_addresses
+        from app.command_targets import choose_preferred_host, resolve_hostname_addresses
 
         resolve_hostname_addresses.cache_clear()
 
@@ -28,52 +28,16 @@ class ScreenshotTargetSelectionTest(unittest.TestCase):
 
         self.assertEqual("203.0.113.11", actual)
 
-    @patch("app.screenshot_targets.socket.getaddrinfo", side_effect=socket.gaierror("nope"))
-    def test_choose_preferred_screenshot_host_falls_back_to_ip_when_hostname_does_not_resolve(self, _mock_getaddrinfo):
-        from app.screenshot_targets import choose_preferred_screenshot_host, resolve_hostname_addresses
-
-        resolve_hostname_addresses.cache_clear()
-
-        actual = choose_preferred_screenshot_host("portal.example", "203.0.113.11")
-
-        self.assertEqual("203.0.113.11", actual)
-
-    @patch("app.screenshot_targets.socket.getaddrinfo")
-    def test_choose_preferred_screenshot_host_prefers_hostname_when_it_resolves_to_host_ip(self, mock_getaddrinfo):
-        from app.screenshot_targets import choose_preferred_screenshot_host, resolve_hostname_addresses
-
-        resolve_hostname_addresses.cache_clear()
-        mock_getaddrinfo.return_value = [
-            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("203.0.113.11", 0)),
-        ]
-
-        actual = choose_preferred_screenshot_host("portal.example", "203.0.113.11")
-
-        self.assertEqual("portal.example", actual)
-
-    @patch("app.screenshot_targets.socket.getaddrinfo")
-    def test_choose_preferred_screenshot_host_falls_back_to_ip_when_hostname_resolves_elsewhere(self, mock_getaddrinfo):
-        from app.screenshot_targets import choose_preferred_screenshot_host, resolve_hostname_addresses
-
-        resolve_hostname_addresses.cache_clear()
-        mock_getaddrinfo.return_value = [
-            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("203.0.113.99", 0)),
-        ]
-
-        actual = choose_preferred_screenshot_host("portal.example", "203.0.113.11")
-
-        self.assertEqual("203.0.113.11", actual)
-
     def test_choose_preferred_host_falls_back_to_ip_for_unknown_hostname(self):
-        from app.screenshot_targets import choose_preferred_host
+        from app.command_targets import choose_preferred_host
 
         actual = choose_preferred_host("unknown", "203.0.113.12")
 
         self.assertEqual("203.0.113.12", actual)
 
-    @patch("app.screenshot_targets.socket.getaddrinfo")
+    @patch("app.command_targets.socket.getaddrinfo")
     def test_apply_preferred_target_placeholders_uses_hostname_when_resolvable(self, mock_getaddrinfo):
-        from app.screenshot_targets import apply_preferred_target_placeholders, resolve_hostname_addresses
+        from app.command_targets import apply_preferred_target_placeholders, resolve_hostname_addresses
 
         resolve_hostname_addresses.cache_clear()
         mock_getaddrinfo.return_value = [
@@ -92,9 +56,9 @@ class ScreenshotTargetSelectionTest(unittest.TestCase):
         self.assertIn("https://bing.com:443", command)
         self.assertIn("/tmp/out.txt", command)
 
-    @patch("app.screenshot_targets.socket.getaddrinfo")
+    @patch("app.command_targets.socket.getaddrinfo")
     def test_apply_preferred_target_placeholders_keeps_ip_for_numeric_only_commands(self, mock_getaddrinfo):
-        from app.screenshot_targets import apply_preferred_target_placeholders, resolve_hostname_addresses
+        from app.command_targets import apply_preferred_target_placeholders, resolve_hostname_addresses
 
         resolve_hostname_addresses.cache_clear()
         mock_getaddrinfo.return_value = [
@@ -111,9 +75,9 @@ class ScreenshotTargetSelectionTest(unittest.TestCase):
         self.assertEqual("203.0.113.45", target_host)
         self.assertIn("203.0.113.45 445", command)
 
-    @patch("app.screenshot_targets.socket.getaddrinfo")
+    @patch("app.command_targets.socket.getaddrinfo")
     def test_apply_preferred_target_placeholders_keeps_ip_for_nc_combined_short_flags(self, mock_getaddrinfo):
-        from app.screenshot_targets import apply_preferred_target_placeholders, resolve_hostname_addresses
+        from app.command_targets import apply_preferred_target_placeholders, resolve_hostname_addresses
 
         resolve_hostname_addresses.cache_clear()
         mock_getaddrinfo.return_value = [
@@ -131,11 +95,11 @@ class ScreenshotTargetSelectionTest(unittest.TestCase):
         self.assertIn("203.0.113.46 443", command)
         self.assertNotIn("portal.example 443", command)
 
-    @patch("app.screenshot_targets.socket.getaddrinfo", side_effect=socket.gaierror("nope"))
+    @patch("app.command_targets.socket.getaddrinfo", side_effect=socket.gaierror("nope"))
     def test_apply_preferred_target_placeholders_prefers_hostname_for_scanners_even_when_unresolved(
         self, _mock_getaddrinfo
     ):
-        from app.screenshot_targets import apply_preferred_target_placeholders, resolve_hostname_addresses
+        from app.command_targets import apply_preferred_target_placeholders, resolve_hostname_addresses
 
         resolve_hostname_addresses.cache_clear()
 

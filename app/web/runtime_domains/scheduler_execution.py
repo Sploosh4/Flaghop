@@ -62,8 +62,6 @@ class SchedulerExecutionRuntime:
 
     start_scheduler_run_job = web_runtime_scheduler.start_scheduler_run_job
 
-    start_host_dig_deeper_job = web_runtime_scheduler.start_host_dig_deeper_job
-
     _run_scheduler_actions_web = web_runtime_scheduler.run_scheduler_actions_web
 
     _run_scheduler_targets = web_runtime_scheduler.run_scheduler_targets

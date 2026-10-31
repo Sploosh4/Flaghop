@@ -1,7 +1,7 @@
 import {useEffect, useRef} from 'react';
 
-export const settingParts: Record<string, string> = {'app-settings': 'Application settings', 'interface-settings': 'Interface settings', 'scheduler-settings': 'Scheduler settings', 'device-category-settings': 'Device categories', 'report-provider-settings': 'Report delivery'};
-export const viewParts: Record<string, string> = {hosts: 'Hosts', services: 'Services', graph: 'Graph', activity: 'Activity', capture: 'Credentials & relay', approvals: 'Approvals'};
+export const settingParts: Record<string, string> = {'app-settings': 'Application settings', 'interface-settings': 'Interface settings', 'scheduler-settings': 'Scheduler settings', 'device-category-settings': 'Device categories'};
+export const viewParts: Record<string, string> = {hosts: 'Hosts', services: 'Services', graph: 'Graph', activity: 'Activity', approvals: 'Approvals'};
 export const actionParts: Record<string, string> = {scan: 'New scan', tool: 'Run a tool', import: 'Import results'};
 export const partTitles = {...viewParts, ...settingParts, ...actionParts};
 export function ReusedPanel({part, host, close, displayChanged, statusChanged}: {part: string; host?: number; close(): void; displayChanged(enabled: boolean): void; statusChanged(status: string): void}) {

@@ -1363,41 +1363,6 @@
         "title": "ProjectResponse",
         "type": "object"
       },
-      "ProviderLog": {
-        "additionalProperties": true,
-        "properties": {
-          "prompt_metadata": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonValue"
-            },
-            "title": "Prompt Metadata",
-            "type": "object"
-          }
-        },
-        "title": "ProviderLog",
-        "type": "object"
-      },
-      "ProviderLogs": {
-        "properties": {
-          "logs": {
-            "items": {
-              "$ref": "#/components/schemas/ProviderLog"
-            },
-            "title": "Logs",
-            "type": "array"
-          },
-          "text": {
-            "title": "Text",
-            "type": "string"
-          }
-        },
-        "required": [
-          "logs",
-          "text"
-        ],
-        "title": "ProviderLogs",
-        "type": "object"
-      },
       "Rationale": {
         "additionalProperties": true,
         "properties": {
@@ -3878,78 +3843,6 @@
           }
         },
         "summary": "Decisions"
-      }
-    },
-    "/api/scheduler/provider/logs": {
-      "get": {
-        "operationId": "getProviderLogs",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 300,
-              "maximum": 1000,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProviderLogs"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "Unprocessable Entity"
-          }
-        },
-        "summary": "Provider Logs"
       }
     },
     "/api/snapshot": {

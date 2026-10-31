@@ -10,8 +10,9 @@ from pathlib import Path
 import sys
 
 from app.local_server import local_backend
+from app.desktop_chrome import install_window_chrome
 
-from PyQt6.QtCore import QUrl, Qt
+from PyQt6.QtCore import QEvent, QUrl, Qt
 from PyQt6.QtGui import QAction, QDesktopServices, QIcon, QKeySequence
 from PyQt6.QtNetwork import QLocalServer, QLocalSocket
 from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
@@ -22,8 +23,13 @@ ROOT = Path(__file__).resolve().parents[1]
 URL = "http://127.0.0.1:5000/"
 
 
-def is_workspace_url(url):
-    return url.scheme() == "http" and url.host() == "127.0.0.1" and url.port() == 5000
+def is_workspace_url(url, workspace_url=URL):
+    expected = QUrl(workspace_url)
+    return (
+        url.scheme() == expected.scheme() == "http"
+        and url.host() == expected.host() == "127.0.0.1"
+        and url.port() == expected.port()
+    )
 
 
 class ExternalPopupPage(QWebEnginePage):
@@ -37,8 +43,12 @@ class ExternalPopupPage(QWebEnginePage):
 
 
 class WorkspacePage(QWebEnginePage):
+    def __init__(self, profile, parent, workspace_url=URL):
+        super().__init__(profile, parent)
+        self.workspace_url = workspace_url
+
     def acceptNavigationRequest(self, url, navigation_type, is_main_frame):
-        if not is_main_frame or is_workspace_url(url) or url.toString() == "about:blank":
+        if not is_main_frame or is_workspace_url(url, self.workspace_url) or url.toString() == "about:blank":
             return True
         if navigation_type == self.NavigationType.NavigationTypeLinkClicked and url.scheme() in {
             "https",
@@ -54,22 +64,23 @@ class WorkspacePage(QWebEnginePage):
 
 
 class LegionWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, workspace_url=URL, profile_dir=None):
         super().__init__()
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setWindowTitle("Legion")
         self.setWindowIcon(QIcon(str(ROOT / "images/icons/Legion-N_128x128.svg")))
         self.resize(1520, 960)
         self.setMinimumSize(760, 540)
         self.setStyleSheet("QMainWindow { background: #050505; }")
-        profile_dir = ROOT / ".desktop-profile"
-        profile_dir.mkdir(exist_ok=True)
+        profile_dir = Path(profile_dir) if profile_dir is not None else ROOT / ".desktop-profile"
+        profile_dir.mkdir(parents=True, exist_ok=True)
         self.profile = QWebEngineProfile("Legion", self)
         self.profile.setPersistentStoragePath(str(profile_dir / "storage"))
         self.profile.setCachePath(str(profile_dir / "cache"))
         self.profile.setHttpCacheMaximumSize(32 * 1024 * 1024)
         self.profile.downloadRequested.connect(self.save_download)
         self.view = QWebEngineView(self)
-        self.page = WorkspacePage(self.profile, self.view)
+        self.page = WorkspacePage(self.profile, self.view, workspace_url)
         self.page.setBackgroundColor(Qt.GlobalColor.black)
         self.view.setPage(self.page)
         self.setCentralWidget(self.view)
@@ -85,7 +96,22 @@ class LegionWindow(QMainWindow):
             action.setShortcut(QKeySequence(shortcut))
             action.triggered.connect(callback)
             self.addAction(action)
-        self.view.setUrl(QUrl(URL))
+        origin = QUrl(workspace_url)
+        origin = origin.adjusted(
+            QUrl.UrlFormattingOption.RemovePath
+            | QUrl.UrlFormattingOption.RemoveQuery
+            | QUrl.UrlFormattingOption.RemoveFragment
+        )
+        self.window_chrome, self.window_channel = install_window_chrome(
+            self.page, self, origin.toString().rstrip("/"), lambda: is_workspace_url(self.page.url(), workspace_url)
+        )
+        self.view.setUrl(QUrl(workspace_url))
+
+    def changeEvent(self, event):
+        super().changeEvent(event)
+        chrome = getattr(self, "window_chrome", None)
+        if event.type() == QEvent.Type.WindowStateChange and chrome is not None:
+            chrome.maximizedChanged.emit(self.isMaximized())
 
     def zoom(self, increment):
         self.view.setZoomFactor(max(0.65, min(1.75, self.view.zoomFactor() + increment)))

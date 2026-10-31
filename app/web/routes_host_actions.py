@@ -38,52 +38,6 @@ def workspace_service_delete():
         return json_error(str(exc), 500)
 
 
-@host_actions_bp.post("/api/workspace/hosts/<int:host_id>/note")
-def workspace_host_note(host_id):
-    service = _host_action_service()
-    try:
-        return jsonify({"status": "ok", **service.update_host_note(host_id, request.get_json(silent=True) or {})})
-    except KeyError as exc:
-        return json_error(str(exc), 404)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
-@host_actions_bp.post("/api/workspace/hosts/<int:host_id>/categories")
-def workspace_host_categories(host_id):
-    service = _host_action_service()
-    try:
-        return jsonify({"status": "ok", **service.update_host_categories(host_id, request.get_json(silent=True) or {})})
-    except KeyError as exc:
-        return json_error(str(exc), 404)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
-@host_actions_bp.post("/api/workspace/hosts/<int:host_id>/scripts")
-def workspace_host_script_create(host_id):
-    service = _host_action_service()
-    try:
-        return jsonify(service.create_script_entry(host_id, request.get_json(silent=True) or {}))
-    except KeyError as exc:
-        return json_error(str(exc), 404)
-    except ValueError as exc:
-        return json_error(str(exc), 400)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
-@host_actions_bp.delete("/api/workspace/scripts/<int:script_id>")
-def workspace_host_script_delete(script_id):
-    service = _host_action_service()
-    try:
-        return jsonify({"status": "ok", **service.delete_script_entry(script_id)})
-    except KeyError as exc:
-        return json_error(str(exc), 404)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
 @host_actions_bp.get("/api/workspace/scripts/<int:script_id>/output")
 def workspace_host_script_output(script_id):
     service = _host_action_service()
@@ -91,19 +45,6 @@ def workspace_host_script_output(script_id):
         return jsonify(service.get_script_output(script_id, request.args))
     except KeyError as exc:
         return json_error(str(exc), 404)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
-@host_actions_bp.post("/api/workspace/hosts/<int:host_id>/dig-deeper")
-def workspace_host_dig_deeper(host_id):
-    service = _host_action_service()
-    try:
-        return jsonify(service.start_host_dig_deeper(host_id)), 202
-    except KeyError as exc:
-        return json_error(str(exc), 404)
-    except ValueError as exc:
-        return json_error(str(exc), 400)
     except Exception as exc:
         return json_error(str(exc), 500)
 

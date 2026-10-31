@@ -25,10 +25,7 @@ host_detail_script_preview = web_runtime_workspace_read.host_detail_script_previ
 ensure_workspace_settings_table = web_runtime_workspace_mutation.ensure_workspace_settings_table
 get_workspace_setting_locked = web_runtime_workspace_mutation.get_workspace_setting_locked
 set_workspace_setting_locked = web_runtime_workspace_mutation.set_workspace_setting_locked
-update_host_note = web_runtime_workspace_mutation.update_host_note
 delete_host_workspace = web_runtime_workspace_mutation.delete_host_workspace
-create_script_entry = web_runtime_workspace_mutation.create_script_entry
-delete_script_entry = web_runtime_workspace_mutation.delete_script_entry
 get_script_output = web_runtime_workspace_mutation.get_script_output
 
 
@@ -102,20 +99,4 @@ def get_host_workspace(runtime, host_id: int) -> Dict[str, Any]:
         host_id,
         get_target_state_func=get_target_state,
         host_detail_script_preview_func=web_runtime_workspace_read.host_detail_script_preview,
-    )
-
-
-def update_host_categories(
-    runtime,
-    host_id: int,
-    *,
-    manual_categories: Any = None,
-    override_auto: bool = False,
-) -> Dict[str, Any]:
-    return web_runtime_workspace_mutation.update_host_categories(
-        runtime,
-        host_id,
-        manual_categories=manual_categories,
-        override_auto=override_auto,
-        upsert_target_state_func=upsert_target_state,
     )

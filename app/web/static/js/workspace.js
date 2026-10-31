@@ -7,7 +7,7 @@ import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/w
 (() => {
     "use strict";
     const byId = (id) => document.getElementById(id);
-    const titles = {overview: "Overview", hosts: "Hosts", services: "Services", graph: "Graph", activity: "Activity", capture: "Credentials & relay", approvals: "Approvals"};
+    const titles = {overview: "Overview", hosts: "Hosts", services: "Services", graph: "Graph", activity: "Activity", approvals: "Approvals"};
     const slots = {};
     let current = "overview";
     let lastFocus = null;
@@ -84,8 +84,6 @@ import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/w
         const graph = byId("graph-workspace-panel");
         const graphDisabled = graph.dataset.graphEnabled !== "true";
         byId("graph-disabled-message").hidden = !graphDisabled;
-        const capture = byId("credential-capture-panel");
-        byId("capture-disabled-message").hidden = !capture.hidden;
     }
 
     function queueMirrors() {
@@ -265,15 +263,15 @@ import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/w
         createSlot("hosts", "inspection-view").appendChild(byId("workspace-hosts-panel"));
         createSlot("services", "inspection-view").appendChild(byId("workspace-services-panel"));
         const detail = byId("workspace-host-detail-panel");
-        const emptyDetail = emptyMessage("workspace-detail-empty", "Select a host to inspect", "Ports, scripts, screenshots, and notes will appear here.");
+        const emptyDetail = emptyMessage("workspace-detail-empty", "Select a host to inspect", "Ports and scripts will appear here.");
         detail.insertBefore(emptyDetail, detail.children[1]);
         slots.hosts.appendChild(detail);
         const graphSlot = createSlot("graph", "graph-view");
         graphSlot.appendChild(byId("graph-workspace-panel"));
         graphSlot.appendChild(emptyMessage("graph-disabled-message", "Graph workspace is disabled", "Enable Graph Workspace in Interface settings to explore relationships and evidence.", {label: "Interface settings", target: "ribbon-interface-settings-button"}));
         const activity = createSlot("activity", "activity-view"); activity.append(processes, rationale);
-        const capture = createSlot("capture", "capture-view"); capture.appendChild(byId("credential-capture-panel"));
-        capture.appendChild(emptyMessage("capture-disabled-message", "Credential workspace is hidden", "Show the existing credential and relay workspace to access its controls.", {label: "Show workspace", target: "ribbon-credential-capture-toggle-button"}));
+        document.querySelectorAll(".activity-history-panel").forEach(panel => activity.appendChild(panel));
+        const capture = createSlot("capture", "capture-view");
         createSlot("approvals", "approvals-view").appendChild(byId("workspace-approvals-panel"));
         // All functional children have been reparented. Keep the empty wrapper for legacy queries.
         ribbon.hidden = true;
@@ -338,7 +336,7 @@ import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/w
         ["project-name", "project-kind", "stat-hosts", "stat-open-ports", "stat-services", "stat-running", "approval-count", "action-status", "host-detail-name"].forEach((id) => {
             const node = byId(id); if (node) observer.observe(node, {childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ["data-display-name"]});
         });
-        ["graph-workspace-panel", "credential-capture-panel"].forEach((id) => observer.observe(byId(id), {attributes: true, attributeFilter: ["hidden", "data-graph-enabled"]}));
+        ["graph-workspace-panel"].forEach((id) => byId(id) && observer.observe(byId(id), {attributes: true, attributeFilter: ["hidden", "data-graph-enabled"]}));
         const part = document.body.dataset.workspacePart;
         selectView(part && slots[part] ? part : stored("view", "overview"), false);
         if (part) {
@@ -347,14 +345,9 @@ import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/w
                 const node = byId(id);
                 if (node) new MutationObserver(() => window.parent.postMessage({type: "legion-status", text: node.textContent.trim()}, location.origin)).observe(node, {childList: true, characterData: true, subtree: true});
             });
-            const controls = {
-                "app-settings": "ribbon-app-settings-button", "interface-settings": "ribbon-interface-settings-button",
-                "scheduler-settings": "ribbon-scheduler-settings-button", "device-category-settings": "ribbon-device-category-settings-button",
-                "report-provider-settings": "ribbon-report-provider-settings-button", scan: "ribbon-scan-add-action-button",
-                tool: "ribbon-scan-manual-action-button", import: "ribbon-import-xml-action-button",
-            };
+            const controls = {"app-settings": "ribbon-app-settings-button", "interface-settings": "ribbon-interface-settings-button", "scheduler-settings": "ribbon-scheduler-settings-button", "device-category-settings": "ribbon-device-category-settings-button", scan: "ribbon-scan-add-action-button", tool: "ribbon-scan-manual-action-button", import: "ribbon-import-xml-action-button"};
+            const modalId = {"app-settings": "app-settings-modal", "interface-settings": "interface-settings-modal", "scheduler-settings": "scheduler-settings-modal", "device-category-settings": "device-category-settings-modal", scan: "nmap-scan-modal", tool: "manual-scan-modal"}[part];
             if (controls[part]) proxy(controls[part]);
-            const modalId = {"app-settings": "app-settings-modal", "interface-settings": "interface-settings-modal", "scheduler-settings": "scheduler-settings-modal", "device-category-settings": "device-category-settings-modal", "report-provider-settings": "report-provider-modal", scan: "nmap-scan-modal", tool: "manual-scan-modal"}[part];
             if (modalId) {
                 const modal = byId(modalId);
                 new MutationObserver(() => {

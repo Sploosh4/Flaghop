@@ -1,7 +1,4 @@
-/** Composition root: wire feature callbacks before starting the workspace.
- * Models, views and transports never import this coordinator.
- */
-import { renderCredentialCapturePanel, setCredentialCaptureConfigModalOpen, setCredentialsModalOpen } from "./credential_capture.js";
+
 import { connectDeviceCategories } from "./device_categories.js";
 import { closeRibbonMenus, connectDialogs } from "./dialogs.js";
 import { connectGraphCommon } from "./graph_common.js";
@@ -10,8 +7,7 @@ import { connectGraphDetail, graphSyncDetailPresentation } from "./graph_detail.
 import { graphRenderWorkspace } from "./graph_render.js";
 import { connectHostActions } from "./host_actions.js";
 import { connectHostFilters } from "./host_filters.js";
-import { connectLiveUpdates, pollSnapshot } from "./live_updates.js";
-import { connectProcessOutput } from "./process_output.js";
+import { pollSnapshot } from "./live_updates.js";
 import { applyNmapModeTargetDefaults, connectScan, refreshNmapModeOptions, refreshNmapScanButtonState, setNmapWizardStep, updateNmapCommandPreview } from "./scan.js";
 import { connectScanPolicy } from "./scan_policy.js";
 import { applySchedulerPreferences } from "./scheduler_preferences.js";
@@ -29,8 +25,6 @@ export class WorkspaceController {
         connectGraphDetail({ graphRenderWorkspace });
         connectHostActions({ pollSnapshot });
         connectHostFilters({ closeRibbonMenus, graphLoadSnapshot, loadHostDetail, loadWorkspaceHosts, loadWorkspaceServices, renderHosts, renderServices });
-        connectLiveUpdates({ renderCredentialCapturePanel });
-        connectProcessOutput({ setCredentialCaptureConfigModalOpen, setCredentialsModalOpen });
         connectScan({ applySchedulerPreferences });
         connectScanPolicy({ applyNmapModeTargetDefaults, refreshNmapModeOptions, refreshNmapScanButtonState, setNmapWizardStep, updateNmapCommandPreview });
         connectToolSettings({ applySchedulerPreferences });

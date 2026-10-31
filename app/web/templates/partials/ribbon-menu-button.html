@@ -41,7 +41,7 @@
                     </button>
                     <div id="ribbon-import-menu" class="ribbon-submenu" role="menu" aria-label="Import options">
                         <button id="ribbon-import-xml-action-button" class="ribbon-submenu-item" type="button" title="Import scan results from an Nmap XML file">Import XML</button>
-                        <button id="ribbon-import-targets-action-button" class="ribbon-submenu-item" type="button" title="Import target hosts/subnets from a text file">Import Targets TXT</button>
+
                     </div>
                 </div>
 
@@ -79,8 +79,8 @@
                         <small class="ribbon-caret"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></small>
                     </button>
                     <div id="ribbon-misc-menu" class="ribbon-submenu" role="menu" aria-label="Misc options">
-                        <button id="ribbon-misc-host-selection-action-button" class="ribbon-submenu-item" type="button" title="Open host selection and notes">Host Selection</button>
-                        <button id="ribbon-misc-script-cve-action-button" class="ribbon-submenu-item" type="button" title="Open Add Script form">Add Script</button>
+
+
                     </div>
                 </div>
                 <div class="ribbon-menu" data-ribbon-menu="logging">
@@ -98,22 +98,13 @@
                         <small class="ribbon-caret"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></small>
                     </button>
                     <div id="ribbon-logging-menu" class="ribbon-submenu" role="menu" aria-label="Logging options">
-                        <button id="ribbon-logging-jobs-button" class="ribbon-submenu-item" type="button" title="View background jobs">Jobs</button>
-                        <button id="ribbon-logging-submitted-scans-button" class="ribbon-submenu-item" type="button" title="View submitted scan history">Submitted Scans</button>
-                        <button id="ribbon-logging-scheduler-decisions-button" class="ribbon-submenu-item" type="button" title="View scheduler decisions">Scheduler Decisions</button>
-                        <button id="ribbon-logging-ai-provider-button" class="ribbon-submenu-item" type="button" title="View provider request and response logs">Provider Logs</button>
+
+
+
+
                     </div>
                 </div>
-                <button
-                    id="ribbon-credential-capture-toggle-button"
-                    class="ribbon-btn ribbon-btn-toggle{% if credential_capture.get('panel_enabled', True) %} is-active{% endif %}"
-                    type="button"
-                    title="{{ 'Hide' if credential_capture.get('panel_enabled', True) else 'Show' }} Responder / NTLM Relay panel"
-                    aria-pressed="{{ 'true' if credential_capture.get('panel_enabled', True) else 'false' }}"
-                >
-                    <i class="fa-solid fa-user-secret" aria-hidden="true"></i>
-                    <span>Responder / Relay</span>
-                </button>
+
                 <div class="ribbon-menu" data-ribbon-menu="settings">
                     <button
                         id="ribbon-settings-menu-button"
@@ -132,7 +123,7 @@
                         <button id="ribbon-scheduler-settings-button" class="ribbon-submenu-item" type="button" title="Open scheduler settings">Scheduler</button>
                         <button id="ribbon-interface-settings-button" class="ribbon-submenu-item" type="button" title="Open interface settings">Interface</button>
                         <button id="ribbon-device-category-settings-button" class="ribbon-submenu-item" type="button" title="Open device category settings">Device Categories</button>
-                        <button id="ribbon-report-provider-settings-button" class="ribbon-submenu-item" type="button" title="Open project report provider settings">Report Provider</button>
+
                         <button id="ribbon-app-settings-button" class="ribbon-submenu-item" type="button" title="Open application settings">App Settings</button>
                     </div>
                 </div>

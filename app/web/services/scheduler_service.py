@@ -32,10 +32,6 @@ class SchedulerService:
         self.runtime.scheduler_config.update_preferences(updates)
         return self.runtime.get_scheduler_preferences()
 
-    def test_provider(self, payload: Any) -> Dict[str, Any]:
-        updates = SchedulerPreferencesPatch.from_payload(payload).updates
-        return self.runtime.test_scheduler_provider(updates)
-
     def get_engagement_policy(self) -> Dict[str, Any]:
         if hasattr(self.runtime, "get_engagement_policy"):
             return self.runtime.get_engagement_policy()
@@ -46,34 +42,6 @@ class SchedulerService:
         if hasattr(self.runtime, "set_engagement_policy"):
             return self.runtime.set_engagement_policy(updates)
         return self.update_preferences({"engagement_policy": updates}).get("engagement_policy", {})
-
-    def get_provider_logs(self, args) -> Dict[str, Any]:
-        query = SchedulerLogQuery.from_args(args)
-        logs = self.runtime.get_scheduler_provider_logs(limit=query.limit)
-        lines = []
-        for row in logs:
-            lines.append(
-                f"[{row.get('timestamp', '')}] {row.get('provider', '')} "
-                f"{row.get('method', '')} {row.get('endpoint', '')}"
-            )
-            status = row.get("response_status", "")
-            if status not in (None, ""):
-                lines.append(f"status: {status}")
-            if row.get("api_style"):
-                lines.append(f"api_style: {row.get('api_style')}")
-            prompt_metadata = row.get("prompt_metadata", {})
-            if isinstance(prompt_metadata, dict) and prompt_metadata:
-                lines.append(f"prompt metadata: {json.dumps(prompt_metadata, ensure_ascii=False)}")
-            lines.append(f"request headers: {json.dumps(row.get('request_headers', {}), ensure_ascii=False)}")
-            lines.append(f"request body: {row.get('request_body', '')}")
-            lines.append(f"response body: {row.get('response_body', '')}")
-            if row.get("error"):
-                lines.append(f"error: {row.get('error')}")
-            lines.append("")
-        return {
-            "logs": logs,
-            "text": "\n".join(lines).strip(),
-        }
 
     def approve_family(self, payload: Any) -> Dict[str, Any]:
         request = SchedulerFamilyApprovalRequest.from_payload(payload)

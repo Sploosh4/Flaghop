@@ -5,7 +5,6 @@ export interface ActivityActions {
   loadApprovals(): Promise<void>;
   loadDecisions(): Promise<void>;
   loadScans(): Promise<void>;
-  loadProviderLogs(): Promise<void>;
   approve(id: number, family?: '' | 'allowed'): Promise<void>;
   reject(id: number, family?: '' | 'suppressed'): Promise<void>;
   openOutput(id: number): Promise<void>;

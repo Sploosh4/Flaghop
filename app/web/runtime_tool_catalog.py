@@ -7,44 +7,7 @@ from sqlalchemy import text
 from app.pipettes import find_pipette, list_pipettes
 from app.scheduler.risk import classify_command_danger
 
-_SCHEDULER_ONLY_LABELS = {
-    "screenshooter": "Capture web screenshot",
-}
-
-_SUPPORTED_WORKSPACE_TOOL_IDS = {
-    "curl-headers",
-    "curl-options",
-    "curl-robots",
-    "dirsearch",
-    "dnsmap",
-    "enum4linux",
-    "enum4linux-ng",
-    "ffuf",
-    "http-sqlmap",
-    "httpx",
-    "nbtscan",
-    "nikto",
-    "nmap",
-    "nmap-vuln.nse",
-    "nuclei-cves",
-    "nuclei-exposures",
-    "nuclei-web",
-    "nuclei-wordpress",
-    "rpcclient-enum",
-    "screenshooter",
-    "smbmap",
-    "sqlmap",
-    "sslscan",
-    "testssl.sh",
-    "wafw00f",
-    "web-content-discovery",
-    "whatweb",
-    "whatweb-http",
-    "whatweb-https",
-    "wpscan",
-}
-
-_SUPPORTED_WORKSPACE_TOOL_PREFIXES = ("http-vuln-",)
+_SCHEDULER_ONLY_LABELS = {}
 
 
 def _service_matches_scope(normalized_service: str, service_scope: List[str]) -> bool:
@@ -86,15 +49,10 @@ def _pipette_matches_context(
     return _port_matches_scope(normalized_port, target_ports)
 
 
-def _is_supported_tool(tool_id: str) -> bool:
-    normalized_tool = str(tool_id or "").strip().lower()
-    if not normalized_tool:
-        return False
-    if find_pipette(normalized_tool) is not None:
-        return True
-    if normalized_tool in _SUPPORTED_WORKSPACE_TOOL_IDS:
-        return True
-    return any(normalized_tool.startswith(prefix) for prefix in _SUPPORTED_WORKSPACE_TOOL_PREFIXES)
+def _is_supported_tool(tool_id):
+    from app.settings import AppSettings
+
+    return find_pipette(str(tool_id)) is not None or str(tool_id).lower() in AppSettings.SUPPORTED_PORT_ACTION_IDS
 
 
 def tool_run_stats(project) -> Dict[str, Dict[str, Any]]:

@@ -22,14 +22,6 @@ log = getAppLogger()
 
 
 class NetworkCommands:
-    @staticmethod
-    def _ensure_hydra_command(command: str) -> str:
-        raw = str(command or "")
-        if "hydra" not in raw.lower():
-            return raw
-        normalized = re.sub(r"(?i)-o\s+(?:\\?\"|')([^\"']+)(?:\\?\"|')", r"-o \1", raw)
-        normalized = re.sub(r"(?i)-o\s+\[OUTPUT\](?!\.)", "-o [OUTPUT].txt", normalized)
-        return re.sub(r"\s{2,}", " ", normalized).strip()
 
     @classmethod
     def _ensure_enum4linux_ng_command(cls, command: str) -> str:
@@ -60,21 +52,6 @@ class NetworkCommands:
             return raw
         return cls.NETEXEC_COMMAND
 
-    @classmethod
-    def _ensure_responder_command(cls, command: str) -> str:
-        raw = str(command or "")
-        if "responder" not in raw.lower():
-            return raw
-        return cls.RESPONDER_COMMAND
-
-    @classmethod
-    def _ensure_ntlmrelayx_command(cls, command: str) -> str:
-        raw = str(command or "")
-        lowered = raw.lower()
-        if "ntlmrelayx" not in lowered and "impacket-ntlmrelayx" not in lowered:
-            return raw
-        return cls.NTLMRELAYX_COMMAND
-
     @staticmethod
     def _canonicalize_legacy_rpcclient_action(rpc_command: str) -> str:
         token = str(rpc_command or "").strip() or "srvinfo"
@@ -89,14 +66,6 @@ class NetworkCommands:
     @staticmethod
     def _canonicalize_legacy_snmp_brute_action() -> str:
         return "medusa -h [IP] -u root -P ./wordlists/snmp-default.txt -M snmp | grep SUCCESS"
-
-    @staticmethod
-    def _ensure_terminal_rpcclient_command(command: str) -> str:
-        raw = str(command or "")
-        if "rpcclient" not in raw.lower():
-            return raw
-        prefix = "[term] " if "[term]" in raw.lower() else ""
-        return f"{prefix}rpcclient [IP] -p [PORT] -U '%'"
 
     @staticmethod
     def _canonicalize_web_target_placeholders(command: str) -> str:

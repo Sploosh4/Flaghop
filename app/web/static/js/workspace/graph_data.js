@@ -8,7 +8,6 @@ import { graphEntityHostId } from "./graph_viewport.js";
 import { fetchJson, postJson } from "./http.js";
 import { graphWorkspaceState, workspaceState } from "./state.js";
 import { loadHostDetail } from "./workspace_data.js";
-import { renderHostSelectionState } from "./workspace_view.js";
 /** Workspace graph data. */
 
 export function graphSelectEntity(kind, ref) {
@@ -17,7 +16,6 @@ export function graphSelectEntity(kind, ref) {
     if (relatedHostId > 0) {
         const hostChanged = String(workspaceState.selectedHostId || "") !== String(relatedHostId);
         workspaceState.selectedHostId = relatedHostId;
-        renderHostSelectionState({syncGraph: false});
         if (hostChanged || !workspaceState.hostDetail) {
             workspaceState.hostDetail = null;
             loadHostDetail(relatedHostId).catch((err) => {

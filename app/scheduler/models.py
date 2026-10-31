@@ -66,7 +66,6 @@ class ActionSpec:
     requires_credentials: bool = False
     requires_web_context: bool = False
     supports_deterministic: bool = False
-    supports_ai_selection: bool = False
     methodology_tags: List[str] = field(default_factory=list)
     pack_tags: List[str] = field(default_factory=list)
 
@@ -240,7 +239,6 @@ class PlanStep:
             family_id=str(family_id or ""),
             requires_web_context=bool(service_scope and any(item in WEB_SERVICE_IDS for item in service_scope)),
             supports_deterministic=True,
-            supports_ai_selection=True,
         )
         merged_parameters = dict(parameters or {})
         merged_parameters.setdefault("protocol", protocol_name)

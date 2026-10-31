@@ -89,9 +89,6 @@ class WebProjectAndScanRoutesTest(unittest.TestCase):
         self.assertEqual("accepted", saved.json["status"])
 
     def test_scan_routes_delegate_to_scan_service(self):
-        imported_targets = self.client.post("/api/targets/import-file", json={"path": "/tmp/targets.txt"})
-        self.assertEqual(202, imported_targets.status_code)
-        self.assertEqual(51, imported_targets.json["job"]["id"])
 
         imported_xml = self.client.post("/api/nmap/import-xml", json={"path": "/tmp/scan.xml", "run_actions": True})
         self.assertEqual(202, imported_xml.status_code)

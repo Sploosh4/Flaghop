@@ -3,7 +3,7 @@ import { loadApprovals } from "./workspace/approvals.js";
 import { bindActionButtons } from "./workspace/events.js";
 import { bindGraphWorkspaceEvents } from "./workspace/graph_events.js";
 import { connectSnapshotWebSocket, pollSnapshot, renderSnapshot, setLiveChip } from "./workspace/live_updates.js";
-import { loadSchedulerPreferences, saveProjectReportDeliveryPreferences, saveSchedulerPreferences, setSchedulerProviderFieldVisibility, syncEngagementPresetControls } from "./workspace/scheduler_preferences.js";
+import { loadSchedulerPreferences, saveSchedulerPreferences, syncEngagementPresetControls } from "./workspace/scheduler_preferences.js";
 import { refreshWorkspace } from "./workspace/workspace_data.js";
 /** Application entry point. Domain modules own state, rendering and commands. */
 
@@ -40,9 +40,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const schedulerProviderSelect = document.getElementById("scheduler-provider-select");
     if (schedulerProviderSelect) {
         schedulerProviderSelect.addEventListener("change", () => {
-            setSchedulerProviderFieldVisibility(schedulerProviderSelect.value);
         });
-        setSchedulerProviderFieldVisibility(schedulerProviderSelect.value);
     }
     const schedulerGoalSelect = document.getElementById("scheduler-goal-select");
     if (schedulerGoalSelect) {
@@ -57,10 +55,6 @@ window.addEventListener("DOMContentLoaded", () => {
         engagementIntentSelect.addEventListener("change", syncEngagementPresetControls);
     }
     syncEngagementPresetControls();
-    const reportProviderForm = document.getElementById("report-provider-form");
-    if (reportProviderForm) {
-        reportProviderForm.addEventListener("submit", saveProjectReportDeliveryPreferences);
-    }
 
     bindActionButtons();
     bindGraphWorkspaceEvents();

@@ -7,7 +7,6 @@ export type Approval = components['schemas']['Approval'];
 export type Decision = components['schemas']['Decision'];
 export type Scan = components['schemas']['Scan'];
 export type Rationale = components['schemas']['Rationale'];
-export type ProviderLogs = components['schemas']['ProviderLogs'];
 
 // Each request is checked against the generated paths, including bodies and queries.
 function result<T>({data, error, response}: {data?: T; error?: unknown; response: Response}): T {
@@ -29,9 +28,6 @@ export async function listScans() {
 }
 export async function listApprovals() {
   return result(await client.GET('/api/scheduler/approvals', {params: {query: {limit: 200, status: 'pending'}}})).approvals;
-}
-export async function getProviderLogs() {
-  return result(await client.GET('/api/scheduler/provider/logs', {params: {query: {limit: 400}}}));
 }
 export async function getProcessOutput(processId: number, offset: number) {
   return result(await client.GET('/api/processes/{process_id}/output', {params: {

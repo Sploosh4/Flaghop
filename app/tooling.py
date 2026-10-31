@@ -110,7 +110,7 @@ def detect_supported_tool_install_platform(
     os_release_path: str = "/etc/os-release",
     base_env: Optional[Dict[str, str]] = None,
 ) -> str:
-    env = dict(base_env or os.environ)
+    env = dict(base_env if base_env is not None else os.environ)
     candidates = [
         str(env.get("LEGION_TOOL_AUDIT_PLATFORM", "") or "").strip().lower(),
         str(env.get("ID", "") or "").strip().lower(),
@@ -124,7 +124,7 @@ def detect_supported_tool_install_platform(
         with open(os_release_path, "r", encoding="utf-8") as handle:
             content = handle.read()
     except Exception:
-        return "kali"
+        return ""
 
     id_match = re.search(r"(?im)^ID=(.+)$", content)
     like_match = re.search(r"(?im)^ID_LIKE=(.+)$", content)
@@ -139,7 +139,14 @@ def detect_supported_tool_install_platform(
         return "kali"
     if "ubuntu" in tokens:
         return "ubuntu"
-    return "kali"
+    return ""
+
+
+def resolve_tool_install_platform(value: str = "") -> str:
+    platform = str(value or "").strip().lower() or detect_supported_tool_install_platform()
+    if platform not in SUPPORTED_TOOL_INSTALL_PLATFORMS:
+        raise ValueError("Automatic installation supports Kali and Ubuntu only.")
+    return platform
 
 
 def tool_install_hint_for_platform(entry: ToolAuditEntry, platform: str) -> str:

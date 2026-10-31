@@ -6,7 +6,7 @@ import {approvals, decisions, panels, pendingActions, processes, rationale, scan
 import {ProcessesTable, ProcessToolbar} from './ProcessesTable';
 import {ApprovalsTable} from './ApprovalsTable';
 import {DecisionsTable, RationaleFeed, ScansTable} from './HistoryTables';
-import {ProcessOutputPanel, ProviderLogsPanel} from './OutputPanels';
+import {ProcessOutputPanel} from './OutputPanels';
 import {projectStore} from '../store';
 import {PanelCount} from './PanelCount';
 
@@ -133,14 +133,14 @@ it('shows output failures and allows a manual refresh', async () => {
   expect(screen.queryByRole('alert')).toBeNull(); expect(screen.getByText('Recovered output')).toBeTruthy();
 });
 
-it('prevents stale list or log responses from repopulating a switched workspace', async () => {
-  const list = deferred<Response>(), logs = deferred<Response>();
-  vi.stubGlobal('fetch', vi.fn((request: Request) => request.url.includes('provider/logs') ? logs.promise : list.promise));
-  const load = controller.actions.loadProcesses(), log = controller.actions.loadProviderLogs();
+it('prevents stale list responses from repopulating a switched workspace', async () => {
+  const list = deferred<Response>();
+  vi.stubGlobal('fetch', vi.fn(() => list.promise));
+  const load = controller.actions.loadProcesses();
   projectStore.set({name: 'other.legion'});
-  list.resolve(response({processes: [{id: 1, name: 'Old workspace'}]})); logs.resolve(response({logs: [], text: 'Old secret'}));
-  await Promise.all([load, log]);
-  expect(processes.getSnapshot().items).toEqual([]); expect(controller.logs.getSnapshot().text).toBe('');
+  list.resolve(response({processes: [{id: 1, name: 'Old workspace'}]}));
+  await load;
+  expect(processes.getSnapshot().items).toEqual([]);
 });
 
 it('does not let an older list request overwrite a live snapshot', async () => {
@@ -151,27 +151,7 @@ it('does not let an older list request overwrite a live snapshot', async () => {
   expect(processes.getSnapshot().items[0].name).toBe('Live snapshot');
 });
 
-it('shows provider metadata, preserves safe ANSI text, and supports copy and download', async () => {
-  const raw = '\u001b[31m<img src=x onerror=alert(1)>\u001b[0m';
-  vi.stubGlobal('fetch', vi.fn(async () => response({logs: [{prompt_metadata: {structured_output_used: true, structured_output_fallback: true}}], text: raw})));
-  const download = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-  vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fixture'); const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-  const user = userEvent.setup(); const copy = vi.spyOn(navigator.clipboard, 'writeText');
-  render(<ProviderLogsPanel controller={controller} close={vi.fn()}/>);
-  await user.click(screen.getByRole('button', {name: 'Refresh'}));
-  expect(document.getElementById('provider-logs-meta')?.textContent).toContain('Entries 1 | structured 1 | fallback 1');
-  expect(document.querySelector('#provider-logs-text .ansi-fg-red')).toBeTruthy(); expect(document.querySelector('img')).toBeNull();
-  await user.click(screen.getByRole('button', {name: 'Copy to Clipboard'})); expect(copy).toHaveBeenCalledWith(raw);
-  await user.click(screen.getByRole('button', {name: 'Download .txt'})); expect(download).toHaveBeenCalledOnce(); expect(revoke).toHaveBeenCalledWith('blob:fixture');
-});
 
-it('shows log errors while retaining the last successful output', async () => {
-  controller.logs.set({text: 'Last successful logs', logs: [], error: '', loading: false});
-  vi.stubGlobal('fetch', vi.fn(async () => response({error: 'Provider offline'}, 500)));
-  render(<ProviderLogsPanel controller={controller} close={vi.fn()}/>);
-  await userEvent.setup().click(screen.getByRole('button', {name: 'Refresh'}));
-  expect(screen.getByRole('alert').textContent).toContain('Provider offline'); expect(screen.getByText('Last successful logs')).toBeTruthy();
-});
 
 it('drains a completed process in chunks and ignores closed or superseded output requests', async () => {
   const late = deferred<Response>();

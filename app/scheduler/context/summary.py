@@ -308,152 +308,32 @@ def build_scheduler_coverage_summary(
     inferred_technologies: List[Dict[str, str]],
     analysis_mode: str,
 ) -> Dict[str, Any]:
-    tool_ids = {str(item or "").strip().lower() for item in list(observed_tool_ids or set()) if str(item or "").strip()}
-    service_lower = str(service_name or "").strip().rstrip("?").lower()
-    signal_map = signals if isinstance(signals, dict) else {}
+    tool_ids = {str(tool).lower() for tool in observed_tool_ids or set()}
 
-    is_web = bool(signal_map.get("web_service")) or service_lower in SchedulerPlanner.WEB_SERVICE_IDS
-    is_rdp = bool(signal_map.get("rdp_service"))
-    is_vnc = bool(signal_map.get("vnc_service"))
-    is_smb = service_lower in {"microsoft-ds", "netbios-ssn", "smb"}
+    def seen(*prefixes):
+        return any(any(tool.startswith(prefix) for prefix in prefixes) for tool in tool_ids)
 
-    def _has_tool_prefix(prefix: str) -> bool:
-        token = str(prefix or "").strip().lower()
-        return any(item.startswith(token) for item in tool_ids)
-
-    def _has_any(*tool_names: str) -> bool:
-        for tool_name in tool_names:
-            token = str(tool_name or "").strip().lower()
-            if token and (token in tool_ids or _has_tool_prefix(token)):
-                return True
-        return False
-
-    has_discovery = _has_any("nmap", "banner", "fingerprint-strings", "http-title", "ssl-cert")
-    has_screenshot = _has_any("screenshooter")
-    has_nmap_vuln = _has_any("nmap-vuln.nse")
-    has_nuclei = _has_any("nuclei-web", "nuclei")
-    has_targeted_nuclei = _has_any("nuclei-cves", "nuclei-exposures", "nuclei-wordpress")
-    has_whatweb = _has_any("whatweb", "whatweb-http", "whatweb-https")
-    has_nikto = _has_any("nikto")
-    has_web_content = _has_any("web-content-discovery", "dirsearch", "ffuf")
-    has_http_followup = _has_any("curl-headers", "curl-options", "curl-robots")
-    has_smb_signing_checks = _has_any("smb-security-mode", "smb2-security-mode")
-    has_internal_safe_enum = _has_any("enum4linux-ng", "smbmap", "rpcclient-enum", "smb-enum-users.nse")
-    confident_cpe_count = 0
-    for item in inferred_technologies[:120]:
-        if not isinstance(item, dict):
-            continue
-        cpe = str(item.get("cpe", "") or "").strip()
-        if not cpe:
-            continue
-        quality = technology.technology_quality_score(
-            name=item.get("name", ""),
-            version=item.get("version", ""),
-            cpe=cpe,
-            evidence=item.get("evidence", ""),
-        )
-        if quality >= 52:
-            confident_cpe_count += 1
-
-    missing: List[str] = []
-    recommended_tool_ids: List[str] = []
-
-    def _add_gap(reason: str, *recommended: str):
-        token = str(reason or "").strip().lower()
-        if token and token not in missing:
-            missing.append(token)
-        for item in recommended:
-            tool_id = str(item or "").strip().lower()
-            if tool_id and tool_id not in recommended_tool_ids:
-                recommended_tool_ids.append(tool_id)
-
+    missing = []
+    recommended = []
+    has_discovery = seen("nmap", "fingerprint-strings")
+    has_signing = seen("smb-security-mode", "smb2-security-mode")
+    has_enumeration = seen("enum4linux-ng", "smbmap", "rpcclient-enum", "smb-enum-users")
     if not has_discovery:
-        _add_gap("missing_discovery", "nmap")
-
-    if is_web:
-        if not has_screenshot:
-            _add_gap("missing_screenshot", "screenshooter")
-        if not has_nmap_vuln:
-            _add_gap("missing_nmap_vuln", "nmap-vuln.nse")
-        if not has_nuclei:
-            _add_gap("missing_nuclei_auto", "nuclei-web")
-        if (
-            confident_cpe_count > 0
-            and not (has_nmap_vuln and (has_nuclei or has_targeted_nuclei))
-            and int(len(host_cves or [])) == 0
-            and int(signal_map.get("vuln_hits", 0) or 0) == 0
-        ):
-            _add_gap("missing_cpe_cve_enrichment", "nmap-vuln.nse", "nuclei-web", "nuclei-cves", "nuclei-exposures")
-        if not inferred_technologies and not has_whatweb:
-            _add_gap("missing_technology_fingerprint", "whatweb")
-        if has_nmap_vuln or has_nuclei or has_targeted_nuclei:
-            if not has_whatweb:
-                _add_gap("missing_whatweb", "whatweb", "whatweb-http", "whatweb-https")
-            if not has_nikto:
-                _add_gap("missing_nikto", "nikto")
-            if not has_web_content:
-                _add_gap("missing_web_content_discovery", "web-content-discovery", "dirsearch", "ffuf")
-            if not has_http_followup:
-                _add_gap("missing_http_followup", "curl-headers", "curl-options", "curl-robots")
-    else:
-        if not has_screenshot and (is_rdp or is_vnc):
-            _add_gap("missing_remote_screenshot", "screenshooter")
-        if not (is_rdp or is_vnc) and not _has_any("banner"):
-            _add_gap("missing_banner", "banner")
-        if is_smb and not has_smb_signing_checks:
-            _add_gap("missing_smb_signing_checks", "smb-security-mode", "smb2-security-mode")
-        if is_smb and not has_internal_safe_enum:
-            _add_gap("missing_internal_safe_enum", "enum4linux-ng", "smbmap", "rpcclient-enum")
-
-    if int(len(host_cves or [])) > 0:
-        if is_web and not (
-            has_whatweb and has_nikto and has_web_content and (has_targeted_nuclei or has_http_followup)
-        ):
-            _add_gap(
-                "missing_followup_after_vuln",
-                "whatweb",
-                "nikto",
-                "web-content-discovery",
-                "dirsearch",
-                "ffuf",
-                "nuclei-cves",
-                "nuclei-exposures",
-                "curl-headers",
-                "curl-options",
-                "curl-robots",
-            )
-        if is_smb and not has_smb_signing_checks:
-            _add_gap("missing_smb_followup_after_vuln", "smb-security-mode", "smb2-security-mode")
-        if is_smb and not has_internal_safe_enum:
-            _add_gap("missing_internal_safe_enum", "enum4linux-ng", "smbmap", "rpcclient-enum")
-
-    if str(analysis_mode or "").strip().lower() == "dig_deeper" and not missing:
-        if is_web and not _has_any("wafw00f", "sslscan", "testssl.sh", "sslyze"):
-            _add_gap("missing_deep_tls_waf_checks", "wafw00f", "sslscan", "testssl.sh")
-
-    stage = "baseline"
-    if not missing:
-        stage = "post_baseline"
-    if str(analysis_mode or "").strip().lower() == "dig_deeper":
-        stage = "dig_deeper" if missing else "deep_analysis"
-
+        missing.append("missing_discovery")
+        recommended.append("nmap")
+    if str(service_name).lower() in {"smb", "microsoft-ds", "netbios-ssn"}:
+        if not has_signing:
+            missing.append("missing_smb_signing_checks")
+            recommended.extend(["smb-security-mode.nse", "smb2-security-mode.nse"])
+        if not has_enumeration:
+            missing.append("missing_internal_safe_enum")
+            recommended.extend(["enum4linux-ng", "smbmap", "rpcclient-enum"])
     return {
-        "analysis_mode": str(analysis_mode or "standard").strip().lower() or "standard",
-        "stage": stage,
-        "missing": missing[:24],
-        "recommended_tool_ids": recommended_tool_ids[:32],
-        "observed_tool_ids": sorted(tool_ids)[:180],
-        "has": {
-            "discovery": bool(has_discovery),
-            "screenshot": bool(has_screenshot),
-            "nmap_vuln": bool(has_nmap_vuln),
-            "nuclei_auto": bool(has_nuclei),
-            "whatweb": bool(has_whatweb),
-            "nikto": bool(has_nikto),
-            "web_content_discovery": bool(has_web_content),
-            "smb_signing_checks": bool(has_smb_signing_checks),
-            "internal_safe_enum": bool(has_internal_safe_enum),
-            "confident_cpe_count": int(confident_cpe_count),
-        },
-        "host_cve_count": int(len(host_cves or [])),
+        "analysis_mode": "standard",
+        "stage": "baseline" if missing else "post_baseline",
+        "missing": missing,
+        "recommended_tool_ids": recommended,
+        "observed_tool_ids": sorted(tool_ids),
+        "has": {"discovery": has_discovery, "smb_signing_checks": has_signing, "internal_safe_enum": has_enumeration},
+        "host_cve_count": len(host_cves or []),
     }

@@ -1,12 +1,4 @@
 
-/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
-let renderCredentialCapturePanel;
-export function connectLiveUpdates(callbacks) {
-    for (const name of ["renderCredentialCapturePanel"]) {
-        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing live_updates callback: ${name}`);
-    }
-    ({ renderCredentialCapturePanel } = callbacks);
-}
 
 import { loadDecisionHistory, loadJobs, loadProcesses, loadScanHistory, loadWorkspaceOverview, renderApprovals, renderDecisionRationaleFeed, renderDecisions, renderJobs, renderScanHistory } from "./activity.js";
 import { loadApprovals } from "./approvals.js";
@@ -65,7 +57,6 @@ export function renderSnapshot(snapshot) {
         renderProcesses(snapshot.processes);
     }
     if (snapshot.credential_capture && typeof snapshot.credential_capture === "object") {
-        renderCredentialCapturePanel(snapshot.credential_capture);
     }
     if (snapshot.scheduler) {
         const schedulerPolicy = snapshot.scheduler.engagement_policy || {};

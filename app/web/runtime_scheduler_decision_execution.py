@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from typing import Any, Dict, Optional
 
 from app.scheduler.models import ExecutionRecord
@@ -8,8 +7,7 @@ from app.scheduler.planner import ScheduledAction
 from app.scheduler.runners import (
     RunnerExecutionRequest,
     RunnerExecutionResult,
-    execute_runner_request,
-    normalize_runner_settings,
+    LocalRunner,
 )
 from app.settings import AppSettings
 from app.timing import getTimestamp
@@ -31,8 +29,7 @@ def execute_scheduler_decision(
     runner_preference: str = "",
     runner_settings: Optional[Dict[str, Any]] = None,
 ) -> Any:
-    normalized_runner_settings = normalize_runner_settings(runner_settings or {})
-    project = runtime._require_active_project()
+    runtime._require_active_project()
     input_error = AppSettings._scheduler_target_input_error(
         str(decision.tool_id or ""),
         str(command_template or ""),
@@ -110,44 +107,7 @@ def execute_scheduler_decision(
             artifact_refs=list(metadata.get("artifact_refs", []) or []),
         )
 
-    def _execute_browser_action(*, request, browser_settings, runner_type):
-        started_at = getTimestamp(True)
-        executed, reason, artifact_refs = runtime._take_screenshot(
-            str(request.host_ip or ""),
-            str(request.port or ""),
-            service_name=str(request.service_name or ""),
-            return_artifacts=True,
-            browser_settings=browser_settings,
-        )
-        return RunnerExecutionResult(
-            executed=bool(executed),
-            reason=str(reason or ""),
-            runner_type=str(runner_type or "browser"),
-            started_at=started_at,
-            finished_at=getTimestamp(True),
-            artifact_refs=list(artifact_refs or []),
-        )
-
-    allow_optional_runners = True
-    scheduler_config = getattr(runtime, "scheduler_config", None)
-    if scheduler_config is not None and hasattr(scheduler_config, "is_feature_enabled"):
-        allow_optional_runners = bool(scheduler_config.is_feature_enabled("optional_runners"))
-
-    runner_result = execute_runner_request(
-        request,
-        runner_preference=str(runner_preference or ""),
-        runner_settings=normalized_runner_settings,
-        allow_optional_runners=allow_optional_runners,
-        build_command=_build_command,
-        execute_local_command=_execute_local_command,
-        execute_browser_action=_execute_browser_action,
-        mount_paths=[
-            getattr(project.properties, "runningFolder", ""),
-            getattr(project.properties, "outputFolder", ""),
-            os.getcwd(),
-        ],
-        workdir=os.getcwd(),
-    )
+    runner_result = LocalRunner().execute(request, build_command=_build_command, execute_command=_execute_local_command)
     if not capture_metadata:
         return bool(runner_result.executed), str(runner_result.reason or ""), int(runner_result.process_id or 0)
 

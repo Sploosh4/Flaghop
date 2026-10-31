@@ -42,8 +42,6 @@
                     <select id="graph-view-select">
                         <option value="attack_surface" selected>attack surface</option>
                         <option value="host_service_topology">host/service topology</option>
-                        <option value="web_application_map">web application map</option>
-                        <option value="credential_identity_session">credential / identity / session</option>
                         <option value="exploitation_chain">exploitation chain</option>
                     </select>
                 </label>
@@ -238,17 +236,14 @@
                             <h4>Subnet Actions</h4>
                             <div id="graph-subnet-actions" class="host-actions graph-host-actions"></div>
                         </div>
-                        <div id="graph-screenshot-actions-block" class="graph-detail-block" hidden>
-                            <h4>Screenshot Actions</h4>
-                            <div id="graph-screenshot-actions" class="host-actions graph-host-actions"></div>
-                        </div>
+
                         <div class="graph-detail-block">
                             <h4>Evidence</h4>
                             <ul id="graph-detail-evidence" class="graph-detail-evidence"></ul>
                         </div>
                         <div class="graph-detail-block">
                             <h4>Related Content</h4>
-                            <p id="graph-detail-content-status" class="text-muted">No related artifacts or screenshots.</p>
+                            <p id="graph-detail-content-status" class="text-muted">No related files.</p>
                             <div id="graph-detail-content-list" class="graph-content-list"></div>
                         </div>
                         <div class="graph-detail-block">

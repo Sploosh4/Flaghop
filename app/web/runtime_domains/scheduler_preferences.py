@@ -22,10 +22,6 @@ class SchedulerPreferencesRuntime:
 
     apply_scheduler_preferences = web_runtime_scheduler.apply_scheduler_preferences
 
-    test_scheduler_provider = web_runtime_scheduler.test_scheduler_provider
-
-    get_scheduler_provider_logs = web_runtime_scheduler.get_scheduler_provider_logs
-
     get_scheduler_decisions = web_runtime_scheduler.get_scheduler_decisions
 
     get_scheduler_approvals = web_runtime_scheduler.get_scheduler_approvals
@@ -38,8 +34,6 @@ class SchedulerPreferencesRuntime:
 
     _scheduler_tool_audit_snapshot = web_runtime_scheduler.scheduler_tool_audit_snapshot
 
-    _normalize_project_report_headers = staticmethod(web_runtime_scheduler.normalize_project_report_headers)
-
     _job_worker_count = staticmethod(web_runtime_scheduler.job_worker_count)
 
     _scheduler_max_concurrency = staticmethod(web_runtime_scheduler.scheduler_max_concurrency)
@@ -48,23 +42,7 @@ class SchedulerPreferencesRuntime:
 
     _scheduler_max_jobs = staticmethod(web_runtime_scheduler.scheduler_max_jobs)
 
-    _project_report_delivery_config = staticmethod(web_runtime_scheduler.project_report_delivery_config)
-
-    _scheduler_feedback_config = staticmethod(web_runtime_scheduler.scheduler_feedback_config)
-
     _is_host_scoped_scheduler_tool = staticmethod(web_runtime_scheduler.is_host_scoped_scheduler_tool)
-
-    _sanitize_provider_config = staticmethod(web_runtime_scheduler.sanitize_provider_config)
-
-    _sanitize_integration_config = staticmethod(web_runtime_scheduler.sanitize_integration_config)
-
-    _scheduler_integration_api_key = staticmethod(web_runtime_scheduler.scheduler_integration_api_key)
-
-    _shodan_integration_enabled = web_runtime_scheduler.shodan_integration_enabled
-
-    _grayhatwarfare_integration_enabled = web_runtime_scheduler.grayhatwarfare_integration_enabled
-
-    _scheduler_command_placeholders = web_runtime_scheduler.scheduler_command_placeholders
 
     _scheduler_preferences = web_runtime_scheduler.scheduler_preferences
 

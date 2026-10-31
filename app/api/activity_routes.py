@@ -14,7 +14,6 @@ from app.api.activity_contracts import (
     ProcessAction,
     ProcessList,
     ProcessOutput,
-    ProviderLogs,
     RejectApproval,
     RetriedProcess,
     RetryProcess,
@@ -113,16 +112,6 @@ def scans(runtime: Runtime, limit: Annotated[int, Query(ge=1, le=1000)] = 100):
 )
 def decisions(runtime: Runtime, limit: Annotated[int, Query(ge=1, le=500)] = 100):
     return SchedulerService(runtime).get_decisions({"limit": limit})
-
-
-@router.get(
-    "/api/scheduler/provider/logs",
-    response_model=ProviderLogs,
-    response_model_exclude_unset=True,
-    operation_id="getProviderLogs",
-)
-def provider_logs(runtime: Runtime, limit: Annotated[int, Query(ge=1, le=1000)] = 300):
-    return SchedulerService(runtime).get_provider_logs({"limit": limit})
 
 
 @router.get(

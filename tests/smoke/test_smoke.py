@@ -99,14 +99,6 @@ class SmokeTests(unittest.TestCase):
         self.project_manager.setStoreWordListsOnExit(saved_project, False)
         self.project_manager.closeProject(saved_project)
 
-    def test_credential_repository_roundtrip(self):
-        project = self._create_project()
-        repo = project.repositoryContainer.credentialRepository
-        repo.storeCapture("responder", "eth0", "Sample capture line", username="test", hash_value="deadbeef")
-        captures = repo.getAllCaptures()
-        self.assertTrue(any(cap["tool"] == "responder" for cap in captures))
-        self.project_manager.closeProject(project)
-
     def test_nmap_importer_smoke(self):
         project = self._create_project()
         host_repo = project.repositoryContainer.hostRepository

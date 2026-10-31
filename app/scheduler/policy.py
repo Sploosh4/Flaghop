@@ -17,7 +17,7 @@ VALID_INTENT = {"recon", "pentest"}
 VALID_RISK_MODE = {"blocked", "approval", "allowed"}
 VALID_DETECTION_RISK_MODE = {"low", "medium", "high"}
 VALID_APPROVAL_MODE = {"never", "risky", "always"}
-VALID_RUNNER_PREFERENCE = {"local", "container", "browser", "manual", "auto"}
+VALID_RUNNER_PREFERENCE = {"local"}
 VALID_NOISE_BUDGET = {"low", "medium", "high"}
 
 ENGAGEMENT_PRESET_LABELS = {

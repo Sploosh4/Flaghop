@@ -13,7 +13,7 @@ import { escapeHtml, getValue, setChecked, setValue, setWorkspaceStatus } from "
 import { graphLoadSnapshot } from "./graph_data.js";
 import { graphDismissSelection } from "./graph_detail.js";
 import { fetchJson, postJson } from "./http.js";
-import { credentialCaptureState, graphWorkspaceState, toolAuditState } from "./state.js";
+import { graphWorkspaceState, toolAuditState } from "./state.js";
 /** Workspace tool settings. */
 
 export function setToolAuditStatus(text, isError = false) {
@@ -119,64 +119,8 @@ export function applyGraphWorkspaceEnabled(enabled) {
 }
 
 
-export function applyCredentialCapturePanelEnabled(enabled) {
-    const next = Boolean(enabled);
-    credentialCaptureState.panelEnabled = next;
-    const panel = document.getElementById("credential-capture-panel");
-    const button = document.getElementById("ribbon-credential-capture-toggle-button");
-    if (panel) {
-        panel.hidden = !next;
-    }
-    if (button) {
-        button.setAttribute("aria-pressed", next ? "true" : "false");
-        button.classList.toggle("is-active", next);
-        button.title = `${next ? "Hide" : "Show"} Responder / NTLM Relay panel`;
-    }
-    setChecked("interface-credential-capture-panel-enabled", next);
-}
-
-
-export async function toggleCredentialCapturePanelAction() {
-    const next = !Boolean(credentialCaptureState.panelEnabled);
-    closeRibbonMenus();
-    setWorkspaceStatus(`${next ? "Showing" : "Hiding"} Responder / NTLM Relay panel...`);
-    try {
-        const prefs = await postJson("/api/scheduler/preferences", {
-            feature_flags: {
-                credential_capture_panel: next,
-            },
-        });
-        applySchedulerPreferences(prefs);
-        setWorkspaceStatus(`Responder / NTLM Relay panel ${next ? "enabled" : "hidden"}`);
-    } catch (err) {
-        setWorkspaceStatus(`Responder / NTLM Relay toggle failed: ${err.message}`, true);
-    }
-}
-
-
 export function currentToolInstallPlatform() {
-    const select = document.getElementById("settings-tool-install-platform");
-    const value = String(select?.value || toolAuditState.recommendedPlatform || "kali").trim().toLowerCase();
-    return value === "ubuntu" ? "ubuntu" : "kali";
-}
-
-
-export function syncToolInstallPlatformSelect(preferredPlatform = "") {
-    const select = document.getElementById("settings-tool-install-platform");
-    if (!select) {
-        return "kali";
-    }
-    const current = String(select.value || "").trim().toLowerCase();
-    const normalizedPreferred = String(preferredPlatform || toolAuditState.recommendedPlatform || "kali").trim().toLowerCase();
-    if (select.dataset.userSelected === "true" && (current === "kali" || current === "ubuntu")) {
-        return current;
-    }
-    if (normalizedPreferred === "ubuntu") {
-        select.value = "ubuntu";
-        return "ubuntu";
-    }
-    select.value = "kali";
-    return "kali";
+    return toolAuditState.recommendedPlatform;
 }
 
 
@@ -187,7 +131,10 @@ export function renderToolInstallPlan(plan) {
     setValue("settings-tool-install-script", script);
     const commandCount = Number(resolvedPlan?.command_count || 0);
     const manualCount = Number(resolvedPlan?.manual_count || 0);
-    const platform = String(resolvedPlan?.platform || currentToolInstallPlatform() || "kali");
+    const platform = String(resolvedPlan?.platform || currentToolInstallPlatform() || "this system");
+    const supported = ["kali", "ubuntu"].includes(currentToolInstallPlatform());
+    document.getElementById("settings-tool-install-run-button").disabled = !supported || !plan || commandCount === 0;
+    document.getElementById("settings-tool-install-copy-button").disabled = !script.trim();
     if (!commandCount && !manualCount) {
         setToolInstallStatus(`No missing tool installs are queued for ${platform}.`);
         return;
@@ -207,7 +154,7 @@ export function renderToolAuditRows(rows) {
     }
     const items = Array.isArray(rows) ? rows : [];
     if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">No tool audit data.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">No tool audit data.</td></tr>';
         return;
     }
     tbody.innerHTML = items.map((row) => {
@@ -226,8 +173,7 @@ export function renderToolAuditRows(rows) {
                 <td>${escapeHtml(row?.category || "")}</td>
                 <td><span class="${statusClass}">${escapeHtml(status)}</span></td>
                 <td><code>${escapeHtml(resolved)}</code></td>
-                <td><code>${escapeHtml(row?.kali_install || "-")}</code></td>
-                <td><code>${escapeHtml(row?.ubuntu_install || "-")}</code></td>
+                <td><code>${escapeHtml(row?.[`${currentToolInstallPlatform()}_install`] || "-")}</code></td>
             </tr>
         `;
     }).join("");
@@ -238,14 +184,12 @@ export async function refreshToolAuditAction() {
     setToolAuditStatus("Checking tools...");
     try {
         const body = await fetchJson("/api/settings/tool-audit");
+        const detected = String(body?.recommended_platform || "").trim().toLowerCase();
+        toolAuditState.recommendedPlatform = ["kali", "ubuntu"].includes(detected) ? detected : "";
         renderToolAuditRows(body?.tools || []);
-        toolAuditState.recommendedPlatform = String(body?.recommended_platform || "kali").trim().toLowerCase() === "ubuntu"
-            ? "ubuntu"
-            : "kali";
         toolAuditState.supportedPlatforms = Array.isArray(body?.supported_platforms) && body.supported_platforms.length
             ? body.supported_platforms
             : ["kali", "ubuntu"];
-        syncToolInstallPlatformSelect(toolAuditState.recommendedPlatform);
         const summary = body?.summary || {};
         setToolAuditStatus(
             `Installed ${summary.installed || 0}/${summary.total || 0}; missing ${summary.missing || 0}; configured missing ${summary.configured_missing || 0}`
@@ -264,9 +208,9 @@ export async function refreshToolInstallPlanAction(showBusy = true) {
     if (showBusy) {
         setToolInstallStatus("Building install plan...");
     }
-    const platform = currentToolInstallPlatform();
     try {
-        const body = await fetchJson(`/api/settings/tool-audit/install-plan?platform=${encodeURIComponent(platform)}&scope=missing`);
+        if (!currentToolInstallPlatform()) throw new Error("Automatic installation supports Kali and Ubuntu only.");
+        const body = await fetchJson('/api/settings/tool-audit/install-plan?scope=missing');
         renderToolInstallPlan(body || {});
     } catch (err) {
         renderToolInstallPlan(null);
@@ -307,11 +251,10 @@ export async function copyToolInstallScriptAction() {
 
 
 export async function startToolInstallAction() {
-    const platform = currentToolInstallPlatform();
     setToolInstallStatus("Queueing install job...");
     try {
+        if (!currentToolInstallPlatform()) throw new Error("Automatic installation supports Kali and Ubuntu only.");
         const body = await postJson("/api/settings/tool-audit/install", {
-            platform,
             scope: "missing",
         });
         const jobId = Number(body?.job?.id || 0);

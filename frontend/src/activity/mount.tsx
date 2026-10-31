@@ -4,14 +4,13 @@ import {connectReactActivity} from '../../../app/web/static/js/workspace/activit
 import {applyWorkspaceOverview} from '../../../app/web/static/js/workspace/activity.js';
 import {pollSnapshot} from '../../../app/web/static/js/workspace/live_updates.js';
 import {setProcessOutputModalOpen} from '../../../app/web/static/js/workspace/process_output.js';
-import {closeProviderLogsModalAction} from '../../../app/web/static/js/workspace/dialogs.js';
 import {setWorkspaceStatus} from '../../../app/web/static/js/workspace/dom.js';
 import {ActivityController} from './controller';
 import {panels, updateActivity} from './state';
 import {ProcessesTable, ProcessToolbar} from './ProcessesTable';
 import {ApprovalsTable} from './ApprovalsTable';
 import {DecisionsTable, RationaleFeed, ScansTable} from './HistoryTables';
-import {ProcessOutputPanel, ProviderLogsPanel} from './OutputPanels';
+import {ProcessOutputPanel} from './OutputPanels';
 import {PanelCount} from './PanelCount';
 
 export function mountActivity() {
@@ -30,7 +29,6 @@ export function mountActivity() {
     {node: target('#scan-history-body'), content: <ScansTable/>},
     {node: target('#decision-rationale-body'), content: <RationaleFeed/>},
     {node: target('#process-output-modal > .legion-modal'), content: <ProcessOutputPanel controller={controller}/>},
-    {node: target('#provider-logs-modal > .legion-modal'), content: <ProviderLogsPanel controller={controller} close={closeProviderLogsModalAction}/>},
   ];
   ['process-count', 'approval-count', 'decision-count', 'scan-history-count', 'decision-rationale-count'].forEach(id => document.getElementById(id)?.replaceChildren());
   const rootNode = document.createElement('div'); rootNode.id = 'activity-react-root'; document.body.appendChild(rootNode);

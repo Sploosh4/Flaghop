@@ -153,22 +153,6 @@ export async function refreshWorkspace() {
 }
 
 
-export async function saveHostNote() {
-    const hostId = workspaceState.selectedHostId;
-    if (!hostId) {
-        setWorkspaceStatus("No host selected", true);
-        return;
-    }
-    const text = getValue("workspace-note");
-    try {
-        await postJson(`/api/workspace/hosts/${hostId}/note`, {text});
-        setWorkspaceStatus("Note saved");
-    } catch (err) {
-        setWorkspaceStatus(`Save note failed: ${err.message}`, true);
-    }
-}
-
-
 export function parseCommaSeparatedList(value) {
     return Array.from(new Set(
         String(value || "")
@@ -176,28 +160,4 @@ export function parseCommaSeparatedList(value) {
             .map((item) => String(item || "").trim())
             .filter(Boolean)
     ));
-}
-
-
-export async function saveHostCategories() {
-    const hostId = workspaceState.selectedHostId;
-    if (!hostId) {
-        setWorkspaceStatus("No host selected", true);
-        return;
-    }
-    try {
-        await postJson(`/api/workspace/hosts/${hostId}/categories`, {
-            manual_categories: parseCommaSeparatedList(getValue("workspace-host-categories")),
-            override_auto: getChecked("workspace-host-categories-override"),
-        });
-        setWorkspaceStatus("Categories saved");
-        await Promise.all([
-            loadWorkspaceHosts(),
-            loadWorkspaceServices(),
-            loadHostDetail(hostId),
-        ]);
-        await graphLoadSnapshot({background: false}).catch(() => {});
-    } catch (err) {
-        setWorkspaceStatus(`Save categories failed: ${err.message}`, true);
-    }
 }

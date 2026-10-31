@@ -72,8 +72,7 @@ def get_host_workspace(
             )
 
         cves = runtime._load_cves_for_host(project, int(host.id))
-        screenshots = runtime._list_screenshots_for_host(project, str(getattr(host, "ip", "") or ""))
-        ai_analysis = runtime._load_host_ai_analysis(project, int(host.id), str(getattr(host, "ip", "") or ""))
+        observations = runtime._load_host_observations(project, int(host.id), str(getattr(host, "ip", "") or ""))
         inferred_urls = runtime._infer_host_urls(
             project,
             host_id=int(host.id),
@@ -101,18 +100,17 @@ def get_host_workspace(
             os_match=str(os_state.get("os", "") or ""),
             os_confidence=float(os_state.get("os_confidence", 0.0) or 0.0),
             technologies=(
-                ai_analysis.get("technologies", []) if isinstance(ai_analysis.get("technologies", []), list) else []
+                observations.get("technologies", []) if isinstance(observations.get("technologies", []), list) else []
             ),
-            findings=ai_analysis.get("findings", []) if isinstance(ai_analysis.get("findings", []), list) else [],
+            findings=observations.get("findings", []) if isinstance(observations.get("findings", []), list) else [],
             manual_tests=(
-                ai_analysis.get("manual_tests", []) if isinstance(ai_analysis.get("manual_tests", []), list) else []
+                observations.get("manual_tests", []) if isinstance(observations.get("manual_tests", []), list) else []
             ),
-            next_phase=str(ai_analysis.get("next_phase", "") or ""),
-            provider=str(ai_analysis.get("provider", "") or ""),
-            goal_profile=str(ai_analysis.get("goal_profile", "") or ""),
+            next_phase=str(observations.get("next_phase", "") or ""),
+            provider=str(observations.get("provider", "") or ""),
+            goal_profile=str(observations.get("goal_profile", "") or ""),
             service_inventory=service_inventory_payload,
             urls=inferred_urls,
-            screenshots=screenshots,
         )
         target_state = target_state_getter(project.database, int(host.id)) or {}
         os_state = resolve_host_os(host, service_inventory=service_inventory_payload, target_state=target_state)
@@ -131,7 +129,6 @@ def get_host_workspace(
             "note": note_text,
             "ports": ports_data,
             "cves": cves,
-            "screenshots": screenshots,
-            "ai_analysis": ai_analysis,
+            "observations": observations,
             "target_state": target_state,
         }

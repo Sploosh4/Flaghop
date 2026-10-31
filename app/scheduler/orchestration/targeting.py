@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import ipaddress
-from typing import Any, Iterable, Optional, Set
+from typing import Any, Dict, Iterable, Optional, Set
 from app.hostsfile import registrable_root_domain
 from app.settings import AppSettings
 from app.scheduler.orchestration.models import ROOT_DOMAIN_SCOPED_TOOL_IDS, SchedulerTarget
@@ -95,9 +95,7 @@ class Targeting:
             if not cls._is_canonical_root_domain_target(target):
                 return f"skipped: {normalized_tool or 'tool'} is only valid for canonical root-domain targets"
         if normalized_service == "host":
-            service_scope = cls._tool_service_scope(settings, normalized_tool)
-            if service_scope and "host" not in service_scope:
-                return f"skipped: {normalized_tool or 'tool'} is not valid for host-root targets"
+            return "skipped: no local protocol check for a host without a port"
         input_error = AppSettings._scheduler_target_input_error(
             normalized_tool,
             str(command_template or ""),
@@ -106,3 +104,32 @@ class Targeting:
         if not isinstance(input_error, str):
             return ""
         return input_error
+
+    @classmethod
+    def _normalize_attempt_summary(cls, payload: Any) -> Dict[str, Set[str]]:
+        if isinstance(payload, dict):
+            return {
+                "tool_ids": {
+                    cls._normalize_text_token(item)
+                    for item in list(payload.get("tool_ids", []) or [])
+                    if cls._normalize_text_token(item)
+                },
+                "family_ids": {
+                    cls._normalize_text_token(item)
+                    for item in list(payload.get("family_ids", []) or [])
+                    if cls._normalize_text_token(item)
+                },
+                "command_signatures": {
+                    cls._normalize_text_token(item)
+                    for item in list(payload.get("command_signatures", []) or [])
+                    if cls._normalize_text_token(item)
+                },
+            }
+        normalized = {
+            cls._normalize_text_token(item) for item in list(payload or set()) if cls._normalize_text_token(item)
+        }
+        return {
+            "tool_ids": normalized,
+            "family_ids": set(),
+            "command_signatures": set(),
+        }

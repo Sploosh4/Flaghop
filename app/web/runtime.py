@@ -11,26 +11,14 @@ from app.services.scheduler import SchedulerService
 from app.services.events import EventStream
 from app.services.compatibility import OwnedState
 from app import scan_presets
-from app.web import runtime_credential_capture as web_runtime_credential_capture
 from app.web import runtime_scans as web_runtime_scans
 from app.web.jobs import WebJobManager
-
-
-def _get_requests_module():
-    try:
-        import requests as requests_module
-    except Exception as exc:  # pragma: no cover - depends on local environment packaging
-        raise RuntimeError(
-            f"requests dependency unavailable under {sys.executable} ({sys.version.split()[0]}): {exc}"
-        ) from exc
-    return requests_module
 
 
 from app.web.runtime_domains.jobs import JobsRuntime
 from app.web.runtime_domains.workspace import WorkspaceRuntime
 from app.web.runtime_domains.status import StatusRuntime
 from app.web.runtime_domains.scheduler_preferences import SchedulerPreferencesRuntime
-from app.web.runtime_domains.credential_capture import CredentialCaptureRuntime
 from app.web.runtime_domains.scheduler_execution import SchedulerExecutionRuntime
 from app.web.runtime_domains.scheduler_context import SchedulerContextRuntime
 from app.web.runtime_domains.projects import ProjectsRuntime
@@ -40,9 +28,7 @@ from app.web.runtime_domains.artifacts import ArtifactsRuntime
 from app.web.runtime_domains.settings import SettingsRuntime
 from app.web.runtime_domains.processes import ProcessesRuntime
 from app.web.runtime_domains.scans import ScansRuntime
-from app.web.runtime_domains.screenshots import ScreenshotsRuntime
 from app.web.runtime_domains.tools import ToolsRuntime
-from app.web.runtime_domains.reports import ReportsRuntime
 from app.web.runtime_domains.scheduler_state import SchedulerStateRuntime
 from app.web.runtime_domains.execution import ExecutionRuntime
 
@@ -70,11 +56,7 @@ class WebRuntime:
     _strip_nmap_preamble = staticmethod(WorkspaceRuntime._strip_nmap_preamble)
     _host_detail_script_preview = classmethod(WorkspaceRuntime._host_detail_script_preview.__func__)
     get_host_workspace = WorkspaceRuntime.get_host_workspace
-    update_host_note = WorkspaceRuntime.update_host_note
-    update_host_categories = WorkspaceRuntime.update_host_categories
     delete_host_workspace = WorkspaceRuntime.delete_host_workspace
-    create_script_entry = WorkspaceRuntime.create_script_entry
-    delete_script_entry = WorkspaceRuntime.delete_script_entry
     get_script_output = WorkspaceRuntime.get_script_output
     _summary = WorkspaceRuntime._summary
     _hosts = WorkspaceRuntime._hosts
@@ -97,52 +79,22 @@ class WebRuntime:
     get_engagement_policy = SchedulerPreferencesRuntime.get_engagement_policy
     set_engagement_policy = SchedulerPreferencesRuntime.set_engagement_policy
     apply_scheduler_preferences = SchedulerPreferencesRuntime.apply_scheduler_preferences
-    test_scheduler_provider = SchedulerPreferencesRuntime.test_scheduler_provider
-    get_scheduler_provider_logs = SchedulerPreferencesRuntime.get_scheduler_provider_logs
     get_scheduler_decisions = SchedulerPreferencesRuntime.get_scheduler_decisions
     get_scheduler_approvals = SchedulerPreferencesRuntime.get_scheduler_approvals
     _scheduler_family_policy_metadata = SchedulerPreferencesRuntime._scheduler_family_policy_metadata
     _apply_family_policy_action = SchedulerPreferencesRuntime._apply_family_policy_action
     get_scan_history = SchedulerPreferencesRuntime.get_scan_history
     _scheduler_tool_audit_snapshot = SchedulerPreferencesRuntime._scheduler_tool_audit_snapshot
-    _normalize_project_report_headers = staticmethod(SchedulerPreferencesRuntime._normalize_project_report_headers)
     _job_worker_count = staticmethod(SchedulerPreferencesRuntime._job_worker_count)
     _scheduler_max_concurrency = staticmethod(SchedulerPreferencesRuntime._scheduler_max_concurrency)
     _scheduler_max_host_concurrency = staticmethod(SchedulerPreferencesRuntime._scheduler_max_host_concurrency)
     _scheduler_max_jobs = staticmethod(SchedulerPreferencesRuntime._scheduler_max_jobs)
-    _project_report_delivery_config = staticmethod(SchedulerPreferencesRuntime._project_report_delivery_config)
-    _scheduler_feedback_config = staticmethod(SchedulerPreferencesRuntime._scheduler_feedback_config)
     _is_host_scoped_scheduler_tool = staticmethod(SchedulerPreferencesRuntime._is_host_scoped_scheduler_tool)
-    _sanitize_provider_config = staticmethod(SchedulerPreferencesRuntime._sanitize_provider_config)
-    _sanitize_integration_config = staticmethod(SchedulerPreferencesRuntime._sanitize_integration_config)
-    _scheduler_integration_api_key = staticmethod(SchedulerPreferencesRuntime._scheduler_integration_api_key)
-    _shodan_integration_enabled = SchedulerPreferencesRuntime._shodan_integration_enabled
-    _grayhatwarfare_integration_enabled = SchedulerPreferencesRuntime._grayhatwarfare_integration_enabled
-    _scheduler_command_placeholders = SchedulerPreferencesRuntime._scheduler_command_placeholders
     _scheduler_preferences = SchedulerPreferencesRuntime._scheduler_preferences
     _device_category_options = SchedulerPreferencesRuntime._device_category_options
     _built_in_device_category_options = staticmethod(SchedulerPreferencesRuntime._built_in_device_category_options)
     _ensure_scheduler_table = SchedulerPreferencesRuntime._ensure_scheduler_table
     _ensure_scheduler_approval_store = SchedulerPreferencesRuntime._ensure_scheduler_approval_store
-
-    # CredentialCapture compatibility API.
-    get_workspace_credential_captures = CredentialCaptureRuntime.get_workspace_credential_captures
-    _default_credential_capture_config = staticmethod(CredentialCaptureRuntime._default_credential_capture_config)
-    _normalize_credential_capture_config = staticmethod(CredentialCaptureRuntime._normalize_credential_capture_config)
-    _dedupe_credential_hashes = staticmethod(CredentialCaptureRuntime._dedupe_credential_hashes)
-    _extract_credential_data = staticmethod(CredentialCaptureRuntime._extract_credential_data)
-    _normalize_credential_capture_source = staticmethod(CredentialCaptureRuntime._normalize_credential_capture_source)
-    _split_credential_principal = staticmethod(CredentialCaptureRuntime._split_credential_principal)
-    _extract_cleartext_password = staticmethod(CredentialCaptureRuntime._extract_cleartext_password)
-    _latest_credential_capture_session_locked = CredentialCaptureRuntime._latest_credential_capture_session_locked
-    _credential_capture_state_locked = CredentialCaptureRuntime._credential_capture_state_locked
-    save_credential_capture_config = CredentialCaptureRuntime.save_credential_capture_config
-    start_credential_capture_session_job = CredentialCaptureRuntime.start_credential_capture_session_job
-    stop_credential_capture_session = CredentialCaptureRuntime.stop_credential_capture_session
-    get_credential_capture_log_payload = CredentialCaptureRuntime.get_credential_capture_log_payload
-    _run_credential_capture_session = CredentialCaptureRuntime._run_credential_capture_session
-    _build_credential_capture_command = CredentialCaptureRuntime._build_credential_capture_command
-    _credential_capture_target_label = staticmethod(CredentialCaptureRuntime._credential_capture_target_label)
 
     # SchedulerExecution compatibility API.
     get_scheduler_execution_records = SchedulerExecutionRuntime.get_scheduler_execution_records
@@ -153,7 +105,6 @@ class WebRuntime:
     approve_scheduler_approval = SchedulerExecutionRuntime.approve_scheduler_approval
     reject_scheduler_approval = SchedulerExecutionRuntime.reject_scheduler_approval
     start_scheduler_run_job = SchedulerExecutionRuntime.start_scheduler_run_job
-    start_host_dig_deeper_job = SchedulerExecutionRuntime.start_host_dig_deeper_job
     _run_scheduler_actions_web = SchedulerExecutionRuntime._run_scheduler_actions_web
     _run_scheduler_targets = SchedulerExecutionRuntime._run_scheduler_targets
     _group_scheduler_targets_by_host = staticmethod(SchedulerExecutionRuntime._group_scheduler_targets_by_host)
@@ -164,34 +115,6 @@ class WebRuntime:
     # SchedulerContext compatibility API.
     get_scheduler_rationale_feed = SchedulerContextRuntime.get_scheduler_rationale_feed
     _scheduler_rationale_feed_locked = SchedulerContextRuntime._scheduler_rationale_feed_locked
-    _safe_json_loads = staticmethod(SchedulerContextRuntime._safe_json_loads)
-    _dedupe_text_tokens = staticmethod(SchedulerContextRuntime._dedupe_text_tokens)
-    _truncate_rationale_text = staticmethod(SchedulerContextRuntime._truncate_rationale_text)
-    _scheduler_event_timestamp_epoch = classmethod(SchedulerContextRuntime._scheduler_event_timestamp_epoch.__func__)
-    _strip_json_fences = staticmethod(SchedulerContextRuntime._strip_json_fences)
-    _extract_prompt_text_from_provider_request = classmethod(
-        SchedulerContextRuntime._extract_prompt_text_from_provider_request.__func__
-    )
-    _extract_scheduler_target_fields_from_prompt = staticmethod(
-        SchedulerContextRuntime._extract_scheduler_target_fields_from_prompt
-    )
-    _extract_provider_response_payload = classmethod(
-        SchedulerContextRuntime._extract_provider_response_payload.__func__
-    )
-    _rationale_list_text = staticmethod(SchedulerContextRuntime._rationale_list_text)
-    _rationale_tag_label = staticmethod(SchedulerContextRuntime._rationale_tag_label)
-    _index_scheduler_rows_by_target_tool = classmethod(
-        SchedulerContextRuntime._index_scheduler_rows_by_target_tool.__func__
-    )
-    _nearest_scheduler_row = staticmethod(SchedulerContextRuntime._nearest_scheduler_row)
-    _manual_test_lines = classmethod(SchedulerContextRuntime._manual_test_lines.__func__)
-    _findings_line = classmethod(SchedulerContextRuntime._findings_line.__func__)
-    _match_rationale_outcomes = classmethod(SchedulerContextRuntime._match_rationale_outcomes.__func__)
-    _build_provider_rationale_entry = classmethod(SchedulerContextRuntime._build_provider_rationale_entry.__func__)
-    _build_audit_rationale_entry = classmethod(SchedulerContextRuntime._build_audit_rationale_entry.__func__)
-    _build_scheduler_rationale_feed_items = classmethod(
-        SchedulerContextRuntime._build_scheduler_rationale_feed_items.__func__
-    )
     _build_scheduler_target_context = SchedulerContextRuntime._build_scheduler_target_context
     _build_scheduler_context_summary = staticmethod(SchedulerContextRuntime._build_scheduler_context_summary)
     _build_scheduler_coverage_summary = staticmethod(SchedulerContextRuntime._build_scheduler_coverage_summary)
@@ -283,20 +206,10 @@ class WebRuntime:
     _merge_ai_items = staticmethod(SchedulerEvidenceRuntime._merge_ai_items)
     _coverage_gaps_from_summary = staticmethod(SchedulerEvidenceRuntime._coverage_gaps_from_summary)
     _persist_shared_target_state = SchedulerEvidenceRuntime._persist_shared_target_state
-    _persist_scheduler_ai_analysis = SchedulerEvidenceRuntime._persist_scheduler_ai_analysis
-    _persist_scheduler_reflection_analysis = SchedulerEvidenceRuntime._persist_scheduler_reflection_analysis
-    _apply_ai_host_updates = SchedulerEvidenceRuntime._apply_ai_host_updates
     _enrich_host_from_observed_results = SchedulerEvidenceRuntime._enrich_host_from_observed_results
     _queue_scheduler_approval = SchedulerEvidenceRuntime._queue_scheduler_approval
     _record_scheduler_decision = SchedulerEvidenceRuntime._record_scheduler_decision
-    _build_scheduler_credential_row = classmethod(SchedulerEvidenceRuntime._build_scheduler_credential_row.__func__)
-    _build_scheduler_session_row = classmethod(SchedulerEvidenceRuntime._build_scheduler_session_row.__func__)
-    _extract_credential_capture_entries = classmethod(
-        SchedulerEvidenceRuntime._extract_credential_capture_entries.__func__
-    )
-    _persist_credential_captures_to_scheduler = SchedulerEvidenceRuntime._persist_credential_captures_to_scheduler
-    _persist_credential_capture_output = SchedulerEvidenceRuntime._persist_credential_capture_output
-    _load_host_ai_analysis = SchedulerEvidenceRuntime._load_host_ai_analysis
+    _load_host_observations = SchedulerEvidenceRuntime._load_host_observations
 
     # Graph compatibility API.
     get_evidence_graph = GraphRuntime.get_evidence_graph
@@ -313,13 +226,11 @@ class WebRuntime:
     _path_within = staticmethod(ArtifactsRuntime._path_within)
     _is_project_artifact_path = ArtifactsRuntime._is_project_artifact_path
     _collect_command_artifacts = staticmethod(ArtifactsRuntime._collect_command_artifacts)
-    delete_graph_screenshot = ArtifactsRuntime.delete_graph_screenshot
     _host_target_item_matches_port = staticmethod(ArtifactsRuntime._host_target_item_matches_port)
     _delete_project_artifact_refs = ArtifactsRuntime._delete_project_artifact_refs
     _prune_target_state_for_port = ArtifactsRuntime._prune_target_state_for_port
     delete_workspace_port = ArtifactsRuntime.delete_workspace_port
     delete_workspace_service = ArtifactsRuntime.delete_workspace_service
-    get_screenshot_file = ArtifactsRuntime.get_screenshot_file
 
     # Settings compatibility API.
     get_tool_audit = SettingsRuntime.get_tool_audit
@@ -390,10 +301,6 @@ class WebRuntime:
     _queue_discovered_host_followup_scan = ScansRuntime._queue_discovered_host_followup_scan
     _resolve_host_by_token = ScansRuntime._resolve_host_by_token
     _mark_discovered_host_origin = ScansRuntime._mark_discovered_host_origin
-    start_httpx_bootstrap_job = ScansRuntime.start_httpx_bootstrap_job
-    _httpx_bootstrap_command = staticmethod(ScansRuntime._httpx_bootstrap_command)
-    _materialize_httpx_urls_as_web_targets = ScansRuntime._materialize_httpx_urls_as_web_targets
-    _run_httpx_bootstrap = ScansRuntime._run_httpx_bootstrap
     _ingest_discovered_hosts = ScansRuntime._ingest_discovered_hosts
     _import_nmap_xml = ScansRuntime._import_nmap_xml
     _run_nmap_scan_and_import = ScansRuntime._run_nmap_scan_and_import
@@ -428,19 +335,12 @@ class WebRuntime:
     _best_scan_submission_for_subnet = classmethod(ScansRuntime._best_scan_submission_for_subnet.__func__)
     _normalize_targets = staticmethod(ScansRuntime._normalize_targets)
 
-    # Screenshots compatibility API.
-    start_host_screenshot_refresh_job = ScreenshotsRuntime.start_host_screenshot_refresh_job
-    start_graph_screenshot_refresh_job = ScreenshotsRuntime.start_graph_screenshot_refresh_job
-    _is_rdp_service = staticmethod(ScreenshotsRuntime._is_rdp_service)
-    _is_vnc_service = staticmethod(ScreenshotsRuntime._is_vnc_service)
-    _port_sort_key = staticmethod(ScreenshotsRuntime._port_sort_key)
-    _is_web_screenshot_target = classmethod(ScreenshotsRuntime._is_web_screenshot_target.__func__)
-    _collect_host_screenshot_targets = ScreenshotsRuntime._collect_host_screenshot_targets
-    _run_host_screenshot_refresh = ScreenshotsRuntime._run_host_screenshot_refresh
-    _run_graph_screenshot_refresh = ScreenshotsRuntime._run_graph_screenshot_refresh
-    _take_screenshot = ScreenshotsRuntime._take_screenshot
-    _take_remote_service_screenshot = ScreenshotsRuntime._take_remote_service_screenshot
-    _list_screenshots_for_host = ScreenshotsRuntime._list_screenshots_for_host
+    @staticmethod
+    def _port_sort_key(port):
+        try:
+            return (0, int(port))
+        except (TypeError, ValueError):
+            return (1, str(port))
 
     # Tools compatibility API.
     start_tool_run_job = ToolsRuntime.start_tool_run_job
@@ -456,14 +356,6 @@ class WebRuntime:
     _runner_type_for_tool = ToolsRuntime._runner_type_for_tool
     _runner_type_for_approval_item = ToolsRuntime._runner_type_for_approval_item
     _build_command = ToolsRuntime._build_command
-
-    # Reports compatibility API.
-    get_project_ai_report = ReportsRuntime.get_project_ai_report
-    render_project_ai_report_markdown = ReportsRuntime.render_project_ai_report_markdown
-    get_project_report = ReportsRuntime.get_project_report
-    render_project_report_markdown = ReportsRuntime.render_project_report_markdown
-    push_project_ai_report = ReportsRuntime.push_project_ai_report
-    push_project_report = ReportsRuntime.push_project_report
 
     # SchedulerState compatibility API.
     _existing_attempt_summary_for_target = SchedulerStateRuntime._existing_attempt_summary_for_target
@@ -541,13 +433,6 @@ class WebRuntime:
             worker_count=self._job_worker_count(preferences),
             on_change=self._handle_job_change,
         )
-
-    def get_credential_capture_state(self, *, include_captures: bool = False) -> Dict[str, Any]:
-        with self._lock:
-            return web_runtime_credential_capture.credential_capture_state_locked(
-                self,
-                include_captures=include_captures,
-            )
 
     @classmethod
     def _iter_rfc1918_scan_batches(cls, targets: List[str]):

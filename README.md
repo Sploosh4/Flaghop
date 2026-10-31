@@ -11,7 +11,7 @@ The plan is to bring the device map, Metasploit, file analysis and website tools
 - [ ] Map devices and show connection types with coloured lines. Run commands from the map.
 - [ ] Add Metasploit and a panel on the right for actions, decoded text, found files and hashes to try cracking.
 - [ ] Bring in the file watcher and decoders, with a file browser and text editor.
-- [ ] Add the same map and action panel for website targets and web tools.
+- [ ] Revisit website targets and web tools after the network workflow.
 
 [Full plan and open questions](docs/ctf-workspace-roadmap.md).
 

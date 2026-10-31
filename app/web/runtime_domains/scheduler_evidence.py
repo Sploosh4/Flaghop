@@ -51,26 +51,10 @@ class SchedulerEvidenceRuntime:
 
     _persist_shared_target_state = web_runtime_scheduler.persist_shared_target_state
 
-    _persist_scheduler_ai_analysis = web_runtime_scheduler.persist_scheduler_ai_analysis
-
-    _persist_scheduler_reflection_analysis = web_runtime_scheduler.persist_scheduler_reflection_analysis
-
-    _apply_ai_host_updates = web_runtime_scheduler.apply_ai_host_updates
-
     _enrich_host_from_observed_results = web_runtime_scheduler.enrich_host_from_observed_results
 
     _queue_scheduler_approval = web_runtime_scheduler.queue_scheduler_approval
 
     _record_scheduler_decision = web_runtime_scheduler.record_scheduler_decision
 
-    _build_scheduler_credential_row = classmethod(web_runtime_scheduler.build_scheduler_credential_row)
-
-    _build_scheduler_session_row = classmethod(web_runtime_scheduler.build_scheduler_session_row)
-
-    _extract_credential_capture_entries = classmethod(web_runtime_scheduler.extract_credential_capture_entries)
-
-    _persist_credential_captures_to_scheduler = web_runtime_scheduler.persist_credential_captures_to_scheduler
-
-    _persist_credential_capture_output = web_runtime_scheduler.persist_credential_capture_output
-
-    _load_host_ai_analysis = web_runtime_scheduler.load_host_ai_analysis
+    _load_host_observations = web_runtime_scheduler.load_host_observations

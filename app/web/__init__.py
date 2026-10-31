@@ -10,17 +10,14 @@ except ModuleNotFoundError:  # pragma: no cover - optional dependency path
     Sock = None
 
 from app.web.routes_graph import graph_bp
-from app.web.routes_credentials import credentials_bp
 from app.web.routes_host_actions import host_actions_bp
 from app.web.routes_processes import processes_bp
-from app.web.routes_reports import reports_bp
 from app.web.routes import web_bp
 from app.web.routes_projects import projects_bp
 from app.web.routes_hub import hub_bp
 from app.web.routes_runtime import runtime_bp
 from app.web.routes_scans import scans_bp
 from app.web.routes_scheduler import scheduler_bp
-from app.web.routes_screenshots import screenshots_bp
 from app.web.routes_settings import settings_bp
 from app.web.routes_tools import tools_bp
 from app.web.routes_workspace import workspace_bp
@@ -70,14 +67,11 @@ def create_app(runtime: "WebRuntime") -> Flask:
     app.register_blueprint(hub_bp)
     app.register_blueprint(scans_bp)
     app.register_blueprint(workspace_bp)
-    app.register_blueprint(credentials_bp)
-    app.register_blueprint(screenshots_bp)
     app.register_blueprint(host_actions_bp)
     app.register_blueprint(tools_bp)
     app.register_blueprint(processes_bp)
     app.register_blueprint(scheduler_bp)
     app.register_blueprint(graph_bp)
-    app.register_blueprint(reports_bp)
 
     if Sock is not None:
         sock = Sock(app)

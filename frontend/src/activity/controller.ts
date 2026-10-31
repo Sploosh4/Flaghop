@@ -1,5 +1,5 @@
 import * as api from '../api/activity';
-import {createStore, projectStore} from '../store';
+import {projectStore} from '../store';
 import {approvals, decisions, panels, pendingActions, processes, scans} from './state';
 import {OutputSession} from './output';
 import type {ActivityActions} from '../../../app/web/static/js/workspace/activity_bridge.js';
@@ -12,12 +12,10 @@ interface Shell {
 }
 
 export class ActivityController {
-  readonly logs = createStore<api.ProviderLogs & {loading: boolean; error: string}>({logs: [], text: '', loading: false, error: ''});
   readonly output: OutputSession;
   readonly actions: ActivityActions;
   private epoch = 0;
   private overviewRequest = 0;
-  private logRequest = 0;
   private pending = new Map<string, symbol>();
   private unsubscribe: () => void;
 
@@ -27,9 +25,8 @@ export class ActivityController {
     this.unsubscribe = projectStore.subscribe(() => {
       const next = projectStore.getSnapshot().name;
       if (path === next) return;
-      path = next; this.epoch++; this.overviewRequest++; this.logRequest++;
+      path = next; this.epoch++; this.overviewRequest++;
       Object.values(panels).forEach(panel => panel.reset());
-      this.logs.set({logs: [], text: '', loading: false, error: ''});
       this.pending.clear(); pendingActions.set(new Set()); this.output.close();
     });
     this.actions = {
@@ -38,7 +35,6 @@ export class ActivityController {
       loadApprovals: () => approvals.load(api.listApprovals),
       loadDecisions: () => decisions.load(api.listDecisions),
       loadScans: () => scans.load(api.listScans),
-      loadProviderLogs: () => this.loadLogs(),
       approve: (id, family = '') => this.approvalAction(id, false, family),
       reject: (id, family = '') => this.approvalAction(id, true, family),
       openOutput: id => this.output.open(id),
@@ -46,7 +42,7 @@ export class ActivityController {
     };
   }
 
-  dispose() {this.unsubscribe(); this.epoch++; this.logRequest++; this.overviewRequest++; this.output.close();}
+  dispose() {this.unsubscribe(); this.epoch++; this.overviewRequest++; this.output.close();}
 
   private async loadOverview() {
     const request = ++this.overviewRequest;
@@ -55,20 +51,6 @@ export class ActivityController {
       if (request === this.overviewRequest) this.shell.applyOverview(data);
     } catch (error) {
       if (request === this.overviewRequest) panels.rationale.error(`Failed to load workspace overview: ${error instanceof Error ? error.message : error}`);
-    }
-  }
-
-  private async loadLogs() {
-    const request = ++this.logRequest;
-    this.logs.set({...this.logs.getSnapshot(), loading: true, error: ''});
-    try {
-      const data = await api.getProviderLogs();
-      if (request === this.logRequest) this.logs.set({...data, loading: false, error: ''});
-    } catch (error) {
-      if (request !== this.logRequest) return;
-      const message = `Failed to load provider logs: ${error instanceof Error ? error.message : error}`;
-      this.logs.set({...this.logs.getSnapshot(), loading: false, error: message});
-      this.shell.status(message, true);
     }
   }
 

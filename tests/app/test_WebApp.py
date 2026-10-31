@@ -1697,50 +1697,6 @@ class DummyRuntime:
             raise KeyError(approval_id)
         return {"id": 77, "status": "rejected"}
 
-    def test_scheduler_provider(self, updates=None):
-        merged = dict(self.scheduler_config.state)
-        updates = updates or {}
-        for key, value in updates.items():
-            if key == "providers" and isinstance(value, dict):
-                providers = dict(merged.get("providers", {}))
-                for provider_name, provider_cfg in value.items():
-                    existing = dict(providers.get(provider_name, {}))
-                    if isinstance(provider_cfg, dict):
-                        existing.update(provider_cfg)
-                    providers[provider_name] = existing
-                merged["providers"] = providers
-            else:
-                merged[key] = value
-        provider = str(merged.get("provider", "none"))
-        if provider == "lm_studio":
-            return {
-                "ok": True,
-                "provider": "lm_studio",
-                "model": "o3-7b",
-                "latency_ms": 41,
-            }
-        if provider == "openai":
-            openai_cfg = (
-                merged.get("providers", {}).get("openai", {}) if isinstance(merged.get("providers", {}), dict) else {}
-            )
-            structured_enabled = (
-                bool(openai_cfg.get("structured_outputs", False)) if isinstance(openai_cfg, dict) else False
-            )
-            return {
-                "ok": True,
-                "provider": "openai",
-                "model": str(openai_cfg.get("model", "gpt-4.1-mini") or "gpt-4.1-mini"),
-                "latency_ms": 52,
-                "structured_output_requested": structured_enabled,
-                "structured_output_used": structured_enabled,
-                "structured_output_fallback": False,
-            }
-        return {
-            "ok": False,
-            "provider": provider,
-            "error": "AI provider is set to none.",
-        }
-
     def get_scheduler_provider_logs(self, limit=200):
         return [
             {
@@ -2074,7 +2030,6 @@ class WebAppTest(unittest.TestCase):
         self.assertIn("graph-port-actions-block", body)
         self.assertIn("graph-service-actions-block", body)
         self.assertIn("graph-subnet-actions-block", body)
-        self.assertIn("graph-screenshot-actions-block", body)
         self.assertIn("graph-detail-dock-toggle-button", body)
         self.assertIn("graph-detail-close-button", body)
         self.assertIn("graph-filters-toggle-button", body)
@@ -2096,17 +2051,11 @@ class WebAppTest(unittest.TestCase):
         self.assertIn("graph-note-open-button", body)
         self.assertIn("graph-note-modal", body)
         self.assertIn("graph-note-save-button", body)
-        self.assertIn('id="ribbon-logging-jobs-button"', body)
-        self.assertIn('id="ribbon-logging-submitted-scans-button"', body)
-        self.assertIn('id="ribbon-logging-scheduler-decisions-button"', body)
         self.assertIn('id="ribbon-settings-menu-button"', body)
         self.assertIn('id="ribbon-settings-menu"', body)
-        self.assertIn('id="jobs-modal"', body)
-        self.assertIn('id="submitted-scans-modal"', body)
-        self.assertIn('id="scheduler-decisions-modal"', body)
         self.assertIn('id="settings-tool-audit-refresh-button"', body)
         self.assertIn('id="settings-tool-audit-body"', body)
-        self.assertIn('id="settings-tool-install-platform"', body)
+        self.assertNotIn('id="settings-tool-install-platform"', body)
         self.assertIn('id="settings-tool-install-copy-button"', body)
         self.assertIn('id="settings-tool-install-run-button"', body)
         self.assertIn('id="settings-tool-install-script"', body)
@@ -2116,17 +2065,6 @@ class WebAppTest(unittest.TestCase):
         self.assertIn('id="interface-colorful-ascii-background"', body)
         self.assertIn('id="interface-settings-save-button"', body)
         self.assertIn('id="workspace-switch-guard-modal"', body)
-        self.assertIn('id="provider-openai-structured-outputs"', body)
-        self.assertIn('id="scheduler-ai-feedback-enabled"', body)
-        self.assertIn('id="scheduler-ai-max-rounds"', body)
-        self.assertIn('id="scheduler-ai-max-actions"', body)
-        self.assertIn('id="scheduler-ai-recent-output-chars"', body)
-        self.assertIn('id="scheduler-ai-reflection-enabled"', body)
-        self.assertIn('id="scheduler-ai-stall-rounds"', body)
-        self.assertIn('id="scheduler-ai-repeat-threshold"', body)
-        self.assertIn('id="scheduler-ai-max-reflections"', body)
-        self.assertIn('id="feature-scheduler-prompt-profiles"', body)
-        self.assertIn('id="feature-scheduler-web-followup-sidecar"', body)
         self.assertIn('id="jobs-body"', body)
         self.assertIn('id="scan-history-body"', body)
         self.assertIn('id="decisions-body"', body)
@@ -2149,7 +2087,7 @@ class WebAppTest(unittest.TestCase):
         self.assertNotIn("drag nodes or groups to reposition them", body)
         self.assertNotIn("<h2>Tools</h2>", body)
         self.assertNotIn("<h2>Processes</h2>", body)
-        self.assertNotIn("<h2>Jobs</h2>", body)
+        self.assertIn('id="activity-jobs-panel"', body)
         self.assertNotIn("<h2>Submitted Scans</h2>", body)
         self.assertNotIn("<h2>Scheduler Decisions</h2>", body)
         self.assertIn("<h2>Decision Rationale</h2>", body)
@@ -2164,19 +2102,6 @@ class WebAppTest(unittest.TestCase):
         self.assertLess(body.index("<h2>Graph Workspace</h2>"), body.index("<h2>Hosts</h2>"))
         self.assertLess(body.index("<h2>Hosts</h2>"), body.index("<h2>Services</h2>"))
         self.assertLess(body.index("<h2>Services</h2>"), body.index("<h2>Host Detail</h2>"))
-
-    def test_scheduler_secret_fields_disable_password_manager_autofill(self):
-        response = self.client.get("/")
-        self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
-        self.assertIn('id="scheduler-form" class="scheduler-form" autocomplete="off"', body)
-        self.assertIn(
-            'id="provider-openai-apikey" type="password" name="openai_api_key" autocomplete="new-password"', body
-        )
-        self.assertIn(
-            'id="scheduler-integration-shodan-apikey" type="password" name="shodan_api_key" autocomplete="new-password"',
-            body,
-        )
 
     def test_index_renders_all_interfaces_chip_when_configured(self):
         self.app.config["LEGION_WEB_BIND_HOST"] = "0.0.0.0"
@@ -2216,22 +2141,6 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         body = response.get_data(as_text=True)
         self.assertIn('id="interface-graph-workspace-enabled"', body)
-
-    def test_index_renders_credential_capture_panel_and_modals(self):
-        response = self.client.get("/")
-        self.assertEqual(200, response.status_code)
-        body = response.get_data(as_text=True)
-        self.assertIn('id="ribbon-credential-capture-toggle-button"', body)
-        self.assertIn('id="credential-capture-panel"', body)
-        self.assertIn('id="credential-capture-open-credentials-button"', body)
-        self.assertIn('id="credential-capture-open-config-button"', body)
-        self.assertIn('id="credential-capture-responder-start-button"', body)
-        self.assertIn('id="credential-capture-ntlmrelayx-start-button"', body)
-        self.assertIn('id="interface-credential-capture-panel-enabled"', body)
-        self.assertIn('id="credentials-modal"', body)
-        self.assertIn('id="credential-capture-config-modal"', body)
-        self.assertIn("Captured Credentials", body)
-        self.assertIn("Credential Capture Configuration", body)
 
     def test_index_renders_simplified_scheduler_engagement_profile(self):
         response = self.client.get("/")
@@ -2291,7 +2200,6 @@ class WebAppTest(unittest.TestCase):
         self.assertIn('id="hosts-category-filter-select"', body)
         self.assertIn('id="services-category-filter-select"', body)
         self.assertIn('id="host-detail-categories"', body)
-        self.assertIn('id="workspace-host-categories"', body)
         self.assertIn('id="ribbon-device-category-settings-button"', body)
         self.assertIn('id="device-category-settings-modal"', body)
         self.assertIn('id="device-category-rules-body"', body)
@@ -2376,188 +2284,6 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual(1, len(payload["hosts"]))
         self.assertEqual("10.0.0.7", payload["hosts"][0]["ip"])
 
-    def test_scheduler_preferences_endpoint(self):
-        response = self.client.get("/api/scheduler/preferences")
-        self.assertEqual(200, response.status_code)
-        self.assertEqual("deterministic", response.json["mode"])
-        self.assertTrue(response.json["feature_flags"]["graph_workspace"])
-        self.assertTrue(response.json["feature_flags"]["context_summary_enabled"])
-        self.assertTrue(response.json["feature_flags"]["scheduler_prompt_profiles"])
-        self.assertFalse(response.json["feature_flags"]["scheduler_web_followup_sidecar"])
-        self.assertEqual(1, response.json["max_host_concurrency"])
-        self.assertIn("openai", response.json["providers"])
-        self.assertFalse(response.json["providers"]["openai"]["structured_outputs"])
-        self.assertIn("grayhatwarfare", response.json["integrations"])
-        self.assertFalse(response.json["integrations"]["grayhatwarfare"]["api_key_configured"])
-        self.assertIn("shodan", response.json["integrations"])
-        self.assertFalse(response.json["integrations"]["shodan"]["api_key_configured"])
-        self.assertTrue(response.json["ai_feedback"]["enabled"])
-        self.assertTrue(response.json["ai_feedback"]["reflection_enabled"])
-        self.assertEqual(2, response.json["ai_feedback"]["stall_rounds_without_progress"])
-        self.assertEqual(2, response.json["ai_feedback"]["stall_repeat_selection_threshold"])
-        self.assertEqual(1, response.json["ai_feedback"]["max_reflections_per_target"])
-
-    def test_workspace_credential_capture_endpoints(self):
-        state = self.client.get("/api/workspace/credential-capture")
-        self.assertEqual(200, state.status_code)
-        self.assertEqual(3, state.json["capture_count"])
-        self.assertEqual("eth0", state.json["responder"]["config"]["interface_name"])
-        self.assertNotIn("captures", state.json)
-
-        captures = self.client.get("/api/workspace/credentials?limit=2")
-        self.assertEqual(200, captures.status_code)
-        self.assertEqual(2, len(captures.json["captures"]))
-        self.assertEqual(1, captures.json["unique_hash_count"])
-
-        saved = self.client.post(
-            "/api/workspace/credential-capture/config",
-            json={
-                "responder": {"mode": "passive"},
-                "ntlmrelayx": {"socks": True},
-            },
-        )
-        self.assertEqual(200, saved.status_code)
-        self.assertEqual("passive", saved.json["responder"]["config"]["mode"])
-        self.assertTrue(saved.json["ntlmrelayx"]["config"]["socks"])
-
-        started = self.client.post("/api/workspace/credential-capture/start", json={"tool": "responder"})
-        self.assertEqual(202, started.status_code)
-        self.assertEqual("credential-capture-session", started.json["job"]["type"])
-
-        stopped = self.client.post("/api/workspace/credential-capture/stop", json={"tool": "responder"})
-        self.assertEqual(200, stopped.status_code)
-        self.assertTrue(stopped.json["stopped"])
-
-    def test_workspace_credential_capture_download_endpoints(self):
-        hashes = self.client.get("/api/workspace/credentials/download?format=txt")
-        self.assertEqual(200, hashes.status_code)
-        self.assertIn("attachment; filename=credential-hashes.txt", hashes.headers.get("Content-Disposition", ""))
-        hash_text = hashes.get_data(as_text=True)
-        self.assertIn("alice::CORP:", hash_text)
-        self.assertIn("bob::CORP:", hash_text)
-        self.assertEqual(2, len([line for line in hash_text.splitlines() if line.strip()]))
-
-        payload = self.client.get("/api/workspace/credentials/download?format=json")
-        self.assertEqual(200, payload.status_code)
-        self.assertIn("attachment; filename=credentials.json", payload.headers.get("Content-Disposition", ""))
-        self.assertEqual(3, payload.get_json()["capture_count"])
-
-        log_response = self.client.get("/api/workspace/credential-capture/log?tool=responder")
-        self.assertEqual(200, log_response.status_code)
-        self.assertIn("attachment; filename=responder-log.txt", log_response.headers.get("Content-Disposition", ""))
-        self.assertIn("responder log line 1", log_response.get_data(as_text=True))
-
-    def test_scheduler_preferences_update_endpoint(self):
-        response = self.client.post(
-            "/api/scheduler/preferences",
-            json={"mode": "ai", "goal_profile": "external_pentest", "max_host_concurrency": 3},
-        )
-        self.assertEqual(200, response.status_code)
-        self.assertEqual("ai", response.json["mode"])
-        self.assertEqual("external_pentest", response.json["goal_profile"])
-        self.assertEqual(3, response.json["max_host_concurrency"])
-
-    def test_scheduler_preferences_update_accepts_engagement_policy(self):
-        response = self.client.post(
-            "/api/scheduler/preferences",
-            json={
-                "engagement_policy": {
-                    "preset": "external_recon",
-                    "scope": "external",
-                    "intent": "recon",
-                    "noise_budget": "low",
-                }
-            },
-        )
-        self.assertEqual(200, response.status_code)
-        self.assertEqual("external_pentest", response.json["goal_profile"])
-        self.assertEqual("external_recon", response.json["engagement_policy"]["preset"])
-
-    def test_scheduler_preferences_update_accepts_feature_flags(self):
-        response = self.client.post(
-            "/api/scheduler/preferences",
-            json={
-                "feature_flags": {
-                    "graph_workspace": False,
-                    "credential_capture_panel": False,
-                    "optional_runners": False,
-                    "context_summary_enabled": False,
-                    "scheduler_prompt_profiles": False,
-                    "scheduler_web_followup_sidecar": True,
-                }
-            },
-        )
-        self.assertEqual(200, response.status_code)
-        self.assertFalse(response.json["feature_flags"]["graph_workspace"])
-        self.assertFalse(response.json["feature_flags"]["credential_capture_panel"])
-        self.assertFalse(response.json["feature_flags"]["optional_runners"])
-        self.assertFalse(response.json["feature_flags"]["context_summary_enabled"])
-        self.assertFalse(response.json["feature_flags"]["scheduler_prompt_profiles"])
-        self.assertTrue(response.json["feature_flags"]["scheduler_web_followup_sidecar"])
-
-    def test_scheduler_preferences_update_accepts_openai_structured_outputs(self):
-        response = self.client.post(
-            "/api/scheduler/preferences",
-            json={
-                "provider": "openai",
-                "providers": {
-                    "openai": {
-                        "enabled": True,
-                        "structured_outputs": True,
-                    }
-                },
-            },
-        )
-        self.assertEqual(200, response.status_code)
-        self.assertEqual("openai", response.json["provider"])
-        self.assertTrue(response.json["providers"]["openai"]["structured_outputs"])
-
-    def test_scheduler_preferences_update_accepts_integrations(self):
-        response = self.client.post(
-            "/api/scheduler/preferences",
-            json={
-                "integrations": {
-                    "grayhatwarfare": {
-                        "api_key": "test-grayhat-key",
-                    },
-                    "shodan": {
-                        "api_key": "test-shodan-key",
-                    },
-                },
-            },
-        )
-        self.assertEqual(200, response.status_code)
-        self.assertTrue(response.json["integrations"]["grayhatwarfare"]["api_key_configured"])
-        self.assertEqual("", response.json["integrations"]["grayhatwarfare"]["api_key"])
-        self.assertTrue(response.json["integrations"]["shodan"]["api_key_configured"])
-        self.assertEqual("", response.json["integrations"]["shodan"]["api_key"])
-
-    def test_scheduler_preferences_update_accepts_ai_feedback_controls(self):
-        response = self.client.post(
-            "/api/scheduler/preferences",
-            json={
-                "ai_feedback": {
-                    "enabled": False,
-                    "max_rounds_per_target": 7,
-                    "max_actions_per_round": 4,
-                    "recent_output_chars": 1200,
-                    "reflection_enabled": True,
-                    "stall_rounds_without_progress": 3,
-                    "stall_repeat_selection_threshold": 5,
-                    "max_reflections_per_target": 2,
-                }
-            },
-        )
-        self.assertEqual(200, response.status_code)
-        self.assertFalse(response.json["ai_feedback"]["enabled"])
-        self.assertEqual(7, response.json["ai_feedback"]["max_rounds_per_target"])
-        self.assertEqual(4, response.json["ai_feedback"]["max_actions_per_round"])
-        self.assertEqual(1200, response.json["ai_feedback"]["recent_output_chars"])
-        self.assertTrue(response.json["ai_feedback"]["reflection_enabled"])
-        self.assertEqual(3, response.json["ai_feedback"]["stall_rounds_without_progress"])
-        self.assertEqual(5, response.json["ai_feedback"]["stall_repeat_selection_threshold"])
-        self.assertEqual(2, response.json["ai_feedback"]["max_reflections_per_target"])
-
     def test_engagement_policy_endpoints(self):
         current = self.client.get("/api/engagement-policy")
         self.assertEqual(200, current.status_code)
@@ -2574,54 +2300,6 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual(200, updated.status_code)
         self.assertEqual("internal_pentest", updated.json["preset"])
         self.assertTrue(updated.json["allow_exploitation"])
-
-    def test_scheduler_provider_test_endpoint(self):
-        response = self.client.post(
-            "/api/scheduler/provider/test",
-            json={
-                "provider": "lm_studio",
-                "providers": {
-                    "lm_studio": {
-                        "enabled": True,
-                        "base_url": "http://127.0.0.1:1234/v1",
-                        "model": "o3-7b",
-                    }
-                },
-            },
-        )
-        self.assertEqual(200, response.status_code)
-        self.assertTrue(response.json["ok"])
-        self.assertEqual("lm_studio", response.json["provider"])
-
-    def test_scheduler_provider_test_endpoint_reports_openai_structured_outputs(self):
-        response = self.client.post(
-            "/api/scheduler/provider/test",
-            json={
-                "provider": "openai",
-                "providers": {
-                    "openai": {
-                        "enabled": True,
-                        "model": "gpt-5-mini",
-                        "structured_outputs": True,
-                    }
-                },
-            },
-        )
-        self.assertEqual(200, response.status_code)
-        self.assertTrue(response.json["ok"])
-        self.assertEqual("openai", response.json["provider"])
-        self.assertTrue(response.json["structured_output_requested"])
-        self.assertTrue(response.json["structured_output_used"])
-        self.assertFalse(response.json["structured_output_fallback"])
-
-    def test_scheduler_provider_logs_endpoint(self):
-        response = self.client.get("/api/scheduler/provider/logs?limit=20")
-        self.assertEqual(200, response.status_code)
-        self.assertIn("logs", response.json)
-        self.assertIn("text", response.json)
-        self.assertEqual("openai", response.json["logs"][0]["provider"])
-        self.assertIn("prompt metadata:", response.json["text"])
-        self.assertTrue(response.json["logs"][0]["prompt_metadata"]["structured_output_fallback"])
 
     def test_scheduler_approve_family_endpoint(self):
         response = self.client.post("/api/scheduler/approve-family", json={"family_id": "fam123", "tool_id": "hydra"})
@@ -2817,9 +2495,6 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual(400, missing_annotation.status_code)
 
     def test_scan_and_import_endpoints(self):
-        target_import = self.client.post("/api/targets/import-file", json={"path": "/tmp/targets.txt"})
-        self.assertEqual(202, target_import.status_code)
-        self.assertEqual("accepted", target_import.json["status"])
 
         nmap_import = self.client.post("/api/nmap/import-xml", json={"path": "/tmp/scan.xml", "run_actions": True})
         self.assertEqual(202, nmap_import.status_code)
@@ -2880,213 +2555,6 @@ class WebAppTest(unittest.TestCase):
         self.assertEqual(404, missing.status_code)
         missing_stop = self.client.post("/api/jobs/99/stop", json={})
         self.assertEqual(404, missing_stop.status_code)
-
-    def test_workspace_endpoints(self):
-        hosts = self.client.get("/api/workspace/hosts")
-        self.assertEqual(200, hosts.status_code)
-        self.assertEqual("hide_down", hosts.json["filter"])
-        self.assertEqual(2, len(hosts.json["hosts"]))
-        self.assertFalse(any(item["ip"] == "10.0.0.6" for item in hosts.json["hosts"]))
-
-        limited_hosts = self.client.get("/api/workspace/hosts?limit=2")
-        self.assertEqual(200, limited_hosts.status_code)
-        self.assertEqual(2, len(limited_hosts.json["hosts"]))
-
-        all_hosts = self.client.get("/api/workspace/hosts?filter=show_all")
-        self.assertEqual(200, all_hosts.status_code)
-        self.assertEqual("show_all", all_hosts.json["filter"])
-        self.assertEqual(3, len(all_hosts.json["hosts"]))
-        self.assertTrue(any(item["ip"] == "10.0.0.6" for item in all_hosts.json["hosts"]))
-
-        services = self.client.get("/api/workspace/services")
-        self.assertEqual(200, services.status_code)
-        self.assertIn("smb", [item["service"] for item in services.json["services"]])
-
-        filtered_services = self.client.get("/api/workspace/services?host_id=11")
-        self.assertEqual(200, filtered_services.status_code)
-        self.assertEqual(11, filtered_services.json["host_id"])
-        self.assertEqual(["kerberos", "smb"], [item["service"] for item in filtered_services.json["services"]])
-
-        tools = self.client.get("/api/workspace/tools")
-        self.assertEqual(200, tools.status_code)
-        self.assertIn("total", tools.json)
-        self.assertIn("has_more", tools.json)
-        self.assertEqual("smbmap", tools.json["tools"][0]["tool_id"])
-
-        http_tools = self.client.get("/api/workspace/tools?service=http")
-        self.assertEqual(200, http_tools.status_code)
-        self.assertEqual(["whatweb-http"], [item["tool_id"] for item in http_tools.json["tools"]])
-
-        tool_targets = self.client.get("/api/workspace/tool-targets?host_id=11")
-        self.assertEqual(200, tool_targets.status_code)
-        self.assertEqual(11, tool_targets.json["host_id"])
-        self.assertEqual("445", tool_targets.json["targets"][0]["port"])
-
-        service_targets = self.client.get("/api/workspace/tool-targets?service=http")
-        self.assertEqual(200, service_targets.status_code)
-        self.assertEqual("http", service_targets.json["service"])
-        self.assertEqual("10.0.0.7", service_targets.json["targets"][0]["host_ip"])
-
-        detail = self.client.get("/api/workspace/hosts/11")
-        self.assertEqual(200, detail.status_code)
-        self.assertEqual("10.0.0.5", detail.json["host"]["ip"])
-        self.assertEqual("openai", detail.json["ai_analysis"]["provider"])
-        self.assertEqual("missing_smb_signing_checks", detail.json["target_state"]["coverage_gaps"][0]["gap_id"])
-        self.assertNotIn("Starting Nmap", detail.json["ports"][0]["scripts"][0]["display_output"])
-        self.assertIn("message_signing: disabled", detail.json["ports"][0]["scripts"][0]["display_output"])
-
-        target_state = self.client.get("/api/workspace/hosts/11/target-state")
-        self.assertEqual(200, target_state.status_code)
-        self.assertEqual("internal_recon", target_state.json["target_state"]["engagement_preset"])
-
-        findings = self.client.get("/api/workspace/findings?host_id=11&limit=10")
-        self.assertEqual(200, findings.status_code)
-        self.assertEqual(1, findings.json["count"])
-        self.assertEqual("SMB signing not required", findings.json["findings"][0]["title"])
-
-        project_push_missing_endpoint = self.client.post("/api/workspace/project-ai-report/push", json={})
-        self.assertEqual(400, project_push_missing_endpoint.status_code)
-
-        project_push_ok = self.client.post(
-            "/api/workspace/project-ai-report/push",
-            json={
-                "project_report_delivery": {
-                    "provider_name": "siem",
-                    "endpoint": "https://example.local/report",
-                    "method": "POST",
-                    "format": "json",
-                }
-            },
-        )
-        self.assertEqual(200, project_push_ok.status_code)
-        self.assertEqual("ok", project_push_ok.json.get("status"))
-
-        project_report_push = self.client.post(
-            "/api/workspace/project-report/push",
-            json={
-                "project_report_delivery": {
-                    "provider_name": "siem",
-                    "endpoint": "https://example.local/report",
-                    "method": "POST",
-                    "format": "json",
-                }
-            },
-        )
-        self.assertEqual(200, project_report_push.status_code)
-        self.assertEqual("ok", project_report_push.json.get("status"))
-
-        host_rescan = self.client.post("/api/workspace/hosts/11/rescan", json={})
-        self.assertEqual(202, host_rescan.status_code)
-        self.assertEqual("accepted", host_rescan.json["status"])
-
-        subnet_rescan = self.client.post("/api/workspace/subnets/rescan", json={"subnet": "10.0.0.0/24"})
-        self.assertEqual(202, subnet_rescan.status_code)
-        self.assertEqual("accepted", subnet_rescan.json["status"])
-
-        host_screenshots = self.client.post("/api/workspace/hosts/11/refresh-screenshots", json={})
-        self.assertEqual(202, host_screenshots.status_code)
-        self.assertEqual("accepted", host_screenshots.json["status"])
-
-        graph_screenshot_refresh = self.client.post(
-            "/api/workspace/screenshots/refresh",
-            json={"host_id": 11, "port": "443", "protocol": "tcp"},
-        )
-        self.assertEqual(202, graph_screenshot_refresh.status_code)
-        self.assertEqual("accepted", graph_screenshot_refresh.json["status"])
-
-        graph_screenshot_delete = self.client.post(
-            "/api/workspace/screenshots/delete",
-            json={
-                "host_id": 11,
-                "artifact_ref": "/api/screenshots/10.0.0.5-445-screenshot.png",
-                "filename": "10.0.0.5-445-screenshot.png",
-                "port": "445",
-                "protocol": "tcp",
-            },
-        )
-        self.assertEqual(200, graph_screenshot_delete.status_code)
-        self.assertTrue(graph_screenshot_delete.json["deleted"])
-
-        graph_port_delete = self.client.post(
-            "/api/workspace/ports/delete",
-            json={"host_id": 11, "port": "445", "protocol": "tcp"},
-        )
-        self.assertEqual(200, graph_port_delete.status_code)
-        self.assertTrue(graph_port_delete.json["deleted"])
-        self.assertEqual("port", graph_port_delete.json["kind"])
-
-        graph_service_delete = self.client.post(
-            "/api/workspace/services/delete",
-            json={"host_id": 11, "port": "445", "protocol": "tcp", "service": "smb"},
-        )
-        self.assertEqual(200, graph_service_delete.status_code)
-        self.assertTrue(graph_service_delete.json["deleted"])
-        self.assertEqual("service", graph_service_delete.json["kind"])
-
-        host_dig = self.client.post("/api/workspace/hosts/11/dig-deeper", json={})
-        self.assertEqual(202, host_dig.status_code)
-        self.assertEqual("accepted", host_dig.json["status"])
-
-        note = self.client.post("/api/workspace/hosts/11/note", json={"text": "updated"})
-        self.assertEqual(200, note.status_code)
-        self.assertTrue(note.json["saved"])
-
-        script_add = self.client.post(
-            "/api/workspace/hosts/11/scripts",
-            json={"script_id": "test-script", "port": "445", "protocol": "tcp", "output": "ok"},
-        )
-        self.assertEqual(200, script_add.status_code)
-        self.assertEqual("test-script", script_add.json["script"]["script_id"])
-
-        script_delete = self.client.delete("/api/workspace/scripts/100")
-        self.assertEqual(200, script_delete.status_code)
-        self.assertTrue(script_delete.json["deleted"])
-        script_output = self.client.get("/api/workspace/scripts/100/output")
-        self.assertEqual(200, script_output.status_code)
-        self.assertEqual("script process output", script_output.json["output"])
-
-        tool_run = self.client.post(
-            "/api/workspace/tools/run",
-            json={"host_ip": "10.0.0.5", "port": "445", "protocol": "tcp", "tool_id": "smbmap"},
-        )
-        self.assertEqual(202, tool_run.status_code)
-        self.assertEqual("accepted", tool_run.json["status"])
-
-        processes = self.client.get("/api/processes?limit=10")
-        self.assertEqual(200, processes.status_code)
-        self.assertEqual("no-store, max-age=0, must-revalidate", processes.headers.get("Cache-Control"))
-
-        process_output = self.client.get("/api/processes/1/output")
-        self.assertEqual(200, process_output.status_code)
-        self.assertEqual("sample output", process_output.json["output"])
-        self.assertEqual("no-store, max-age=0, must-revalidate", process_output.headers.get("Cache-Control"))
-        process_output_tail = self.client.get("/api/processes/1/output?offset=7")
-        self.assertEqual(200, process_output_tail.status_code)
-        self.assertEqual("output", process_output_tail.json["output_chunk"])
-
-        process_kill = self.client.post("/api/processes/1/kill", json={})
-        self.assertEqual(200, process_kill.status_code)
-        self.assertTrue(process_kill.json["killed"])
-
-        process_retry = self.client.post("/api/processes/1/retry", json={})
-        self.assertEqual(202, process_retry.status_code)
-        self.assertEqual("accepted", process_retry.json["status"])
-
-        process_close = self.client.post("/api/processes/1/close", json={})
-        self.assertEqual(200, process_close.status_code)
-        self.assertTrue(process_close.json["closed"])
-
-        process_clear = self.client.post("/api/processes/clear", json={"reset_all": True})
-        self.assertEqual(200, process_clear.status_code)
-        self.assertTrue(process_clear.json["cleared"])
-
-        screenshot = self.client.get("/api/screenshots/10.0.0.5-445-screenshot.png")
-        self.assertEqual(200, screenshot.status_code)
-
-        remove_host = self.client.delete("/api/workspace/hosts/11")
-        self.assertEqual(200, remove_host.status_code)
-        self.assertEqual("ok", remove_host.json["status"])
-        self.assertTrue(remove_host.json["deleted"])
 
     def test_scheduler_approval_endpoints(self):
         listing = self.client.get("/api/scheduler/approvals?status=pending")

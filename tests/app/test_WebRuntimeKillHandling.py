@@ -304,15 +304,18 @@ class WebRuntimeKillHandlingTest(unittest.TestCase):
         repo = _DummyProcessRepo()
         runtime = self._make_runtime(repo)
 
-        with patch("app.web.runtime_execution.subprocess.Popen", return_value=_ExitCodeProc(1)):
+        with (
+            patch("app.settings.AppSettings.allowed_nonzero_exit_codes", return_value={1}),
+            patch("app.web.runtime_execution.subprocess.Popen", return_value=_ExitCodeProc(1)),
+        ):
             executed, reason, process_id = WebRuntime._run_command_with_tracking(
                 runtime,
-                tool_name="nikto",
+                tool_name="fixture",
                 tab_title="Nikto",
                 host_ip="127.0.0.1",
                 port="443",
                 protocol="tcp",
-                command="nikto -h https://127.0.0.1/",
+                command="fixture",
                 outputfile="/tmp/out",
                 timeout=30,
             )

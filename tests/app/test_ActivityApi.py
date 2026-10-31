@@ -23,7 +23,6 @@ class ActivityApiTest(TestCase):
             "/api/scans/history?limit=100",
             "/api/scheduler/decisions?limit=80",
             "/api/scheduler/approvals?status=pending&limit=200",
-            "/api/scheduler/provider/logs?limit=400",
         ):
             with self.subTest(path=path):
                 response = self.client.get(path)
@@ -107,7 +106,6 @@ class ActivityApiTest(TestCase):
             "/api/processes?limit=501",
             "/api/scans/history?limit=0",
             "/api/scheduler/decisions?limit=x",
-            "/api/scheduler/provider/logs?limit=1001",
             "/api/scheduler/approvals?limit=1001",
             "/api/processes/1/output?offset=-1",
             "/api/processes/1/output?max_chars=50001",

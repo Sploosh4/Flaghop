@@ -66,17 +66,6 @@ class NmapCommands:
     def _ensure_nuclei_auto_scan(cls, command: str) -> str:
         return cls._ensure_nuclei_command(command, automatic_scan=True)
 
-    @classmethod
-    def _ensure_banner_command(cls, command: str) -> str:
-        raw = str(command or "").strip()
-        lowered = raw.lower()
-        if "nc" not in lowered and "netcat" not in lowered:
-            return raw
-        if "[ip]" not in lowered or "[port]" not in lowered:
-            return raw
-        protocol = "udp" if re.search(r"(?i)(?:^|\s)-u(?:\s|$)", raw) else "tcp"
-        return cls.BANNER_COMMAND.replace("LEGION_BANNER_PROTOCOL=tcp", f"LEGION_BANNER_PROTOCOL={protocol}")
-
     @staticmethod
     def _ensure_nmap_stats_every(command: str, interval: str = "15s") -> str:
         raw = str(command or "")
@@ -172,39 +161,6 @@ class NmapCommands:
         if requires_port and not normalized_port:
             return f"skipped: {normalized_tool or 'tool'} requires target port"
         return ""
-
-    @classmethod
-    def _ensure_nmap_vuln_command(cls, command: str) -> str:
-        raw = str(command or "").strip()
-        if "nmap" not in raw.lower() or "--script" not in raw.lower():
-            return raw
-        if "vuln" not in raw.lower():
-            return raw
-
-        normalized = raw
-        if "||" not in raw or "vulners" not in raw.lower():
-            with_vulners = re.sub(
-                r"(?i)--script(?:=|\s+)vuln\b",
-                "--script=vuln,vulners",
-                raw,
-                count=1,
-            )
-            if with_vulners == raw and "vulners" not in raw.lower():
-                return raw
-
-            fallback = re.sub(
-                r"(?i)--script(?:=|\s+)vuln(?:,vulners)?\b",
-                "--script=vuln",
-                with_vulners,
-                count=1,
-            )
-
-            if with_vulners == fallback:
-                normalized = with_vulners
-            else:
-                normalized = f"({with_vulners} || {fallback})"
-
-        return cls._ensure_nmap_output_argument(normalized, "[OUTPUT]")
 
     @staticmethod
     def _ensure_nmap_output_argument(command: str, output_target: str) -> str:

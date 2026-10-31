@@ -729,52 +729,16 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
             self.assertTrue(content["download"])
             self.assertIn("ADMIN$", content["text"])
 
-    def test_runtime_reports_module_pushes_markdown_with_delivery_overrides(self):
-        from app.web import runtime_reports
-
-        runtime = _ReportRuntime()
-
-        class _RequestsModule:
-            def request(self, **kwargs):
-                runtime.request_call = dict(kwargs)
-                return SimpleNamespace(status_code=202, text="queued")
-
-        with mock.patch("app.web.runtime._get_requests_module", return_value=_RequestsModule()):
-            result = runtime_reports.push_project_report_common(
-                runtime,
-                report={"project": {"name": "demo"}},
-                markdown_renderer=lambda report: "# demo report\n",
-                overrides={
-                    "endpoint": "https://example.local/report",
-                    "method": "PUT",
-                    "format": "md",
-                    "headers": {"X-Test": "1"},
-                },
-                report_label="project report",
-            )
-
-        self.assertTrue(result["ok"])
-        self.assertEqual("PUT", result["method"])
-        self.assertEqual("md", result["format"])
-        self.assertEqual("https://example.local/report", result["endpoint"])
-        self.assertIsNotNone(runtime.request_call)
-        self.assertEqual("PUT", runtime.request_call["method"])
-        self.assertEqual(b"# demo report\n", runtime.request_call["data"])
-        self.assertEqual("1", runtime.request_call["headers"]["X-Test"])
-        self.assertEqual("text/markdown; charset=utf-8", runtime.request_call["headers"]["Content-Type"])
-
-    def test_runtime_tools_module_pages_supported_tools_and_scheduler_only_entries(self):
+    def test_runtime_tools_module_pages_supported_tools_and_excludes_retired_entries(self):
         from app.web import runtime_tools
 
         runtime = _ToolRuntime()
-
-        page = runtime_tools.get_workspace_tools_page(runtime, service="http", limit=10, offset=0)
-
-        self.assertEqual(2, page["total"])
-        self.assertEqual(["screenshooter", "whatweb-http"], [item["tool_id"] for item in page["tools"]])
-        self.assertFalse(page["tools"][0]["runnable"])
-        self.assertTrue(page["tools"][1]["runnable"])
+        page = runtime_tools.get_workspace_tools_page(runtime, service="smb", limit=10, offset=0)
+        self.assertGreaterEqual(page["total"], 1)
+        self.assertIn("smbmap", [row["tool_id"] for row in page["tools"]])
+        self.assertTrue(page["tools"][0]["runnable"])
         self.assertIsNone(page["next_offset"])
+        self.assertEqual([], runtime_tools.get_workspace_tools_page(runtime, service="http")["tools"])
 
     def test_runtime_tools_module_sorts_tool_targets_and_normalizes_query_params(self):
         from app.web import runtime_tools
@@ -848,130 +812,6 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
                 timeout=120,
             )
         self.assertIsNone(runtime.started_job)
-
-    def test_runtime_tools_module_classifies_runner_types(self):
-        from app.web import runtime_tools
-
-        runtime = SimpleNamespace(
-            _get_settings=lambda: SimpleNamespace(portActions=[], automatedAttacks=[]),
-        )
-
-        self.assertEqual("browser", runtime_tools.runner_type_for_tool(runtime, "screenshooter"))
-        self.assertEqual("manual", runtime_tools.runner_type_for_tool(runtime, "responder"))
-        self.assertEqual("manual", runtime_tools.runner_type_for_tool(runtime, "custom-tool", "operator clipboard"))
-        self.assertEqual("manual", runtime_tools.runner_type_for_approval_item(runtime, {"tool_id": "ntlmrelayx"}))
-        self.assertEqual("local", runtime_tools.runner_type_for_tool(runtime, "whatweb-http", "whatweb [WEB_URL]"))
-
-    def test_runtime_artifacts_module_deletes_screenshot_and_prunes_state(self):
-        from app.web import runtime_artifacts
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            screenshot_dir = os.path.join(tmpdir, "screenshots")
-            os.makedirs(screenshot_dir, exist_ok=True)
-            screenshot_name = "10.0.0.5-445-screenshot.png"
-            screenshot_path = os.path.join(screenshot_dir, screenshot_name)
-            metadata_path = f"{screenshot_path}.json"
-            with open(screenshot_path, "wb") as handle:
-                handle.write(b"png")
-            with open(metadata_path, "w", encoding="utf-8") as handle:
-                handle.write("{}")
-
-            runtime = _ArtifactRuntime(tmpdir)
-            target_state = {
-                "screenshots": [
-                    {
-                        "artifact_ref": f"/api/screenshots/{screenshot_name}",
-                        "filename": screenshot_name,
-                        "port": "445",
-                        "protocol": "tcp",
-                    }
-                ],
-                "artifacts": [
-                    {
-                        "kind": "screenshot",
-                        "ref": f"/api/screenshots/{screenshot_name}",
-                        "port": "445",
-                        "protocol": "tcp",
-                    },
-                    {
-                        "kind": "artifact",
-                        "ref": "/tmp/scan.txt",
-                        "port": "445",
-                        "protocol": "tcp",
-                    },
-                ],
-            }
-
-            with (
-                mock.patch("app.web.runtime_artifacts.get_target_state", return_value=target_state),
-                mock.patch("app.web.runtime_artifacts.upsert_target_state") as mocked_upsert,
-                mock.patch("app.web.runtime_artifacts.rebuild_evidence_graph") as mocked_rebuild,
-            ):
-                result = runtime_artifacts.delete_graph_screenshot(
-                    runtime,
-                    host_id=11,
-                    filename=screenshot_name,
-                    port="445",
-                    protocol="tcp",
-                )
-
-            self.assertTrue(result["deleted"])
-            self.assertEqual(2, result["deleted_files"])
-            self.assertFalse(os.path.exists(screenshot_path))
-            self.assertFalse(os.path.exists(metadata_path))
-            updated_state = mocked_upsert.call_args.args[2]
-            self.assertEqual([], updated_state["screenshots"])
-            self.assertEqual(1, len(updated_state["artifacts"]))
-            self.assertEqual("artifact", updated_state["artifacts"][0]["kind"])
-            mocked_rebuild.assert_called_once()
-
-    def test_runtime_workspace_module_updates_host_categories(self):
-        from app.web import runtime_workspace
-
-        runtime = _WorkspaceMutationRuntime()
-
-        with mock.patch(
-            "app.web.runtime_workspace.upsert_target_state",
-            return_value={
-                "device_categories": ["server"],
-                "manual_device_categories": ["server"],
-                "device_category_override": True,
-            },
-        ) as mocked_upsert:
-            result = runtime_workspace.update_host_categories(
-                runtime,
-                11,
-                manual_categories=["server"],
-                override_auto=True,
-            )
-
-        self.assertEqual(11, result["host_id"])
-        self.assertEqual(["server"], result["device_categories"])
-        self.assertEqual(["server"], result["manual_device_categories"])
-        self.assertTrue(result["device_category_override"])
-        self.assertTrue(mocked_upsert.called)
-
-    def test_runtime_workspace_mutation_module_updates_host_categories_with_injected_upsert(self):
-        from app.web import runtime_workspace_mutation
-
-        runtime = _WorkspaceMutationRuntime()
-
-        result = runtime_workspace_mutation.update_host_categories(
-            runtime,
-            11,
-            manual_categories=["server"],
-            override_auto=True,
-            upsert_target_state_func=lambda *_args, **_kwargs: {
-                "device_categories": ["server"],
-                "manual_device_categories": ["server"],
-                "device_category_override": True,
-            },
-        )
-
-        self.assertEqual(11, result["host_id"])
-        self.assertEqual(["server"], result["device_categories"])
-        self.assertEqual(["server"], result["manual_device_categories"])
-        self.assertTrue(result["device_category_override"])
 
     def test_runtime_workspace_module_reads_overview_target_state_and_findings(self):
         from app.web import runtime_workspace
@@ -1128,27 +968,6 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
         self.assertEqual([91, 92], sorted(runtime.killed))
         self.assertEqual([(5, "stopped by user")], runtime.jobs.cancelled)
 
-    def test_runtime_scheduler_module_starts_scheduler_run_and_dig_deeper_jobs(self):
-        from app.web import runtime_scheduler
-
-        runtime = _SchedulerDomainRuntime()
-
-        scheduler_run = runtime_scheduler.start_scheduler_run_job(runtime)
-        self.assertEqual("scheduler-run", scheduler_run["type"])
-        self.assertEqual({}, scheduler_run["payload"])
-        self.assertEqual(set(), runtime.run_call["host_ids"])
-        self.assertFalse(runtime.run_call["dig_deeper"])
-        self.assertEqual(17, runtime.run_call["job_id"])
-
-        dig_deeper = runtime_scheduler.start_host_dig_deeper_job(runtime, 11)
-        self.assertEqual("scheduler-dig-deeper", dig_deeper["type"])
-        self.assertEqual(11, dig_deeper["payload"]["host_id"])
-        self.assertEqual("10.0.0.5", dig_deeper["payload"]["host_ip"])
-        self.assertTrue(dig_deeper["payload"]["dig_deeper"])
-        self.assertEqual({11}, runtime.run_call["host_ids"])
-        self.assertTrue(runtime.run_call["dig_deeper"])
-        self.assertEqual(17, runtime.run_call["job_id"])
-
     def test_runtime_scheduler_module_executes_scheduler_task_payload(self):
         from app.web import runtime_scheduler
 
@@ -1180,54 +999,6 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
         self.assertTrue(runtime.execute_call["capture_metadata"])
         self.assertEqual(77, runtime.execute_call["approval_id"])
         self.assertEqual("subprocess", runtime.execute_call["runner_preference"])
-
-    def test_runtime_scheduler_module_builds_sanitized_preferences_and_placeholders(self):
-        from app.web import runtime_scheduler
-
-        runtime = _SchedulerDomainRuntime()
-
-        prefs = runtime_scheduler.scheduler_preferences(runtime)
-        placeholders = runtime_scheduler.scheduler_command_placeholders(
-            runtime,
-            host_ip="203.0.113.10",
-            hostname="api.example.com",
-        )
-
-        self.assertEqual("ai", prefs["mode"])
-        self.assertEqual("internal_asset_discovery", prefs["goal_profile"])
-        self.assertTrue(prefs["providers"]["openai"]["api_key_configured"])
-        self.assertEqual("", prefs["providers"]["openai"]["api_key"])
-        self.assertTrue(prefs["integrations"]["shodan"]["api_key_configured"])
-        self.assertIsInstance(prefs["device_categories"], list)
-        self.assertEqual("server", prefs["built_in_device_categories"][0]["id"])
-        self.assertEqual(3, prefs["job_workers"])
-        self.assertEqual(80, prefs["job_max"])
-        self.assertEqual("custom cloud notice", prefs["cloud_notice"])
-        self.assertEqual("example.com", placeholders["ROOT_DOMAIN"])
-        self.assertEqual("'grayhat secret'", placeholders["GRAYHAT_API_KEY"])
-
-    def test_runtime_scheduler_config_module_normalizes_worker_and_report_delivery_settings(self):
-        from app.web import runtime_scheduler_config
-
-        delivery = runtime_scheduler_config.project_report_delivery_config(
-            {
-                "project_report_delivery": {
-                    "method": "get",
-                    "format": "markdown",
-                    "headers": '{"X-Test": 1, "": "skip"}',
-                    "timeout_seconds": "999",
-                    "mtls": {"enabled": True, "client_cert_path": "/tmp/cert.pem"},
-                }
-            }
-        )
-
-        self.assertEqual(8, runtime_scheduler_config.job_worker_count({"max_concurrency": "99"}))
-        self.assertEqual("POST", delivery["method"])
-        self.assertEqual("md", delivery["format"])
-        self.assertEqual({"X-Test": "1"}, delivery["headers"])
-        self.assertEqual(300, delivery["timeout_seconds"])
-        self.assertTrue(delivery["mtls"]["enabled"])
-        self.assertEqual("/tmp/cert.pem", delivery["mtls"]["client_cert_path"])
 
     def test_runtime_scheduler_state_module_normalizes_command_signatures(self):
         from app.web import runtime_scheduler_state
@@ -1300,52 +1071,6 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
         )
         self.assertEqual([("CVE-2024-1111", "CVE-2024-1111 remote issue")], evidence_rows)
         self.assertTrue(runtime_scheduler_inference.is_placeholder_scheduler_text("...[truncated]"))
-
-    def test_runtime_scheduler_capture_module_extracts_and_shapes_credentials(self):
-        from app.web import runtime_scheduler_capture
-
-        class _CaptureHelper:
-            @staticmethod
-            def _split_credential_principal(value):
-                return ("CORP", "alice") if str(value or "").strip() else ("", "")
-
-            @staticmethod
-            def _extract_cleartext_password(details):
-                return "P@ssw0rd!" if "clear text password" in str(details or "").lower() else ""
-
-            @staticmethod
-            def _normalize_credential_capture_source(source):
-                return str(source or "").strip()
-
-            @staticmethod
-            def _extract_credential_data(line):
-                return ("CORP\\alice", "11223344556677889900aabbccddeeff")
-
-        row = runtime_scheduler_capture.build_scheduler_credential_row(
-            _CaptureHelper,
-            "responder",
-            {"username": "CORP\\alice", "details": "clear text password: P@ssw0rd!", "hash_value": ""},
-        )
-        context = {}
-        first = runtime_scheduler_capture.extract_credential_capture_entries(
-            _CaptureHelper,
-            "responder",
-            "username: CORP\\alice",
-            context=context,
-        )
-        second = runtime_scheduler_capture.extract_credential_capture_entries(
-            _CaptureHelper,
-            "responder",
-            "hash: CORP::alice:1122",
-            default_source="10.0.0.5",
-            context=context,
-        )
-
-        self.assertEqual("alice", row["username"])
-        self.assertEqual("cleartext_password", row["type"])
-        self.assertEqual([], first)
-        self.assertEqual("10.0.0.5", second[0]["source"])
-        self.assertEqual("CORP\\alice", second[0]["username"])
 
     def test_runtime_scheduler_state_module_summarizes_existing_attempts(self):
         from app.web import runtime_scheduler_state
@@ -1495,45 +1220,6 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
 
         self.assertEqual({"http-vuln-cve2021-41773.nse"}, tokens)
 
-    def test_runtime_scheduler_summary_module_flags_missing_web_baseline(self):
-        from app.web import runtime_scheduler_summary
-
-        coverage = runtime_scheduler_summary.build_scheduler_coverage_summary(
-            service_name="http",
-            signals={"web_service": True, "vuln_hits": 0},
-            observed_tool_ids={"nmap"},
-            host_cves=[],
-            inferred_technologies=[],
-            analysis_mode="standard",
-        )
-
-        self.assertIn("missing_screenshot", coverage["missing"])
-        self.assertIn("missing_nuclei_auto", coverage["missing"])
-
-    def test_runtime_scheduler_observation_inference_module_extracts_urls(self):
-        from app.web import runtime_scheduler_observation_inference
-
-        runtime = SimpleNamespace()
-        urls = runtime_scheduler_observation_inference.infer_urls_from_observations(
-            runtime,
-            script_records=[
-                {
-                    "script_id": "curl-headers",
-                    "analysis_excerpt": "GET /admin HTTP/1.1\nLocation: https://example.test/admin",
-                    "port": "443",
-                    "protocol": "tcp",
-                    "service": "https",
-                    "host_ip": "10.0.0.5",
-                    "hostname": "example.test",
-                }
-            ],
-            process_records=[],
-            limit=20,
-        )
-
-        self.assertTrue(urls)
-        self.assertEqual("https://example.test/admin", urls[0]["url"])
-
     def test_runtime_scans_module_normalizes_targets_and_quick_recon_profile(self):
         from app.web import runtime_scans
         from app.web.runtime import WebRuntime
@@ -1548,15 +1234,6 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
         self.assertEqual(["10.0.0.5", "10.0.0.6", "10.0.0.7"], targets)
         self.assertEqual(0, options["top_ports"])
         self.assertEqual(WebRuntime.INTERNAL_QUICK_RECON_TCP_PORTS, options["explicit_ports"])
-
-    def test_runtime_scan_discovery_module_builds_httpx_bootstrap_command(self):
-        from app.web import runtime_scan_discovery
-
-        command = runtime_scan_discovery.httpx_bootstrap_command("/tmp/targets.txt", "/tmp/httpx-out")
-
-        self.assertIn("httpx -silent -json", command)
-        self.assertIn("/tmp/targets.txt", command)
-        self.assertIn("/tmp/httpx-out.jsonl", command)
 
     def test_runtime_scan_capture_module_classifies_mdns_and_prioritizes_interfaces(self):
         from app.web import runtime_scan_capture
@@ -1860,24 +1537,6 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
             os.remove(path)
 
         self.assertEqual("gamma", excerpt)
-
-    def test_runtime_scheduler_config_module_reports_enabled_integrations(self):
-        from app.web import runtime_scheduler_config
-
-        runtime = SimpleNamespace(
-            scheduler_config=SimpleNamespace(
-                load=lambda: {
-                    "integrations": {
-                        "shodan": {"api_key": "shodan-secret"},
-                        "grayhatwarfare": {"api_key": "grayhat-secret"},
-                    }
-                }
-            )
-        )
-
-        self.assertTrue(runtime_scheduler_config.shodan_integration_enabled(runtime))
-        self.assertTrue(runtime_scheduler_config.grayhatwarfare_integration_enabled(runtime))
-        self.assertTrue(runtime_scheduler_config.built_in_device_category_options())
 
     def test_runtime_scheduler_signals_module_detects_web_markers(self):
         from app.web import runtime_scheduler_signals

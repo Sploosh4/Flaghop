@@ -1,30 +1,8 @@
-import { processOutputState, screenshotModalState, scriptOutputState, uiModalState } from "./state.js";
+import { processOutputState, scriptOutputState, uiModalState } from "./state.js";
 /** Workspace dom. */
 
 export function updateBodyModalState() {
-    const anyModalOpen = Boolean(
-        processOutputState.modalOpen
-        || scriptOutputState.modalOpen
-        || screenshotModalState.modalOpen
-        || uiModalState.schedulerOpen
-        || uiModalState.interfaceSettingsOpen
-        || uiModalState.deviceCategorySettingsOpen
-        || uiModalState.reportProviderOpen
-        || uiModalState.settingsOpen
-        || uiModalState.nmapScanOpen
-        || uiModalState.manualScanOpen
-        || uiModalState.hostSelectionOpen
-        || uiModalState.scriptCveOpen
-        || uiModalState.providerLogsOpen
-        || uiModalState.credentialsOpen
-        || uiModalState.credentialCaptureConfigOpen
-        || uiModalState.jobsOpen
-        || uiModalState.submittedScansOpen
-        || uiModalState.schedulerDecisionsOpen
-        || uiModalState.hostRemoveOpen
-        || uiModalState.graphNoteOpen
-        || uiModalState.workspaceSwitchGuardOpen
-    );
+    const anyModalOpen = processOutputState.modalOpen || scriptOutputState.modalOpen || Object.values(uiModalState).some(Boolean);
     document.body.classList.toggle("modal-open", anyModalOpen);
 }
 

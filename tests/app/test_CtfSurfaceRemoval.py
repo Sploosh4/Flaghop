@@ -62,7 +62,6 @@ class CtfSurfaceRemovalTest(unittest.TestCase):
             "ribbon-scan-manual-action-button",
             "graph-workspace-canvas",
             "graph-layout-save-button",
-            "workspace-add-script-button",
             "settings-tool-audit-body",
             "settings-tool-install-run-button",
             "ribbon-workspace-download-action-button",

@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from app.scheduler.providers import reflect_on_scheduler_progress
-from app.scheduler.runners import normalize_runner_settings
 from app.web import runtime_scheduler_approval_execution as web_runtime_scheduler_approval_execution
 from app.web import runtime_scheduler_execution_handlers as web_runtime_scheduler_execution_handlers
 from app.web import runtime_scheduler_target_runner as web_runtime_scheduler_target_runner
@@ -32,45 +30,6 @@ def start_scheduler_run_job(runtime) -> Dict[str, Any]:
     )
 
 
-def start_host_dig_deeper_job(runtime, host_id: int) -> Dict[str, Any]:
-    resolved_host_id = int(host_id or 0)
-    with runtime._lock:
-        host = runtime._resolve_host(resolved_host_id)
-        if host is None:
-            raise KeyError(f"Unknown host id: {host_id}")
-        host_ip = str(getattr(host, "ip", "") or "").strip()
-        if not host_ip:
-            raise ValueError(f"Host {host_id} does not have a valid IP.")
-
-        prefs = runtime.scheduler_config.load()
-        scheduler_mode = str(prefs.get("mode", "deterministic") or "deterministic").strip().lower()
-        if scheduler_mode != "ai":
-            raise ValueError("Dig Deeper requires scheduler mode 'ai'.")
-
-        provider_name = str(prefs.get("provider", "none") or "none").strip().lower()
-        providers = prefs.get("providers", {}) if isinstance(prefs.get("providers", {}), dict) else {}
-        provider_cfg = providers.get(provider_name, {}) if isinstance(providers, dict) else {}
-        provider_enabled = bool(provider_cfg.get("enabled", False)) if isinstance(provider_cfg, dict) else False
-        if provider_name == "none" or not provider_enabled:
-            raise ValueError("Dig Deeper requires an enabled AI provider.")
-
-        existing = runtime._find_active_job(job_type="scheduler-dig-deeper", host_id=resolved_host_id)
-        if existing is not None:
-            existing_copy = dict(existing)
-            existing_copy["existing"] = True
-            return existing_copy
-
-    return runtime._start_job(
-        "scheduler-dig-deeper",
-        lambda job_id: runtime._run_scheduler_actions_web(
-            host_ids={resolved_host_id},
-            dig_deeper=True,
-            job_id=int(job_id or 0),
-        ),
-        payload={"host_id": resolved_host_id, "host_ip": host_ip, "dig_deeper": True},
-    )
-
-
 def run_scheduler_actions_web(
     runtime,
     *,
@@ -88,7 +47,6 @@ def run_scheduler_actions_web(
         engagement_policy = runtime._load_engagement_policy_locked(persist_if_missing=True)
         options = runtime.scheduler_orchestrator.build_run_options(
             scheduler_prefs,
-            dig_deeper=bool(dig_deeper),
             job_id=resolved_job_id,
         )
         targets = runtime.scheduler_orchestrator.collect_project_targets(
@@ -142,42 +100,6 @@ def run_scheduler_actions_web(
             analysis_mode=str(analysis_mode or "standard"),
         )
 
-    def _on_ai_analysis(*, target, provider_payload):
-        runtime._persist_scheduler_ai_analysis(
-            host_id=int(target.host_id or 0),
-            host_ip=str(target.host_ip or ""),
-            port=str(target.port or ""),
-            protocol=str(target.protocol or ""),
-            service_name=str(target.service_name or ""),
-            goal_profile=goal_profile,
-            provider_payload=provider_payload,
-        )
-
-    def _reflect_progress(*, target, context, recent_rounds, trigger=None):
-        return reflect_on_scheduler_progress(
-            scheduler_prefs,
-            goal_profile,
-            str(target.service_name or ""),
-            str(target.protocol or "tcp"),
-            engagement_preset=engagement_preset,
-            context=context,
-            recent_rounds=recent_rounds,
-            trigger_reason=str((trigger or {}).get("reason", "") or ""),
-            trigger_context=trigger if isinstance(trigger, dict) else {},
-        )
-
-    def _on_reflection_analysis(*, target, reflection_payload, recent_rounds):
-        _ = recent_rounds
-        runtime._persist_scheduler_reflection_analysis(
-            host_id=int(target.host_id or 0),
-            host_ip=str(target.host_ip or ""),
-            port=str(target.port or ""),
-            protocol=str(target.protocol or ""),
-            service_name=str(target.service_name or ""),
-            goal_profile=goal_profile,
-            reflection_payload=reflection_payload,
-        )
-
     def _handle_blocked(*, target, decision, command_template):
         return web_runtime_scheduler_execution_handlers.handle_scheduler_blocked_decision(
             runtime,
@@ -195,7 +117,6 @@ def run_scheduler_actions_web(
         )
 
     def _execute_batch(tasks, max_concurrency):
-        runner_settings = normalize_runner_settings(scheduler_prefs.get("runners", {}))
         payload = []
         for task in list(tasks or []):
             payload.append(
@@ -211,7 +132,6 @@ def run_scheduler_actions_web(
                     "job_id": int(task.job_id or 0),
                     "approval_id": int(task.approval_id or 0),
                     "runner_preference": str(task.runner_preference or ""),
-                    "runner_settings": runner_settings,
                 }
             )
         return runtime._execute_scheduler_task_batch(payload, max_concurrency=max_concurrency)
@@ -232,9 +152,6 @@ def run_scheduler_actions_web(
         should_cancel=_should_cancel,
         existing_attempts=_existing_attempts,
         build_context=_build_context,
-        on_ai_analysis=_on_ai_analysis,
-        reflect_progress=_reflect_progress,
-        on_reflection_analysis=_on_reflection_analysis,
         handle_blocked=_handle_blocked,
         handle_approval=_handle_approval,
         execute_batch=_execute_batch,

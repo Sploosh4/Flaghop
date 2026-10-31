@@ -247,3 +247,35 @@ it('exposes the original settings dialogs from Setup', async () => {
   await user.click(screen.getByRole('button', {name: 'Close Application settings'}));
   expect(screen.getByRole('heading', {name: 'Fixture laptop'})).toBeTruthy();
 });
+
+it('keeps live status and job information in workspace details without a bottom bar', async () => {
+  vi.mocked(api.snapshot).mockResolvedValue({project: {name: harbour.path}, jobs: [{id: 9, type: 'fixture', status: 'running'}]});
+  render(<ProjectHub/>); const user = userEvent.setup();
+  expect(screen.queryByRole('contentinfo')).toBeNull();
+  await user.click(screen.getByRole('button', {name: 'Workspace details'}));
+  const details = within(screen.getByRole('dialog', {name: 'Workspace details'}));
+  await waitFor(() => expect(details.getByText('Polling/API')).toBeTruthy());
+  expect(details.getByText('Running / queued jobs').nextElementSibling?.textContent).toBe('1');
+  expect(details.getByText('Status').nextElementSibling?.textContent).toBe('Ready');
+  expect(details.getByText('Authentication').nextElementSibling?.textContent).toBe('No auth');
+});
+
+it('exposes native window controls only when the desktop bridge is available', async () => {
+  const desktop = {maximized: false, minimize: vi.fn(), toggleMaximize: vi.fn(), close: vi.fn(), startMove: vi.fn(), resizeEdge: vi.fn()};
+  const first = render(<ProjectHub/>);
+  expect(screen.queryByRole('button', {name: 'Minimise window'})).toBeNull();
+  first.unmount();
+  window.legionDesktop = desktop;
+  try {
+    render(<ProjectHub/>);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', {name: 'Minimise window'}));
+    await user.click(screen.getByRole('button', {name: 'Maximise window'}));
+    expect(desktop.minimize).toHaveBeenCalledOnce(); expect(desktop.toggleMaximize).toHaveBeenCalledOnce();
+    expect(desktop.startMove).not.toHaveBeenCalled();
+    fireEvent.doubleClick(document.querySelector('.hub-header')!);
+    expect(desktop.toggleMaximize).toHaveBeenCalledTimes(2);
+    await user.click(screen.getByRole('button', {name: 'Close window'}));
+    expect(desktop.close).toHaveBeenCalledOnce();
+  } finally {delete window.legionDesktop;}
+});

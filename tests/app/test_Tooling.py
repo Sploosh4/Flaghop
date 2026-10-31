@@ -47,7 +47,7 @@ class ToolingEnvTest(unittest.TestCase):
 
         class StubSettings:
             tools_path_nmap = "/tmp/does-not-exist"
-            tools_path_hydra = ""
+            tools_path_curl = ""
             tools_path_texteditor = ""
             tools_path_responder = ""
             tools_path_ntlmrelay = ""
@@ -57,8 +57,8 @@ class ToolingEnvTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             nmap_path = os.path.join(tempdir, "nmap")
-            hydra_path = os.path.join(tempdir, "hydra")
-            for path in (nmap_path, hydra_path):
+            curl_path = os.path.join(tempdir, "curl")
+            for path in (nmap_path, curl_path):
                 with open(path, "w", encoding="utf-8") as handle:
                     handle.write("#!/bin/sh\nexit 0\n")
                 os.chmod(path, stat.S_IRWXU)
@@ -77,8 +77,8 @@ class ToolingEnvTest(unittest.TestCase):
             by_key = {row.key: row for row in rows}
             self.assertEqual("installed", by_key["nmap"].status)
             self.assertEqual(nmap_path, by_key["nmap"].resolved_path)
-            self.assertEqual("installed", by_key["hydra"].status)
-            self.assertEqual(hydra_path, by_key["hydra"].resolved_path)
+            self.assertEqual("installed", by_key["curl"].status)
+            self.assertEqual(curl_path, by_key["curl"].resolved_path)
 
     def test_audit_legion_tools_discovers_custom_command_v_tools(self):
         from app.tooling import audit_legion_tools
@@ -141,10 +141,10 @@ class ToolingEnvTest(unittest.TestCase):
         )
         by_key = {row.key: row for row in rows}
         self.assertIn("hping3", by_key)
-        self.assertEqual("legacy", by_key["hping3"].category)
+        self.assertEqual("custom", by_key["hping3"].category)
         self.assertEqual("missing", by_key["hping3"].status)
         self.assertIn("smtp-user-enum", by_key)
-        self.assertIn("pipx install --force smtp-user-enum", by_key["smtp-user-enum"].ubuntu_install)
+        self.assertEqual("custom", by_key["smtp-user-enum"].category)
 
     def test_audit_legion_tools_detects_user_local_impacket_entry_points(self):
         from app.tooling import audit_legion_tools
@@ -206,18 +206,11 @@ class ToolingEnvTest(unittest.TestCase):
             },
         )
         by_key = {row.key: row for row in rows}
-        self.assertEqual("cargo install feroxbuster", by_key["feroxbuster"].ubuntu_install)
         self.assertIn("github.com/cddmp/enum4linux-ng.git", by_key["enum4linux-ng"].ubuntu_install)
         self.assertIn("github.com/CiscoCXSecurity/enum4linux.git", by_key["enum4linux"].ubuntu_install)
-        self.assertIn("pipx install --force", by_key["theHarvester"].ubuntu_install)
         self.assertIn("does not mix Kali repositories into Ubuntu", by_key["snmpcheck"].ubuntu_install)
-        self.assertEqual("sudo apt install testssl.sh", by_key["testssl.sh"].ubuntu_install)
         self.assertIn("github.com/Pennyw0rth/NetExec.git", by_key["netexec"].ubuntu_install)
-        self.assertEqual("python3 -m pipx install --force sslyze", by_key["sslyze"].ubuntu_install)
-        self.assertEqual("python3 -m pipx install --force wafw00f", by_key["wafw00f"].ubuntu_install)
         self.assertIn("cisco-smart-install", by_key)
-        self.assertIn("siet", by_key)
-        self.assertEqual("internal", by_key["siet"].category)
 
     def test_build_tool_install_plan_rewrites_kali_apt_commands(self):
         from app.tooling import ToolAuditEntry, build_tool_install_plan
@@ -273,6 +266,25 @@ class ToolingEnvTest(unittest.TestCase):
         finally:
             os.remove(path)
         self.assertEqual("ubuntu", detected)
+
+    def test_platform_detection_handles_kali_and_unknown_systems_without_installing(self):
+        from app.tooling import detect_supported_tool_install_platform, resolve_tool_install_platform
+        from unittest.mock import patch
+
+        for content, expected in (
+            ("ID=kali\nID_LIKE=debian\n", "kali"),
+            ("ID=ubuntu\n", "ubuntu"),
+            ("ID=debian\n", ""),
+        ):
+            with self.subTest(content=content), tempfile.TemporaryDirectory() as folder:
+                path = os.path.join(folder, "os-release")
+                with open(path, "w", encoding="utf-8") as handle:
+                    handle.write(content)
+                self.assertEqual(expected, detect_supported_tool_install_platform(os_release_path=path, base_env={}))
+        with patch("app.tooling.detect_supported_tool_install_platform", return_value=""):
+            with self.assertRaises(ValueError):
+                resolve_tool_install_platform()
+        self.assertEqual("", detect_supported_tool_install_platform(os_release_path="/missing/os-release", base_env={}))
 
     def test_build_tool_install_plan_bootstraps_go_when_missing(self):
         from app.tooling import ToolAuditEntry, build_tool_install_plan

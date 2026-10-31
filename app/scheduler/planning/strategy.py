@@ -54,41 +54,6 @@ class Strategy:
         return target_ref
 
     @staticmethod
-    def _build_rationale(
-        tool_id: str,
-        policy: EngagementPolicy,
-        danger_categories: List[str],
-        provider_name: str = "",
-        provider_error: str = "",
-        provider_returned_rankings: bool = True,
-        context_signals: Optional[List[str]] = None,
-    ) -> str:
-        profile_hint = f"prioritizes {policy.scope} {policy.intent} coverage for preset {policy.preset}"
-        provider_hint = ""
-        if provider_error and provider_name:
-            provider_hint = f" Provider '{provider_name}' failed ({provider_error}); heuristic fallback applied."
-        elif provider_name and not provider_returned_rankings:
-            provider_hint = f" Provider '{provider_name}' returned no ranking; heuristic fallback applied."
-
-        context_hint = ""
-        if context_signals:
-            picked = [item for item in context_signals if item][:3]
-            if picked:
-                context_hint = " Context signals: " + ", ".join(picked) + "."
-
-        if danger_categories:
-            return (
-                f"AI profile {profile_hint}; selected {tool_id} with elevated risk markers: "
-                + ", ".join(danger_categories)
-                + "."
-                + context_hint
-                + provider_hint
-            )
-        return (
-            f"AI profile {profile_hint}; selected {tool_id} for highest expected signal.{context_hint}{provider_hint}"
-        )
-
-    @staticmethod
     def _append_strategy_context(rationale: str, strategy_guidance) -> str:
         base = str(rationale or "").strip()
         fragments = []

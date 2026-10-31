@@ -159,15 +159,6 @@ class ScanList(BaseModel):
     scans: list[Scan]
 
 
-class ProviderLog(ExtensibleModel):
-    prompt_metadata: dict[str, JsonValue] = Field(default_factory=dict)
-
-
-class ProviderLogs(BaseModel):
-    logs: list[ProviderLog]
-    text: str
-
-
 class ActivitySnapshot(Snapshot):
     processes: list[Process] = Field(default_factory=list)
     scheduler_decisions: list[Decision] = Field(default_factory=list)

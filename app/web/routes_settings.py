@@ -48,6 +48,8 @@ def settings_tool_audit_install_plan():
     service = _settings_service()
     try:
         return jsonify(service.get_tool_install_plan(request.args))
+    except ValueError as exc:
+        return json_error(str(exc), 400)
     except Exception as exc:
         return json_error(str(exc), 500)
 

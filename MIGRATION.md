@@ -26,7 +26,6 @@ The visible app now opens on a React project home. Selecting a project opens its
 | POST | `/api/processes/clear` | ClearProcesses → ClearedProcesses |
 | GET | `/api/scans/history` | ScanList |
 | GET | `/api/scheduler/decisions` | DecisionList |
-| GET | `/api/scheduler/provider/logs` | ProviderLogs |
 | GET | `/api/scheduler/approvals` | ApprovalList |
 | POST | `/api/scheduler/approvals/{approval_id}/approve` | ApproveApproval → ApprovalResponse (200 or 202) |
 | POST | `/api/scheduler/approvals/{approval_id}/reject` | RejectApproval → ApprovalResponse |
@@ -39,9 +38,11 @@ Other URLs, templates, static files and binary downloads pass through `a2wsgi` t
 
 Native activity queries reject malformed or out-of-range limits with 422 instead of silently clamping them. Retry timeouts must be positive integers; mutation booleans must be JSON booleans. Unknown body keys and invalid family actions fail before calling a service. Approval defaults remain `run_now=true`, `approve_family=false`; the explicit Approve+Run and Allow Family buttons retain their existing meaning. Approval responses retain 202 when a job is queued and 200 when no job is created. Hiding and clearing processes use the existing runtime rules.
 
+AI providers and feedback loops, web/screenshot integrations, alternate runners, credential capture/relay, external enrichment and report delivery have been removed. Their endpoints return 404 on both transports. Job, scan and decision histories now live inside Activity; the standalone logging dialogs are gone. Local execution, cancellation, approvals, project exports and Nmap XML import remain.
+
 ## UI ownership
 
-React owns workspace identity, the Jobs and Processes tables, process output, scheduler rationale, decision and submitted-scan histories, provider logs, and approvals. It preserves existing control IDs, modal keyboard/backdrop handling, ANSI output, copy/download actions, process controls, approval risk/policy details and family actions. The old renderers and delegated action handlers for these elements have been removed. Script/screenshot viewers, graph, host/service views, settings and scan forms still use their existing implementation.
+React owns workspace identity, the Jobs and Processes tables, process output, scheduler rationale, decision and submitted-scan histories and approvals. It preserves existing control IDs, modal keyboard/backdrop handling, ANSI output, copy/download actions, process controls, approval risk/policy details and family actions. The old renderers and delegated action handlers for these elements have been removed. The script-output viewer, graph, host/service views, settings and scan forms still use their existing implementation.
 
 `react_bridge.js` publishes project/job data. `activity_bridge.js` publishes activity snapshots and forwards legacy graph/dialog requests to the typed activity controller. Commands arriving before React mounts are buffered. Typed external stores feed components; legacy code does not mutate their descendants. Panel loaders display errors and discard responses superseded by a live snapshot or workspace switch. Mutations disable related controls and prevent duplicate submissions. Process output has a separate session with bounded chunks, automatic refresh, completion handling and guards against late responses after closing, switching processes or switching workspaces. No endpoint or client automatically grants approval during migration.
 

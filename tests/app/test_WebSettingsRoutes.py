@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from types import SimpleNamespace
 
 
@@ -96,6 +97,24 @@ class WebSettingsRoutesTest(unittest.TestCase):
             ],
             [call for call in self.runtime.calls if call[0] != "get_snapshot"],
         )
+
+    def test_install_routes_detect_platform_when_no_platform_is_supplied(self):
+        for platform in ("ubuntu", "kali"):
+            with (
+                self.subTest(platform=platform),
+                patch("app.tooling.detect_supported_tool_install_platform", return_value=platform),
+            ):
+                response = self.client.get("/api/settings/tool-audit/install-plan?scope=missing")
+                self.assertEqual(200, response.status_code)
+                self.assertEqual(platform, response.json["platform"])
+                response = self.client.post("/api/settings/tool-audit/install", json={"scope": "missing"})
+                self.assertEqual(202, response.status_code)
+                self.assertEqual(platform, response.json["job"]["payload"]["platform"])
+        before = len(self.runtime.calls)
+        with patch("app.tooling.detect_supported_tool_install_platform", return_value=""):
+            self.assertEqual(400, self.client.get("/api/settings/tool-audit/install-plan").status_code)
+            self.assertEqual(400, self.client.post("/api/settings/tool-audit/install", json={}).status_code)
+        self.assertEqual(before, len(self.runtime.calls))
 
 
 if __name__ == "__main__":

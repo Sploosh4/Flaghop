@@ -54,14 +54,6 @@ class ScansRuntime:
 
     _mark_discovered_host_origin = web_runtime_scans.mark_discovered_host_origin
 
-    start_httpx_bootstrap_job = web_runtime_scans.start_httpx_bootstrap_job
-
-    _httpx_bootstrap_command = staticmethod(web_runtime_scans.httpx_bootstrap_command)
-
-    _materialize_httpx_urls_as_web_targets = web_runtime_scans.materialize_httpx_urls_as_web_targets
-
-    _run_httpx_bootstrap = web_runtime_scans.run_httpx_bootstrap
-
     _ingest_discovered_hosts = web_runtime_scans.ingest_discovered_hosts
 
     _import_nmap_xml = web_runtime_scans.import_nmap_xml

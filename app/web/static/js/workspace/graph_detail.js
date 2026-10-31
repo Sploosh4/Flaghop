@@ -12,10 +12,10 @@ import { closeGraphNoteModalAction } from "./dialogs.js";
 import { getGraphCanvasPanel, getGraphWorkspaceShell, graphFriendlyLabel, graphHasActiveSelection, graphPropertyValue, graphSelectedNodeEntity } from "./graph_common.js";
 import { graphFindEntity } from "./graph_selection.js";
 import { graphEntityHostId } from "./graph_viewport.js";
-import { buildGraphToolMenu, buildHostActionButton, buildLaunchToolButton, buildScreenshotActionButton, buildSubnetActionButton, deleteGraphPortAction, deleteGraphServiceAction, graphToolLaunchContextForEntity, handleHostActionButtonAction, handleScreenshotActionButtonAction, handleSubnetActionButtonAction } from "./host_actions.js";
+import { buildGraphToolMenu, buildHostActionButton, buildLaunchToolButton, buildSubnetActionButton, deleteGraphPortAction, deleteGraphServiceAction, graphToolLaunchContextForEntity, handleHostActionButtonAction, handleSubnetActionButtonAction } from "./host_actions.js";
 import { fetchJson } from "./http.js";
-import { copyScreenshotAction, copyTextToClipboard, openScreenshotModal, openTextPreviewModal } from "./process_output.js";
-import { GRAPH_NODE_SIZE, GRAPH_SOURCE_KIND_LABELS, graphWorkspaceState, screenshotModalState } from "./state.js";
+import { copyTextToClipboard, openTextPreviewModal } from "./process_output.js";
+import { GRAPH_NODE_SIZE, GRAPH_SOURCE_KIND_LABELS, graphWorkspaceState } from "./state.js";
 import { openManualToolPicker } from "./tools.js";
 /** Workspace graph detail. */
 
@@ -243,8 +243,6 @@ export function graphRenderSelectionDetail() {
     const serviceActionsNode = document.getElementById("graph-service-actions");
     const subnetActionsBlock = document.getElementById("graph-subnet-actions-block");
     const subnetActionsNode = document.getElementById("graph-subnet-actions");
-    const screenshotActionsBlock = document.getElementById("graph-screenshot-actions-block");
-    const screenshotActionsNode = document.getElementById("graph-screenshot-actions");
     const evidenceNode = document.getElementById("graph-detail-evidence");
     const propertiesNode = document.getElementById("graph-detail-properties");
     const annotationsNode = document.getElementById("graph-annotations-list");
@@ -253,9 +251,6 @@ export function graphRenderSelectionDetail() {
     const collapseButton = document.getElementById("graph-collapse-expanded-button");
     const pinButton = document.getElementById("graph-pin-toggle-button");
     const noteButton = document.getElementById("graph-note-open-button");
-    if (!detailCaption || !badgesNode || !fieldsNode || !hostActionsBlock || !hostActionsNode || !portActionsBlock || !portActionsNode || !serviceActionsBlock || !serviceActionsNode || !subnetActionsBlock || !subnetActionsNode || !screenshotActionsBlock || !screenshotActionsNode || !evidenceNode || !propertiesNode || !annotationsNode || !focusButton || !expandButton || !collapseButton || !pinButton || !noteButton) {
-        return;
-    }
 
     const kind = String(graphWorkspaceState.selectedKind || "");
     const ref = String(graphWorkspaceState.selectedRef || "");
@@ -270,12 +265,10 @@ export function graphRenderSelectionDetail() {
     portActionsNode.innerHTML = "";
     serviceActionsNode.innerHTML = "";
     subnetActionsNode.innerHTML = "";
-    screenshotActionsNode.innerHTML = "";
     hostActionsBlock.hidden = true;
     portActionsBlock.hidden = true;
     serviceActionsBlock.hidden = true;
     subnetActionsBlock.hidden = true;
-    screenshotActionsBlock.hidden = true;
     evidenceNode.innerHTML = "";
     annotationsNode.innerHTML = "";
 
@@ -292,7 +285,6 @@ export function graphRenderSelectionDetail() {
         pinButton.classList.remove("is-active");
         pinButton.setAttribute("title", "Select a node to pin");
         pinButton.setAttribute("aria-label", "Select a node to pin");
-        graphRenderRelatedContent("No related artifacts or screenshots.");
         graphRefreshSelectionActionButtons();
         graphSyncDetailPresentation();
         return;
@@ -444,13 +436,6 @@ export function graphRenderSelectionDetail() {
             });
         });
         hostActionsNode.appendChild(hostToolButton);
-        ["rescan", "refresh-screenshots", "dig-deeper", "remove"].forEach((action) => {
-            const button = buildHostActionButton(action, relatedHostId);
-            button.addEventListener("click", async () => {
-                await handleHostActionButtonAction(button);
-            });
-            hostActionsNode.appendChild(button);
-        });
     }
 
     if (kind === "node" && entityType === "port") {
@@ -501,26 +486,6 @@ export function graphRenderSelectionDetail() {
         }
     }
 
-    if (kind === "node" && entityType === "screenshot") {
-        const screenshotPayload = {
-            hostId: relatedHostId,
-            port: String(graphPropertyValue(entity, "port") || "").trim(),
-            protocol: String(graphPropertyValue(entity, "protocol") || "tcp").trim().toLowerCase() || "tcp",
-            artifactRef: String(graphPropertyValue(entity, "artifact_ref") || "").trim(),
-            filename: String(graphPropertyValue(entity, "filename") || entity.label || "").trim(),
-        };
-        if (screenshotPayload.hostId > 0) {
-            screenshotActionsBlock.hidden = false;
-            ["refresh", "delete"].forEach((action) => {
-                const button = buildScreenshotActionButton(action, screenshotPayload);
-                button.addEventListener("click", async () => {
-                    await handleScreenshotActionButtonAction(button);
-                });
-                screenshotActionsNode.appendChild(button);
-            });
-        }
-    }
-
     noteButton.disabled = false;
     noteButton.setAttribute("title", "Add Note");
     noteButton.setAttribute("aria-label", "Add Note");
@@ -555,9 +520,8 @@ export function graphRenderRelatedContent(statusMessage = "") {
     }
     listNode.innerHTML = "";
     const entries = Array.isArray(graphWorkspaceState.relatedContent) ? graphWorkspaceState.relatedContent : [];
-    const fallback = statusMessage || "No related artifacts or screenshots.";
     if (!entries.length) {
-        statusNode.textContent = fallback;
+        statusNode.textContent = statusMessage || "No related files";
         graphSyncDetailPresentation();
         return;
     }
@@ -588,7 +552,6 @@ export function graphRenderRelatedContent(statusMessage = "") {
             image.src = `${entry.preview_url}${entry.preview_url.includes("?") ? "&" : "?"}t=${Date.now()}`;
             image.alt = entry.filename || entry.label || "Graph artifact preview";
             image.addEventListener("click", () => {
-                openScreenshotModal(entry.preview_url, entry.filename || entry.label || "screenshot.png", "");
             });
             card.appendChild(image);
         } else if (entry.kind === "text") {
@@ -613,10 +576,6 @@ export function graphRenderRelatedContent(statusMessage = "") {
         copyButton.innerHTML = '<i class="fa-solid fa-copy" aria-hidden="true"></i>';
         copyButton.addEventListener("click", async () => {
             if (entry.kind === "image" && entry.preview_url) {
-                screenshotModalState.url = String(entry.preview_url || "");
-                screenshotModalState.filename = String(entry.filename || "screenshot.png");
-                screenshotModalState.port = "";
-                await copyScreenshotAction();
                 return;
             }
             await copyTextToClipboard(
@@ -648,7 +607,6 @@ export function graphRenderRelatedContent(statusMessage = "") {
             openButton.setAttribute("aria-label", "Open");
             openButton.innerHTML = '<i class="fa-solid fa-up-right-from-square" aria-hidden="true"></i>';
             openButton.addEventListener("click", () => {
-                openScreenshotModal(entry.preview_url, entry.filename || entry.label || "screenshot.png", "");
             });
             actions.appendChild(openButton);
         } else if (entry.kind === "text") {
@@ -683,12 +641,10 @@ export async function graphFetchRelatedContent() {
     const entity = kind === "node" ? graphSelectedNodeEntity() : null;
     if (!kind || !ref || kind !== "node") {
         graphWorkspaceState.relatedContent = [];
-        graphRenderRelatedContent("No related artifacts or screenshots.");
         return;
     }
     if (!entity) {
         graphWorkspaceState.relatedContent = [];
-        graphRenderRelatedContent("No related artifacts or screenshots.");
         return;
     }
     if (graphPropertyValue(entity, "summary_kind")) {

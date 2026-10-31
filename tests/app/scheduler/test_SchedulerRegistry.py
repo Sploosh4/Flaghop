@@ -1,95 +1,23 @@
 import unittest
 from types import SimpleNamespace
+from app.scheduler.registry import ActionRegistry
 
 
 class SchedulerRegistryTest(unittest.TestCase):
-    def test_registry_adapts_port_actions_and_scheduler_settings_into_action_specs(self):
-        from app.scheduler.registry import ActionRegistry
-
+    def test_registry_preserves_local_protocol_scope_and_risk_metadata(self):
         settings = SimpleNamespace(
-            automatedAttacks=[
-                ["screenshooter", "http,https", "tcp"],
-                ["smb-enum-users.nse", "smb", "tcp"],
-                ["dirsearch", "http,https", "tcp"],
-                ["enum4linux-ng", "smb", "tcp"],
-            ],
+            automatedAttacks=[["smb-enum-users.nse", "smb", "tcp"], ["enum4linux-ng", "smb", "tcp"]],
             portActions=[
-                ["Run nuclei web scan", "nuclei-web", "nuclei -u http://[IP]:[PORT] -silent", "http,https"],
-                ["SMB Enum Users", "smb-enum-users.nse", "nmap --script=smb-enum-users [IP] -p [PORT]", "smb"],
-                [
-                    "Run dirsearch",
-                    "dirsearch",
-                    "dirsearch -u [WEB_URL]/ --format=json --output=[OUTPUT].json",
-                    "http,https",
-                ],
-                ["Run enum4linux-ng", "enum4linux-ng", "enum4linux-ng -A -oJ [OUTPUT] [IP]", "smb"],
-                [
-                    "Prepare Responder capture workflow",
-                    "responder",
-                    "responder -I <interface> -w -F",
-                    "smb,ldap,kerberos",
-                ],
-                [
-                    "Prepare ntlmrelayx relay workflow",
-                    "ntlmrelayx",
-                    "impacket-ntlmrelayx -t smb://[IP] -smb2support",
-                    "smb,ldap,kerberos",
-                ],
+                ["SMB users", "smb-enum-users.nse", "nmap --script=smb-enum-users [IP] -p [PORT] -oA [OUTPUT]", "smb"],
+                ["SMB enumeration", "enum4linux-ng", "enum4linux-ng -A [IP]", "smb"],
             ],
         )
-
-        registry = ActionRegistry.from_settings(settings, dangerous_categories=["credential_bruteforce"])
-        screenshooter = registry.get_by_tool_id("screenshooter")
-        nuclei = registry.get_by_tool_id("nuclei-web")
-        smb_enum = registry.get_by_tool_id("smb-enum-users.nse")
-        dirsearch = registry.get_by_tool_id("dirsearch")
-        enum4linux = registry.get_by_tool_id("enum4linux-ng")
-        responder = registry.get_by_tool_id("responder")
-        ntlmrelayx = registry.get_by_tool_id("ntlmrelayx")
-
-        self.assertIsNotNone(screenshooter)
-        self.assertIsNotNone(nuclei)
-        self.assertIsNotNone(smb_enum)
-        self.assertIsNotNone(dirsearch)
-        self.assertIsNotNone(enum4linux)
-        self.assertIsNotNone(responder)
-        self.assertIsNotNone(ntlmrelayx)
-
-        self.assertTrue(screenshooter.supports_deterministic)
-        self.assertTrue(screenshooter.supports_ai_selection)
-        self.assertEqual("browser", screenshooter.runner_type)
-        self.assertIn("screenshot", screenshooter.artifact_types)
-
-        self.assertTrue(nuclei.supports_ai_selection)
-        self.assertFalse(nuclei.supports_deterministic)
-        self.assertIn("web", nuclei.methodology_tags)
-        self.assertIn("external_surface", nuclei.pack_tags)
-        self.assertIn("vuln_validation", nuclei.pack_tags)
-
-        self.assertTrue(smb_enum.supports_deterministic)
-        self.assertTrue(smb_enum.supports_ai_selection)
-        self.assertEqual(["tcp"], smb_enum.protocol_scope)
-        self.assertIn("internal_network", smb_enum.pack_tags)
-        self.assertIn("credentials_and_relay", smb_enum.pack_tags)
-
-        self.assertTrue(dirsearch.supports_deterministic)
-        self.assertIn("web", dirsearch.methodology_tags)
-        self.assertIn("web_app_api", dirsearch.pack_tags)
-
-        self.assertTrue(enum4linux.supports_deterministic)
-        self.assertIn("enumeration", enum4linux.methodology_tags)
-        self.assertIn("internal_network", enum4linux.pack_tags)
-
-        self.assertTrue(responder.supports_ai_selection)
-        self.assertFalse(responder.supports_deterministic)
-        self.assertEqual("manual", responder.runner_type)
-        self.assertIn("credentials_and_relay", responder.pack_tags)
-
-        self.assertTrue(ntlmrelayx.supports_ai_selection)
-        self.assertFalse(ntlmrelayx.supports_deterministic)
-        self.assertEqual("manual", ntlmrelayx.runner_type)
-        self.assertIn("lateral_movement", ntlmrelayx.risk_tags)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        registry = ActionRegistry.from_settings(settings)
+        action = registry.get_by_tool_id("smb-enum-users.nse")
+        self.assertTrue(action.supports_deterministic)
+        self.assertEqual("local", action.runner_type)
+        self.assertIn("nmap", action.artifact_types)
+        self.assertEqual(["tcp"], action.protocol_scope)
+        self.assertIn("internal_network", action.pack_tags)
+        self.assertEqual(2, len(registry.for_deterministic("smb", "tcp")))
+        self.assertEqual([], registry.for_deterministic("smtp", "udp"))

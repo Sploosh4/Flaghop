@@ -35,7 +35,6 @@ def execute_command(runtime, **kwargs):
         jobs=getattr(runtime, "jobs", None),
         collect_command_artifacts=runtime._collect_command_artifacts,
         emit_ui_invalidation=runtime._emit_ui_invalidation,
-        persist_credential_capture_output=runtime._persist_credential_capture_output,
         process_progress_adapter_for_command=runtime._process_progress_adapter_for_command,
         process_tree_activity_changed=runtime._process_tree_activity_changed,
         register_job_process=runtime._register_job_process,

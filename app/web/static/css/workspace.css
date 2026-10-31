@@ -290,3 +290,7 @@ body.workspace-ui #workspace-search-results button:hover { background: #262626; 
     #breadcrumb-project { max-width: 110px; }
 }
 @media (prefers-reduced-motion: reduce) { body.workspace-ui * { transition: none !important; animation-duration: 0s !important; } }
+
+body.workspace-ui .activity-view { overflow: auto; grid-template-rows: minmax(260px, 1fr); }
+body.workspace-ui .activity-history-panel { grid-column: 1 / -1; min-width: 0; padding: 20px; border-top: 1px solid #252525; }
+body.workspace-ui .activity-history-panel .table-wrap { max-height: 340px; overflow: auto; }

@@ -75,55 +75,6 @@ def set_workspace_setting_locked(runtime, key: str, value: Any) -> None:
         session.close()
 
 
-def update_host_note(runtime, host_id: int, text_value: str) -> Dict[str, Any]:
-    with runtime._lock:
-        project = runtime._require_active_project()
-        host = runtime._resolve_host(host_id)
-        if host is None:
-            raise KeyError(f"Unknown host id: {host_id}")
-
-        ok = project.repositoryContainer.noteRepository.storeNotes(host.id, str(text_value or ""))
-        return {
-            "host_id": int(host.id),
-            "saved": bool(ok),
-        }
-
-
-def update_host_categories(
-    runtime,
-    host_id: int,
-    *,
-    manual_categories: Any = None,
-    override_auto: bool = False,
-    upsert_target_state_func=None,
-) -> Dict[str, Any]:
-    target_state_upserter = upsert_target_state_func or store_target_state
-    with runtime._lock:
-        project = runtime._require_active_project()
-        host = runtime._resolve_host(host_id)
-        if host is None:
-            raise KeyError(f"Unknown host id: {host_id}")
-
-        updated_state = target_state_upserter(
-            project.database,
-            int(host.id),
-            {
-                "host_ip": str(getattr(host, "ip", "") or ""),
-                "hostname": str(getattr(host, "hostname", "") or ""),
-                "os_match": str(getattr(host, "osMatch", "") or ""),
-                "manual_device_categories": normalize_manual_device_categories(manual_categories),
-                "device_category_override": bool(override_auto),
-            },
-            merge=True,
-        )
-        return {
-            "host_id": int(host.id),
-            "device_categories": category_names(updated_state.get("device_categories", [])),
-            "manual_device_categories": category_names(updated_state.get("manual_device_categories", [])),
-            "device_category_override": bool(updated_state.get("device_category_override", False)),
-        }
-
-
 def delete_host_workspace(runtime, host_id: int) -> Dict[str, Any]:
     target_host_id = int(host_id)
     target_host_ip = ""

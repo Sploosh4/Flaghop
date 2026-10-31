@@ -84,7 +84,7 @@ export const workspaceInvalidateState = {
 export const workspaceInvalidationWaiters = [];
 
 export const toolAuditState = {
-    recommendedPlatform: "kali",
+    recommendedPlatform: "",
     supportedPlatforms: ["kali", "ubuntu"],
     plan: null,
 };
@@ -98,36 +98,6 @@ export const GRAPH_WORKSPACE_MIN_HEIGHT = 520;
 export const GRAPH_WORKSPACE_MAX_HEIGHT = 1600;
 
 export const GRAPH_EDGE_HIGHLIGHT_COLOR = "#ff9f43";
-
-export const GRAPH_VIEW_PRESETS = {
-    attack_surface: {
-        label: "attack surface",
-        defaultGroup: "finding",
-        nodeTypes: ["scope", "subnet", "host", "fqdn", "port", "service", "url", "technology", "finding", "cpe", "cve", "screenshot"],
-    },
-    host_service_topology: {
-        label: "host/service topology",
-        defaultGroup: "host",
-        nodeTypes: ["host", "fqdn", "port", "service", "technology", "url", "action", "evidence_record", "artifact", "screenshot"],
-    },
-    web_application_map: {
-        label: "web application map",
-        defaultGroup: "service",
-        nodeTypes: ["host", "fqdn", "service", "url", "technology", "finding", "cpe", "cve", "screenshot", "artifact", "action"],
-    },
-    credential_identity_session: {
-        label: "credential / identity / session",
-        defaultGroup: "host",
-        nodeTypes: ["host", "credential", "identity", "session", "action", "artifact", "evidence_record"],
-        edgeTypes: ["contains", "authenticated_as", "captured", "produced", "pivoted_to", "validated_by"],
-    },
-    exploitation_chain: {
-        label: "exploitation chain",
-        defaultGroup: "finding",
-        nodeTypes: ["host", "finding", "cve", "exploit_reference", "credential", "identity", "session", "action", "artifact", "screenshot", "evidence_record"],
-        edgeTypes: ["contains", "affected_by", "supports_exploit", "validated_by", "authenticated_as", "pivoted_to", "produced", "derived_from"],
-    },
-};
 
 export const GRAPH_SOURCE_KIND_LABELS = {
     observed: "observed",
@@ -194,28 +164,6 @@ export const GRAPH_NODE_SIZE = {
     height: 58,
 };
 
-export const GRAPH_TYPE_ORDER = [
-    "finding",
-    "cve",
-    "exploit_reference",
-    "credential",
-    "identity",
-    "session",
-    "scope",
-    "subnet",
-    "host",
-    "fqdn",
-    "service",
-    "url",
-    "port",
-    "technology",
-    "cpe",
-    "screenshot",
-    "action",
-    "artifact",
-    "evidence_record",
-];
-
 export const GRAPH_SEVERITY_ORDER = {
     critical: 0,
     high: 1,
@@ -257,22 +205,7 @@ export const scriptOutputState = {
     modalOpen: false,
 };
 
-export const screenshotModalState = {
-    modalOpen: false,
-    url: "",
-    filename: "",
-    port: "",
-};
 
-export const credentialCaptureState = {
-    panelEnabled: true,
-    captures: [],
-    dedupedHashes: [],
-    responder: {config: {}, session: {}},
-    ntlmrelayx: {config: {}, session: {}},
-    modalOpen: false,
-    configModalOpen: false,
-};
 
 export const hostRemoveState = {
     modalOpen: false,
@@ -302,18 +235,9 @@ export const uiModalState = {
     schedulerOpen: false,
     interfaceSettingsOpen: false,
     deviceCategorySettingsOpen: false,
-    reportProviderOpen: false,
     settingsOpen: false,
     nmapScanOpen: false,
     manualScanOpen: false,
-    hostSelectionOpen: false,
-    scriptCveOpen: false,
-    providerLogsOpen: false,
-    credentialsOpen: false,
-    credentialCaptureConfigOpen: false,
-    jobsOpen: false,
-    submittedScansOpen: false,
-    schedulerDecisionsOpen: false,
     hostRemoveOpen: false,
     graphNoteOpen: false,
     workspaceSwitchGuardOpen: false,
@@ -360,3 +284,43 @@ export const ANSI_BG_CLASS_BY_CODE = {
     106: "ansi-bg-bright-cyan",
     107: "ansi-bg-bright-white",
 };
+
+export const GRAPH_VIEW_PRESETS = {
+    attack_surface: {
+        label: "attack surface",
+        defaultGroup: "finding",
+        nodeTypes: ["scope", "subnet", "host", "fqdn", "port", "service", "url", "technology", "finding", "cpe", "cve", ],
+    },
+    host_service_topology: {
+        label: "host/service topology",
+        defaultGroup: "host",
+        nodeTypes: ["host", "fqdn", "port", "service", "technology", "url", "action", "evidence_record", "artifact", ],
+    },
+    exploitation_chain: {
+        label: "exploitation chain",
+        defaultGroup: "finding",
+        nodeTypes: ["host", "finding", "cve", "exploit_reference", "credential", "identity", "session", "action", "artifact", "evidence_record"],
+        edgeTypes: ["contains", "affected_by", "supports_exploit", "validated_by", "authenticated_as", "pivoted_to", "produced", "derived_from"],
+    },
+};
+
+export const GRAPH_TYPE_ORDER = [
+    "finding",
+    "cve",
+    "exploit_reference",
+    "credential",
+    "identity",
+    "session",
+    "scope",
+    "subnet",
+    "host",
+    "fqdn",
+    "service",
+    "url",
+    "port",
+    "technology",
+    "cpe",
+    "action",
+    "artifact",
+    "evidence_record",
+];

@@ -75,7 +75,6 @@ class ServiceOwnershipTest(unittest.TestCase):
             jobs=SimpleNamespace(is_cancel_requested=lambda _: False),
             collect_command_artifacts=lambda _: [],
             emit_ui_invalidation=lambda *args, **kwargs: None,
-            persist_credential_capture_output=lambda **kwargs: None,
             process_progress_adapter_for_command=lambda *args: "",
             process_tree_activity_changed=lambda *args: False,
             register_job_process=registry.register,

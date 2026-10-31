@@ -118,21 +118,6 @@ class WebGraphAndReportRoutesTest(unittest.TestCase):
         self.assertEqual(200, saved_annotation.status_code)
         self.assertEqual("focus this node", saved_annotation.json["annotation"]["body"])
 
-    def test_report_routes_delegate_to_report_service(self):
-        push_ai = self.client.post(
-            "/api/workspace/project-ai-report/push",
-            json={"project_report_delivery": {"endpoint": "https://example.local/ai", "method": "POST"}},
-        )
-        self.assertEqual(200, push_ai.status_code)
-        self.assertEqual("ok", push_ai.json["status"])
-
-        push_report = self.client.post(
-            "/api/workspace/project-report/push",
-            json={"project_report_delivery": {"endpoint": "https://example.local/report", "method": "POST"}},
-        )
-        self.assertEqual(200, push_report.status_code)
-        self.assertEqual("ok", push_report.json["status"])
-
 
 if __name__ == "__main__":
     unittest.main()

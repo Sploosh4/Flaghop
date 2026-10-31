@@ -13,19 +13,12 @@
             </div>
             <p class="meta-note">Curated install hints for the external tools Legion launches or depends on, including upstream fallbacks where Ubuntu lacks native packages.</p>
             <div class="tool-install-controls">
-                <label>
-                    Install Platform
-                    <select id="settings-tool-install-platform">
-                        <option value="kali">Kali</option>
-                        <option value="ubuntu">Ubuntu</option>
-                    </select>
-                </label>
                 <p id="settings-tool-install-status" class="meta-note">Install plan not loaded yet.</p>
             </div>
             <div class="modal-actions">
                 <button id="settings-tool-audit-refresh-button" type="button">Refresh Tool Audit</button>
-                <button id="settings-tool-install-copy-button" type="button">Copy Install Script</button>
-                <button id="settings-tool-install-run-button" type="button">Install Missing</button>
+                <button id="settings-tool-install-copy-button" type="button" disabled>Copy Install Script</button>
+                <button id="settings-tool-install-run-button" type="button" disabled>Install Missing</button>
             </div>
             <label class="tool-install-script-block">
                 Install Script Preview
@@ -39,8 +32,7 @@
                         <th>Category</th>
                         <th>Status</th>
                         <th>Resolved</th>
-                        <th>Kali</th>
-                        <th>Ubuntu</th>
+                        <th>Install</th>
                     </tr>
                     </thead>
                     <tbody id="settings-tool-audit-body"></tbody>

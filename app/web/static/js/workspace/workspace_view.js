@@ -6,7 +6,7 @@ import { graphRenderWorkspace } from "./graph_render.js";
 import { buildHostActionButton, buildLaunchToolButton } from "./host_actions.js";
 import { makeCategoryCell, normalizeServiceFilterList, selectedHostServiceFilters, setHostServiceFilterAction, setServicesHostFilterAction, syncCategoryFilterOptions, syncHostFilterControls, syncHostServiceFilterOptions } from "./host_filters.js";
 import { setServicesHostScope } from "./host_scope.js";
-import { closeProcessOutputModal, closeScreenshotModal, closeScriptOutputModal, renderProcesses, renderSummary } from "./process_output.js";
+import { closeProcessOutputModal, closeScriptOutputModal, renderProcesses, renderSummary } from "./process_output.js";
 import { graphWorkspaceState, workspaceState } from "./state.js";
 import { openManualToolPicker, populateManualToolSelect } from "./tools.js";
 import { loadHostDetail, loadWorkspaceServices } from "./workspace_data.js";
@@ -30,23 +30,9 @@ export function clearHostDetailView({resetForms = true} = {}) {
         setValue("workspace-cve-severity", "");
     }
 
-    [
-        "host-detail-ports",
-        "host-detail-scripts",
-        "host-detail-ai-technologies",
-        "host-detail-ai-manual-tests",
-        "host-detail-screenshots",
-    ].forEach((id) => {
-        const node = document.getElementById(id);
-        if (node) {
-            node.innerHTML = "";
-        }
-    });
-
     setText("host-ai-analysis-status", "");
     setText("host-ai-tech-count", 0);
     setText("host-ai-manual-count", 0);
-    setText("host-screenshot-count", 0);
 }
 
 
@@ -97,7 +83,6 @@ export function resetWorkspaceDisplayForProjectSwitch({clearProjectPaths = false
     clearHostDetailView({resetForms: true});
     closeProcessOutputModal(true);
     closeScriptOutputModal(true);
-    closeScreenshotModal(true);
     closeHostRemoveModalAction(true);
     graphUpdateHostFilterOptions();
     graphRenderLayoutOptions();
@@ -137,37 +122,6 @@ export function renderHostSelector(hosts) {
 }
 
 
-
-
-export function renderHostSelectionState({syncGraph = false, preserveGraphDetail = true} = {}) {
-    const selectedHostId = String(workspaceState.selectedHostId || "");
-    const select = document.getElementById("workspace-host-select");
-    if (select) {
-        const hasSelectedOption = Array.from(select.options || []).some((option) => {
-            return String(option.value || "") === selectedHostId;
-        });
-        if (hasSelectedOption) {
-            select.value = selectedHostId;
-        } else {
-            select.value = "";
-        }
-    }
-
-    const body = document.getElementById("hosts-body");
-    if (body) {
-        Array.from(body.querySelectorAll("tr[data-host-id]")).forEach((row) => {
-            const isSelected = selectedHostId && String(row.dataset.hostId || "") === selectedHostId;
-            row.classList.toggle("is-selected", Boolean(isSelected));
-            row.setAttribute("aria-selected", isSelected ? "true" : "false");
-        });
-    }
-
-    if (syncGraph) {
-        graphRenderWorkspace({preserveDetail: preserveGraphDetail});
-    }
-}
-
-
 export async function selectHost(hostId, {loadDetail = true, syncGraph = true, preserveGraphDetail = true} = {}) {
     const normalizedHostId = parseInt(hostId, 10);
     if (!Number.isFinite(normalizedHostId) || normalizedHostId <= 0) {
@@ -175,7 +129,6 @@ export async function selectHost(hostId, {loadDetail = true, syncGraph = true, p
         workspaceState.hostDetail = null;
         const servicesScopeChanged = setServicesHostScope(0);
         clearHostDetailView({resetForms: true});
-        renderHostSelectionState({syncGraph, preserveGraphDetail});
         if (servicesScopeChanged) {
             await loadWorkspaceServices();
         }
@@ -185,7 +138,6 @@ export async function selectHost(hostId, {loadDetail = true, syncGraph = true, p
     const hostChanged = String(workspaceState.selectedHostId || "") !== String(normalizedHostId);
     workspaceState.selectedHostId = normalizedHostId;
     const servicesScopeChanged = setServicesHostScope(normalizedHostId);
-    renderHostSelectionState({syncGraph, preserveGraphDetail});
 
     const tasks = [];
     if (servicesScopeChanged) {
@@ -272,16 +224,12 @@ export function renderHosts(hosts) {
             });
         });
         actionsCell.appendChild(launchButton);
-        ["rescan", "refresh-screenshots", "dig-deeper", "remove"].forEach((action) => {
-            actionsCell.appendChild(buildHostActionButton(action, host.id || ""));
-        });
 
         tr.appendChild(actionsCell);
         body.appendChild(tr);
     });
     setText("host-count", workspaceState.hosts.length);
     renderHostSelector(workspaceState.hosts);
-    renderHostSelectionState();
     syncCategoryFilterOptions();
     syncHostServiceFilterOptions();
     graphUpdateHostFilterOptions();

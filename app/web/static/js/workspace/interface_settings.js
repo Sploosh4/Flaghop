@@ -28,7 +28,6 @@ export async function refreshInterfaceSettingsAction() {
         const featureFlags = normalizeSchedulerFeatureFlags(prefs?.feature_flags);
         const graphEnabled = featureFlags.graph_workspace;
         setChecked("interface-graph-workspace-enabled", graphEnabled);
-        setChecked("interface-credential-capture-panel-enabled", featureFlags.credential_capture_panel);
         setChecked("interface-colorful-ascii-background", Boolean(display?.colorful_ascii_background));
         setInterfaceSettingsStatus("Interface settings loaded");
     } catch (err) {
@@ -39,7 +38,6 @@ export async function refreshInterfaceSettingsAction() {
 
 export async function saveInterfaceSettingsAction() {
     const graphWorkspace = getChecked("interface-graph-workspace-enabled");
-    const credentialCapturePanel = getChecked("interface-credential-capture-panel-enabled");
     const colorfulAsciiBackground = getChecked("interface-colorful-ascii-background");
     setInterfaceSettingsStatus("Saving interface settings...");
     try {
@@ -47,7 +45,6 @@ export async function saveInterfaceSettingsAction() {
             postJson("/api/scheduler/preferences", {
                 feature_flags: {
                     graph_workspace: graphWorkspace,
-                    credential_capture_panel: credentialCapturePanel,
                 },
             }),
             postJson("/api/settings/display", {

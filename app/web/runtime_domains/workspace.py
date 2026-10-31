@@ -44,15 +44,7 @@ class WorkspaceRuntime:
 
     get_host_workspace = web_runtime_workspace.get_host_workspace
 
-    update_host_note = web_runtime_workspace.update_host_note
-
-    update_host_categories = web_runtime_workspace.update_host_categories
-
     delete_host_workspace = web_runtime_workspace.delete_host_workspace
-
-    create_script_entry = web_runtime_workspace.create_script_entry
-
-    delete_script_entry = web_runtime_workspace.delete_script_entry
 
     get_script_output = web_runtime_workspace.get_script_output
 

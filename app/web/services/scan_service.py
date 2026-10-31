@@ -17,13 +17,6 @@ class ScanService:
     def __init__(self, runtime):
         self.runtime = runtime
 
-    def import_targets(self, payload: Any) -> Dict[str, Any]:
-        request = TargetsImportRequest.from_payload(payload)
-        if not request.path:
-            raise ValueError("Targets file path is required.")
-        job = self.runtime.start_targets_import_job(request.path)
-        return AcceptedJobResponse.from_job(job).to_dict()
-
     def import_nmap_xml(self, payload: Any) -> Dict[str, Any]:
         request = NmapImportRequest.from_payload(payload)
         if not request.path:

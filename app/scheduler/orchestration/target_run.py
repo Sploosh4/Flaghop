@@ -17,9 +17,6 @@ class SchedulerCallbacks:
     should_cancel: Callable | None = None
     existing_attempts: Callable | None = None
     build_context: Callable | None = None
-    on_ai_analysis: Callable | None = None
-    reflect_progress: Callable | None = None
-    on_reflection_analysis: Callable | None = None
     handle_blocked: Callable | None = None
     handle_approval: Callable | None = None
     execute_batch: Callable | None = None
@@ -74,181 +71,36 @@ class TargetRun:
             self.budget.summary["cancelled"] = True
             self.budget.summary["cancel_reason"] = "cancelled by user"
             return False
-        self.use_feedback_loop = str(self.options.scheduler_mode or "").strip().lower() == "ai" and bool(
-            self.options.ai_feedback_enabled
-        )
-        attempted_state = self.planning._normalize_attempt_summary(
+        attempted = self.planning._normalize_attempt_summary(
             self.callbacks.existing_attempts(target=self.target) if self.callbacks.existing_attempts else {}
         )
-        self.state.attempted_tool_ids = set(attempted_state["tool_ids"])
-        self.state.attempted_family_ids = set(attempted_state["family_ids"])
-        self.state.attempted_command_signatures = set(attempted_state["command_signatures"])
-        self.state.suppressed_tool_ids: Set[str] = set()
-        self.state.promoted_tool_ids: List[str] = []
-        self.state.recent_rounds: List[Dict[str, Any]] = []
-        self.state.reflections_used = 0
-        for _round in range(int(self.options.max_rounds or 1) if self.use_feedback_loop else 1):
-            if self.callbacks.should_cancel and self.callbacks.should_cancel(int(self.options.job_id or 0)):
-                self.budget.summary["cancelled"] = True
-                self.budget.summary["cancel_reason"] = "cancelled by user"
-                return False
-            if int(self.options.max_runtime_seconds or 0) > 0 and time.monotonic() - self.budget.started_at >= int(
-                self.options.max_runtime_seconds or 0
-            ):
-                self.budget.summary["stopped_early"] = "dig_deeper_runtime_cap"
-                return False
-            if int(self.options.max_total_actions or 0) > 0 and self.budget.summary["executed"] + self.budget.summary[
-                "skipped"
-            ] + self.budget.summary["approval_queued"] >= int(self.options.max_total_actions or 0):
-                self.budget.summary["stopped_early"] = "dig_deeper_action_cap"
-                return False
-            context = None
-            if self.use_feedback_loop and self.callbacks.build_context:
-                context = self.callbacks.build_context(
-                    target=self.target,
-                    attempted_tool_ids=set(self.state.attempted_tool_ids),
-                    attempted_family_ids=set(self.state.attempted_family_ids),
-                    attempted_command_signatures=set(self.state.attempted_command_signatures),
-                    recent_output_chars=int(self.options.recent_output_chars or 900),
-                    analysis_mode=self.options.analysis_mode,
-                )
-            if not self._reflect(context):
-                break
-            low_yield_stop_reason = self.planning._should_stop_low_yield_external_recon(
+        self.state.attempted_tool_ids = set(attempted["tool_ids"])
+        self.state.attempted_family_ids = set(attempted["family_ids"])
+        self.state.attempted_command_signatures = set(attempted["command_signatures"])
+        context = (
+            self.callbacks.build_context(
                 target=self.target,
-                context=context,
-                attempted_tool_ids=sorted(self.state.attempted_tool_ids),
-                recent_rounds=self.state.recent_rounds,
-                engagement_policy=self.engagement_policy,
+                attempted_tool_ids=self.state.attempted_tool_ids,
+                attempted_family_ids=self.state.attempted_family_ids,
+                attempted_command_signatures=self.state.attempted_command_signatures,
+                recent_output_chars=900,
+                analysis_mode="standard",
             )
-            if low_yield_stop_reason:
-                self.budget.summary.setdefault("target_stop_reasons", []).append(
-                    {
-                        "host_ip": str(self.target.host_ip or ""),
-                        "port": str(self.target.port or ""),
-                        "protocol": str(self.target.protocol or "tcp"),
-                        "service": str(self.target.service_name or ""),
-                        "reason": low_yield_stop_reason,
-                    }
-                )
-                break
-            decisions, provider_payload = self._plan(context)
-            if not decisions:
-                break
-            round_state = self._select_tasks(decisions)
-            self._execute_round(round_state)
-            self._record_round(round_state, context, provider_payload)
-            if not round_state.round_progress or not self.use_feedback_loop:
-                break
-
-        return True
-
-    def _reflect(self, context):
-        reflection_trigger = None
-        if self.use_feedback_loop and self.callbacks.reflect_progress and (context is not None):
-            reflection_trigger = self.planning._reflection_trigger(
-                recent_rounds=self.state.recent_rounds,
-                options=self.options,
-                reflections_used=self.state.reflections_used,
-                context=context,
-            )
-        if reflection_trigger:
-            try:
-                reflection_payload = self.callbacks.reflect_progress(
-                    target=self.target,
-                    context=context,
-                    recent_rounds=list(self.state.recent_rounds),
-                    trigger=reflection_trigger,
-                )
-            except Exception:
-                reflection_payload = {}
-            if isinstance(reflection_payload, dict) and reflection_payload:
-                reflection_payload.setdefault(
-                    "trigger_reason", str(reflection_trigger.get("reason", "") or "").strip().lower()
-                )
-                reflection_payload.setdefault("trigger_context", dict(reflection_trigger))
-                self.state.reflections_used += 1
-                self.budget.summary["reflections"] += 1
-                if self.callbacks.on_reflection_analysis:
-                    self.callbacks.on_reflection_analysis(
-                        target=self.target,
-                        reflection_payload=reflection_payload,
-                        recent_rounds=list(self.state.recent_rounds),
-                    )
-                self.state.suppressed_tool_ids.update(
-                    self.planning._expand_reflection_suppression_aliases(
-                        reflection_payload.get("suppress_tool_ids", []),
-                        attempted_tool_ids=self.state.attempted_tool_ids,
-                        context=context,
-                    )
-                )
-                self.state.promoted_tool_ids = [
-                    self.planning._normalize_text_token(item)
-                    for item in list(reflection_payload.get("promote_tool_ids", []) or [])
-                    if self.planning._normalize_text_token(item)
-                ]
-                reflection_state = str(reflection_payload.get("state", "continue") or "continue").strip().lower()
-                priority_shift = str(reflection_payload.get("priority_shift", "") or "").strip().lower()
-                if reflection_state == "complete" or priority_shift in {"manual_validation", "stop"}:
-                    self.budget.summary["reflection_stops"] += 1
-                    return False
-        return True
-
-    def _plan(self, context):
-        provider_payload = {}
+            if self.callbacks.build_context
+            else None
+        )
         decisions = self.planning.planner.plan_actions(
             self.target.service_name,
             self.target.protocol,
             self.settings,
             context=context,
-            excluded_tool_ids=sorted(set(self.state.attempted_tool_ids).union(self.state.suppressed_tool_ids)),
-            excluded_family_ids=sorted(self.state.attempted_family_ids),
-            excluded_command_signatures=sorted(self.state.attempted_command_signatures),
-            limit=int(self.options.max_actions_per_round or 0) or None,
+            excluded_tool_ids=list(self.state.attempted_tool_ids),
+            excluded_family_ids=list(self.state.attempted_family_ids),
+            excluded_command_signatures=list(self.state.attempted_command_signatures),
             engagement_policy=self.engagement_policy,
         )
-        if str(self.options.scheduler_mode or "").strip().lower() == "ai":
-            provider_payload = self.planning.planner.get_last_provider_payload(clear=True)
-            if self.callbacks.on_ai_analysis:
-                self.callbacks.on_ai_analysis(target=self.target, provider_payload=provider_payload)
-        if not decisions:
-            return [], provider_payload
-        decisions = self.planning._trim_decisions_for_cost_control(
-            target=self.target, decisions=decisions, context=context, engagement_policy=self.engagement_policy
-        )
-        if not decisions:
-            return [], provider_payload
-        if self.state.promoted_tool_ids:
-            promoted_set = {
-                self.planning._normalize_text_token(item)
-                for item in self.state.promoted_tool_ids
-                if self.planning._normalize_text_token(item)
-            }
-            decisions = sorted(
-                list(decisions),
-                key=lambda item: (
-                    0 if self.planning._normalize_text_token(getattr(item, "tool_id", "")) in promoted_set else 1,
-                ),
-            )
-        parallel_wave_tool_ids = self.planning._web_parallel_followup_wave_tool_ids(
-            target=self.target,
-            decisions=decisions,
-            provider_payload=provider_payload if isinstance(provider_payload, dict) else {},
-            options=self.options,
-        )
-        if parallel_wave_tool_ids:
-            wave_order = {tool_id: index for index, tool_id in enumerate(parallel_wave_tool_ids) if tool_id}
-            decisions = sorted(
-                [
-                    item
-                    for item in list(decisions)
-                    if self.planning._normalize_text_token(getattr(item, "tool_id", "")) in wave_order
-                ],
-                key=lambda item: wave_order.get(
-                    self.planning._normalize_text_token(getattr(item, "tool_id", "")), len(wave_order)
-                ),
-            )
-        return decisions, provider_payload
+        self._execute_round(self._select_tasks(decisions))
+        return True
 
     def _select_tasks(self, decisions):
         round_state = RoundState()
@@ -431,30 +283,3 @@ class TargetRun:
                 self.budget.summary["executed"] += 1
             else:
                 self.budget.summary["skipped"] += 1
-
-    def _record_round(self, round_state, context, provider_payload):
-        post_round_context = context
-        if self.use_feedback_loop and self.callbacks.build_context:
-            post_round_context = self.callbacks.build_context(
-                target=self.target,
-                attempted_tool_ids=set(self.state.attempted_tool_ids),
-                attempted_family_ids=set(self.state.attempted_family_ids),
-                attempted_command_signatures=set(self.state.attempted_command_signatures),
-                recent_output_chars=int(self.options.recent_output_chars or 900),
-                analysis_mode=self.options.analysis_mode,
-            )
-        round_snapshot = self.planning._build_round_snapshot(
-            round_number=len(self.state.recent_rounds) + 1,
-            context=post_round_context,
-            provider_payload=provider_payload if isinstance(provider_payload, dict) else {},
-            decision_tool_ids=round_state.round_selected_tool_ids,
-            decision_family_ids=round_state.round_selected_family_ids,
-            duplicate_filtered_count=round_state.duplicate_filtered_count,
-            suppressed_filtered_count=round_state.suppressed_filtered_count,
-            recent_rounds=self.state.recent_rounds,
-        )
-        previous_round = self.state.recent_rounds[-1] if self.state.recent_rounds else None
-        round_snapshot["progress_score"] = self.planning._round_progress_score(previous_round, round_snapshot)
-        self.state.recent_rounds.append(round_snapshot)
-        if len(self.state.recent_rounds) > 8:
-            self.state.recent_rounds = self.state.recent_rounds[-8:]

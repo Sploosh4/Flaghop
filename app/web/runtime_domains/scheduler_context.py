@@ -15,46 +15,6 @@ class SchedulerContextRuntime:
 
     _scheduler_rationale_feed_locked = web_runtime_scheduler.scheduler_rationale_feed_locked
 
-    _safe_json_loads = staticmethod(web_runtime_scheduler.safe_json_loads)
-
-    _dedupe_text_tokens = staticmethod(web_runtime_scheduler.dedupe_text_tokens)
-
-    _truncate_rationale_text = staticmethod(web_runtime_scheduler.truncate_rationale_text)
-
-    _scheduler_event_timestamp_epoch = classmethod(web_runtime_scheduler.scheduler_event_timestamp_epoch)
-
-    _strip_json_fences = staticmethod(web_runtime_scheduler.strip_json_fences)
-
-    _extract_prompt_text_from_provider_request = classmethod(
-        web_runtime_scheduler.extract_prompt_text_from_provider_request
-    )
-
-    _extract_scheduler_target_fields_from_prompt = staticmethod(
-        web_runtime_scheduler.extract_scheduler_target_fields_from_prompt
-    )
-
-    _extract_provider_response_payload = classmethod(web_runtime_scheduler.extract_provider_response_payload)
-
-    _rationale_list_text = staticmethod(web_runtime_scheduler.rationale_list_text)
-
-    _rationale_tag_label = staticmethod(web_runtime_scheduler.rationale_tag_label)
-
-    _index_scheduler_rows_by_target_tool = classmethod(web_runtime_scheduler.index_scheduler_rows_by_target_tool)
-
-    _nearest_scheduler_row = staticmethod(web_runtime_scheduler.nearest_scheduler_row)
-
-    _manual_test_lines = classmethod(web_runtime_scheduler.manual_test_lines)
-
-    _findings_line = classmethod(web_runtime_scheduler.findings_line)
-
-    _match_rationale_outcomes = classmethod(web_runtime_scheduler.match_rationale_outcomes)
-
-    _build_provider_rationale_entry = classmethod(web_runtime_scheduler.build_provider_rationale_entry)
-
-    _build_audit_rationale_entry = classmethod(web_runtime_scheduler.build_audit_rationale_entry)
-
-    _build_scheduler_rationale_feed_items = classmethod(web_runtime_scheduler.build_scheduler_rationale_feed_items)
-
     def _build_scheduler_target_context(
         self,
         *,

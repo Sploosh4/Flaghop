@@ -1,18 +1,9 @@
 import {publishActivity, requestActivity} from "./activity_bridge.js";
 
-/** Called by WorkspaceController before UI handlers or asynchronous updates start. */
-let setCredentialCaptureConfigModalOpen, setCredentialsModalOpen;
-export function connectProcessOutput(callbacks) {
-    for (const name of ["setCredentialCaptureConfigModalOpen", "setCredentialsModalOpen"]) {
-        if (typeof callbacks[name] !== "function") throw new TypeError(`Missing process_output callback: ${name}`);
-    }
-    ({ setCredentialCaptureConfigModalOpen, setCredentialsModalOpen } = callbacks);
-}
-
 import { setText, setWorkspaceStatus, updateBodyModalState } from "./dom.js";
 import { fetchJson } from "./http.js";
 import { renderAnsiOutput } from "./output_format.js";
-import { processOutputState, screenshotModalState, scriptOutputState } from "./state.js";
+import { processOutputState, scriptOutputState } from "./state.js";
 /** Workspace process output. */
 
 export function renderProcesses(rows) { publishActivity("processes", rows || []); }
@@ -57,18 +48,6 @@ export function setScriptOutputModalOpen(open) {
 }
 
 
-export function setScreenshotModalOpen(open) {
-    const modal = document.getElementById("screenshot-modal");
-    if (!modal) {
-        return;
-    }
-    screenshotModalState.modalOpen = Boolean(open);
-    modal.classList.toggle("is-open", Boolean(open));
-    modal.setAttribute("aria-hidden", open ? "false" : "true");
-    updateBodyModalState();
-}
-
-
 export function closeProcessOutputModal() { return requestActivity("closeOutput"); }
 
 export function closeScriptOutputModal(resetSelection = true) {
@@ -87,31 +66,6 @@ export function closeScriptOutputModal(resetSelection = true) {
         setScriptOutputCommand("");
         setScriptOutputText("");
     }
-}
-
-
-export function closeScreenshotModal(resetSelection = true) {
-    setScreenshotModalOpen(false);
-    if (resetSelection) {
-        screenshotModalState.url = "";
-        screenshotModalState.filename = "";
-        screenshotModalState.port = "";
-        const image = document.getElementById("screenshot-modal-image");
-        if (image) {
-            image.removeAttribute("src");
-        }
-        setText("screenshot-modal-meta", "No screenshot selected");
-    }
-}
-
-
-export function closeCredentialsModalAction() {
-    setCredentialsModalOpen(false);
-}
-
-
-export function closeCredentialCaptureConfigModalAction() {
-    setCredentialCaptureConfigModalOpen(false);
 }
 
 
@@ -177,26 +131,6 @@ export function openTextPreviewModal({title = "Artifact Preview", meta = "", com
 }
 
 
-export function openScreenshotModal(url, filename, port = "") {
-    const resolvedUrl = String(url || "").trim();
-    if (!resolvedUrl) {
-        setWorkspaceStatus("Screenshot URL is missing", true);
-        return;
-    }
-    screenshotModalState.url = resolvedUrl;
-    screenshotModalState.filename = String(filename || "").trim() || "screenshot.png";
-    screenshotModalState.port = String(port || "").trim();
-    const image = document.getElementById("screenshot-modal-image");
-    if (image) {
-        image.src = `${resolvedUrl}${resolvedUrl.includes("?") ? "&" : "?"}t=${Date.now()}`;
-        image.alt = screenshotModalState.filename || "Screenshot preview";
-    }
-    const portSuffix = screenshotModalState.port ? ` (${screenshotModalState.port})` : "";
-    setText("screenshot-modal-meta", `${screenshotModalState.filename}${portSuffix}`);
-    setScreenshotModalOpen(true);
-}
-
-
 export async function copyScriptOutputAction() {
     const text = scriptOutputState.output || "";
     await copyTextToClipboard(text, "Script output copied to clipboard", "No script output to copy");
@@ -207,32 +141,6 @@ export async function copyScriptCommandAction() {
     const node = document.getElementById("script-output-command");
     const text = node ? String(node.textContent || "") : "";
     await copyTextToClipboard(text, "Command copied to clipboard", "No command to copy");
-}
-
-
-export async function copyScreenshotAction() {
-    const url = String(screenshotModalState.url || "").trim();
-    if (!url) {
-        setWorkspaceStatus("No screenshot to copy", true);
-        return;
-    }
-    if (!(navigator.clipboard && window.ClipboardItem && navigator.clipboard.write)) {
-        await copyTextToClipboard(url, "Screenshot URL copied to clipboard", "No screenshot to copy");
-        return;
-    }
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        const blob = await response.blob();
-        const type = blob.type || "image/png";
-        const item = new ClipboardItem({[type]: blob});
-        await navigator.clipboard.write([item]);
-        setWorkspaceStatus("Screenshot copied to clipboard");
-    } catch (err) {
-        setWorkspaceStatus(`Screenshot copy failed: ${err.message}`, true);
-    }
 }
 
 
@@ -295,34 +203,6 @@ export function downloadScriptOutputAction() {
     a.remove();
     URL.revokeObjectURL(url);
     setWorkspaceStatus(`Script ${scriptDbId} output downloaded`);
-}
-
-
-export async function downloadScreenshotAction() {
-    const url = String(screenshotModalState.url || "").trim();
-    if (!url) {
-        setWorkspaceStatus("No screenshot to download", true);
-        return;
-    }
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        const blob = await response.blob();
-        const downloadName = String(screenshotModalState.filename || "screenshot.png").replace(/[^a-zA-Z0-9._-]+/g, "-");
-        const objectUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = objectUrl;
-        a.download = downloadName || "screenshot.png";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(objectUrl);
-        setWorkspaceStatus(`Downloaded ${downloadName}`);
-    } catch (err) {
-        setWorkspaceStatus(`Screenshot download failed: ${err.message}`, true);
-    }
 }
 
 

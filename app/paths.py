@@ -85,5 +85,5 @@ def get_legion_autosave_dir() -> str:
 
 
 def get_scheduler_config_path(filename: Optional[str] = None) -> str:
-    name = str(filename or "scheduler-ai.json").strip() or "scheduler-ai.json"
+    name = str(filename or "scheduler.json").strip() or "scheduler.json"
     return os.path.join(get_legion_home(), name)

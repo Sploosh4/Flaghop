@@ -1,9 +1,10 @@
+"""Local execution limits, engagement policy and device category preferences."""
+
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List
 
-from app.core.secret_store import SecretStore, SecretStoreError, build_secret_ref
 from app.device_categories import normalize_custom_device_category_rules
 from app.paths import ensure_legion_home, get_scheduler_config_path
 from app.scheduler.policy_engine import VALID_FAMILY_POLICY_STATES
@@ -12,67 +13,19 @@ from app.scheduler.policy import (
     normalize_engagement_policy,
     preset_from_legacy_goal_profile,
 )
-from app.scheduler.runners import normalize_runner_settings
 
-DEFAULT_FEATURE_FLAGS = {
-    "graph_workspace": False,
-    "credential_capture_panel": True,
-    "optional_runners": True,
-    "context_summary_enabled": True,
-    "scheduler_prompt_profiles": True,
-    "scheduler_web_followup_sidecar": False,
-}
-DEFAULT_DISABLED_TOOL_IDS = [
-    "http-drupal-modules.nse",
-    "http-vuln-zimbra-lfi.nse",
-]
+DEFAULT_FEATURE_FLAGS = {"graph_workspace": False, "context_summary_enabled": True}
+DEFAULT_DISABLED_TOOL_IDS = []
 DEFAULT_TOOL_EXECUTION_PROFILES = {
-    "nikto": {
-        "quiet_long_running": True,
-        "activity_timeout_seconds": 1800,
-        "hard_timeout_seconds": 3600,
-    },
-    "dirsearch": {
-        "quiet_long_running": True,
-        "activity_timeout_seconds": 900,
-        "hard_timeout_seconds": 2400,
-    },
-    "ffuf": {
-        "quiet_long_running": True,
-        "activity_timeout_seconds": 900,
-        "hard_timeout_seconds": 1800,
-    },
-    "katana": {
-        "quiet_long_running": True,
-        "activity_timeout_seconds": 900,
-        "hard_timeout_seconds": 1800,
-    },
     "tshark-passive-capture": {
         "quiet_long_running": True,
         "activity_timeout_seconds": 9000,
         "hard_timeout_seconds": 7800,
-    },
+    }
 }
-DEFAULT_INTEGRATIONS = {
-    "grayhatwarfare": {
-        "api_key": "",
-    },
-    "chaos": {
-        "api_key": "",
-    },
-    "shodan": {
-        "api_key": "",
-    },
-}
-DEFAULT_DEVICE_CATEGORIES: List[Dict[str, Any]] = []
-
-
-def _provider_secret_ref(provider_name: str) -> str:
-    return build_secret_ref("scheduler", "providers", provider_name, "api_key")
-
-
-def _integration_secret_ref(integration_name: str) -> str:
-    return build_secret_ref("scheduler", "integrations", integration_name, "api_key")
+DEFAULT_DEVICE_CATEGORIES = []
+VALID_MODES = {"deterministic"}
+VALID_GOAL_PROFILES = {"internal_asset_discovery", "external_pentest"}
 
 
 def normalize_feature_flags(raw: Any) -> Dict[str, bool]:
@@ -143,35 +96,6 @@ def normalize_tool_execution_profiles(raw: Any) -> Dict[str, Dict[str, Any]]:
     return normalized
 
 
-def normalize_integrations(raw: Any) -> Dict[str, Dict[str, str]]:
-    source = raw if isinstance(raw, dict) else {}
-    integrations: Dict[str, Dict[str, str]] = {
-        str(name): dict(config) for name, config in DEFAULT_INTEGRATIONS.items() if isinstance(config, dict)
-    }
-
-    for integration_name, integration_cfg in source.items():
-        token = str(integration_name or "").strip().lower()
-        if not token:
-            continue
-        current = dict(integrations.get(token, {}))
-        if isinstance(integration_cfg, dict):
-            current.update(integration_cfg)
-        integrations[token] = current
-
-    normalized: Dict[str, Dict[str, str]] = {}
-    for integration_name, integration_cfg in integrations.items():
-        token = str(integration_name or "").strip().lower()
-        if not token:
-            continue
-        cfg = integration_cfg if isinstance(integration_cfg, dict) else {}
-        normalized[token] = {
-            "api_key": str(cfg.get("api_key", "") or "").strip(),
-            "api_key_secret_ref": str(cfg.get("api_key_secret_ref", "") or "").strip(),
-            "api_key_env_var": str(cfg.get("api_key_env_var", "") or "").strip(),
-        }
-    return normalized
-
-
 def normalize_device_categories(raw: Any) -> List[Dict[str, Any]]:
     return normalize_custom_device_category_rules(raw)
 
@@ -179,41 +103,14 @@ def normalize_device_categories(raw: Any) -> List[Dict[str, Any]]:
 DEFAULT_SCHEDULER_CONFIG = {
     "mode": "deterministic",
     "goal_profile": "internal_asset_discovery",
-    "engagement_policy": normalize_engagement_policy(
-        {"preset": "internal_recon"},
-        fallback_goal_profile="internal_asset_discovery",
-    ).to_dict(),
-    "provider": "none",
+    "engagement_policy": normalize_engagement_policy({"preset": "internal_recon"}).to_dict(),
     "max_concurrency": 1,
     "max_host_concurrency": 1,
     "max_jobs": 200,
-    "providers": {
-        "lm_studio": {
-            "enabled": False,
-            "base_url": "http://127.0.0.1:1234/v1",
-            "model": "",
-            "api_key": "",
-        },
-        "openai": {
-            "enabled": False,
-            "base_url": "https://api.openai.com/v1",
-            "model": "gpt-4.1-mini",
-            "api_key": "",
-            "structured_outputs": False,
-        },
-        "claude": {
-            "enabled": False,
-            "base_url": "https://api.anthropic.com",
-            "model": "",
-            "api_key": "",
-        },
-    },
-    "integrations": normalize_integrations(DEFAULT_INTEGRATIONS),
-    "device_categories": normalize_device_categories(DEFAULT_DEVICE_CATEGORIES),
-    "cloud_notice": ("Cloud AI mode may send host/service metadata to third-party providers."),
+    "device_categories": [],
     "feature_flags": normalize_feature_flags({}),
-    "disabled_tool_ids": normalize_disabled_tool_ids(DEFAULT_DISABLED_TOOL_IDS),
-    "tool_execution_profiles": normalize_tool_execution_profiles(DEFAULT_TOOL_EXECUTION_PROFILES),
+    "disabled_tool_ids": [],
+    "tool_execution_profiles": normalize_tool_execution_profiles({}),
     "dangerous_categories": [
         "exploit_execution",
         "credential_bruteforce",
@@ -221,307 +118,48 @@ DEFAULT_SCHEDULER_CONFIG = {
         "destructive_write_actions",
     ],
     "preapproved_command_families": [],
-    "ai_feedback": {
-        "enabled": True,
-        "max_rounds_per_target": 5,
-        "max_actions_per_round": 6,
-        "recent_output_chars": 900,
-        "reflection_enabled": True,
-        "stall_rounds_without_progress": 2,
-        "stall_repeat_selection_threshold": 2,
-        "max_reflections_per_target": 1,
-    },
-    "runners": normalize_runner_settings({}),
-    "project_report_delivery": {
-        "provider_name": "",
-        "endpoint": "",
-        "method": "POST",
-        "format": "json",
-        "headers": {},
-        "timeout_seconds": 30,
-        "mtls": {
-            "enabled": False,
-            "client_cert_path": "",
-            "client_key_path": "",
-            "ca_cert_path": "",
-        },
-    },
 }
 
-VALID_MODES = {"deterministic", "ai"}
-VALID_GOAL_PROFILES = {"internal_asset_discovery", "external_pentest"}
 
-
-def get_default_scheduler_config_path() -> str:
+def get_default_scheduler_config_path():
     ensure_legion_home()
-    return get_scheduler_config_path("scheduler-ai.json")
+    return get_scheduler_config_path("scheduler.json")
 
 
 class SchedulerConfigManager:
-    def __init__(self, config_path: str = None, secret_store: SecretStore = None):
+    def __init__(self, config_path=None):
         self.config_path = config_path or get_default_scheduler_config_path()
-        self.secret_store = secret_store or SecretStore()
         self._cache = None
-        self._legacy_plaintext_secret_refs: Set[str] = set()
-        self._legacy_plaintext_secret_values: Dict[str, str] = {}
-        self._pending_secret_migration = False
 
-    def load(self) -> Dict[str, Any]:
-        if self._cache is not None:
-            return self._cache
-
-        if not os.path.exists(self.config_path):
-            self.save(dict(DEFAULT_SCHEDULER_CONFIG))
-            return self._cache
-
-        try:
-            with open(self.config_path, "r", encoding="utf-8") as handle:
-                parsed = json.load(handle)
-        except Exception:
-            parsed = dict(DEFAULT_SCHEDULER_CONFIG)
-
-        normalized = self._normalize_config(parsed)
-        hydrated = self._hydrate_config_secrets(normalized, allow_plaintext_fallback=True)
-        self._cache = hydrated
-        if self._pending_secret_migration:
-            self._write_config_file(self._sanitize_config_for_disk(hydrated))
+    def load(self):
+        if self._cache is None:
+            try:
+                with open(self.config_path, encoding="utf-8") as handle:
+                    raw = json.load(handle)
+            except (OSError, ValueError):
+                raw = {}
+            self._cache = self._normalize_config(raw if isinstance(raw, dict) else {})
         return self._cache
 
-    def save(self, config: Dict[str, Any]):
+    def save(self, config):
         normalized = self._normalize_config(config)
-        self._cache = self._hydrate_config_secrets(normalized, allow_plaintext_fallback=False)
-        self._write_config_file(self._sanitize_config_for_disk(self._cache))
+        os.makedirs(os.path.dirname(os.path.abspath(self.config_path)), exist_ok=True)
+        with open(self.config_path, "w", encoding="utf-8") as handle:
+            json.dump(normalized, handle, indent=2, sort_keys=True)
+        self._cache = normalized
 
-    def merge_preferences(self, updates: Dict[str, Any]) -> Dict[str, Any]:
-        current = self.load()
-        merged = dict(current)
+    def merge_preferences(self, updates):
+        merged = dict(self.load())
         for key, value in updates.items():
-            if key == "providers" and isinstance(value, dict):
-                providers = dict(merged.get("providers", {}))
-                for provider_name, provider_config in value.items():
-                    existing_provider = dict(providers.get(provider_name, {}))
-                    if isinstance(provider_config, dict):
-                        existing_provider.update(provider_config)
-                    providers[provider_name] = existing_provider
-                merged["providers"] = providers
-            elif key == "integrations" and isinstance(value, dict):
-                integrations = normalize_integrations(merged.get("integrations", {}))
-                for integration_name, integration_config in value.items():
-                    token = str(integration_name or "").strip().lower()
-                    if not token:
-                        continue
-                    existing_integration = dict(integrations.get(token, {}))
-                    if isinstance(integration_config, dict):
-                        existing_integration.update(integration_config)
-                    integrations[token] = existing_integration
-                merged["integrations"] = normalize_integrations(integrations)
-            elif key == "device_categories":
-                merged["device_categories"] = normalize_device_categories(value)
-            elif key == "project_report_delivery" and isinstance(value, dict):
-                delivery = dict(merged.get("project_report_delivery", {}))
-                for delivery_key, delivery_value in value.items():
-                    if delivery_key == "headers" and isinstance(delivery_value, dict):
-                        headers = dict(delivery.get("headers", {}))
-                        headers.update(delivery_value)
-                        delivery["headers"] = headers
-                    elif delivery_key == "mtls" and isinstance(delivery_value, dict):
-                        mtls = dict(delivery.get("mtls", {}))
-                        mtls.update(delivery_value)
-                        delivery["mtls"] = mtls
-                    else:
-                        delivery[delivery_key] = delivery_value
-                merged["project_report_delivery"] = delivery
-            elif key == "feature_flags" and isinstance(value, dict):
-                feature_flags = normalize_feature_flags(merged.get("feature_flags", {}))
-                for flag_name, flag_value in value.items():
-                    if flag_name not in DEFAULT_FEATURE_FLAGS:
-                        continue
-                    feature_flags[flag_name] = bool(flag_value)
-                merged["feature_flags"] = feature_flags
-            elif key == "tool_execution_profiles" and isinstance(value, dict):
-                profiles = normalize_tool_execution_profiles(merged.get("tool_execution_profiles", {}))
-                for tool_id, profile in value.items():
-                    token = str(tool_id or "").strip().lower()
-                    if not token or not isinstance(profile, dict):
-                        continue
-                    merged_profile = dict(profiles.get(token, {}))
-                    merged_profile.update(profile)
-                    profiles[token] = merged_profile
-                merged["tool_execution_profiles"] = normalize_tool_execution_profiles(profiles)
-            elif key == "engagement_policy" and isinstance(value, dict):
-                policy = dict(merged.get("engagement_policy", {}))
-                for policy_key, policy_value in value.items():
-                    if policy_key == "custom_overrides" and isinstance(policy_value, dict):
-                        overrides = dict(policy.get("custom_overrides", {}))
-                        overrides.update(policy_value)
-                        policy["custom_overrides"] = overrides
-                    else:
-                        policy[policy_key] = policy_value
-                merged["engagement_policy"] = policy
-            elif key == "runners" and isinstance(value, dict):
-                runners = normalize_runner_settings(merged.get("runners", {}))
-                for runner_name, runner_config in value.items():
-                    if not isinstance(runner_config, dict):
-                        continue
-                    merged_runner = dict(runners.get(runner_name, {}))
-                    merged_runner.update(runner_config)
-                    runners[runner_name] = merged_runner
-                merged["runners"] = runners
-            elif key == "goal_profile":
-                merged["goal_profile"] = value
-                policy = dict(merged.get("engagement_policy", {}))
-                policy["preset"] = preset_from_legacy_goal_profile(str(value or ""))
-                merged["engagement_policy"] = policy
+            if key not in DEFAULT_SCHEDULER_CONFIG:
+                continue
+            if isinstance(value, dict) and isinstance(merged.get(key), dict):
+                merged[key] = {**merged[key], **value}
             else:
                 merged[key] = value
+        if "goal_profile" in updates and "engagement_policy" not in updates:
+            merged["engagement_policy"] = {"preset": preset_from_legacy_goal_profile(str(updates["goal_profile"]))}
         return self._normalize_config(merged)
-
-    def secret_storage_status(self) -> Dict[str, Any]:
-        status = dict(self.secret_store.describe())
-        status["legacy_plaintext_secrets_present"] = bool(self._legacy_plaintext_secret_refs)
-        return status
-
-    def _write_config_file(self, config: Dict[str, Any]):
-        with open(self.config_path, "w", encoding="utf-8") as handle:
-            json.dump(config, handle, indent=2, sort_keys=True)
-
-    def _hydrate_config_secrets(
-        self,
-        config: Dict[str, Any],
-        *,
-        allow_plaintext_fallback: bool,
-    ) -> Dict[str, Any]:
-        hydrated = dict(config)
-        previous_legacy_secret_values = dict(self._legacy_plaintext_secret_values)
-        self._legacy_plaintext_secret_refs = set()
-        self._legacy_plaintext_secret_values = {}
-        self._pending_secret_migration = False
-
-        providers = {}
-        for provider_name, provider_cfg in dict(hydrated.get("providers", {}) or {}).items():
-            providers[provider_name] = self._hydrate_secret_entry(
-                provider_cfg,
-                secret_ref=str(provider_cfg.get("api_key_secret_ref", "") or _provider_secret_ref(provider_name)),
-                default_env_var=SecretStore.provider_env_var(provider_name),
-                allow_plaintext_fallback=allow_plaintext_fallback,
-                previous_legacy_secret_values=previous_legacy_secret_values,
-            )
-        hydrated["providers"] = providers
-
-        integrations = {}
-        for integration_name, integration_cfg in dict(hydrated.get("integrations", {}) or {}).items():
-            integrations[integration_name] = self._hydrate_secret_entry(
-                integration_cfg,
-                secret_ref=str(
-                    integration_cfg.get("api_key_secret_ref", "") or _integration_secret_ref(integration_name)
-                ),
-                default_env_var=SecretStore.integration_env_var(integration_name),
-                allow_plaintext_fallback=allow_plaintext_fallback,
-                previous_legacy_secret_values=previous_legacy_secret_values,
-            )
-        hydrated["integrations"] = integrations
-        return hydrated
-
-    def _hydrate_secret_entry(
-        self,
-        entry: Any,
-        *,
-        secret_ref: str,
-        default_env_var: str = "",
-        allow_plaintext_fallback: bool,
-        previous_legacy_secret_values: Dict[str, str],
-    ) -> Dict[str, Any]:
-        value = dict(entry or {}) if isinstance(entry, dict) else {}
-        resolved_secret_ref = str(value.get("api_key_secret_ref", "") or secret_ref or "").strip()
-        resolved_env_var = str(value.get("api_key_env_var", "") or default_env_var or "").strip()
-        raw_secret = str(value.get("api_key", "") or "")
-
-        if raw_secret.strip():
-            if self.secret_store.write_available():
-                try:
-                    self.secret_store.set_secret(resolved_secret_ref, raw_secret)
-                    self._pending_secret_migration = True
-                except SecretStoreError:
-                    if not allow_plaintext_fallback:
-                        raise
-                    self._legacy_plaintext_secret_refs.add(resolved_secret_ref)
-                    self._legacy_plaintext_secret_values[resolved_secret_ref] = raw_secret
-            else:
-                legacy_value = str(previous_legacy_secret_values.get(resolved_secret_ref, "") or "")
-                preserve_existing_legacy = bool(
-                    resolved_secret_ref in previous_legacy_secret_values and raw_secret == legacy_value
-                )
-                if not allow_plaintext_fallback and not preserve_existing_legacy:
-                    raise SecretStoreError(
-                        "Secure secret storage is unavailable. Configure a supported keyring backend or use environment variables."
-                    )
-                self._legacy_plaintext_secret_refs.add(resolved_secret_ref)
-                self._legacy_plaintext_secret_values[resolved_secret_ref] = raw_secret
-            value["api_key"] = raw_secret
-        else:
-            value["api_key"] = self.secret_store.get_secret(resolved_secret_ref, env_var=resolved_env_var)
-
-        if resolved_secret_ref:
-            value["api_key_secret_ref"] = resolved_secret_ref
-        if resolved_env_var:
-            value["api_key_env_var"] = resolved_env_var
-        return value
-
-    def _sanitize_config_for_disk(self, config: Dict[str, Any]) -> Dict[str, Any]:
-        sanitized = dict(config)
-
-        providers = {}
-        for provider_name, provider_cfg in dict(sanitized.get("providers", {}) or {}).items():
-            providers[provider_name] = self._sanitize_secret_entry(
-                provider_cfg,
-                secret_ref=str(provider_cfg.get("api_key_secret_ref", "") or _provider_secret_ref(provider_name)),
-                default_env_var=SecretStore.provider_env_var(provider_name),
-            )
-        sanitized["providers"] = providers
-
-        integrations = {}
-        for integration_name, integration_cfg in dict(sanitized.get("integrations", {}) or {}).items():
-            integrations[integration_name] = self._sanitize_secret_entry(
-                integration_cfg,
-                secret_ref=str(
-                    integration_cfg.get("api_key_secret_ref", "") or _integration_secret_ref(integration_name)
-                ),
-                default_env_var=SecretStore.integration_env_var(integration_name),
-            )
-        sanitized["integrations"] = integrations
-        return sanitized
-
-    def _sanitize_secret_entry(
-        self,
-        entry: Any,
-        *,
-        secret_ref: str,
-        default_env_var: str = "",
-    ) -> Dict[str, Any]:
-        value = dict(entry or {}) if isinstance(entry, dict) else {}
-        resolved_secret_ref = str(value.get("api_key_secret_ref", "") or secret_ref or "").strip()
-        resolved_env_var = str(value.get("api_key_env_var", "") or default_env_var or "").strip()
-        raw_secret = str(value.get("api_key", "") or "")
-
-        if raw_secret.strip():
-            if self.secret_store.write_available():
-                self.secret_store.set_secret(resolved_secret_ref, raw_secret)
-                self._legacy_plaintext_secret_refs.discard(resolved_secret_ref)
-                value["api_key"] = ""
-            elif resolved_secret_ref in self._legacy_plaintext_secret_refs:
-                value["api_key"] = raw_secret
-            else:
-                raise SecretStoreError(
-                    "Secure secret storage is unavailable. Configure a supported keyring backend or use environment variables."
-                )
-        else:
-            value["api_key"] = ""
-
-        if resolved_secret_ref:
-            value["api_key_secret_ref"] = resolved_secret_ref
-        if resolved_env_var:
-            value["api_key_env_var"] = resolved_env_var
-        return value
 
     def update_preferences(self, updates: Dict[str, Any]) -> Dict[str, Any]:
         normalized = self.merge_preferences(updates)
@@ -672,9 +310,6 @@ class SchedulerConfigManager:
             intent=normalized_policy.intent,
         )
 
-        provider = str(config.get("provider", "none")).strip().lower()
-        config["provider"] = provider
-
         try:
             max_concurrency = int(raw.get("max_concurrency", config.get("max_concurrency", 1)))
         except (TypeError, ValueError):
@@ -693,29 +328,10 @@ class SchedulerConfigManager:
             max_jobs = 200
         config["max_jobs"] = max(20, min(max_jobs, 2000))
 
-        providers = dict(DEFAULT_SCHEDULER_CONFIG["providers"])
-        user_providers = raw.get("providers", {}) if isinstance(raw, dict) else {}
-        if isinstance(user_providers, dict):
-            for provider_name, provider_cfg in user_providers.items():
-                existing = dict(providers.get(provider_name, {}))
-                if isinstance(provider_cfg, dict):
-                    existing.update(provider_cfg)
-                providers[provider_name] = existing
-
-        openai_provider = providers.get("openai", {})
-        if isinstance(openai_provider, dict):
-            model_value = str(openai_provider.get("model", "")).strip()
-            if not model_value:
-                openai_provider["model"] = str(DEFAULT_SCHEDULER_CONFIG["providers"]["openai"]["model"])
-            openai_provider["structured_outputs"] = bool(openai_provider.get("structured_outputs", False))
-            providers["openai"] = openai_provider
-        config["providers"] = providers
-        config["integrations"] = normalize_integrations(raw.get("integrations", config.get("integrations", {})))
         config["device_categories"] = normalize_device_categories(
             raw.get("device_categories", config.get("device_categories", []))
         )
         config["feature_flags"] = normalize_feature_flags(raw.get("feature_flags", config.get("feature_flags", {})))
-        config["runners"] = normalize_runner_settings(raw.get("runners", config.get("runners", {})))
         config["disabled_tool_ids"] = normalize_disabled_tool_ids(
             raw.get("disabled_tool_ids", config.get("disabled_tool_ids", DEFAULT_DISABLED_TOOL_IDS))
         )
@@ -757,96 +373,4 @@ class SchedulerConfigManager:
             )
         config["preapproved_command_families"] = normalized_families
 
-        feedback_defaults = dict(DEFAULT_SCHEDULER_CONFIG["ai_feedback"])
-        feedback_raw = raw.get("ai_feedback", {})
-        if isinstance(feedback_raw, dict):
-            feedback_defaults.update(feedback_raw)
-
-        feedback = {
-            "enabled": bool(feedback_defaults.get("enabled", True)),
-            "max_rounds_per_target": 4,
-            "max_actions_per_round": 2,
-            "recent_output_chars": 900,
-            "reflection_enabled": bool(feedback_defaults.get("reflection_enabled", True)),
-            "stall_rounds_without_progress": 2,
-            "stall_repeat_selection_threshold": 2,
-            "max_reflections_per_target": 1,
-        }
-        for key in (
-            "max_rounds_per_target",
-            "max_actions_per_round",
-            "recent_output_chars",
-            "stall_rounds_without_progress",
-            "stall_repeat_selection_threshold",
-            "max_reflections_per_target",
-        ):
-            try:
-                feedback[key] = int(feedback_defaults.get(key, feedback[key]))
-            except (TypeError, ValueError):
-                continue
-        feedback["max_rounds_per_target"] = max(1, min(int(feedback["max_rounds_per_target"]), 12))
-        feedback["max_actions_per_round"] = max(1, min(int(feedback["max_actions_per_round"]), 8))
-        feedback["recent_output_chars"] = max(320, min(int(feedback["recent_output_chars"]), 4000))
-        feedback["stall_rounds_without_progress"] = max(1, min(int(feedback["stall_rounds_without_progress"]), 6))
-        feedback["stall_repeat_selection_threshold"] = max(1, min(int(feedback["stall_repeat_selection_threshold"]), 8))
-        feedback["max_reflections_per_target"] = max(0, min(int(feedback["max_reflections_per_target"]), 4))
-        config["ai_feedback"] = feedback
-
-        delivery_defaults = dict(DEFAULT_SCHEDULER_CONFIG["project_report_delivery"])
-        delivery_raw = raw.get("project_report_delivery", {})
-        if isinstance(delivery_raw, dict):
-            delivery_defaults.update(delivery_raw)
-
-        delivery_method = str(delivery_defaults.get("method", "POST")).strip().upper()
-        if delivery_method not in {"POST", "PUT", "PATCH"}:
-            delivery_method = "POST"
-
-        delivery_format = str(delivery_defaults.get("format", "json")).strip().lower()
-        if delivery_format in {"markdown"}:
-            delivery_format = "md"
-        if delivery_format not in {"json", "md"}:
-            delivery_format = "json"
-
-        headers_raw = delivery_defaults.get("headers", {})
-        if isinstance(headers_raw, str):
-            try:
-                parsed_headers = json.loads(headers_raw)
-            except Exception:
-                parsed_headers = {}
-            headers_raw = parsed_headers
-        if not isinstance(headers_raw, dict):
-            headers_raw = {}
-        delivery_headers = {}
-        for header_name, header_value in headers_raw.items():
-            label = str(header_name or "").strip()
-            if not label:
-                continue
-            delivery_headers[label] = str(header_value or "")
-
-        try:
-            timeout_seconds = int(delivery_defaults.get("timeout_seconds", 30))
-        except (TypeError, ValueError):
-            timeout_seconds = 30
-        timeout_seconds = max(5, min(timeout_seconds, 300))
-
-        mtls_defaults = dict(DEFAULT_SCHEDULER_CONFIG["project_report_delivery"]["mtls"])
-        mtls_raw = delivery_defaults.get("mtls", {})
-        if isinstance(mtls_raw, dict):
-            mtls_defaults.update(mtls_raw)
-        delivery_mtls = {
-            "enabled": bool(mtls_defaults.get("enabled", False)),
-            "client_cert_path": str(mtls_defaults.get("client_cert_path", "") or ""),
-            "client_key_path": str(mtls_defaults.get("client_key_path", "") or ""),
-            "ca_cert_path": str(mtls_defaults.get("ca_cert_path", "") or ""),
-        }
-
-        config["project_report_delivery"] = {
-            "provider_name": str(delivery_defaults.get("provider_name", "") or ""),
-            "endpoint": str(delivery_defaults.get("endpoint", "") or ""),
-            "method": delivery_method,
-            "format": delivery_format,
-            "headers": delivery_headers,
-            "timeout_seconds": int(timeout_seconds),
-            "mtls": delivery_mtls,
-        }
         return config

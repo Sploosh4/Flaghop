@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy import text
 
-from app.scheduler.insights import ensure_scheduler_ai_state_table, get_host_ai_state
 from app.scheduler.planner import SchedulerPlanner
 from app.scheduler.state import (
     build_artifact_entries,
@@ -17,7 +16,6 @@ from app.scheduler.state import (
     load_observed_service_inventory,
     upsert_target_state,
 )
-from app.screenshot_metadata import build_screenshot_state_row, load_screenshot_metadata
 
 
 def coverage_gaps_from_summary(coverage: Any) -> List[Dict[str, Any]]:
@@ -300,7 +298,6 @@ def persist_shared_target_state(
     coverage: Optional[Dict[str, Any]] = None,
     attempted_action: Optional[Dict[str, Any]] = None,
     artifact_refs: Optional[List[str]] = None,
-    screenshots: Optional[List[Dict[str, Any]]] = None,
     raw: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     if int(host_id or 0) <= 0:
@@ -334,32 +331,6 @@ def persist_shared_target_state(
             port=str(port or ""),
             protocol=str(protocol or "tcp"),
         )
-        screenshot_rows = []
-        for item in list(screenshots or []):
-            if not isinstance(item, dict):
-                continue
-            row = build_screenshot_state_row(
-                artifact_ref=str(item.get("artifact_ref", "") or item.get("url", "") or "").strip(),
-                metadata=item,
-                port=str(item.get("port", "") or port or "").strip(),
-                protocol=str(item.get("protocol", "") or protocol or "tcp").strip().lower(),
-            )
-            if row:
-                screenshot_rows.append(row)
-        for artifact in artifact_entries:
-            if str(artifact.get("kind", "") or "").strip().lower() != "screenshot":
-                continue
-            artifact_ref = str(artifact.get("ref", "") or "").strip()
-            row = build_screenshot_state_row(
-                screenshot_path=artifact_ref,
-                artifact_ref=artifact_ref,
-                metadata=load_screenshot_metadata(artifact_ref),
-                port=str(port or artifact.get("port", "") or "").strip(),
-                protocol=str(protocol or artifact.get("protocol", "tcp") or "tcp").strip().lower(),
-            )
-            if row:
-                screenshot_rows.append(row)
-
         payload = {
             "host_ip": resolved_host_ip,
             "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -381,7 +352,6 @@ def persist_shared_target_state(
             "urls": resolved_urls,
             "coverage_gaps": coverage_gaps,
             "attempted_actions": attempted_actions,
-            "screenshots": screenshot_rows,
             "artifacts": [{"artifact_ref": row.get("ref", ""), **row} for row in artifact_entries],
             "raw": raw if isinstance(raw, dict) else {},
         }
@@ -394,61 +364,18 @@ def persist_shared_target_state(
         return upsert_target_state(project.database, int(host_id), payload, merge=True)
 
 
-def load_host_ai_analysis(runtime, project, host_id: int, host_ip: str) -> Dict[str, Any]:
-    ensure_scheduler_ai_state_table(project.database)
-    row = get_host_ai_state(project.database, int(host_id)) or {}
-    raw = row.get("raw", {}) if isinstance(row.get("raw", {}), dict) else {}
-    stored_technologies = row.get("technologies", [])
-    stored_findings = row.get("findings", [])
-    manual_tests = row.get("manual_tests", [])
-    reflection = raw.get("reflection", {}) if isinstance(raw.get("reflection", {}), dict) else {}
-    if not isinstance(stored_technologies, list):
-        stored_technologies = []
-    if not isinstance(stored_findings, list):
-        stored_findings = []
-    if not isinstance(manual_tests, list):
-        manual_tests = []
-    host_cves_raw = runtime._load_cves_for_host(project, int(host_id or 0))
-    inferred_technologies = runtime._infer_host_technologies(project, int(host_id), str(host_ip or ""))
-    inferred_findings = runtime._infer_host_findings(
-        project,
-        host_id=int(host_id),
-        host_ip=str(host_ip or ""),
-        host_cves_raw=host_cves_raw,
-    )
-    technologies = runtime._merge_technologies(
-        existing=inferred_technologies,
-        incoming=runtime._normalize_ai_technologies(stored_technologies),
-        limit=240,
-    )
-    findings = runtime._merge_ai_items(
-        existing=inferred_findings,
-        incoming=runtime._normalize_ai_findings(stored_findings),
-        key_fields=["title", "cve", "severity"],
-        limit=260,
-    )
+def load_host_observations(runtime, project, host_id, host_ip):
     return {
         "host_id": int(host_id),
-        "host_ip": str(row.get("host_ip", "") or host_ip or ""),
-        "updated_at": str(row.get("updated_at", "") or ""),
-        "provider": str(row.get("provider", "") or ""),
-        "goal_profile": str(row.get("goal_profile", "") or ""),
-        "last_target": {
-            "port": str(row.get("last_port", "") or ""),
-            "protocol": str(row.get("last_protocol", "") or ""),
-            "service": str(row.get("last_service", "") or ""),
-        },
-        "host_updates": {
-            "hostname": str(row.get("hostname", "") or ""),
-            "hostname_confidence": runtime._ai_confidence_value(row.get("hostname_confidence", 0.0)),
-            "os": str(row.get("os_match", "") or ""),
-            "os_confidence": runtime._ai_confidence_value(row.get("os_confidence", 0.0)),
-        },
-        "next_phase": str(row.get("next_phase", "") or ""),
-        "technologies": technologies,
-        "findings": findings,
-        "manual_tests": manual_tests,
-        "reflection": reflection,
+        "host_ip": str(host_ip),
+        "technologies": runtime._infer_host_technologies(project, int(host_id), str(host_ip)),
+        "findings": runtime._infer_host_findings(
+            project,
+            host_id=int(host_id),
+            host_ip=str(host_ip),
+            host_cves_raw=runtime._load_cves_for_host(project, int(host_id)),
+        ),
+        "manual_tests": [],
     }
 
 

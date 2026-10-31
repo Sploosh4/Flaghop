@@ -7,8 +7,6 @@ export function connectDialogs(callbacks) {
     }
     ({ openManualToolPicker, pollSnapshot } = callbacks);
 }
-
-import { loadProviderLogsAction } from "./activity.js";
 import { renderDeviceCategorySettingsModal, setDeviceCategorySettingsStatus } from "./device_categories.js";
 import { setText, setValue, updateBodyModalState } from "./dom.js";
 import { setHostServiceFilterPopoverOpen } from "./host_filters.js";
@@ -34,78 +32,6 @@ export function setManualScanModalOpen(open) {
         return;
     }
     uiModalState.manualScanOpen = Boolean(open);
-    overlay.classList.toggle("is-open", Boolean(open));
-    overlay.setAttribute("aria-hidden", open ? "false" : "true");
-    updateBodyModalState();
-}
-
-
-export function setHostSelectionModalOpen(open) {
-    const overlay = document.getElementById("host-selection-modal");
-    if (!overlay) {
-        return;
-    }
-    uiModalState.hostSelectionOpen = Boolean(open);
-    overlay.classList.toggle("is-open", Boolean(open));
-    overlay.setAttribute("aria-hidden", open ? "false" : "true");
-    updateBodyModalState();
-}
-
-
-export function setScriptCveModalOpen(open) {
-    const overlay = document.getElementById("script-cve-modal");
-    if (!overlay) {
-        return;
-    }
-    uiModalState.scriptCveOpen = Boolean(open);
-    overlay.classList.toggle("is-open", Boolean(open));
-    overlay.setAttribute("aria-hidden", open ? "false" : "true");
-    updateBodyModalState();
-}
-
-
-export function setProviderLogsModalOpen(open) {
-    const overlay = document.getElementById("provider-logs-modal");
-    if (!overlay) {
-        return;
-    }
-    uiModalState.providerLogsOpen = Boolean(open);
-    overlay.classList.toggle("is-open", Boolean(open));
-    overlay.setAttribute("aria-hidden", open ? "false" : "true");
-    updateBodyModalState();
-}
-
-
-export function setJobsModalOpen(open) {
-    const overlay = document.getElementById("jobs-modal");
-    if (!overlay) {
-        return;
-    }
-    uiModalState.jobsOpen = Boolean(open);
-    overlay.classList.toggle("is-open", Boolean(open));
-    overlay.setAttribute("aria-hidden", open ? "false" : "true");
-    updateBodyModalState();
-}
-
-
-export function setSubmittedScansModalOpen(open) {
-    const overlay = document.getElementById("submitted-scans-modal");
-    if (!overlay) {
-        return;
-    }
-    uiModalState.submittedScansOpen = Boolean(open);
-    overlay.classList.toggle("is-open", Boolean(open));
-    overlay.setAttribute("aria-hidden", open ? "false" : "true");
-    updateBodyModalState();
-}
-
-
-export function setSchedulerDecisionsModalOpen(open) {
-    const overlay = document.getElementById("scheduler-decisions-modal");
-    if (!overlay) {
-        return;
-    }
-    uiModalState.schedulerDecisionsOpen = Boolean(open);
     overlay.classList.toggle("is-open", Boolean(open));
     overlay.setAttribute("aria-hidden", open ? "false" : "true");
     updateBodyModalState();
@@ -171,36 +97,6 @@ export function dismissManualScanModalAction() {
 }
 
 
-export function closeHostSelectionModalAction() {
-    setHostSelectionModalOpen(false);
-}
-
-
-export function closeScriptCveModalAction() {
-    setScriptCveModalOpen(false);
-}
-
-
-export function closeProviderLogsModalAction() {
-    setProviderLogsModalOpen(false);
-}
-
-
-export function closeJobsModalAction() {
-    setJobsModalOpen(false);
-}
-
-
-export function closeSubmittedScansModalAction() {
-    setSubmittedScansModalOpen(false);
-}
-
-
-export function closeSchedulerDecisionsModalAction() {
-    setSchedulerDecisionsModalOpen(false);
-}
-
-
 export function closeHostRemoveModalAction(clearSelection = true) {
     setHostRemoveModalOpen(false);
     if (clearSelection) {
@@ -229,46 +125,6 @@ export function openAddScanAction() {
 
 export function openManualScanAction() {
     openManualToolPicker({});
-}
-
-
-export function openHostSelectionAction() {
-    closeRibbonMenus();
-    setHostSelectionModalOpen(true);
-}
-
-
-export function openScriptCveAction() {
-    closeRibbonMenus();
-    setScriptCveModalOpen(true);
-}
-
-
-export async function openProviderLogsAction() {
-    closeRibbonMenus();
-    setProviderLogsModalOpen(true);
-    await loadProviderLogsAction();
-}
-
-
-export async function openJobsAction() {
-    closeRibbonMenus();
-    setJobsModalOpen(true);
-    await pollSnapshot();
-}
-
-
-export async function openSubmittedScansAction() {
-    closeRibbonMenus();
-    setSubmittedScansModalOpen(true);
-    await pollSnapshot();
-}
-
-
-export async function openSchedulerDecisionsAction() {
-    closeRibbonMenus();
-    setSchedulerDecisionsModalOpen(true);
-    await pollSnapshot();
 }
 
 
@@ -307,18 +163,6 @@ export function setDeviceCategorySettingsModalOpen(open) {
         return;
     }
     uiModalState.deviceCategorySettingsOpen = Boolean(open);
-    overlay.classList.toggle("is-open", Boolean(open));
-    overlay.setAttribute("aria-hidden", open ? "false" : "true");
-    updateBodyModalState();
-}
-
-
-export function setReportProviderModalOpen(open) {
-    const overlay = document.getElementById("report-provider-modal");
-    if (!overlay) {
-        return;
-    }
-    uiModalState.reportProviderOpen = Boolean(open);
     overlay.classList.toggle("is-open", Boolean(open));
     overlay.setAttribute("aria-hidden", open ? "false" : "true");
     updateBodyModalState();
@@ -391,15 +235,4 @@ export function openDeviceCategorySettingsAction() {
 
 export function closeDeviceCategorySettingsAction() {
     setDeviceCategorySettingsModalOpen(false);
-}
-
-
-export function openReportProviderAction() {
-    closeRibbonMenus();
-    setReportProviderModalOpen(true);
-}
-
-
-export function closeReportProviderModalAction() {
-    setReportProviderModalOpen(false);
 }

@@ -40,7 +40,6 @@ export function loadWorkspaceOverview() { return requestActivity("loadOverview")
 export function loadProcesses() { return requestActivity("loadProcesses"); }
 export function loadDecisionHistory() { return requestActivity("loadDecisions"); }
 export function loadScanHistory() { return requestActivity("loadScans"); }
-export function loadProviderLogsAction() { return requestActivity("loadProviderLogs"); }
 export async function loadJobs() {
     const body = await fetchJson("/api/jobs?limit=20");
     renderJobs(body.jobs || []);

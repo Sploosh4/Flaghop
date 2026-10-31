@@ -12,19 +12,6 @@ def _scan_service() -> ScanService:
     return ScanService(runtime_from_app())
 
 
-@scans_bp.post("/api/targets/import-file")
-def import_targets():
-    service = _scan_service()
-    try:
-        return jsonify(service.import_targets(request.get_json(silent=True) or {})), 202
-    except FileNotFoundError as exc:
-        return json_error(str(exc), 404)
-    except ValueError as exc:
-        return json_error(str(exc), 400)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-
-
 @scans_bp.post("/api/nmap/import-xml")
 def import_nmap_xml():
     service = _scan_service()

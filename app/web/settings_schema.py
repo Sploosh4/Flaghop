@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, List
 
 from app.web.http_utils import as_bool
+from app.tooling import resolve_tool_install_platform
 
 
 def _split_query_tokens(value: Any) -> List[str]:
@@ -29,7 +30,7 @@ class ToolAuditPlanQuery:
     @classmethod
     def from_args(cls, args: Any) -> "ToolAuditPlanQuery":
         return cls(
-            platform=str(args.get("platform", "kali") or "kali"),
+            platform=resolve_tool_install_platform(args.get("platform", "")),
             scope=str(args.get("scope", "missing") or "missing"),
             tool_keys=_split_query_tokens(args.get("tool_keys", "")),
         )
@@ -50,7 +51,7 @@ class ToolAuditInstallRequest:
         if not isinstance(tool_keys, list):
             raise ValueError("Field 'tool_keys' must be an array when provided.")
         return cls(
-            platform=str(source.get("platform", "kali") or "kali"),
+            platform=resolve_tool_install_platform(source.get("platform", "")),
             scope=str(source.get("scope", "missing") or "missing"),
             tool_keys=[str(item or "").strip() for item in tool_keys if str(item or "").strip()],
         )

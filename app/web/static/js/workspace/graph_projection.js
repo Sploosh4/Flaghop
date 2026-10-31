@@ -93,9 +93,6 @@ export function graphLargeClusterCollapseThreshold(nodeType, totalNodes) {
     if (type === "host" || type === "fqdn") {
         return totalNodes >= 5000 ? 3 : 5;
     }
-    if (type === "service" || type === "port" || type === "url" || type === "screenshot") {
-        return totalNodes >= 5000 ? 2 : 4;
-    }
     if (type === "technology" || type === "cpe") {
         return totalNodes >= 5000 ? 2 : 3;
     }
@@ -147,12 +144,6 @@ export function graphLargeClusterDescriptor(node, hostMaps) {
             bucket: String(label || graphPropertyValue(node, "name") || type).trim().toLowerCase() || type,
         };
     }
-    if (type === "screenshot" || type === "artifact" || type === "action" || type === "evidence_record") {
-        return {
-            type,
-            bucket: hostname || hostMaps.hostLabelById.get(hostId) || graphSubnetForIp(ip) || type,
-        };
-    }
     if (type === "finding" || type === "cve" || type === "exploit_reference") {
         return {
             type,
@@ -183,9 +174,6 @@ export function graphLargeClusterLabel(type, bucket, memberNodes) {
     }
     if (type === "url") {
         return `${cleanedBucket} ${count} url${plural}`;
-    }
-    if (type === "screenshot") {
-        return `${cleanedBucket} ${count} screenshot${plural}`;
     }
     return `${cleanedBucket} ${count}`;
 }

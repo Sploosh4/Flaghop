@@ -48,7 +48,7 @@ def get_scheduler_plan_preview(
     service: str = "",
     port: str = "",
     protocol: str = "tcp",
-    mode: str = "compare",
+    mode: str = "deterministic",
     limit_targets: int = 20,
     limit_actions: int = 6,
 ) -> Dict[str, Any]:
@@ -69,9 +69,7 @@ def get_scheduler_plan_preview(
             allowed_states={"open", "open|filtered"},
         )
 
-    requested_mode = str(mode or "compare").strip().lower() or "compare"
-    if requested_mode not in {"current", "deterministic", "ai", "compare"}:
-        requested_mode = "compare"
+    requested_mode = "deterministic"
     resolved_host_ip = str(host_ip or "").strip()
     resolved_service = str(service or "").strip().lower()
     resolved_port = str(port or "").strip()
@@ -79,10 +77,7 @@ def get_scheduler_plan_preview(
     max_targets = max(1, min(int(limit_targets or 20), 200))
     max_actions = max(1, min(int(limit_actions or 6), 32))
     current_mode = str(scheduler_prefs.get("mode", "deterministic") or "deterministic").strip().lower()
-    recent_output_chars = int(
-        runtime.scheduler_orchestrator._scheduler_feedback_config(scheduler_prefs).get("recent_output_chars", 900)
-        or 900
-    )
+    recent_output_chars = 900
 
     filtered_targets: List[Any] = []
     for target in list(targets or []):
@@ -135,14 +130,9 @@ def get_scheduler_plan_preview(
                 mode_override=selected_mode,
             )
             serialized = [runtime._serialize_plan_step_preview(step) for step in list(steps or [])]
-            fallback_used = bool(
-                selected_mode == "ai"
-                and serialized
-                and not any(str(item.get("origin_mode", "") or "").strip().lower() == "ai" for item in serialized)
-            )
             return {
                 "requested_mode": str(selected_mode or ""),
-                "fallback_used": fallback_used,
+                "fallback_used": False,
                 "steps": serialized,
             }
 
@@ -158,38 +148,9 @@ def get_scheduler_plan_preview(
             "attempted_tool_ids": list(attempted_tool_ids),
             "attempted_family_ids": sorted(attempted_summary["family_ids"]),
         }
-        if requested_mode == "compare":
-            deterministic_preview = _preview_for_mode("deterministic")
-            ai_preview = _preview_for_mode("ai")
-            deterministic_tool_ids = {
-                str(item.get("tool_id", "") or "").strip().lower()
-                for item in list(deterministic_preview.get("steps", []) or [])
-                if str(item.get("tool_id", "") or "").strip()
-            }
-            ai_tool_ids = {
-                str(item.get("tool_id", "") or "").strip().lower()
-                for item in list(ai_preview.get("steps", []) or [])
-                if str(item.get("tool_id", "") or "").strip()
-            }
-            preview.update(
-                {
-                    "mode": "compare",
-                    "deterministic": deterministic_preview,
-                    "ai": ai_preview,
-                    "agreement": sorted(deterministic_tool_ids & ai_tool_ids),
-                    "deterministic_only": sorted(deterministic_tool_ids - ai_tool_ids),
-                    "ai_only": sorted(ai_tool_ids - deterministic_tool_ids),
-                }
-            )
-        else:
-            selected_mode = current_mode if requested_mode == "current" else requested_mode
-            preview.update(
-                {
-                    "mode": requested_mode,
-                    "selected_mode": selected_mode,
-                    "plan": _preview_for_mode(selected_mode),
-                }
-            )
+        preview.update(
+            {"mode": "deterministic", "selected_mode": "deterministic", "plan": _preview_for_mode("deterministic")}
+        )
         previews.append(preview)
 
     return {

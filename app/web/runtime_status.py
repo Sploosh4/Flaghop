@@ -29,7 +29,6 @@ def get_snapshot(runtime) -> Dict[str, Any]:
                 "has_more": bool(tools_page.get("has_more", False)),
                 "next_offset": tools_page.get("next_offset"),
             },
-            "credential_capture": runtime._credential_capture_state_locked(include_captures=False),
             "scheduler": runtime._scheduler_preferences(),
             "scheduler_decisions": runtime.get_scheduler_decisions(limit=80),
             "scheduler_rationale_feed": runtime._scheduler_rationale_feed_locked(limit=12),

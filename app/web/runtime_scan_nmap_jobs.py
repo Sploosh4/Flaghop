@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, Optional
 
-from app.screenshot_targets import choose_preferred_command_host
+from app.command_targets import choose_preferred_command_host
 
 
 def start_subnet_rescan_job(runtime, subnet: str) -> Dict[str, Any]:

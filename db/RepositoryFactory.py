@@ -25,7 +25,6 @@ from db.repositories.PortRepository import PortRepository
 from db.repositories.ProcessRepository import ProcessRepository
 from db.repositories.ScriptRepository import ScriptRepository
 from db.repositories.ServiceRepository import ServiceRepository
-from db.repositories.CredentialRepository import CredentialRepository
 
 
 class RepositoryFactory:
@@ -40,7 +39,6 @@ class RepositoryFactory:
         cveRepository: CVERepository = CVERepository(database)
         noteRepository: NoteRepository = NoteRepository(database, self.logger)
         scriptRepository: ScriptRepository = ScriptRepository(database)
-        credentialRepository: CredentialRepository = CredentialRepository(database)
         return RepositoryContainer(
             serviceRepository,
             processRepository,
@@ -49,5 +47,4 @@ class RepositoryFactory:
             cveRepository,
             noteRepository,
             scriptRepository,
-            credentialRepository,
         )

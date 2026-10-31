@@ -38,11 +38,10 @@ from app.configuration.action_catalog import ActionCatalog
 from app.configuration.migrations import Migrations
 from app.configuration.command_normalization import CommandNormalization
 from app.configuration.nmap_commands import NmapCommands
-from app.configuration.web_commands import WebCommands
 from app.configuration.network_commands import NetworkCommands
 
 
-class AppSettings(ActionCatalog, Migrations, CommandNormalization, NmapCommands, WebCommands, NetworkCommands):
+class AppSettings(ActionCatalog, Migrations, CommandNormalization, NmapCommands, NetworkCommands):
 
     def __init__(self):
         ensure_legion_home()
@@ -96,7 +95,7 @@ class AppSettings(ActionCatalog, Migrations, CommandNormalization, NmapCommands,
         sortArray = []
         keys = self.actions.childKeys()
         for k in keys:
-            if str(k or "").strip().lower() in self.DISABLED_PORT_ACTION_IDS:
+            if str(k or "").strip().lower() not in self.SUPPORTED_PORT_ACTION_IDS:
                 continue
             value = self.actions.value(k)
             label = value[0]
@@ -131,7 +130,7 @@ class AppSettings(ActionCatalog, Migrations, CommandNormalization, NmapCommands,
         self.actions.beginGroup("SchedulerSettings")
         keys = self.actions.childKeys()
         for k in keys:
-            if str(k or "").strip().lower() in self.DISABLED_PORT_ACTION_IDS:
+            if str(k or "").strip().lower() not in self.SUPPORTED_PORT_ACTION_IDS:
                 continue
             settings.append([str(k), self.actions.value(k)[0], self.actions.value(k)[1]])
         self.actions.endGroup()
@@ -165,8 +164,6 @@ class AppSettings(ActionCatalog, Migrations, CommandNormalization, NmapCommands,
         self.actions.setValue("default-terminal", newSettings.general_default_terminal)
         self.actions.setValue("tool-output-black-background", newSettings.general_tool_output_black_background)
         self.actions.setValue("colorful-ascii-background", newSettings.general_colorful_ascii_background)
-        self.actions.setValue("screenshooter-timeout", newSettings.general_screenshooter_timeout)
-        self.actions.setValue("web-services", newSettings.general_web_services)
         self.actions.setValue("enable-scheduler", newSettings.general_enable_scheduler)
         self.actions.setValue("enable-scheduler-on-import", newSettings.general_enable_scheduler_on_import)
         self.actions.setValue("max-fast-processes", newSettings.general_max_fast_processes)
@@ -189,9 +186,6 @@ class AppSettings(ActionCatalog, Migrations, CommandNormalization, NmapCommands,
         self.actions.setValue("nmap-path", newSettings.tools_path_nmap)
         self.actions.setValue("hydra-path", newSettings.tools_path_hydra)
         self.actions.setValue("texteditor-path", newSettings.tools_path_texteditor)
-        self.actions.setValue("pyshodan-api-key", newSettings.tools_pyshodan_api_key)
-        self.actions.setValue("responder-path", newSettings.tools_path_responder)
-        self.actions.setValue("ntlmrelay-path", newSettings.tools_path_ntlmrelay)
         self.actions.endGroup()
 
         self.actions.beginGroup("StagedNmapSettings")
@@ -240,8 +234,6 @@ class Settings:
         self.general_default_terminal = "gnome-terminal"
         self.general_tool_output_black_background = "False"
         self.general_colorful_ascii_background = "False"
-        self.general_screenshooter_timeout = "15000"
-        self.general_web_services = "http,https,ssl,soap,http-proxy,http-alt,https-alt"
         self.general_enable_scheduler = "True"
         self.general_enable_scheduler_on_import = "False"
         self.general_max_fast_processes = "10"
@@ -281,11 +273,6 @@ class Settings:
         self.tools_path_nmap = "/sbin/nmap"
         self.tools_path_hydra = "/usr/bin/hydra"
         self.tools_path_texteditor = "/usr/bin/xdg-open"
-        self.tools_pyshodan_api_key = ""
-        self.tools_path_responder = "/usr/bin/responder"
-        self.tools_path_ntlmrelay = "/usr/bin/ntlmrelayx.py"
-        self.tools_path_responder = "responder"
-        self.tools_path_ntlmrelay = "ntlmrelayx.py"
 
         # GUI settings
         self.gui_process_tab_column_widths = "125,0,100,150,100,100,100,100,100,100,100,100,100,100,100,100,100"
@@ -322,14 +309,6 @@ class Settings:
                 self.general_colorful_ascii_background = self.generalSettings.get(
                     "colorful-ascii-background",
                     self.general_colorful_ascii_background,
-                )
-                self.general_screenshooter_timeout = self.generalSettings.get(
-                    "screenshooter-timeout",
-                    self.general_screenshooter_timeout,
-                )
-                self.general_web_services = self.generalSettings.get(
-                    "web-services",
-                    self.general_web_services,
                 )
                 self.general_enable_scheduler = self.generalSettings.get(
                     "enable-scheduler",
@@ -423,14 +402,6 @@ class Settings:
                     "texteditor-path",
                     self.tools_path_texteditor,
                 )
-                self.tools_pyshodan_api_key = self.toolSettings.get(
-                    "pyshodan-api-key",
-                    self.tools_pyshodan_api_key,
-                )
-                self.tools_path_responder = self.toolSettings.get("responder-path", self.tools_path_responder)
-                self.tools_path_ntlmrelay = self.toolSettings.get("ntlmrelay-path", self.tools_path_ntlmrelay)
-                self.tools_path_responder = self.toolSettings.get("responder-path", self.tools_path_responder)
-                self.tools_path_ntlmrelay = self.toolSettings.get("ntlmrelay-path", self.tools_path_ntlmrelay)
 
                 # gui
                 self.gui_process_tab_column_widths = self.guiSettings.get(

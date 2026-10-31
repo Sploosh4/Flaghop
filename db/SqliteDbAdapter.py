@@ -34,7 +34,6 @@ from db.entities.port import portObj
 from db.entities.service import serviceObj
 from db.entities.nmapSession import nmapSessionObj
 from db.entities.l1script import l1ScriptObj
-from db.entities.credentialCapture import credentialCapture
 
 # Add any other entity classes as needed
 

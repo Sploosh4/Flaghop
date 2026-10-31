@@ -305,68 +305,6 @@ class WebWorkspaceRoutesTest(unittest.TestCase):
         self.assertEqual(200, findings.status_code)
         self.assertEqual("SMB signing not required", findings.json["findings"][0]["title"])
 
-        screenshot = self.client.get(f"/api/screenshots/{self.screenshot_path.name}")
-        self.assertEqual(200, screenshot.status_code)
-        self.assertEqual(b"fake-image-bytes", screenshot.data)
-        screenshot.close()
-
-        state = self.client.get("/api/workspace/credential-capture")
-        self.assertEqual(200, state.status_code)
-        self.assertEqual(1, state.json["capture_count"])
-        self.assertEqual("no-store, max-age=0, must-revalidate", state.headers.get("Cache-Control"))
-
-        saved = self.client.post(
-            "/api/workspace/credential-capture/config",
-            json={"responder": {"mode": "passive"}},
-        )
-        self.assertEqual(200, saved.status_code)
-        self.assertEqual("passive", saved.json["responder"]["config"]["mode"])
-
-        started = self.client.post("/api/workspace/credential-capture/start", json={"tool": "responder"})
-        self.assertEqual(202, started.status_code)
-        self.assertEqual("credential-capture-session", started.json["job"]["type"])
-
-        stopped = self.client.post("/api/workspace/credential-capture/stop", json={"tool": "responder"})
-        self.assertEqual(200, stopped.status_code)
-        self.assertTrue(stopped.json["stopped"])
-
-        listing = self.client.get("/api/workspace/credentials?limit=2")
-        self.assertEqual(200, listing.status_code)
-        self.assertEqual(1, listing.json["unique_hash_count"])
-
-        hashes = self.client.get("/api/workspace/credentials/download?format=txt")
-        self.assertEqual(200, hashes.status_code)
-        self.assertIn("attachment; filename=credential-hashes.txt", hashes.headers.get("Content-Disposition", ""))
-        self.assertIn("alice::CORP:", hashes.get_data(as_text=True))
-
-        payload = self.client.get("/api/workspace/credentials/download?format=json")
-        self.assertEqual(200, payload.status_code)
-        self.assertIn("attachment; filename=credentials.json", payload.headers.get("Content-Disposition", ""))
-        self.assertEqual(1, payload.get_json()["capture_count"])
-
-        log_response = self.client.get("/api/workspace/credential-capture/log?tool=responder")
-        self.assertEqual(200, log_response.status_code)
-        self.assertIn("attachment; filename=responder-log.txt", log_response.headers.get("Content-Disposition", ""))
-        self.assertIn("responder log line 1", log_response.get_data(as_text=True))
-
-        host_screenshots = self.client.post("/api/workspace/hosts/11/refresh-screenshots", json={})
-        self.assertEqual(202, host_screenshots.status_code)
-        self.assertEqual(401, host_screenshots.json["job"]["id"])
-
-        graph_screenshot_refresh = self.client.post(
-            "/api/workspace/screenshots/refresh",
-            json={"host_id": 11, "port": "443", "protocol": "tcp"},
-        )
-        self.assertEqual(202, graph_screenshot_refresh.status_code)
-        self.assertEqual(402, graph_screenshot_refresh.json["job"]["id"])
-
-        graph_screenshot_delete = self.client.post(
-            "/api/workspace/screenshots/delete",
-            json={"host_id": 11, "artifact_ref": "/api/screenshots/demo.png", "filename": "demo.png", "port": "443"},
-        )
-        self.assertEqual(200, graph_screenshot_delete.status_code)
-        self.assertTrue(graph_screenshot_delete.json["deleted"])
-
         port_delete = self.client.post(
             "/api/workspace/ports/delete",
             json={"host_id": 11, "port": "445", "protocol": "tcp"},
@@ -381,35 +319,9 @@ class WebWorkspaceRoutesTest(unittest.TestCase):
         self.assertEqual(200, service_delete.status_code)
         self.assertEqual("service", service_delete.json["kind"])
 
-        note = self.client.post("/api/workspace/hosts/11/note", json={"text": "updated"})
-        self.assertEqual(200, note.status_code)
-        self.assertEqual("updated", note.json["note"])
-
-        categories = self.client.post(
-            "/api/workspace/hosts/11/categories",
-            json={"manual_categories": ["server"], "override_auto": True},
-        )
-        self.assertEqual(200, categories.status_code)
-        self.assertTrue(categories.json["device_category_override"])
-
-        script_create = self.client.post(
-            "/api/workspace/hosts/11/scripts",
-            json={"script_id": "smb-security-mode", "port": "445", "protocol": "tcp", "output": "ok"},
-        )
-        self.assertEqual(200, script_create.status_code)
-        self.assertEqual("smb-security-mode", script_create.json["script"]["script_id"])
-
-        script_delete = self.client.delete("/api/workspace/scripts/501")
-        self.assertEqual(200, script_delete.status_code)
-        self.assertTrue(script_delete.json["deleted"])
-
         script_output = self.client.get("/api/workspace/scripts/501/output?offset=2&max_chars=32")
         self.assertEqual(200, script_output.status_code)
         self.assertEqual("script output", script_output.json["output"])
-
-        dig = self.client.post("/api/workspace/hosts/11/dig-deeper", json={})
-        self.assertEqual(202, dig.status_code)
-        self.assertEqual("scheduler-dig-deeper", dig.json["job"]["type"])
 
         tool_run = self.client.post(
             "/api/workspace/tools/run",

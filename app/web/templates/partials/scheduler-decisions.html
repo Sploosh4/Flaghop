@@ -1,11 +1,9 @@
-<div id="scheduler-decisions-modal" class="legion-modal-overlay" aria-hidden="true">
-    <div class="legion-modal modal-table-modal" role="dialog" aria-modal="true" aria-labelledby="scheduler-decisions-modal-title">
+<section class="panel activity-history-panel">
+    <div class="activity-history" aria-labelledby="scheduler-decisions-modal-title">
         <div class="panel-header modal-header">
-            <h2 id="scheduler-decisions-modal-title">Scheduler Decisions</h2>
+            <h2 id="scheduler-decisions-modal-title">Decisions</h2>
             <p><span id="decision-count">{{ snapshot.scheduler_decisions | length }}</span> total</p>
-            <button id="scheduler-decisions-modal-close" class="modal-close-btn" type="button" aria-label="Close dialog">
-                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-            </button>
+
         </div>
         <div class="table-wrap modal-table-wrap">
             <table>
@@ -25,4 +23,4 @@
             </table>
         </div>
     </div>
-</div>
+</section>

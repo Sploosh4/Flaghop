@@ -9,10 +9,8 @@ def build_scheduler_target_context(runtime, **target):
     ports = ContextPorts(
         load_evidence=lambda **scope: load_scheduler_host_evidence(runtime, **scope),
         infer_technologies_from_observations=runtime._infer_technologies_from_observations,
-        grayhatwarfare_integration_enabled=runtime._grayhatwarfare_integration_enabled,
-        shodan_integration_enabled=runtime._shodan_integration_enabled,
         scheduler_tool_audit_snapshot=runtime._scheduler_tool_audit_snapshot,
-        load_host_ai_analysis=runtime._load_host_ai_analysis,
+        load_host_observations=runtime._load_host_observations,
         persist_shared_target_state=runtime._persist_shared_target_state,
         observation_text_for_analysis=runtime._observation_text_for_analysis,
         merge_technologies=runtime._merge_technologies,

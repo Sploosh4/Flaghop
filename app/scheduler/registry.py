@@ -39,30 +39,13 @@ def _extract_parameter_schema(command_template: str) -> Dict[str, Any]:
     return _shared_extract_parameter_schema(command_template)
 
 
-def _infer_runner_type(tool_id: str, service_scope: List[str], command_template: str) -> str:
-    tool_text = " ".join(
-        [
-            str(tool_id or ""),
-            str(command_template or ""),
-            " ".join(str(item or "") for item in list(service_scope or [])),
-        ]
-    ).lower()
-    normalized_tool = str(tool_id or "").strip().lower()
-    if normalized_tool in {"screenshooter", "x11screen"}:
-        return "browser"
-    if normalized_tool in {"responder", "ntlmrelayx"}:
-        return "manual"
-    if any(token in tool_text for token in ["manual", "operator", "clipboard"]):
-        return "manual"
+def _infer_runner_type(tool_id, service_scope, command_template):
     return "local"
 
 
 def _infer_artifact_types(tool_id: str, command_template: str) -> List[str]:
-    tool_norm = str(tool_id or "").strip().lower()
     command_text = str(command_template or "").lower()
     artifact_types = []
-    if tool_norm in {"screenshooter", "x11screen"}:
-        artifact_types.append("screenshot")
     if "-oa" in command_text or "nmap" in command_text:
         artifact_types.append("nmap")
     if "[output]" in command_text or ".txt" in command_text:
@@ -256,7 +239,6 @@ class ActionRegistry:
                 ),
                 requires_web_context=requires_web_context,
                 supports_deterministic=tool_id in scheduler_actions,
-                supports_ai_selection=tool_id in port_actions or tool_id in scheduler_actions,
                 methodology_tags=methodology_tags,
                 pack_tags=_infer_pack_tags(tool_id, service_scope, risk_tags, methodology_tags),
             )
@@ -277,13 +259,6 @@ class ActionRegistry:
             spec
             for spec in self._specs
             if spec.supports_deterministic and self._matches_scope(spec, service=service, protocol=protocol)
-        ]
-
-    def for_ai_selection(self, service: str, protocol: str) -> List[ActionSpec]:
-        return [
-            spec
-            for spec in self._specs
-            if spec.supports_ai_selection and self._matches_scope(spec, service=service, protocol=protocol)
         ]
 
     @staticmethod
