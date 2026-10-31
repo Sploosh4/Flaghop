@@ -1,88 +1,45 @@
-"""Run the real WebEngine window against a synthetic local workspace; never launches scans.
-
-Usage: QT_QPA_PLATFORM=offscreen QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu --no-sandbox"
-       .venv/bin/python tests/desktop/workspace_smoke.py
-"""
+"""Exercise the project foundation in WebEngine with local fixtures only."""
 
 import json
 import os
-import tempfile
-import threading
 from pathlib import Path
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-# Isolate all fixture configuration and browser output from the live workspace.
 ARTIFACTS = ROOT / ".artifacts/disposable/workspace-smoke"
 ARTIFACTS.mkdir(parents=True, exist_ok=True)
 (ROOT / ".tmp").mkdir(exist_ok=True)
-fixture_home = tempfile.TemporaryDirectory(dir=ROOT / ".tmp")
-os.environ["LEGION_HOME"] = fixture_home.name
+fixture = tempfile.TemporaryDirectory(dir=ROOT / ".tmp")
+os.environ["LEGION_HOME"] = str(Path(fixture.name) / "config")
+os.environ["LEGION_PROJECTS_DIR"] = str(Path(fixture.name) / "Documents/Hackathon")
 os.environ["TMPDIR"] = str(ROOT / ".tmp")
 os.environ["XDG_CACHE_HOME"] = str(ROOT / ".cache")
 
-from app.api import create_app
-from app.web import create_app as create_legacy_app
-from tests.support.asgi_server import live_asgi_server, live_legacy_server
-from tests.desktop.activity_fixture import seed_activity
 from PyQt6 import sip
 from PyQt6.QtCore import QTimer, QUrl
 from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWidgets import QApplication
-
+from app.api import create_app
+from app.web import create_app as create_legacy_app
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
-from app.scheduler.state import upsert_target_state
-from db.entities.host import hostObj
+from tests.support.asgi_server import live_asgi_server, live_legacy_server
 
 logic = create_default_logic()
-session = logic.activeProject.database.session()
-host = hostObj(ip="198.51.100.25")
-host.hostname = "fixture.example.test"
-host.status = "up"
-session.add(host)
-session.commit()
-host_id = int(host.id)
-session.close()
-upsert_target_state(
-    logic.activeProject.database,
-    host_id,
-    {
-        "host_ip": "198.51.100.25",
-        "hostname": "fixture.example.test",
-        "service_inventory": [{"port": "443", "protocol": "tcp", "service": "https", "state": "open"}],
-        "findings": [
-            {
-                "title": "Fixture observation",
-                "severity": "info",
-                "evidence": "Synthetic local validation",
-                "source_kind": "observed",
-            }
-        ],
-    },
-)
 runtime = WebRuntime(logic)
-runtime.scheduler_config.update_preferences({"feature_flags": {"graph_workspace": True}})
-fixture_process_id, fixture_approval_id = seed_activity(runtime)
-fixture_wait = threading.Event()
-
-
-def fixture_job(job_id):
-    while not runtime.jobs.is_cancel_requested(job_id):
-        fixture_wait.wait(0.03)
-    return {"fixture": True}
-
-
-fixture_job_id = runtime._start_job("fixture-ui-wait", fixture_job)["id"]
-legacy_stack = os.environ.get("LEGION_SMOKE_WEB_STACK") == "legacy"
-server_context = (
-    live_legacy_server(create_legacy_app(runtime)) if legacy_stack else live_asgi_server(create_app(runtime))
-)
-server_url = server_context.__enter__()
+legacy = os.environ.get("LEGION_SMOKE_WEB_STACK") == "legacy"
+web = create_legacy_app(runtime) if legacy else create_app(runtime)
+hub = (web if legacy else web.state.legacy).extensions["project_hub"]
+harbour = hub.create("Harbour")["project"]
+switchyard = hub.create("Switchyard")["project"]
+Path(harbour["folder"], "scope.md").write_text("Synthetic local fixture. No scans are run.\n")
+server = live_legacy_server(web) if legacy else live_asgi_server(web)
+url = server.__enter__()
 app = QApplication([sys.argv[0]])
-errors = []
+checks, errors = [], []
 
 
 class Page(QWebEnginePage):
@@ -99,340 +56,402 @@ page = Page(profile, view)
 view.setPage(page)
 view.resize(1520, 960)
 view.show()
-checks = []
 
 
-def record(name, js, callback=None):
-    def done(result):
-        checks.append({"name": name, "result": result})
-        if callback:
-            callback()
-
-    page.runJavaScript(js, done)
+def record(name, source):
+    page.runJavaScript(source, lambda value: checks.append({"name": name, "result": value}))
 
 
-def settings():
+def home():
     record(
-        "app settings opens without raw editor",
+        "Home lists projects without tabs",
         """(() => {
-      document.getElementById('ribbon-app-settings-button').click();
-      return document.getElementById('app-settings-modal').classList.contains('is-open')
-        && !document.getElementById('settings-config-text')
-        && !!document.getElementById('settings-tool-audit-body');
+        return !!document.querySelector('.hub-home')
+            && document.querySelectorAll('.hub-project-context nav').length === 0
+            && document.querySelectorAll('.hub-project').length >= 2;
     })()""",
     )
-    QTimer.singleShot(1200, screenshot_settings)
-
-
-def screenshot_settings():
-    view.grab().save(str(ARTIFACTS / "settings.png"))
     record(
-        "scan form opens directly",
+        "Old navigation and actions are hidden and inert",
         """(() => {
-      document.getElementById('settings-modal-close').click();
-      document.getElementById('ribbon-scan-add-action-button').click();
-      return document.getElementById('nmap-scan-modal').classList.contains('is-open');
+        const old = document.getElementById('legacy-workspace');
+        return old.hidden && old.inert && old.getClientRects().length === 0;
     })()""",
     )
-    QTimer.singleShot(300, tools)
+    view.grab().save(str(ARTIFACTS / "foundation-home.png"))
+    record("Collapse the sidebar", "document.getElementById('hub-sidebar-toggle').click(); true")
+    QTimer.singleShot(150, sidebar_collapsed)
 
 
-def tools():
+def sidebar_collapsed():
     record(
-        "tool form opens directly",
+        "Collapsed sidebar frees the full page width",
         """(() => {
-      document.getElementById("nmap-scan-modal-close").click();
-      document.getElementById('ribbon-scan-manual-action-button').click();
-      return document.getElementById('manual-scan-modal').classList.contains('is-open');
+        return getComputedStyle(document.getElementById('hub-sidebar')).display === 'none'
+            && document.querySelector('.hub-main').getBoundingClientRect().left === 0
+            && localStorage.getItem('legion.workspace.sidebarCollapsed') === 'true';
     })()""",
     )
-    QTimer.singleShot(300, open_jobs)
+    view.grab().save(str(ARTIFACTS / "foundation-sidebar-collapsed.png"))
+    record("Reopen the sidebar", "document.getElementById('hub-sidebar-reopen').click(); true")
+    QTimer.singleShot(150, sidebar_restored)
 
 
-def open_jobs():
+def sidebar_restored():
     record(
-        "React jobs panel opens",
+        "Sidebar returns with its collapse control",
         """(() => {
-      document.getElementById('manual-scan-modal-close').click();
-      document.getElementById('ribbon-logging-jobs-button').click();
-      return document.getElementById('jobs-body').dataset.framework === 'react';
+        return getComputedStyle(document.getElementById('hub-sidebar')).display !== 'none'
+            && document.querySelector('.hub-main').getBoundingClientRect().left > 0
+            && document.activeElement === document.getElementById('hub-sidebar-toggle');
     })()""",
     )
-    QTimer.singleShot(300, stop_fixture_job)
-
-
-def stop_fixture_job():
     record(
-        "Stop a synthetic job through the native API",
+        "Project row opens its home page",
         f"""(() => {{
-      const button = document.querySelector('#jobs-body tr[data-job-id="{fixture_job_id}"] button[data-job-action="stop"]');
-      if (!button) return false;
-      button.click();
-      return true;
+        document.querySelector('[data-hub-project="{harbour['id']}"]').click();
+        return true;
     }})()""",
     )
-    QTimer.singleShot(700, fixture_stopped)
+    QTimer.singleShot(650, project)
 
 
-def fixture_stopped():
+def project():
     record(
-        "React receives job cancellation updates",
+        "Dedicated project sidebar replaces the project list",
+        """(() => {
+        const tabs = [...document.querySelectorAll('.hub-project-context nav button')];
+        return tabs.length === 1 && tabs[0].textContent === 'Overview'
+            && document.querySelector('.hub-project-heading').textContent === 'LGHarbour'
+            && !document.querySelector('.hub-projects')
+            && document.querySelector('.hub-overview h1').textContent === 'Harbour';
+    })()""",
+    )
+    record(
+        "Project files are in its Hackathon folder",
+        """(() => {
+        return document.querySelector('.hub-folder').textContent.includes('Documents/Hackathon/Harbour')
+            && document.querySelector('.hub-files').textContent.includes('scope.md');
+    })()""",
+    )
+    view.grab().save(str(ARTIFACTS / "foundation-project.png"))
+    record(
+        "Project VPN can explicitly be None",
+        """(() => {
+        const select = document.getElementById('hub-project-vpn');
+        select.value = 'none'; select.dispatchEvent(new Event('change', {bubbles:true}));
+        return true;
+    })()""",
+    )
+    QTimer.singleShot(300, switch_project)
+
+
+def switch_project():
+    checks.append(
+        {
+            "name": "Project preference persisted",
+            "result": next(row for row in hub.list()["projects"] if row["id"] == harbour["id"])["vpn"] == "none",
+        }
+    )
+    record("Return to projects before switching", "document.querySelector('.hub-brand').click(); true")
+    QTimer.singleShot(150, select_second)
+
+
+def select_second():
+    record(
+        "Select a second project",
         f"""(() => {{
-      const row = document.querySelector('#jobs-body tr[data-job-id="{fixture_job_id}"]');
-      const stopped = row && row.textContent.includes('cancelled') && !row.querySelector('button');
-      document.getElementById('jobs-modal-close').click();
-      return Boolean(stopped);
+        document.querySelector('[data-hub-project="{switchyard['id']}"]').click(); return true;
     }})()""",
     )
-    activity()
+    QTimer.singleShot(600, switched)
 
 
-def activity():
+def switched():
     record(
-        "React activity panels mount and render fixture processes",
+        "Second project replaces the selected Overview",
         """(() => {
-      document.querySelector('[data-view="activity"]').click();
-      return ['processes-body', 'approvals-body', 'decisions-body', 'scan-history-body', 'decision-rationale-body']
-        .every(id => document.getElementById(id).dataset.framework === 'react')
-        && document.getElementById('processes-body').textContent.includes('Fixture activity')
-        && document.querySelectorAll('#decision-rationale-body article').length > 0;
+        return document.querySelector('.hub-overview h1').textContent === 'Switchyard'
+            && document.querySelectorAll('.hub-project-context nav').length === 1;
+    })()""",
+    )
+    record("Open Setup inside the project", "document.getElementById('hub-setup').click(); true")
+    QTimer.singleShot(150, project_setup)
+
+
+def project_setup():
+    record(
+        "Setup keeps the project sidebar",
+        """(() => {
+        return !!document.querySelector('.hub-setup-page')
+            && document.querySelector('.hub-project-heading').textContent === 'LGSwitchyard'
+            && !document.querySelector('.hub-projects')
+            && !document.querySelector('.hub-overview-tab').hasAttribute('aria-current');
+    })()""",
+    )
+    view.grab().save(str(ARTIFACTS / "foundation-project-setup.png"))
+    record("Overview returns from Setup", "document.querySelector('.hub-overview-tab').click(); true")
+    QTimer.singleShot(150, project_returned)
+
+
+def project_returned():
+    record(
+        "Overview is the new project page",
+        "document.querySelector('.hub-overview h1').textContent === 'Switchyard'",
+    )
+    record(
+        "Legion returns home and removes tabs",
+        """(() => {
+        document.querySelector('.hub-brand').click();
+        return true;
+    })()""",
+    )
+    QTimer.singleShot(150, setup)
+
+
+def setup():
+    record(
+        "Home has no project tabs after returning", "document.querySelectorAll('.hub-project-context nav').length === 0"
+    )
+    record(
+        "Setup opens from the bottom button",
+        """(() => {
+        document.getElementById('hub-setup').click(); return true;
+    })()""",
+    )
+    QTimer.singleShot(150, setup_visible)
+
+
+def setup_visible():
+    record(
+        "Setup shows computer with deferred VPN controls",
+        """(() => {
+        return !!document.querySelector('.hub-computer h1').textContent
+            && document.querySelector('.hub-vpn-unconfigured').textContent === 'Not configured'
+            && document.getElementById('hub-default-vpn').disabled
+            && document.querySelector('[aria-label="Refresh VPNs — not available yet"]').disabled
+            && document.getElementById('hub-setup').classList.contains('needs-setup');
+    })()""",
+    )
+    view.grab().save(str(ARTIFACTS / "foundation-setup.png"))
+    record(
+        "Ctrl K opens command search",
+        """(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', {key:'k',ctrlKey:true,bubbles:true}));
+        return true;
+    })()""",
+    )
+    QTimer.singleShot(100, palette_open)
+
+
+def palette_open():
+    record(
+        "Command search receives focus",
+        "document.activeElement?.getAttribute('aria-label') === 'Search views, actions, and hosts'",
+    )
+    record(
+        "Close command search",
+        "document.querySelector('.hub-modal').dispatchEvent(new KeyboardEvent('keydown', {key:'Escape',bubbles:true})); true",
+    )
+    QTimer.singleShot(100, open_creation)
+
+
+def open_creation():
+    record(
+        "Open the project creation form",
+        """(() => {
+        document.getElementById('hub-new-project').click(); return true;
+    })()""",
+    )
+    QTimer.singleShot(150, enter_name)
+
+
+def enter_name():
+    record("New project name input is focused", "document.activeElement === document.querySelector('.hub-modal input')")
+    record(
+        "Enter new project name",
+        """(() => {
+        const input = document.querySelector('.hub-modal input');
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Quiet lab');
+        input.dispatchEvent(new Event('input', {bubbles:true})); return true;
+    })()""",
+    )
+    QTimer.singleShot(100, create)
+
+
+def create():
+    record(
+        "Create a named project",
+        """(() => {
+        document.querySelector('.hub-modal form').dispatchEvent(new Event('submit', {bubbles:true,cancelable:true})); return true;
+    })()""",
+    )
+    QTimer.singleShot(700, created)
+
+
+def created():
+    record(
+        "New project opens and has a dedicated folder",
+        """(() => {
+        return document.querySelector('.hub-overview h1').textContent === 'Quiet lab'
+            && document.querySelector('.hub-folder').textContent.endsWith('Documents/Hackathon/Quiet lab')
+            && !document.querySelector('.hub-modal');
     })()""",
     )
     record(
-        "Open React process output",
-        f"""(() => {{
-      document.querySelector('#processes-body [data-process-id="{fixture_process_id}"][data-process-action="output"]').click();
-      return true;
-    }})()""",
+        "Resize sidebar by keyboard",
+        "document.querySelector('.hub-resizer').dispatchEvent(new KeyboardEvent('keydown', {key:'End',bubbles:true})); true",
     )
-    QTimer.singleShot(400, activity_output)
+    QTimer.singleShot(100, resized)
 
 
-def activity_output():
-    view.grab().save(str(ARTIFACTS / "process-output.png"))
+def resized():
     record(
-        "React output retains ANSI and escapes tool text",
+        "Saved sidebar width is applied",
+        "document.querySelector('.hub-resizer').getAttribute('aria-valuenow') === '340' && document.querySelector('.hub-main').getBoundingClientRect().left === 340",
+    )
+    record(
+        "Rename by sidebar double click",
+        "document.querySelector('.hub-project-heading .hub-name').dispatchEvent(new MouseEvent('dblclick', {bubbles:true})); true",
+    )
+    QTimer.singleShot(100, rename_project)
+
+
+def rename_project():
+    record(
+        "Enter renamed project",
         """(() => {
-      const modal = document.getElementById('process-output-modal');
-      const output = document.getElementById('process-output-text');
-      return modal.classList.contains('is-open') && output.textContent.includes('Fixture output')
-        && !!output.querySelector('.ansi-fg-green') && !output.querySelector('img')
-        && document.getElementById('process-output-command').textContent === 'fixture-never-executed';
+        const input = document.querySelector('.hub-project-heading input');
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Quiet lab renamed');
+        input.dispatchEvent(new Event('input', {bubbles:true})); return true;
     })()""",
     )
+    QTimer.singleShot(100, save_name)
+
+
+def save_name():
     record(
-        "Open React decision history",
-        """(() => {
-      document.getElementById('process-output-modal-close').click();
-      document.getElementById('ribbon-logging-scheduler-decisions-button').click();
-      return document.getElementById('decisions-body').textContent.includes('Fixture decision recorded');
-    })()""",
+        "Commit renamed project",
+        "document.querySelector('.hub-project-heading input').dispatchEvent(new KeyboardEvent('keydown', {key:'Enter',bubbles:true})); true",
     )
-    record(
-        "Open React scan history",
-        """(() => {
-      document.getElementById('scheduler-decisions-modal-close').click();
-      document.getElementById('ribbon-logging-submitted-scans-button').click();
-      return document.getElementById('scan-history-body').textContent.includes('Fixture history');
-    })()""",
-    )
-    record(
-        "Open React provider logs",
-        """(() => {
-      document.getElementById('submitted-scans-modal-close').click();
-      document.getElementById('ribbon-logging-ai-provider-button').click();
-      return true;
-    })()""",
-    )
-    QTimer.singleShot(400, activity_logs)
-
-
-def activity_logs():
-    view.grab().save(str(ARTIFACTS / "provider-logs.png"))
-    record(
-        "React provider logs display native API data safely",
-        """(() => {
-      const output = document.getElementById('provider-logs-text');
-      const ok = output.textContent.includes('Fixture provider logs') && !output.querySelector('img')
-        && document.getElementById('provider-logs-meta').textContent.includes('structured 1');
-      document.getElementById('provider-logs-modal-close').click();
-      document.querySelector('[data-view="approvals"]').click();
-      return ok && document.getElementById('approvals-body').textContent.includes('Synthetic risk');
-    })()""",
-    )
-    record(
-        "Reject synthetic approval through React and FastAPI",
-        f"""(() => {{
-      document.querySelector('#approvals-body button[data-approval-id="{fixture_approval_id}"][data-action="reject"]').click();
-      return true;
-    }})()""",
-    )
-    QTimer.singleShot(500, activity_rejected)
-
-
-def activity_rejected():
-    record(
-        "Approval queue and sidebar count update",
-        f"""(() => {{
-      return !document.querySelector('#approvals-body tr[data-approval-id="{fixture_approval_id}"]')
-        && document.getElementById('approval-count').textContent === '0';
-    }})()""",
-    )
-    from sqlalchemy import text
-
-    session = logic.activeProject.database.session()
-    try:
-        session.execute(
-            text("UPDATE process SET name = 'Fixture activity updated' WHERE id = :id"), {"id": fixture_process_id}
-        )
-        session.commit()
-    finally:
-        session.close()
-    runtime._emit_ui_invalidation("processes")
-    QTimer.singleShot(500, activity_updated)
-
-
-def activity_updated():
-    record(
-        "Live invalidation updates the React process table",
-        """(() => {
-      document.querySelector('[data-view="activity"]').click();
-      return document.getElementById('processes-body').textContent.includes('Fixture activity updated');
-    })()""",
-    )
-    view.grab().save(str(ARTIFACTS / "activity.png"))
-    record(
-        "Hide fixture process through React",
-        f"""(() => {{
-      document.querySelector('#processes-body [data-process-id="{fixture_process_id}"][data-process-action="close"]').click();
-      return true;
-    }})()""",
-    )
-    QTimer.singleShot(400, activity_hidden)
-
-
-def activity_hidden():
-    record(
-        "Hidden process disappears and count updates",
-        f"""(() => {{
-      return !document.querySelector('#processes-body tr[data-process-id="{fixture_process_id}"]')
-        && document.getElementById('process-count').textContent === '0';
-    }})()""",
-    )
-    graph()
-
-
-def graph():
-    record(
-        "interactive graph populated",
-        """(() => {
-      document.getElementById("manual-scan-modal-close").click();
-      document.querySelector('[data-view="graph"]').click();
-      return document.querySelectorAll("[data-graph-node-id]").length > 0
-        && !!document.getElementById('graph-layout-save-button')
-        && !document.querySelector('[id^="graph-export-"]');
-    })()""",
-    )
-    QTimer.singleShot(500, graph_interactions)
-
-
-def graph_interactions():
-    record(
-        "graph filters and node selection",
-        """(() => {
-      document.getElementById('graph-filters-toggle-button').click();
-      const node = document.querySelector('[data-graph-node-id]');
-      node.dispatchEvent(new MouseEvent('click', {bubbles:true}));
-      return !document.getElementById('graph-filters-panel').hidden;
-    })()""",
-    )
-    record(
-        "sidebar double-click opens the inline rename editor",
-        """(() => {
-      document.getElementById('sidebar-project-name').dispatchEvent(new MouseEvent('dblclick', {bubbles:true}));
-      const input = document.getElementById('workspace-rename-input');
-      return document.getElementById('workspace-react-root').dataset.framework === 'react';
-    })()""",
-    )
-    QTimer.singleShot(100, edit_workspace_name)
-
-
-def edit_workspace_name():
-    record(
-        "React rename editor is focused",
-        """(() => {
-      const input = document.getElementById('workspace-rename-input');
-      return input && !input.hidden && document.activeElement === input;
-    })()""",
-    )
-    record(
-        "rename submits through the current workspace API",
-        """(() => {
-      const input = document.getElementById('workspace-rename-input');
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Refactor fixture');
-      input.dispatchEvent(new Event('input', {bubbles:true}));
-      return true;
-    })()""",
-    )
-    QTimer.singleShot(100, submit_workspace_name)
-
-
-def submit_workspace_name():
-    record(
-        "Submit React workspace name",
-        """(() => {
-      document.getElementById('workspace-rename-input').dispatchEvent(new KeyboardEvent('keydown', {key:'Enter',bubbles:true}));
-      return true;
-    })()""",
-    )
-    QTimer.singleShot(800, renamed)
+    QTimer.singleShot(500, renamed)
 
 
 def renamed():
     record(
-        "workspace names stay synchronized",
+        "Rename updates both project labels",
+        "document.querySelector('.hub-overview h1').textContent === 'Quiet lab renamed' && document.querySelector('.hub-header .hub-name').textContent === 'Quiet lab renamed'",
+    )
+    record(
+        "Open project context menu",
+        "document.querySelector('.hub-project-heading').dispatchEvent(new MouseEvent('contextmenu', {clientX:100,clientY:120,bubbles:true})); true",
+    )
+    QTimer.singleShot(100, context_save)
+
+
+def context_save():
+    record(
+        "Context menu includes all file controls",
+        "['Rename project','Save','Save as…','Export ZIP','Workspace details'].every(label => [...document.querySelectorAll('.hub-context-menu button')].some(button => button.textContent === label))",
+    )
+    record(
+        "Save from context menu",
+        "[...document.querySelectorAll('.hub-context-menu button')].find(button => button.textContent === 'Save').click(); true",
+    )
+    QTimer.singleShot(500, settings_controls)
+
+
+def settings_controls():
+    record("Save completed", "document.querySelector('[role=status]').textContent === 'Saved'")
+    record("Open Setup for original settings", "document.getElementById('hub-setup').click(); true")
+    QTimer.singleShot(100, settings_open)
+
+
+def settings_open():
+    record(
+        "Open application settings",
+        "[...document.querySelectorAll('.hub-settings-links button')].find(button => button.textContent === 'Application settings').click(); true",
+    )
+    QTimer.singleShot(2200, application_settings)
+
+
+def application_settings():
+    record(
+        "Original settings dialog is accessible and populated",
         """(() => {
-      return document.getElementById('breadcrumb-project').textContent === 'Refactor fixture'
-        && document.getElementById('sidebar-project-name').textContent === 'Refactor fixture';
+        const doc = document.querySelector('.hub-reused-panel iframe').contentDocument;
+        return doc.getElementById('app-settings-modal').classList.contains('is-open')
+            && doc.querySelectorAll('#settings-tool-audit-body tr').length > 0;
     })()""",
     )
-    finish()
+    view.grab().save(str(ARTIFACTS / "restored-application-settings.png"))
+    record(
+        "Close settings through its original button",
+        "document.querySelector('.hub-reused-panel iframe').contentDocument.getElementById('settings-modal-close').click(); true",
+    )
+    QTimer.singleShot(200, interface_open)
+
+
+def interface_open():
+    record("Original close returns to Setup", "!!document.querySelector('.hub-setup-page')")
+    record(
+        "Open interface settings",
+        "[...document.querySelectorAll('.hub-settings-links button')].find(button => button.textContent === 'Interface settings').click(); true",
+    )
+    QTimer.singleShot(1800, interface_settings)
+
+
+def interface_settings():
+    record(
+        "Interface settings are accessible",
+        "document.querySelector('.hub-reused-panel iframe').contentDocument.getElementById('interface-settings-modal').classList.contains('is-open')",
+    )
+    record(
+        "Close interface settings",
+        "document.querySelector('.hub-reused-panel iframe').contentDocument.getElementById('interface-settings-modal-close').click(); true",
+    )
+    QTimer.singleShot(200, restored_finish)
+
+
+def restored_finish():
+    record(
+        "Live status is displayed",
+        "['Live','Polling/API'].some(value => document.querySelector('.hub-footer-meta').textContent.includes(value))",
+    )
+    record("Errors are absent", "document.querySelectorAll('#project-hub-root [role=alert]').length === 0")
+    view.grab().save(str(ARTIFACTS / "restored-project-controls.png"))
+    page.loadFinished.disconnect()
+    page.loadFinished.connect(lambda ok: QTimer.singleShot(1600, reloaded) if ok else app.exit(2))
+    view.reload()
+
+
+def reloaded():
+    record(
+        "Reload restores project, Setup and sidebar width",
+        "!!document.querySelector('.hub-setup-page') && document.querySelector('.hub-project-heading .hub-name').textContent === 'Quiet lab renamed' && document.querySelector('.hub-resizer').getAttribute('aria-valuenow') === '340'",
+    )
+    QTimer.singleShot(100, finish)
 
 
 def finish():
-    view.grab().save(str(ARTIFACTS / "graph.png"))
-    record(
-        "overview",
-        """(() => {
-      document.querySelector('[data-view="overview"]').click();
-      return !document.getElementById('startup-wizard-overlay')
-        && !document.getElementById('ribbon-export-menu-button')
-        && !!document.getElementById('ribbon-workspace-restore-action-button');
-    })()""",
-    )
-    QTimer.singleShot(300, quit_check)
+    result = {"stack": "legacy" if legacy else "asgi", "checks": checks, "js_errors": errors}
+    filename = "ui-check-legacy.json" if legacy else "ui-check.json"
+    (ARTIFACTS / filename).write_text(json.dumps(result, indent=2))
+    print(json.dumps(result))
+    app.exit(0 if all(item["result"] is True for item in checks) and not errors else 1)
 
 
-def quit_check():
-    view.grab().save(str(ARTIFACTS / "overview.png"))
-    payload = {"stack": "legacy" if legacy_stack else "asgi", "checks": checks, "js_errors": errors}
-    filename = "ui-check-legacy.json" if legacy_stack else "ui-check.json"
-    (ARTIFACTS / filename).write_text(json.dumps(payload, indent=2))
-    print(json.dumps(payload))
-    app.exit(0 if all(c["result"] is True for c in checks) and not errors else 1)
-
-
-page.loadFinished.connect(lambda ok: QTimer.singleShot(2500, settings) if ok else app.exit(2))
-QTimer.singleShot(30000, lambda: app.exit(3))
-page.load(QUrl(server_url + "/"))
+page.loadFinished.connect(lambda ok: QTimer.singleShot(2000, home) if ok else app.exit(2))
+QTimer.singleShot(45000, lambda: app.exit(3))
+page.load(QUrl(url + "/"))
 code = app.exec()
 view.stop()
 view.close()
 sip.delete(view)
 sip.delete(profile)
-server_context.__exit__(None, None, None)
-runtime.jobs.cancel_job(fixture_job_id, reason="fixture cleanup")
-fixture_wait.set()
-logic.projectManager.closeProject(logic.activeProject)
-fixture_home.cleanup()
+server.__exit__(None, None, None)
+active = logic.activeProject
+logic.projectManager.closeProject(active)
+active.database.dispose()
+fixture.cleanup()
 sys.exit(code)

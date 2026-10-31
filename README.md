@@ -15,6 +15,8 @@ The plan is to bring the device map, Metasploit, file analysis and website tools
 
 [Full plan and open questions](docs/ctf-workspace-roadmap.md).
 
+[Unfinished requests and UI/non-UI questions](docs/requirements-and-questions.md).
+
 ## Run
 
 Use Python 3.12+ on Linux, with Nmap and the tools you want to run.

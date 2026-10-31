@@ -4,10 +4,13 @@ import {beginRename, updateJobs, updateProject} from './store';
 import {WorkspaceIdentity} from './WorkspaceIdentity';
 import {JobsTable} from './JobsTable';
 import {mountActivity} from './activity/mount';
+import {ProjectHub} from './hub/ProjectHub';
 import '../../app/web/static/js/legion.js';
 import '../../app/web/static/js/workspace.js';
 
 window.addEventListener('DOMContentLoaded', () => {
+  const hubRoot = document.getElementById('project-hub-root');
+  if (hubRoot) {createRoot(hubRoot).render(<ProjectHub/>); return;}
   const sidebar = document.getElementById('workspace-identity-sidebar');
   const title = document.getElementById('workspace-identity-title');
   const sidebarEditor = document.querySelector<HTMLElement>('.workspace-project-shell');

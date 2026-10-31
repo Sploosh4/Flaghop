@@ -16,6 +16,7 @@ from app.web.routes_processes import processes_bp
 from app.web.routes_reports import reports_bp
 from app.web.routes import web_bp
 from app.web.routes_projects import projects_bp
+from app.web.routes_hub import hub_bp
 from app.web.routes_runtime import runtime_bp
 from app.web.routes_scans import scans_bp
 from app.web.routes_scheduler import scheduler_bp
@@ -45,6 +46,9 @@ def create_app(runtime: "WebRuntime") -> Flask:
 
     app.after_request(disable_api_cache)
     app.extensions["legion_runtime"] = runtime
+    from app.services.project_hub import ProjectHub
+
+    app.extensions["project_hub"] = ProjectHub(runtime)
 
     @app.context_processor
     def inject_legion_runtime_flags():
@@ -63,6 +67,7 @@ def create_app(runtime: "WebRuntime") -> Flask:
     app.register_blueprint(runtime_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(projects_bp)
+    app.register_blueprint(hub_bp)
     app.register_blueprint(scans_bp)
     app.register_blueprint(workspace_bp)
     app.register_blueprint(credentials_bp)

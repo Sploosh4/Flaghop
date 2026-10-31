@@ -245,6 +245,7 @@ import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/w
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+        if (document.body.classList.contains("project-foundation")) return;
         // A running backend can still serve its cached upstream template. Normalize
         // its duplicate graph shell ID without interrupting any background jobs.
         const graphShells = document.querySelectorAll("#graph-workspace-shell");
@@ -338,6 +339,38 @@ import { setGraphPanelCollapsed, setServicesPanelCollapsed } from "./workspace/w
             const node = byId(id); if (node) observer.observe(node, {childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ["data-display-name"]});
         });
         ["graph-workspace-panel", "credential-capture-panel"].forEach((id) => observer.observe(byId(id), {attributes: true, attributeFilter: ["hidden", "data-graph-enabled"]}));
-        selectView(stored("view", "overview"), false);
+        const part = document.body.dataset.workspacePart;
+        selectView(part && slots[part] ? part : stored("view", "overview"), false);
+        if (part) {
+            new MutationObserver(() => window.parent.postMessage({type: "legion-display", enabled: document.body.classList.contains("colorful-background")}, location.origin)).observe(document.body, {attributes: true, attributeFilter: ["class"]});
+            ["action-status", "workspace-status"].forEach(id => {
+                const node = byId(id);
+                if (node) new MutationObserver(() => window.parent.postMessage({type: "legion-status", text: node.textContent.trim()}, location.origin)).observe(node, {childList: true, characterData: true, subtree: true});
+            });
+            const controls = {
+                "app-settings": "ribbon-app-settings-button", "interface-settings": "ribbon-interface-settings-button",
+                "scheduler-settings": "ribbon-scheduler-settings-button", "device-category-settings": "ribbon-device-category-settings-button",
+                "report-provider-settings": "ribbon-report-provider-settings-button", scan: "ribbon-scan-add-action-button",
+                tool: "ribbon-scan-manual-action-button", import: "ribbon-import-xml-action-button",
+            };
+            if (controls[part]) proxy(controls[part]);
+            const modalId = {"app-settings": "app-settings-modal", "interface-settings": "interface-settings-modal", "scheduler-settings": "scheduler-settings-modal", "device-category-settings": "device-category-settings-modal", "report-provider-settings": "report-provider-modal", scan: "nmap-scan-modal", tool: "manual-scan-modal"}[part];
+            if (modalId) {
+                const modal = byId(modalId);
+                new MutationObserver(() => {
+                    if (!modal.classList.contains("is-open")) window.parent.postMessage({type: "legion-part-closed"}, location.origin);
+                }).observe(modal, {attributes: true, attributeFilter: ["class"]});
+            }
+            const host = Number(new URLSearchParams(location.search).get("host"));
+            if (host > 0) {
+                const rowReady = new MutationObserver(() => {
+                    const row = document.querySelector(`#hosts-body tr[data-host-id="${host}"]`);
+                    if (row) {row.click(); rowReady.disconnect();}
+                });
+                rowReady.observe(byId("hosts-body"), {childList: true});
+                const row = document.querySelector(`#hosts-body tr[data-host-id="${host}"]`);
+                if (row) {row.click(); rowReady.disconnect();}
+            }
+        }
     });
 })();

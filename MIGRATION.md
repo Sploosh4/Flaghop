@@ -2,6 +2,8 @@
 
 Workspace identity and activity now use React and FastAPI. This remains an incremental migration. Python, SQLite, the scheduler, approval checks, subprocess execution and the Qt WebEngine window remain in use.
 
+The visible app now opens on a React project home. Selecting a project opens its own page and sidebar, with its name at the top, Overview below and Setup at the bottom. Clicking Legion returns to all projects. Setup contains computer information and deliberately inactive VPN controls. VPN enumeration and connection are deferred. Projects created through this shell are saved under `Documents/Hackathon/[project name]` (`LEGION_PROJECTS_DIR` overrides this for fixtures). The earlier UI is retained inside a hidden, inert container, and its bootstrap is skipped so its actions and background loaders do not run behind the new shell. Workspace controls now include rename, Save/Save as, file/ZIP open and export, context menus, command search, live status and remembered navigation. Existing settings dialogs and inspectors are loaded on demand as isolated same-origin panels via a whitelisted `part` parameter; their original bootstrap and handlers run within that panel only. Sidebar collapse and pointer/keyboard resizing retain their saved preferences. See [unfinished requests and questions](docs/requirements-and-questions.md).
+
 ## Scope
 
 `python legion.py --web` now runs one Uvicorn/ASGI process. Native FastAPI routes handle:
@@ -62,7 +64,7 @@ LEGION_SMOKE_WEB_STACK=legacy QT_QPA_PLATFORM=offscreen \
 
 Production frontend assets are versioned under `app/web/static/bundles/`. An ordinary launch needs Python and the desktop dependencies, not Node or a development server. The pinned npm lockfile and CI verify that the assets can be reproduced. TypeScript is pinned to 5.9.3 because the current OpenAPI generator uses its JavaScript compiler API; the native TypeScript 7 package is incompatible with that generator.
 
-The desktop test uses a real server, SQLite activity fixtures and a synthetic cancellable job. It exercises process output/hiding, approval rejection, history dialogs, provider logs, live invalidations and counters against both ASGI and legacy transports without launching scans or provider requests. Project ZIP downloads, legacy route compatibility, strict native validation, stale responses, action failures and WebSocket cleanup/concurrent ordering have dedicated checks.
+The current desktop test uses a real server and isolated SQLite project fixtures. It exercises project creation/switching, folder/file display, sidebar collapse/resizing, rename, Save/context menus, command search, settings dialogs, live status and remembered navigation against both ASGI and legacy transports without launching scans, installs or provider requests. The migrated activity components retain their component and service tests. Project ZIP downloads, legacy route compatibility, strict native validation, stale responses, action failures and WebSocket cleanup/concurrent ordering have dedicated checks.
 
 ## Assessment and next decision
 

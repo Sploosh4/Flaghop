@@ -42,6 +42,27 @@ def index():
         graph_workspace_enabled=graph_workspace_enabled,
         ws_enabled=current_app.config.get("LEGION_WEBSOCKETS_ENABLED", False),
         console_logo_art=_get_sanitized_console_logo(),
+        workspace_part=(
+            request.args.get("part", "")
+            if request.args.get("part", "")
+            in {
+                "hosts",
+                "services",
+                "graph",
+                "activity",
+                "capture",
+                "approvals",
+                "app-settings",
+                "interface-settings",
+                "scheduler-settings",
+                "device-category-settings",
+                "report-provider-settings",
+                "scan",
+                "tool",
+                "import",
+            }
+            else ""
+        ),
     )
 
 

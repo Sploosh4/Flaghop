@@ -11,8 +11,9 @@
     >
     <link rel="stylesheet" href="{{ url_for('static', filename='css/legion.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/project-hub.css') }}">
 </head>
-<body class="workspace-ui{% if legion_ui_opaque %} opaque-ui{% endif %}{% if legion_colorful_ascii_background %} colorful-background{% endif %}">
+<body class="workspace-ui{% if workspace_part %} workspace-part{% else %} project-foundation{% endif %}{% if legion_ui_opaque %} opaque-ui{% endif %}{% if legion_colorful_ascii_background %} colorful-background{% endif %}"{% if workspace_part %} data-workspace-part="{{ workspace_part }}"{% endif %}>
 <script id="scan-presets" type="application/json">{{ legion_scan_presets | tojson }}</script>
 <div class="background-glow"></div>
 {% if legion_colorful_ascii_background and console_logo_art %}
@@ -20,6 +21,7 @@
     <pre>{{ console_logo_art }}</pre>
 </div>
 {% endif %}
+<div id="legacy-workspace"{% if not workspace_part %} hidden inert{% endif %}>
 <aside class="workspace-sidebar" aria-label="Workspace navigation">
     <div class="sidebar-brand"><span class="brand-glyph" aria-hidden="true">L</span><strong>Legion</strong><button id="sidebar-toggle" class="quiet-icon" type="button" title="Collapse sidebar" aria-label="Collapse sidebar"><i class="fa-solid fa-sidebar" aria-hidden="true"></i><span aria-hidden="true">‹</span></button></div>
     <button class="sidebar-search" id="workspace-search-button" type="button"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span>Search workspace</span><kbd>Ctrl K</kbd></button>
@@ -71,6 +73,8 @@
     </section>
 </div>
 <div id="workspace-react-root"></div>
+</div>
+{% if not workspace_part %}<div id="project-hub-root" data-ws-enabled="{{ 'true' if ws_enabled else 'false' }}" data-version="{{ legion_version_label }}" data-bind="{{ legion_web_bind_label }}" data-auth="{{ 'Auth' if config.LEGION_AUTH_ENABLED else 'No auth' }}"></div>{% endif %}
 <script id="initial-snapshot" type="application/json">{{ snapshot | tojson }}</script>
 <script>window.LEGION_WS_ENABLED = {{ "true" if ws_enabled else "false" }};</script>
 <script>window.LEGION_OPAQUE_UI_ENABLED = {{ "true" if legion_ui_opaque else "false" }};</script>

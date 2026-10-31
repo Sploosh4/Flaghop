@@ -8,9 +8,10 @@ import { refreshWorkspace } from "./workspace/workspace_data.js";
 /** Application entry point. Domain modules own state, rendering and commands. */
 
 const controller = new WorkspaceController();
-controller.connect();
 
 window.addEventListener("DOMContentLoaded", () => {
+    if (document.body.classList.contains("project-foundation")) return;
+    controller.connect();
     const bootstrapNode = document.getElementById("initial-snapshot");
     if (bootstrapNode && bootstrapNode.textContent) {
         try {
