@@ -31,6 +31,7 @@ Updated 31 October 2026. This separates working changes from requests still wait
 - [x] Project setup now labels the setting **Connector**, with NetworkManager, OpenVPN and WireGuard choices saved per project. Existing default/None VPN data remains compatible; choosing a connector does not connect it.
 - [x] Computer Setup has Install OpenVPN and Install WireGuard buttons beside the default VPN controls, using the existing targeted tool installer and job outcomes.
 - [ ] Implement the agreed OpenVPN, WireGuard and local/direct network support, including profile discovery, connect/disconnect controls and connection/target checks in Settings. See [the connector plan](ctf-workspace-roadmap.md#connectors-and-target-reachability-in-settings). Only installer buttons and connector preference storage are implemented in this pass; discovery and probes do not run yet.
+- [ ] Add the agreed [shared project network configuration](ctf-workspace-roadmap.md#shared-project-network-configuration) in Project setup → Network settings: allowed targets, exclusions, scope source, connection mode/profile, execution environment and a configuration ID/revision. All app-managed automatic network jobs must use the same backend context and runner checks for scope, route, freshness and required services. Missing scope, the wrong connection or a changed path must hold network work; offline tasks can continue. Keep these diagnostics in Settings. This is planned work, not a functioning enforcement layer.
 - [ ] A real connected/disconnected indicator. Red currently means configuration is incomplete.
 - [ ] Josh's visual review of this foundation.
 
@@ -59,6 +60,7 @@ The tool audit now covers the retained local discovery and protocol tools. Remov
 - Scheduler settings controls deterministic follow-ups, approvals, concurrency and execution permissions. AI providers, prompt controls and alternate runners are removed.
 - Device categories defines labels and matching rules for ports, fingerprints and CPE values.
 - Setup contains this computer, connector installer buttons and deferred connection-profile controls. Project setup stores the connector choice; VPN discovery and target diagnostics are still to build.
+- Project Network settings will hold the shared event scope and expected connection. Observed interfaces/routes and reachability results remain separate from configured scope; a reachable address is not automatically an event target. See the shared network plan for the common service, job references, enforcement and acceptance checks.
 
 ### Removed in this pass
 
@@ -132,11 +134,11 @@ Useful future settings: workflow-specific tool selections, executable/wordlist p
 
 ## Non-UI questions
 
-1. What targets, scan depth and exclusions should initial reconnaissance accept? How is its execution location chosen: laptop/interface/VPN or a remote session?
+1. What input methods and scan depth should initial reconnaissance accept? Target inclusions/exclusions and execution location are defined by the agreed shared project network configuration; implementation remains to build.
 2. Planned support covers NetworkManager, OpenVPN, WireGuard and local/direct networks, including detection of externally managed tunnels. Profile discovery/management and implementation order remain to build; see the agreed connector plan.
 3. Connector selection only saves a preference. Define profile selection and explicit connection controls; do not connect on project open. Report a missing/disconnected profile and per-target route mismatches in Settings.
-4. Local/direct access is a supported mode; downloadable challenges need no challenge-network connection. Which diagnostics should block a job rather than just record its status remains open.
-5. Which observations become stale after a target reset, IP reuse, VPN/routing change or session loss? Agree the useful stale indicators and refresh behaviour; a specific example was requested earlier.
+4. Local/direct access is a supported mode; downloadable challenges need no challenge-network connection. Missing/incomplete scope, an excluded target, a wrong connection/route or stale unchecked state holds automatic network work. A ping timeout alone does not prove that a target is down; unverified required services hold their dependent actions.
+5. Configuration edits, target resets, IP reuse, VPN/routing changes and session loss invalidate network observations. Queued jobs revalidate against the current configuration revision; running jobs must prevent further traffic on an unverified path. Choose freshness intervals and tool-specific enforcement/cancellation details during implementation.
 6. Which terminal tools can supply structured results? How should manually typed commands, exit status, output files and remote sessions be attributed to map entities?
 7. Where do card explanations come from: authored descriptions, tool/module metadata or reviewed generated drafts? How are tactic, technique and Kill Chain stage mapped separately?
 8. Which devices/services make an action applicable? EPSS scores CVEs, not tactics or hash jobs; decide whether it should only sort actions tied to matching CVEs, and what orders the rest.
