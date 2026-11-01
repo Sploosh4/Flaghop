@@ -1,0 +1,16 @@
+password
+123456
+12345678
+password123
+admin
+letmein
+welcome
+qwerty
+changeme
+Password1
+Password123
+Password1!
+root
+toor
+secret
+ctf

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Legion — Device icons</title>
+<style>
+:root{color-scheme:dark;--bg:#090909;--panel:#121212;--text:#ececef;--muted:#a2a0a9;--border:#28272b;--size:180px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}
+main{max-width:1440px;margin:auto;padding:40px 32px}header{display:flex;align-items:start;justify-content:space-between;gap:24px;margin-bottom:32px}
+.eyebrow{color:#bca9dc;font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+h1{font-size:28px;font-weight:500;margin:0 0 8px}p{margin:0;color:var(--muted)}
+.tools{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px}label{display:flex;align-items:center;gap:12px;color:var(--muted)}
+input{accent-color:#baa6dc}button,.pack{font:inherit;border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:6px;padding:8px 12px;cursor:pointer;text-decoration:none}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #baa6dc;outline-offset:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.device{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.image{height:270px;display:flex;align-items:center;justify-content:center}
+img{width:var(--size);height:var(--size);max-width:100%;object-fit:contain}
+.device h2{font-size:15px;font-weight:500;margin:8px 0 4px}
+.download{font-size:12px;color:var(--muted);text-decoration:none}.download:hover{color:var(--text)}
+body.light{color-scheme:light;--bg:#ececef;--panel:#fafafa;--text:#222127;--muted:#62606a;--border:#d6d4dc}
+footer{margin-top:28px;color:var(--muted);font-size:13px}footer a{color:inherit}
+@media(max-width:600px){main{padding:24px 16px}header{display:block}.pack{display:inline-block;margin-top:16px}.grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.image{height:220px}}
+</style>
+</head>
+<body>
+<main>
+<header><div><div class="eyebrow">Legion / Device library</div><h1>Device icons</h1><p>21 transparent PNG assets · graphite, silver and lavender</p></div><a class="pack" href="../legion-device-icons-v1.zip" download>Download full pack ↓</a></header>
+<div class="tools"><label for="size">Preview size <input id="size" type="range" min="96" max="256" value="180" step="4"><output id="size-value" for="size">180 px</output></label><button id="background" type="button" aria-pressed="false">Light background</button></div>
+<section class="grid" aria-label="Device icon gallery">
+<article class="device"><a href="computer.png" aria-label="Open Computer image"><div class="image"><img src="computer.png" alt="Computer" width="1254" height="1254"></div></a><h2>Computer</h2><a class="download" href="computer.png" download>computer.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="server.png" aria-label="Open Server image"><div class="image"><img src="server.png" alt="Server" width="1254" height="1254"></div></a><h2>Server</h2><a class="download" href="server.png" download>server.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="router.png" aria-label="Open Router image"><div class="image"><img src="router.png" alt="Router" width="1254" height="1254"></div></a><h2>Router</h2><a class="download" href="router.png" download>router.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="managed-switch.png" aria-label="Open Managed switch image"><div class="image"><img src="managed-switch.png" alt="Managed switch" width="1254" height="1254"></div></a><h2>Managed switch</h2><a class="download" href="managed-switch.png" download>managed-switch.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="firewall.png" aria-label="Open Firewall image"><div class="image"><img src="firewall.png" alt="Firewall" width="1254" height="1254"></div></a><h2>Firewall</h2><a class="download" href="firewall.png" download>firewall.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="ngfw.png" aria-label="Open Next-generation firewall image"><div class="image"><img src="ngfw.png" alt="Next-generation firewall" width="1254" height="1254"></div></a><h2>Next-generation firewall</h2><a class="download" href="ngfw.png" download>ngfw.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="vpn-appliance.png" aria-label="Open VPN appliance image"><div class="image"><img src="vpn-appliance.png" alt="VPN appliance" width="1254" height="1254"></div></a><h2>VPN appliance</h2><a class="download" href="vpn-appliance.png" download>vpn-appliance.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="wireless-access-point.png" aria-label="Open Wireless access point image"><div class="image"><img src="wireless-access-point.png" alt="Wireless access point" width="1254" height="1254"></div></a><h2>Wireless access point</h2><a class="download" href="wireless-access-point.png" download>wireless-access-point.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="network-printer.png" aria-label="Open Network printer and scanner image"><div class="image"><img src="network-printer.png" alt="Network printer and scanner" width="1254" height="1254"></div></a><h2>Network printer and scanner</h2><a class="download" href="network-printer.png" download>network-printer.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="nas.png" aria-label="Open NAS storage appliance image"><div class="image"><img src="nas.png" alt="NAS storage appliance" width="1254" height="1254"></div></a><h2>NAS storage appliance</h2><a class="download" href="nas.png" download>nas.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="ip-camera.png" aria-label="Open IP security camera image"><div class="image"><img src="ip-camera.png" alt="IP security camera" width="1254" height="1254"></div></a><h2>IP security camera</h2><a class="download" href="ip-camera.png" download>ip-camera.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="network-video-recorder.png" aria-label="Open Network video recorder image"><div class="image"><img src="network-video-recorder.png" alt="Network video recorder" width="1254" height="1254"></div></a><h2>Network video recorder</h2><a class="download" href="network-video-recorder.png" download>network-video-recorder.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="voip-phone.png" aria-label="Open VoIP desk phone image"><div class="image"><img src="voip-phone.png" alt="VoIP desk phone" width="1254" height="1254"></div></a><h2>VoIP desk phone</h2><a class="download" href="voip-phone.png" download>voip-phone.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="pbx.png" aria-label="Open PBX telephone system image"><div class="image"><img src="pbx.png" alt="PBX telephone system" width="1254" height="1254"></div></a><h2>PBX telephone system</h2><a class="download" href="pbx.png" download>pbx.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="smart-tv.png" aria-label="Open Smart TV and media device image"><div class="image"><img src="smart-tv.png" alt="Smart TV and media device" width="1254" height="1254"></div></a><h2>Smart TV and media device</h2><a class="download" href="smart-tv.png" download>smart-tv.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="iot-device.png" aria-label="Open Generic IoT device image"><div class="image"><img src="iot-device.png" alt="Generic IoT device" width="1254" height="1254"></div></a><h2>Generic IoT device</h2><a class="download" href="iot-device.png" download>iot-device.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="laptop.png" aria-label="Open Laptop image"><div class="image"><img src="laptop.png" alt="Laptop" width="1254" height="1254"></div></a><h2>Laptop</h2><a class="download" href="laptop.png" download>laptop.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="mobile-devices.png" aria-label="Open Smartphone and tablet image"><div class="image"><img src="mobile-devices.png" alt="Smartphone and tablet" width="1254" height="1254"></div></a><h2>Smartphone and tablet</h2><a class="download" href="mobile-devices.png" download>mobile-devices.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="load-balancer.png" aria-label="Open Load balancer image"><div class="image"><img src="load-balancer.png" alt="Load balancer" width="1254" height="1254"></div></a><h2>Load balancer</h2><a class="download" href="load-balancer.png" download>load-balancer.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="ups.png" aria-label="Open UPS network power device image"><div class="image"><img src="ups.png" alt="UPS network power device" width="1254" height="1254"></div></a><h2>UPS network power device</h2><a class="download" href="ups.png" download>ups.png <span aria-hidden="true">↓</span></a></article>
+<article class="device"><a href="unknown-device.png" aria-label="Open Unknown device image"><div class="image"><img src="unknown-device.png" alt="Unknown device" width="1254" height="1254"></div></a><h2>Unknown device</h2><a class="download" href="unknown-device.png" download>unknown-device.png <span aria-hidden="true">↓</span></a></article>
+</section>
+<footer>Created with the built-in image generation tool. <a href="prompts.json">Generation prompts</a> · <a href="manifest.json">Asset manifest</a>. Click an image to open its original PNG.</footer>
+</main>
+<script>
+const slider=document.getElementById('size');
+slider.addEventListener('input',()=>{document.documentElement.style.setProperty('--size',slider.value+'px');document.getElementById('size-value').value=slider.value+' px'});
+const background=document.getElementById('background');
+background.addEventListener('click',()=>{const light=document.body.classList.toggle('light');background.setAttribute('aria-pressed',String(light));background.textContent=light?'Dark background':'Light background'});
+</script>
+</body>
+</html>

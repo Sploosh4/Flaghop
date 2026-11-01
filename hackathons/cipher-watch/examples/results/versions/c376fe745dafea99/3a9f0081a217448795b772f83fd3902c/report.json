@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "producer": "cipher-watch",
+  "prototype_version": "0.1.0",
+  "scan_id": "3a9f0081a217448795b772f83fd3902c",
+  "created_at": "2026-10-30T20:01:21.408718+00:00",
+  "configuration_id": "87e26b7f126fd41104c16a5bf4b1720a61246d15c9d5f8f66777d6f4b312977f",
+  "code_sha256": "1be2d659c63fd7611357e9fac83dcc68c7d2ea09b113a29586bdd478b4631454",
+  "source": {
+    "watch_root": "/home/joshua/Documents/ChatGPT/Hackathons/cipher-watch/examples/inbox",
+    "relative_path": "hex.txt",
+    "sha256": "5e54414c3993038158b889eaaac22114a34ba6d2cbbc676b2ff861f5070dbe9a",
+    "fingerprint": "5e54414c3993038158b889eaaac22114a34ba6d2cbbc676b2ff861f5070dbe9a",
+    "size_bytes": 69,
+    "mtime_ns": 1793390276790361781
+  },
+  "settings": {
+    "encodings": "b64,hex,bx,bu,pu",
+    "min_decoded_bytes": 8,
+    "max_file_bytes": 2000000,
+    "max_candidate_bytes": 16384,
+    "max_candidates": 64,
+    "decode_seconds": 2,
+    "file_seconds": 30,
+    "regex": "hello there general",
+    "ignore": []
+  },
+  "tools": {
+    "base64dump": {
+      "path": "/home/joshua/Documents/ChatGPT/Hackathons/cipher-watch/.tools/base64dump.py",
+      "sha256": "57a6efe8315e17274c9299cc567a2dc6263bc6d580d4cd63ace19d6cf870f34f"
+    },
+    "ciphey": {
+      "path": "/home/joshua/Documents/ChatGPT/Hackathons/cipher-watch/.tools/ciphey",
+      "sha256": "ebd54286e3eab26db8f3add2cd2702f448905f475e3e389ccae618bc8634fe8c",
+      "adapter": "Ciphey v0.12.1 CLI"
+    }
+  },
+  "status": "complete",
+  "coverage": {
+    "scope": "contiguous encoded sequences in raw file bytes",
+    "attempted": 1,
+    "extracted": 1,
+    "warnings": [],
+    "excluded": "symlinks and configured ignore patterns"
+  },
+  "candidates": [
+    {
+      "encoding": "hex",
+      "offset": 29,
+      "length": 38,
+      "line": 2,
+      "byte_column": 12,
+      "encoded_b64": "Njg2NTZjNmM2ZjIwNzQ2ODY1NzI2NTIwNjc2NTZlNjU3MjYxNmM=",
+      "decoded_b64": "aGVsbG8gdGhlcmUgZ2VuZXJhbA==",
+      "id": "candidate-001",
+      "status": "accepted_candidate"
+    }
+  ],
+  "findings": [
+    {
+      "id": "candidate-001",
+      "status": "accepted_candidate",
+      "human_verified": false,
+      "location": {
+        "offset": 29,
+        "length": 38,
+        "line": 2,
+        "byte_column": 12
+      },
+      "steps": [
+        "base64dump:hex"
+      ],
+      "text": "hello there general",
+      "decoded_sha256": "5d9d3d40d92da505f31b215f94751434517ff55cdc0e017aae6ab9bc54be4d94",
+      "decoded_file": "decoded/candidate-001.txt",
+      "validation": "Ciphey checker accepted; not human verified"
+    }
+  ],
+  "legion_export": {
+    "host_ip": null,
+    "findings": [
+      {
+        "title": "Decoded content candidate",
+        "severity": "info",
+        "source_kind": "observed",
+        "observed": true,
+        "evidence": "hex.txt byte 29; base64dump:hex",
+        "evidence_items": [
+          "versions/c376fe745dafea99/3a9f0081a217448795b772f83fd3902c/decoded/candidate-001.txt"
+        ],
+        "human_verified": false
+      }
+    ],
+    "artifacts": [
+      {
+        "ref": "versions/c376fe745dafea99/3a9f0081a217448795b772f83fd3902c/decoded/candidate-001.txt",
+        "kind": "decoded_text",
+        "tool_id": "cipher-watch",
+        "source_kind": "observed",
+        "observed": true
+      }
+    ]
+  }
+}

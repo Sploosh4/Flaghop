@@ -1,0 +1,136 @@
+{
+  "suite": "scanning-acceptance-v2",
+  "group": "all",
+  "project": "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler",
+  "run": "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/validation/deepseek-evaluation/candidate-4",
+  "tests": {
+    "__main__.H02Deadlines.test_both_pipes_closed": "fail",
+    "__main__.H02Deadlines.test_one_pipe_closed": "pass",
+    "__main__.H02Deadlines.test_quiet_open_pipes": "pass",
+    "__main__.H05Schemas.test_installed_dalfox_positive_control": "pass",
+    "__main__.H05Schemas.test_invalid_contract_matrix": "fail",
+    "__main__.H06Statuses.test_missing_tools_cannot_leave_completed_run_with_partial_stages": "fail",
+    "__main__.H07APIFindings.test_api_only_alert_survives_real_orchestration": "fail",
+    "__main__.H09Initialisation.test_interrupt_during_metadata_preserves_partial_profile": "fail",
+    "__main__.H11Documentation.test_no_current_runner_import_claim": "fail",
+    "__main__.H03Verifier.test_candidate_label_in_reproduced_findings": "fail",
+    "__main__.H03Verifier.test_closed_observation_filtered": "fail",
+    "__main__.H03Verifier.test_closed_observation_missing": "fail",
+    "__main__.H03Verifier.test_failed_excluded_execution": "fail",
+    "__main__.H03Verifier.test_failed_task_with_completed_stage": "fail",
+    "__main__.H03Verifier.test_https_proofs_missing": "fail",
+    "__main__.H03Verifier.test_meaningless_source_lineage": "fail",
+    "__main__.H03Verifier.test_missing_proof_file": "pass",
+    "__main__.H03Verifier.test_positive_control": "pass",
+    "__main__.H01WordPress.test_actual_production_branch_in_two_fresh_output_directories": "fail",
+    "__main__.H04NegativeCoverage.test_missing_browser_is_not_a_negative_pass": "fail",
+    "__main__.H04NegativeCoverage.test_real_negative_validators_complete": "fail",
+    "__main__.H12Cleanup.test_negative_fixture_stops_its_server": "fail",
+    "__main__.H08Storage.test_retained_whole_run_budget": "fail",
+    "__main__.H08Storage.test_sampled_peak_and_shared_budget": "unmeasured",
+    "__main__.H08Storage.test_small_run_keeps_required_proofs": "pass",
+    "__main__.H10Metadata.test_effective_configuration_complete": "fail",
+    "__main__.H10Metadata.test_real_versions_for_twelve_known_tools": "fail",
+    "__main__.H10Metadata.test_template_and_wordlist_content_identified": "fail"
+  },
+  "areas": {
+    "H01": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 10,
+      "points": 0.0,
+      "complete": false
+    },
+    "H02": {
+      "passed": 2,
+      "checks": 3,
+      "weight": 10,
+      "points": 6.6667,
+      "complete": false
+    },
+    "H03": {
+      "passed": 2,
+      "checks": 9,
+      "weight": 20,
+      "points": 4.4444,
+      "complete": false
+    },
+    "H04": {
+      "passed": 0,
+      "checks": 2,
+      "weight": 10,
+      "points": 0.0,
+      "complete": false
+    },
+    "H05": {
+      "passed": 1,
+      "checks": 2,
+      "weight": 10,
+      "points": 5.0,
+      "complete": false
+    },
+    "H06": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 8,
+      "points": 0.0,
+      "complete": false
+    },
+    "H07": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 6,
+      "points": 0.0,
+      "complete": false
+    },
+    "H08": {
+      "passed": 1,
+      "checks": 3,
+      "weight": 12,
+      "points": 4.0,
+      "complete": false
+    },
+    "H09": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 5,
+      "points": 0.0,
+      "complete": false
+    },
+    "H10": {
+      "passed": 0,
+      "checks": 3,
+      "weight": 5,
+      "points": 0.0,
+      "complete": false
+    },
+    "H11": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 2,
+      "points": 0.0,
+      "complete": false
+    },
+    "H12": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 2,
+      "points": 0.0,
+      "complete": false
+    }
+  },
+  "total_points": 20.1111,
+  "maximum": 100,
+  "unmeasured_areas_earn_zero": true,
+  "acceptance_sha256": {
+    "acceptance.py": "f54639936febee049b8c4be0a42f6b6fa984987f4de1ba070a1d6fd59e5dc633",
+    "measure_storage.py": "727a82727c7f721c1abdc3829e6794346d4c7e3bf6011a4accc8552fa5b2feb2",
+    "baseline.json": "88468d6e9eca7038eab0520446b79d9fe8df753515337ad7ac3bd1d2c2dbaa01"
+  },
+  "source_sha256": {
+    "ctf_profiler.py": "d8db52548c1563561743c989f601018f57193cbeb5b7a0d6b284138116cbfac4",
+    "staged_workflow.py": "6eae6789f7749f9a62b2ac6cb78eef5cb8f43deb82ad3df969594029a0ce8785",
+    "lab/verify_staged_profile.py": "8e43b8605d91ace148fa2a21bdcc032f2d27645c9ed8883a36cc408064a53bdd"
+  },
+  "note": "A score is for this invocation only; do not add scores from different source revisions. Release also requires the live/fixed-coverage gates in NEXT-STEPS."
+}

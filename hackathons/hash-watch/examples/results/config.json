@@ -1,0 +1,8 @@
+{
+  "watch": "/home/joshua/Documents/ChatGPT/Hackathons/hash-watch/examples/inbox",
+  "settings": {
+    "batch_size": 16
+  },
+  "wordlist": "/home/joshua/Documents/ChatGPT/Hackathons/hash-watch/examples/deep-seeds.txt",
+  "benchmark_profile": "/home/joshua/Documents/ChatGPT/Hackathons/hash-watch/validation/laptop/benchmark.json"
+}

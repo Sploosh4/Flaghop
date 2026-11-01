@@ -1,0 +1,1 @@
+<!doctype html><html><head><title>Log In &lsaquo; Owned WordPress Fixture</title></head><body><form action="/wp-login.php" method="post"><input name="log"><input name="pwd"><input type="submit" value="Log In"></form></body></html>

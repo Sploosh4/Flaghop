@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "recipe": "seed, lowercase, capitalized, uppercase, suffixes 1/12/123/!/2025/2026",
+  "source_wordlist": "/home/joshua/Documents/ChatGPT/Hackathons/hash-watch/examples/deep-seeds.txt",
+  "source_sha256": "cb295a76846d83a302da322734bb88f7a3a45b35eb6c853cf7274d31e367e0d2",
+  "quick_sha256": "dc2a7219d0af493670e23f183357f2d4109cf013343526d27b62e5d794b9fb39",
+  "deep_sha256": "857f9fd6c299dbe4af413a207bc36a48ce74a51de88e5d1c2fd030bdd8d590f1",
+  "deep_candidates": 152,
+  "scope": "finite configured dictionary/variation plan; not exhaustive password space"
+}

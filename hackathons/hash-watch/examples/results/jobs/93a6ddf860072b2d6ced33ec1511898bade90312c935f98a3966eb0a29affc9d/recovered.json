@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "target_id": "93a6ddf860072b2d6ced33ec1511898bade90312c935f98a3966eb0a29affc9d",
+  "format": "bcrypt",
+  "plaintext_hex": "6f63746f70757321",
+  "verification": "independent hash check",
+  "attempt_id": 13,
+  "source_preserved": true
+}

@@ -1,0 +1,288 @@
+# Offline reader collection evaluation
+
+Started: 2026-10-31T05:30:06.298143+00:00
+
+**No CTF was joined, deployed or interacted with.** These are offline data files only. Public files came from upstream regression suites, not challenge platforms.
+
+Known-answer fixtures use default production reader limits and the measured engine profile. No answer regex is supplied. Password tests use a small, explicit audit seed list plus the normal quick list; this measures workflow correctness, not password strength. Per-case evaluation budgets are 20 seconds (15 for unlabelled files), checked between bounded work units, with a 45-second external worker guard. A goal can pass while other incidental work remains pending.
+
+Results so far: {"inconclusive": 7, "miss": 44, "noise": 2, "observation": 15, "pass": 187}
+
+| Group | Outcomes |
+|---|---|
+| ambiguity | {'pass': 6} |
+| containers | {'pass': 44, 'miss': 10} |
+| context | {'miss': 2, 'noise': 2} |
+| documents | {'pass': 1} |
+| hash_chains | {'pass': 22} |
+| hash_recovery | {'pass': 21} |
+| larger_logs | {'pass': 5, 'miss': 6} |
+| larger_negative_controls | {'inconclusive': 7} |
+| limits | {'pass': 4} |
+| malformed | {'pass': 8} |
+| negative_controls | {'pass': 19} |
+| password_edges | {'pass': 6} |
+| protected_files | {'pass': 3} |
+| public_augmented | {'pass': 8} |
+| public_unfamiliar | {'observation': 15} |
+| text | {'pass': 33, 'miss': 24} |
+| unsupported_hash | {'miss': 2, 'pass': 4} |
+| upstream_vectors | {'pass': 3} |
+
+| Case | Goal | Outcome | Drained | Seconds | Evidence |
+|---|---|---|---|---:|---|
+| text_0_base64 | plaintext | pass | True | 0.562 | [JSON](2026-10-31-collection/text_0_base64/project/reader-report.json) |
+| text_0_hex | plaintext | pass | True | 0.623 | [JSON](2026-10-31-collection/text_0_hex/project/reader-report.json) |
+| text_0_three_base64 | plaintext | pass | True | 0.847 | [JSON](2026-10-31-collection/text_0_three_base64/project/reader-report.json) |
+| text_0_base32 | plaintext | miss | True | 0.263 | [JSON](2026-10-31-collection/text_0_base32/project/reader-report.json) |
+| text_0_base85 | plaintext | miss | True | 0.274 | [JSON](2026-10-31-collection/text_0_base85/project/reader-report.json) |
+| text_0_ascii85 | plaintext | miss | True | 0.255 | [JSON](2026-10-31-collection/text_0_ascii85/project/reader-report.json) |
+| text_0_unpadded | plaintext | pass | True | 0.405 | [JSON](2026-10-31-collection/text_0_unpadded/project/reader-report.json) |
+| text_0_wrapped | plaintext | pass | True | 0.902 | [JSON](2026-10-31-collection/text_0_wrapped/project/reader-report.json) |
+| text_0_urlsafe | plaintext | pass | True | 0.388 | [JSON](2026-10-31-collection/text_0_urlsafe/project/reader-report.json) |
+| text_0_escaped_bytes | plaintext | pass | True | 0.462 | [JSON](2026-10-31-collection/text_0_escaped_bytes/project/reader-report.json) |
+| text_0_json_base64 | plaintext | pass | True | 0.446 | [JSON](2026-10-31-collection/text_0_json_base64/project/reader-report.json) |
+| text_0_html_base64 | plaintext | pass | True | 0.539 | [JSON](2026-10-31-collection/text_0_html_base64/project/reader-report.json) |
+| text_0_js_concat | plaintext | miss | True | 0.796 | [JSON](2026-10-31-collection/text_0_js_concat/project/reader-report.json) |
+| text_0_percent_bytes | plaintext | miss | True | 0.286 | [JSON](2026-10-31-collection/text_0_percent_bytes/project/reader-report.json) |
+| text_0_unicode_escapes | plaintext | miss | True | 0.345 | [JSON](2026-10-31-collection/text_0_unicode_escapes/project/reader-report.json) |
+| text_0_utf16le | plaintext | pass | True | 0.583 | [JSON](2026-10-31-collection/text_0_utf16le/project/reader-report.json) |
+| text_0_utf16be | plaintext | pass | True | 0.579 | [JSON](2026-10-31-collection/text_0_utf16be/project/reader-report.json) |
+| text_0_rot13 | plaintext | miss | True | 0.264 | [JSON](2026-10-31-collection/text_0_rot13/project/reader-report.json) |
+| text_0_reverse | plaintext | miss | True | 0.291 | [JSON](2026-10-31-collection/text_0_reverse/project/reader-report.json) |
+| container_0_zip_plain | plaintext | pass | True | 0.411 | [JSON](2026-10-31-collection/container_0_zip_plain/project/reader-report.json) |
+| container_0_zip_base64 | plaintext | pass | True | 0.602 | [JSON](2026-10-31-collection/container_0_zip_base64/project/reader-report.json) |
+| container_0_zip_hex | plaintext | pass | True | 0.656 | [JSON](2026-10-31-collection/container_0_zip_hex/project/reader-report.json) |
+| container_0_gzip_plain | plaintext | pass | True | 0.349 | [JSON](2026-10-31-collection/container_0_gzip_plain/project/reader-report.json) |
+| container_0_gzip_base64 | plaintext | pass | True | 0.548 | [JSON](2026-10-31-collection/container_0_gzip_base64/project/reader-report.json) |
+| container_0_base64_zip | plaintext | pass | True | 0.828 | [JSON](2026-10-31-collection/container_0_base64_zip/project/reader-report.json) |
+| container_0_gzip_zip | plaintext | pass | True | 0.724 | [JSON](2026-10-31-collection/container_0_gzip_zip/project/reader-report.json) |
+| container_0_zip_gzip | plaintext | pass | True | 0.748 | [JSON](2026-10-31-collection/container_0_zip_gzip/project/reader-report.json) |
+| container_0_nested_zip | plaintext | pass | True | 0.778 | [JSON](2026-10-31-collection/container_0_nested_zip/project/reader-report.json) |
+| container_0_tar_base64 | plaintext | pass | True | 0.491 | [JSON](2026-10-31-collection/container_0_tar_base64/project/reader-report.json) |
+| container_0_tar_gzip | plaintext | pass | True | 0.589 | [JSON](2026-10-31-collection/container_0_tar_gzip/project/reader-report.json) |
+| container_0_bzip2 | plaintext | miss | True | 0.32 | [JSON](2026-10-31-collection/container_0_bzip2/project/reader-report.json) |
+| container_0_xz | plaintext | pass | True | 0.53 | [JSON](2026-10-31-collection/container_0_xz/project/reader-report.json) |
+| container_0_zip_odd_path | plaintext | pass | True | 0.685 | [JSON](2026-10-31-collection/container_0_zip_odd_path/project/reader-report.json) |
+| container_0_png_text | plaintext | pass | True | 0.595 | [JSON](2026-10-31-collection/container_0_png_text/project/reader-report.json) |
+| container_0_png_compressed_text | plaintext | miss | True | 0.368 | [JSON](2026-10-31-collection/container_0_png_compressed_text/project/reader-report.json) |
+| container_0_pdf_plain_stream | plaintext | pass | True | 0.683 | [JSON](2026-10-31-collection/container_0_pdf_plain_stream/project/reader-report.json) |
+| container_0_pdf_flate_stream | plaintext | miss | True | 0.525 | [JSON](2026-10-31-collection/container_0_pdf_flate_stream/project/reader-report.json) |
+| text_1_base64 | plaintext | pass | True | 0.543 | [JSON](2026-10-31-collection/text_1_base64/project/reader-report.json) |
+| text_1_hex | plaintext | pass | True | 0.638 | [JSON](2026-10-31-collection/text_1_hex/project/reader-report.json) |
+| text_1_three_base64 | plaintext | pass | True | 0.986 | [JSON](2026-10-31-collection/text_1_three_base64/project/reader-report.json) |
+| text_1_base32 | plaintext | miss | True | 0.45 | [JSON](2026-10-31-collection/text_1_base32/project/reader-report.json) |
+| text_1_base85 | plaintext | miss | True | 0.37 | [JSON](2026-10-31-collection/text_1_base85/project/reader-report.json) |
+| text_1_ascii85 | plaintext | miss | True | 0.333 | [JSON](2026-10-31-collection/text_1_ascii85/project/reader-report.json) |
+| text_1_unpadded | plaintext | pass | True | 0.528 | [JSON](2026-10-31-collection/text_1_unpadded/project/reader-report.json) |
+| text_1_wrapped | plaintext | pass | True | 1.289 | [JSON](2026-10-31-collection/text_1_wrapped/project/reader-report.json) |
+| text_1_urlsafe | plaintext | pass | True | 0.415 | [JSON](2026-10-31-collection/text_1_urlsafe/project/reader-report.json) |
+| text_1_escaped_bytes | plaintext | pass | True | 0.472 | [JSON](2026-10-31-collection/text_1_escaped_bytes/project/reader-report.json) |
+| text_1_json_base64 | plaintext | pass | True | 0.462 | [JSON](2026-10-31-collection/text_1_json_base64/project/reader-report.json) |
+| text_1_html_base64 | plaintext | pass | True | 0.459 | [JSON](2026-10-31-collection/text_1_html_base64/project/reader-report.json) |
+| text_1_js_concat | plaintext | miss | True | 0.773 | [JSON](2026-10-31-collection/text_1_js_concat/project/reader-report.json) |
+| text_1_percent_bytes | plaintext | miss | True | 0.457 | [JSON](2026-10-31-collection/text_1_percent_bytes/project/reader-report.json) |
+| text_1_unicode_escapes | plaintext | miss | True | 0.568 | [JSON](2026-10-31-collection/text_1_unicode_escapes/project/reader-report.json) |
+| text_1_utf16le | plaintext | pass | True | 0.855 | [JSON](2026-10-31-collection/text_1_utf16le/project/reader-report.json) |
+| text_1_utf16be | plaintext | pass | True | 0.657 | [JSON](2026-10-31-collection/text_1_utf16be/project/reader-report.json) |
+| text_1_rot13 | plaintext | miss | True | 0.376 | [JSON](2026-10-31-collection/text_1_rot13/project/reader-report.json) |
+| text_1_reverse | plaintext | miss | True | 0.4 | [JSON](2026-10-31-collection/text_1_reverse/project/reader-report.json) |
+| container_1_zip_plain | plaintext | pass | True | 0.422 | [JSON](2026-10-31-collection/container_1_zip_plain/project/reader-report.json) |
+| container_1_zip_base64 | plaintext | pass | True | 0.537 | [JSON](2026-10-31-collection/container_1_zip_base64/project/reader-report.json) |
+| container_1_zip_hex | plaintext | pass | True | 0.798 | [JSON](2026-10-31-collection/container_1_zip_hex/project/reader-report.json) |
+| container_1_gzip_plain | plaintext | pass | True | 0.415 | [JSON](2026-10-31-collection/container_1_gzip_plain/project/reader-report.json) |
+| container_1_gzip_base64 | plaintext | pass | True | 0.655 | [JSON](2026-10-31-collection/container_1_gzip_base64/project/reader-report.json) |
+| container_1_base64_zip | plaintext | pass | True | 0.718 | [JSON](2026-10-31-collection/container_1_base64_zip/project/reader-report.json) |
+| container_1_gzip_zip | plaintext | pass | True | 0.657 | [JSON](2026-10-31-collection/container_1_gzip_zip/project/reader-report.json) |
+| container_1_zip_gzip | plaintext | pass | True | 0.719 | [JSON](2026-10-31-collection/container_1_zip_gzip/project/reader-report.json) |
+| container_1_nested_zip | plaintext | pass | True | 0.692 | [JSON](2026-10-31-collection/container_1_nested_zip/project/reader-report.json) |
+| container_1_tar_base64 | plaintext | pass | True | 0.45 | [JSON](2026-10-31-collection/container_1_tar_base64/project/reader-report.json) |
+| container_1_tar_gzip | plaintext | pass | True | 0.511 | [JSON](2026-10-31-collection/container_1_tar_gzip/project/reader-report.json) |
+| container_1_bzip2 | plaintext | miss | True | 0.267 | [JSON](2026-10-31-collection/container_1_bzip2/project/reader-report.json) |
+| container_1_xz | plaintext | miss | True | 0.258 | [JSON](2026-10-31-collection/container_1_xz/project/reader-report.json) |
+| container_1_zip_odd_path | plaintext | pass | True | 0.552 | [JSON](2026-10-31-collection/container_1_zip_odd_path/project/reader-report.json) |
+| container_1_png_text | plaintext | pass | True | 0.516 | [JSON](2026-10-31-collection/container_1_png_text/project/reader-report.json) |
+| container_1_png_compressed_text | plaintext | miss | True | 0.369 | [JSON](2026-10-31-collection/container_1_png_compressed_text/project/reader-report.json) |
+| container_1_pdf_plain_stream | plaintext | pass | True | 0.504 | [JSON](2026-10-31-collection/container_1_pdf_plain_stream/project/reader-report.json) |
+| container_1_pdf_flate_stream | plaintext | miss | True | 0.411 | [JSON](2026-10-31-collection/container_1_pdf_flate_stream/project/reader-report.json) |
+| text_2_base64 | plaintext | pass | True | 1.728 | [JSON](2026-10-31-collection/text_2_base64/project/reader-report.json) |
+| text_2_hex | plaintext | pass | True | 1.723 | [JSON](2026-10-31-collection/text_2_hex/project/reader-report.json) |
+| text_2_three_base64 | plaintext | pass | True | 2.31 | [JSON](2026-10-31-collection/text_2_three_base64/project/reader-report.json) |
+| text_2_base32 | plaintext | miss | True | 0.391 | [JSON](2026-10-31-collection/text_2_base32/project/reader-report.json) |
+| text_2_base85 | plaintext | miss | True | 0.261 | [JSON](2026-10-31-collection/text_2_base85/project/reader-report.json) |
+| text_2_ascii85 | plaintext | miss | True | 0.277 | [JSON](2026-10-31-collection/text_2_ascii85/project/reader-report.json) |
+| text_2_unpadded | plaintext | pass | True | 0.445 | [JSON](2026-10-31-collection/text_2_unpadded/project/reader-report.json) |
+| text_2_wrapped | plaintext | pass | True | 0.975 | [JSON](2026-10-31-collection/text_2_wrapped/project/reader-report.json) |
+| text_2_urlsafe | plaintext | pass | True | 0.339 | [JSON](2026-10-31-collection/text_2_urlsafe/project/reader-report.json) |
+| text_2_escaped_bytes | plaintext | pass | True | 0.928 | [JSON](2026-10-31-collection/text_2_escaped_bytes/project/reader-report.json) |
+| text_2_json_base64 | plaintext | pass | True | 1.162 | [JSON](2026-10-31-collection/text_2_json_base64/project/reader-report.json) |
+| text_2_html_base64 | plaintext | pass | True | 1.071 | [JSON](2026-10-31-collection/text_2_html_base64/project/reader-report.json) |
+| text_2_js_concat | plaintext | miss | True | 1.122 | [JSON](2026-10-31-collection/text_2_js_concat/project/reader-report.json) |
+| text_2_percent_bytes | plaintext | miss | True | 0.273 | [JSON](2026-10-31-collection/text_2_percent_bytes/project/reader-report.json) |
+| text_2_unicode_escapes | plaintext | miss | True | 0.347 | [JSON](2026-10-31-collection/text_2_unicode_escapes/project/reader-report.json) |
+| text_2_utf16le | plaintext | pass | True | 0.964 | [JSON](2026-10-31-collection/text_2_utf16le/project/reader-report.json) |
+| text_2_utf16be | plaintext | pass | True | 0.912 | [JSON](2026-10-31-collection/text_2_utf16be/project/reader-report.json) |
+| text_2_rot13 | plaintext | miss | True | 0.346 | [JSON](2026-10-31-collection/text_2_rot13/project/reader-report.json) |
+| text_2_reverse | plaintext | miss | True | 0.356 | [JSON](2026-10-31-collection/text_2_reverse/project/reader-report.json) |
+| container_2_zip_plain | plaintext | pass | True | 0.451 | [JSON](2026-10-31-collection/container_2_zip_plain/project/reader-report.json) |
+| container_2_zip_base64 | plaintext | pass | True | 1.165 | [JSON](2026-10-31-collection/container_2_zip_base64/project/reader-report.json) |
+| container_2_zip_hex | plaintext | pass | True | 1.977 | [JSON](2026-10-31-collection/container_2_zip_hex/project/reader-report.json) |
+| container_2_gzip_plain | plaintext | pass | True | 0.452 | [JSON](2026-10-31-collection/container_2_gzip_plain/project/reader-report.json) |
+| container_2_gzip_base64 | plaintext | pass | True | 0.886 | [JSON](2026-10-31-collection/container_2_gzip_base64/project/reader-report.json) |
+| container_2_base64_zip | plaintext | pass | True | 1.061 | [JSON](2026-10-31-collection/container_2_base64_zip/project/reader-report.json) |
+| container_2_gzip_zip | plaintext | pass | True | 1.203 | [JSON](2026-10-31-collection/container_2_gzip_zip/project/reader-report.json) |
+| container_2_zip_gzip | plaintext | pass | True | 1.172 | [JSON](2026-10-31-collection/container_2_zip_gzip/project/reader-report.json) |
+| container_2_nested_zip | plaintext | pass | True | 1.152 | [JSON](2026-10-31-collection/container_2_nested_zip/project/reader-report.json) |
+| container_2_tar_base64 | plaintext | pass | True | 0.891 | [JSON](2026-10-31-collection/container_2_tar_base64/project/reader-report.json) |
+| container_2_tar_gzip | plaintext | pass | True | 0.886 | [JSON](2026-10-31-collection/container_2_tar_gzip/project/reader-report.json) |
+| container_2_bzip2 | plaintext | miss | True | 0.329 | [JSON](2026-10-31-collection/container_2_bzip2/project/reader-report.json) |
+| container_2_xz | plaintext | pass | True | 0.767 | [JSON](2026-10-31-collection/container_2_xz/project/reader-report.json) |
+| container_2_zip_odd_path | plaintext | pass | True | 1.778 | [JSON](2026-10-31-collection/container_2_zip_odd_path/project/reader-report.json) |
+| container_2_png_text | plaintext | pass | True | 0.929 | [JSON](2026-10-31-collection/container_2_png_text/project/reader-report.json) |
+| container_2_png_compressed_text | plaintext | miss | True | 0.266 | [JSON](2026-10-31-collection/container_2_png_compressed_text/project/reader-report.json) |
+| container_2_pdf_plain_stream | plaintext | pass | True | 1.817 | [JSON](2026-10-31-collection/container_2_pdf_plain_stream/project/reader-report.json) |
+| container_2_pdf_flate_stream | plaintext | miss | True | 0.551 | [JSON](2026-10-31-collection/container_2_pdf_flate_stream/project/reader-report.json) |
+| hash_md5_0 | password | pass | True | 0.941 | [JSON](2026-10-31-collection/hash_md5_0/project/reader-report.json) |
+| hash_md5_1 | password | pass | True | 0.888 | [JSON](2026-10-31-collection/hash_md5_1/project/reader-report.json) |
+| hash_md5_2 | password | pass | True | 1.536 | [JSON](2026-10-31-collection/hash_md5_2/project/reader-report.json) |
+| hash_wrapped_md5_b64 | password | pass | True | 2.236 | [JSON](2026-10-31-collection/hash_wrapped_md5_b64/project/reader-report.json) |
+| hash_wrapped_md5_hex | password | pass | True | 2.45 | [JSON](2026-10-31-collection/hash_wrapped_md5_hex/project/reader-report.json) |
+| hash_wrapped_md5_utf16 | password | pass | True | 1.139 | [JSON](2026-10-31-collection/hash_wrapped_md5_utf16/project/reader-report.json) |
+| hash_sha1_0 | password | pass | True | 1.443 | [JSON](2026-10-31-collection/hash_sha1_0/project/reader-report.json) |
+| hash_sha1_1 | password | pass | True | 0.933 | [JSON](2026-10-31-collection/hash_sha1_1/project/reader-report.json) |
+| hash_sha1_2 | password | pass | True | 5.334 | [JSON](2026-10-31-collection/hash_sha1_2/project/reader-report.json) |
+| hash_wrapped_sha1_b64 | password | pass | True | 2.175 | [JSON](2026-10-31-collection/hash_wrapped_sha1_b64/project/reader-report.json) |
+| hash_wrapped_sha1_hex | password | pass | True | 2.519 | [JSON](2026-10-31-collection/hash_wrapped_sha1_hex/project/reader-report.json) |
+| hash_wrapped_sha1_utf16 | password | pass | True | 1.254 | [JSON](2026-10-31-collection/hash_wrapped_sha1_utf16/project/reader-report.json) |
+| hash_sha256_0 | password | pass | True | 1.067 | [JSON](2026-10-31-collection/hash_sha256_0/project/reader-report.json) |
+| hash_sha256_1 | password | pass | True | 0.855 | [JSON](2026-10-31-collection/hash_sha256_1/project/reader-report.json) |
+| hash_sha256_2 | password | pass | True | 1.471 | [JSON](2026-10-31-collection/hash_sha256_2/project/reader-report.json) |
+| hash_wrapped_sha256_b64 | password | pass | True | 2.469 | [JSON](2026-10-31-collection/hash_wrapped_sha256_b64/project/reader-report.json) |
+| hash_wrapped_sha256_hex | password | pass | True | 2.424 | [JSON](2026-10-31-collection/hash_wrapped_sha256_hex/project/reader-report.json) |
+| hash_wrapped_sha256_utf16 | password | pass | True | 0.911 | [JSON](2026-10-31-collection/hash_wrapped_sha256_utf16/project/reader-report.json) |
+| hash_sha512_0 | password | pass | True | 0.937 | [JSON](2026-10-31-collection/hash_sha512_0/project/reader-report.json) |
+| hash_sha512_1 | password | pass | True | 0.827 | [JSON](2026-10-31-collection/hash_sha512_1/project/reader-report.json) |
+| hash_sha512_2 | password | pass | True | 1.415 | [JSON](2026-10-31-collection/hash_sha512_2/project/reader-report.json) |
+| hash_wrapped_sha512_b64 | password | pass | True | 1.99 | [JSON](2026-10-31-collection/hash_wrapped_sha512_b64/project/reader-report.json) |
+| hash_wrapped_sha512_hex | password | pass | True | 1.66 | [JSON](2026-10-31-collection/hash_wrapped_sha512_hex/project/reader-report.json) |
+| hash_wrapped_sha512_utf16 | password | pass | True | 1.453 | [JSON](2026-10-31-collection/hash_wrapped_sha512_utf16/project/reader-report.json) |
+| hash_ntlm_0 | password | pass | True | 0.99 | [JSON](2026-10-31-collection/hash_ntlm_0/project/reader-report.json) |
+| hash_ntlm_1 | password | pass | True | 0.836 | [JSON](2026-10-31-collection/hash_ntlm_1/project/reader-report.json) |
+| hash_ntlm_2 | password | pass | True | 1.263 | [JSON](2026-10-31-collection/hash_ntlm_2/project/reader-report.json) |
+| hash_wrapped_ntlm_b64 | password | pass | True | 2.186 | [JSON](2026-10-31-collection/hash_wrapped_ntlm_b64/project/reader-report.json) |
+| hash_wrapped_ntlm_hex | password | pass | True | 2.382 | [JSON](2026-10-31-collection/hash_wrapped_ntlm_hex/project/reader-report.json) |
+| hash_wrapped_ntlm_utf16 | password | pass | True | 0.891 | [JSON](2026-10-31-collection/hash_wrapped_ntlm_utf16/project/reader-report.json) |
+| hash_bcrypt_0 | password | pass | True | 0.752 | [JSON](2026-10-31-collection/hash_bcrypt_0/project/reader-report.json) |
+| hash_bcrypt_1 | password | pass | True | 0.674 | [JSON](2026-10-31-collection/hash_bcrypt_1/project/reader-report.json) |
+| hash_bcrypt_2 | password | pass | True | 1.241 | [JSON](2026-10-31-collection/hash_bcrypt_2/project/reader-report.json) |
+| hash_wrapped_bcrypt_b64 | password | pass | True | 1.773 | [JSON](2026-10-31-collection/hash_wrapped_bcrypt_b64/project/reader-report.json) |
+| hash_wrapped_bcrypt_hex | password | pass | True | 2.098 | [JSON](2026-10-31-collection/hash_wrapped_bcrypt_hex/project/reader-report.json) |
+| hash_wrapped_bcrypt_utf16 | password | pass | True | 0.89 | [JSON](2026-10-31-collection/hash_wrapped_bcrypt_utf16/project/reader-report.json) |
+| hash_sha512crypt_0 | password | pass | True | 1.173 | [JSON](2026-10-31-collection/hash_sha512crypt_0/project/reader-report.json) |
+| hash_sha512crypt_1 | password | pass | True | 1.055 | [JSON](2026-10-31-collection/hash_sha512crypt_1/project/reader-report.json) |
+| hash_sha512crypt_2 | password | pass | True | 2.427 | [JSON](2026-10-31-collection/hash_sha512crypt_2/project/reader-report.json) |
+| hash_wrapped_sha512crypt_b64 | password | pass | True | 2.453 | [JSON](2026-10-31-collection/hash_wrapped_sha512crypt_b64/project/reader-report.json) |
+| hash_wrapped_sha512crypt_hex | password | pass | True | 2.622 | [JSON](2026-10-31-collection/hash_wrapped_sha512crypt_hex/project/reader-report.json) |
+| hash_wrapped_sha512crypt_utf16 | password | pass | True | 1.246 | [JSON](2026-10-31-collection/hash_wrapped_sha512crypt_utf16/project/reader-report.json) |
+| upstream_john_md5_0 | password | pass | True | 1.263 | [JSON](2026-10-31-collection/upstream_john_md5_0/project/reader-report.json) |
+| upstream_john_md5_1 | password | pass | True | 1.597 | [JSON](2026-10-31-collection/upstream_john_md5_1/project/reader-report.json) |
+| upstream_john_md5_2 | password | pass | True | 1.476 | [JSON](2026-10-31-collection/upstream_john_md5_2/project/reader-report.json) |
+| password_shape_empty | password | pass | True | 0.777 | [JSON](2026-10-31-collection/password_shape_empty/project/reader-report.json) |
+| password_shape_unicode | password | pass | True | 1.267 | [JSON](2026-10-31-collection/password_shape_unicode/project/reader-report.json) |
+| password_shape_colon | password | pass | True | 1.266 | [JSON](2026-10-31-collection/password_shape_colon/project/reader-report.json) |
+| password_shape_spaces | password | pass | True | 1.423 | [JSON](2026-10-31-collection/password_shape_spaces/project/reader-report.json) |
+| password_shape_long | password | pass | True | 1.502 | [JSON](2026-10-31-collection/password_shape_long/project/reader-report.json) |
+| password_not_in_plan | unrecovered | pass | True | 1.273 | [JSON](2026-10-31-collection/password_not_in_plan/project/reader-report.json) |
+| unsupported_sha224 | hash_detected | miss | True | 0.479 | [JSON](2026-10-31-collection/unsupported_sha224/project/reader-report.json) |
+| unsupported_sha384 | hash_detected | miss | True | 0.503 | [JSON](2026-10-31-collection/unsupported_sha384/project/reader-report.json) |
+| unsupported_structured_0 | needs_adapter | pass | True | 0.288 | [JSON](2026-10-31-collection/unsupported_structured_0/project/reader-report.json) |
+| unsupported_structured_1 | needs_adapter | pass | True | 0.288 | [JSON](2026-10-31-collection/unsupported_structured_1/project/reader-report.json) |
+| unsupported_structured_2 | needs_adapter | pass | True | 0.308 | [JSON](2026-10-31-collection/unsupported_structured_2/project/reader-report.json) |
+| unsupported_structured_3 | needs_adapter | pass | True | 0.273 | [JSON](2026-10-31-collection/unsupported_structured_3/project/reader-report.json) |
+| review_0 | review | pass | True | 0.48 | [JSON](2026-10-31-collection/review_0/project/reader-report.json) |
+| review_1 | review | pass | True | 0.82 | [JSON](2026-10-31-collection/review_1/project/reader-report.json) |
+| review_2 | review | pass | True | 0.475 | [JSON](2026-10-31-collection/review_2/project/reader-report.json) |
+| review_3 | review | pass | True | 0.618 | [JSON](2026-10-31-collection/review_3/project/reader-report.json) |
+| review_4 | review | pass | True | 0.481 | [JSON](2026-10-31-collection/review_4/project/reader-report.json) |
+| review_5 | review | pass | True | 0.492 | [JSON](2026-10-31-collection/review_5/project/reader-report.json) |
+| context_gap_0 | password | miss | True | 0.481 | [JSON](2026-10-31-collection/context_gap_0/project/reader-report.json) |
+| context_gap_1 | password | miss | True | 0.61 | [JSON](2026-10-31-collection/context_gap_1/project/reader-report.json) |
+| context_gap_2 | no_autocrack | noise | True | 0.929 | [JSON](2026-10-31-collection/context_gap_2/project/reader-report.json) |
+| context_gap_3 | no_autocrack | noise | True | 1.044 | [JSON](2026-10-31-collection/context_gap_3/project/reader-report.json) |
+| malformed_0 | diagnosed | pass | True | 0.269 | [JSON](2026-10-31-collection/malformed_0/project/reader-report.json) |
+| malformed_1 | diagnosed | pass | True | 0.729 | [JSON](2026-10-31-collection/malformed_1/project/reader-report.json) |
+| malformed_2 | diagnosed | pass | True | 0.302 | [JSON](2026-10-31-collection/malformed_2/project/reader-report.json) |
+| malformed_3 | diagnosed | pass | True | 0.431 | [JSON](2026-10-31-collection/malformed_3/project/reader-report.json) |
+| malformed_4 | diagnosed | pass | True | 0.283 | [JSON](2026-10-31-collection/malformed_4/project/reader-report.json) |
+| malformed_5 | diagnosed | pass | True | 0.342 | [JSON](2026-10-31-collection/malformed_5/project/reader-report.json) |
+| malformed_6 | diagnosed | pass | True | 0.274 | [JSON](2026-10-31-collection/malformed_6/project/reader-report.json) |
+| malformed_7 | diagnosed | pass | True | 0.321 | [JSON](2026-10-31-collection/malformed_7/project/reader-report.json) |
+| negative_0 | quiet | pass | True | 0.272 | [JSON](2026-10-31-collection/negative_0/project/reader-report.json) |
+| negative_1 | quiet | pass | True | 0.245 | [JSON](2026-10-31-collection/negative_1/project/reader-report.json) |
+| negative_2 | quiet | pass | True | 0.373 | [JSON](2026-10-31-collection/negative_2/project/reader-report.json) |
+| negative_3 | quiet | pass | True | 0.271 | [JSON](2026-10-31-collection/negative_3/project/reader-report.json) |
+| negative_4 | quiet | pass | True | 0.255 | [JSON](2026-10-31-collection/negative_4/project/reader-report.json) |
+| negative_5 | quiet | pass | True | 0.262 | [JSON](2026-10-31-collection/negative_5/project/reader-report.json) |
+| negative_6 | quiet | pass | True | 0.274 | [JSON](2026-10-31-collection/negative_6/project/reader-report.json) |
+| negative_7 | quiet | pass | True | 0.265 | [JSON](2026-10-31-collection/negative_7/project/reader-report.json) |
+| negative_8 | quiet | pass | True | 0.257 | [JSON](2026-10-31-collection/negative_8/project/reader-report.json) |
+| negative_9 | quiet | pass | True | 0.25 | [JSON](2026-10-31-collection/negative_9/project/reader-report.json) |
+| negative_10 | quiet | pass | True | 0.35 | [JSON](2026-10-31-collection/negative_10/project/reader-report.json) |
+| negative_11 | quiet | pass | True | 0.464 | [JSON](2026-10-31-collection/negative_11/project/reader-report.json) |
+| negative_12 | quiet | pass | True | 0.468 | [JSON](2026-10-31-collection/negative_12/project/reader-report.json) |
+| negative_13 | quiet | pass | True | 0.292 | [JSON](2026-10-31-collection/negative_13/project/reader-report.json) |
+| negative_14 | quiet | pass | True | 0.259 | [JSON](2026-10-31-collection/negative_14/project/reader-report.json) |
+| negative_15 | quiet | pass | True | 0.275 | [JSON](2026-10-31-collection/negative_15/project/reader-report.json) |
+| negative_16 | quiet | pass | True | 0.3 | [JSON](2026-10-31-collection/negative_16/project/reader-report.json) |
+| negative_17 | quiet | pass | True | 0.337 | [JSON](2026-10-31-collection/negative_17/project/reader-report.json) |
+| negative_18 | quiet | pass | True | 0.307 | [JSON](2026-10-31-collection/negative_18/project/reader-report.json) |
+| size_limit | size_guard | pass | True | 0.456 | [JSON](2026-10-31-collection/size_limit/project/reader-report.json) |
+| depth_limit | limit_notice | pass | True | 9.608 | [JSON](2026-10-31-collection/depth_limit/project/reader-report.json) |
+| archive_member_limit | limit_notice | pass | True | 3.882 | [JSON](2026-10-31-collection/archive_member_limit/project/reader-report.json) |
+| gzip_expansion_limit | limit_notice | pass | True | 0.302 | [JSON](2026-10-31-collection/gzip_expansion_limit/project/reader-report.json) |
+| encrypted_zip | password | pass | True | 0.947 | [JSON](2026-10-31-collection/encrypted_zip/project/reader-report.json) |
+| base64_encrypted_zip | plaintext | pass | True | 1.004 | [JSON](2026-10-31-collection/base64_encrypted_zip/project/reader-report.json) |
+| encrypted_ssh_key | password | pass | True | 8.409 | [JSON](2026-10-31-collection/encrypted_ssh_key/project/reader-report.json) |
+| sqlite_embedded_base64 | plaintext | pass | True | 0.786 | [JSON](2026-10-31-collection/sqlite_embedded_base64/project/reader-report.json) |
+| recovered_password_is_base64 | plaintext | pass | True | 2.381 | [JSON](2026-10-31-collection/recovered_password_is_base64/project/reader-report.json) |
+| public_0 | observe | observation | True | 0.39 | [JSON](2026-10-31-collection/public_0/project/reader-report.json) |
+| public_augmented_0 | password | pass | True | 2.85 | [JSON](2026-10-31-collection/public_augmented_0/project/reader-report.json) |
+| public_1 | observe | observation | True | 0.459 | [JSON](2026-10-31-collection/public_1/project/reader-report.json) |
+| public_augmented_1 | password | pass | True | 2.603 | [JSON](2026-10-31-collection/public_augmented_1/project/reader-report.json) |
+| public_2 | observe | observation | True | 0.522 | [JSON](2026-10-31-collection/public_2/project/reader-report.json) |
+| public_augmented_2 | password | pass | True | 3.153 | [JSON](2026-10-31-collection/public_augmented_2/project/reader-report.json) |
+| public_3 | observe | observation | True | 0.889 | [JSON](2026-10-31-collection/public_3/project/reader-report.json) |
+| public_augmented_3 | password | pass | True | 2.838 | [JSON](2026-10-31-collection/public_augmented_3/project/reader-report.json) |
+| public_4 | observe | observation | True | 0.311 | [JSON](2026-10-31-collection/public_4/project/reader-report.json) |
+| public_5 | observe | observation | True | 0.284 | [JSON](2026-10-31-collection/public_5/project/reader-report.json) |
+| public_6 | observe | observation | True | 0.296 | [JSON](2026-10-31-collection/public_6/project/reader-report.json) |
+| public_augmented_6 | password | pass | True | 2.39 | [JSON](2026-10-31-collection/public_augmented_6/project/reader-report.json) |
+| public_7 | observe | observation | True | 0.295 | [JSON](2026-10-31-collection/public_7/project/reader-report.json) |
+| public_augmented_7 | password | pass | True | 2.455 | [JSON](2026-10-31-collection/public_augmented_7/project/reader-report.json) |
+| public_8 | observe | observation | True | 0.762 | [JSON](2026-10-31-collection/public_8/project/reader-report.json) |
+| public_augmented_8 | password | pass | True | 2.353 | [JSON](2026-10-31-collection/public_augmented_8/project/reader-report.json) |
+| public_9 | observe | observation | True | 0.314 | [JSON](2026-10-31-collection/public_9/project/reader-report.json) |
+| public_augmented_9 | password | pass | True | 2.598 | [JSON](2026-10-31-collection/public_augmented_9/project/reader-report.json) |
+| public_10 | observe | observation | True | 0.283 | [JSON](2026-10-31-collection/public_10/project/reader-report.json) |
+| public_11 | observe | observation | True | 0.998 | [JSON](2026-10-31-collection/public_11/project/reader-report.json) |
+| public_12 | observe | observation | True | 1.646 | [JSON](2026-10-31-collection/public_12/project/reader-report.json) |
+| public_13 | observe | observation | True | 3.883 | [JSON](2026-10-31-collection/public_13/project/reader-report.json) |
+| public_14 | observe | observation | True | 3.285 | [JSON](2026-10-31-collection/public_14/project/reader-report.json) |
+| volume_16384_head | password | pass | True | 4.391 | [JSON](2026-10-31-volume/volume_16384_head/project/reader-report.json) |
+| volume_16384_tail | password | miss | True | 1.147 | [JSON](2026-10-31-volume/volume_16384_tail/project/reader-report.json) |
+| volume_16384_negative | quiet | inconclusive | True | 1.098 | [JSON](2026-10-31-volume/volume_16384_negative/project/reader-report.json) |
+| volume_131072_head | password | pass | True | 3.33 | [JSON](2026-10-31-volume/volume_131072_head/project/reader-report.json) |
+| volume_131072_tail | password | miss | True | 1.212 | [JSON](2026-10-31-volume/volume_131072_tail/project/reader-report.json) |
+| volume_131072_negative | quiet | inconclusive | True | 1.238 | [JSON](2026-10-31-volume/volume_131072_negative/project/reader-report.json) |
+| volume_1048576_head | password | pass | True | 3.327 | [JSON](2026-10-31-volume/volume_1048576_head/project/reader-report.json) |
+| volume_1048576_tail | password | miss | True | 1.653 | [JSON](2026-10-31-volume/volume_1048576_tail/project/reader-report.json) |
+| volume_1048576_negative | quiet | inconclusive | True | 1.633 | [JSON](2026-10-31-volume/volume_1048576_negative/project/reader-report.json) |
+| volume_1900000_head | password | pass | True | 4.065 | [JSON](2026-10-31-volume/volume_1900000_head/project/reader-report.json) |
+| volume_1900000_tail | password | miss | True | 1.665 | [JSON](2026-10-31-volume/volume_1900000_tail/project/reader-report.json) |
+| volume_1900000_negative | quiet | inconclusive | True | 1.601 | [JSON](2026-10-31-volume/volume_1900000_negative/project/reader-report.json) |
+| volume_json_tail | password | miss | True | 1.393 | [JSON](2026-10-31-volume/volume_json_tail/project/reader-report.json) |
+| volume_json_negative | quiet | inconclusive | True | 1.239 | [JSON](2026-10-31-volume/volume_json_negative/project/reader-report.json) |
+| volume_ini_tail | password | miss | True | 1.83 | [JSON](2026-10-31-volume/volume_ini_tail/project/reader-report.json) |
+| volume_ini_negative | quiet | inconclusive | True | 1.532 | [JSON](2026-10-31-volume/volume_ini_negative/project/reader-report.json) |
+| volume_csv_tail | password | pass | True | 2.466 | [JSON](2026-10-31-volume/volume_csv_tail/project/reader-report.json) |
+| volume_csv_negative | quiet | inconclusive | True | 0.863 | [JSON](2026-10-31-volume/volume_csv_negative/project/reader-report.json) |

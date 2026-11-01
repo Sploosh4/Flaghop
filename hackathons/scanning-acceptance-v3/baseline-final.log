@@ -1,0 +1,48 @@
+{"output": "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v3/baseline-final.json", "pass": 10, "fail": 3, "unmeasured": 2, "complete": false}
+test_actual_browser_profile_path_is_measured (__main__.B1TemporaryStorage.test_actual_browser_profile_path_is_measured) ... ok
+test_browser_process_tmp_is_within_measured_roots (__main__.B1TemporaryStorage.test_browser_process_tmp_is_within_measured_roots) ... ok
+test_observer_measures_24mib_then_small_final (__main__.B1TemporaryStorage.test_observer_measures_24mib_then_small_final) ... ok
+test_version_probe_uses_declared_work_root (__main__.B1TemporaryStorage.test_version_probe_uses_declared_work_root) ... FAIL
+test_failed_tool_retains_bounded_diagnostic (__main__.B2Cleanup.test_failed_tool_retains_bounded_diagnostic) ... ok
+test_interruption_cleans_owned_runtime (__main__.B2Cleanup.test_interruption_cleans_owned_runtime) ... ok
+test_large_runtime_home_has_bounded_diagnostic_before_removal (__main__.B2Cleanup.test_large_runtime_home_has_bounded_diagnostic_before_removal) ... ok
+test_real_permission_denied_cannot_report_completed (__main__.B2Cleanup.test_real_permission_denied_cannot_report_completed) ... ok
+test_successful_cleanup_is_explicit_and_preserves_neighbour (__main__.B2Cleanup.test_successful_cleanup_is_explicit_and_preserves_neighbour) ... ok
+test_database_changed_during_run_prevents_clean_completion (__main__.B3DependencyIdentity.test_database_changed_during_run_prevents_clean_completion) ... FAIL
+test_full_browser_version_is_preserved (__main__.B3DependencyIdentity.test_full_browser_version_is_preserved) ... ok
+test_selected_database_mutation_is_detected (__main__.B3DependencyIdentity.test_selected_database_mutation_is_detected) ... FAIL
+test_underlying_implementation_change_with_unchanged_wrapper (__main__.B3DependencyIdentity.test_underlying_implementation_change_with_unchanged_wrapper) ... ok
+test_documented_commands_have_current_receipts (__main__.B4CommandEvidence.test_documented_commands_have_current_receipts) ... skipped 'Unmeasured: supply --evidence round3-evidence.json'
+test_three_matching_full_runs_with_storage_and_dependencies (__main__.ReleaseEvidence.test_three_matching_full_runs_with_storage_and_dependencies) ... skipped 'Unmeasured: supply --evidence round3-evidence.json'
+
+======================================================================
+FAIL: test_version_probe_uses_declared_work_root (__main__.B1TemporaryStorage.test_version_probe_uses_declared_work_root)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v3/acceptance.py", line 88, in test_version_probe_uses_declared_work_root
+    self.assertTrue(Path(env['TMPDIR']).resolve().is_relative_to(self.work.resolve()), env['TMPDIR'])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp
+
+======================================================================
+FAIL: test_database_changed_during_run_prevents_clean_completion (__main__.B3DependencyIdentity.test_database_changed_during_run_prevents_clean_completion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v3/acceptance.py", line 252, in test_database_changed_during_run_prevents_clean_completion
+    self.assertNotEqual(code, 0)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_selected_database_mutation_is_detected (__main__.B3DependencyIdentity.test_selected_database_mutation_is_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v3/acceptance.py", line 234, in test_selected_database_mutation_is_detected
+    self.assertIn(before_hash, list(values(before)))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '282b161fbc285f9def9520672b9897dec61cbb3e3662c7a158cf50d1a374d902' not found in ['/tmp/cp-v3-nwabbyle/wpscan', 'present', 43, 'b43769bd96385e17ce777f4bf2c37d299f59f84cd6ff7a9ee7d60dff8d1e2bfe', '/usr/bin/python3.14', 'present', 7477160, '52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41', '/tmp/cp-v3-nwabbyle/wpscan', 'present', 43, 'b43769bd96385e17ce777f4bf2c37d299f59f84cd6ff7a9ee7d60dff8d1e2bfe', None, 0, '/home/joshua/.cache/wpscan/db', 'present', 25, 'eec1ef4cb88640fd69d8dfdb594fce0835fd8419a06553f1630b5ad63902a18f', 3395, '212637c014ab1a329bd2a97c57b3d9601e05fb6454df7665dbdcb67c691d2c0c', 91, '50399ddd4c3477abdd99e21f1dc82e21bdc4f2068a59e20122143c155defba5b', 2429, 'a24ed73c1a0256996f58565e306aa88ff20b79061e4e55404d1eb6773b691ca0', 1199, 'a68ba7664dd4f2ff8a8881d2c33cb971f22691d574030bffcaddedc762e57dc1', 3276000, '0735739d9f5b0ce51645bdac55def20ef0e377ecdd3bf3e3a5cf62e3c5f985d1', 17383159, '6ac81e68b6bc3e1b73d417bd80d887191acf368cb46a4ca637eb221b7a1b5183', 49, 'e75f1880aa0114ea692a9f0986c2443a24b42c27628f10b42398d605055c3f5b', 126111, '5735a76debab04033ff0bb4e32f1cac09c29a085b0eb5507dbd29ae3c29ce366', 5497101, 'b8e8ac1dc92f31512a424227015ecce9ecf307d003478292fa07cf5fa848f191', 10, 26289559]
+
+----------------------------------------------------------------------
+Ran 15 tests in 1.335s
+
+FAILED (failures=3, skipped=2)

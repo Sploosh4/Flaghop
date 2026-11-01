@@ -1,0 +1,9 @@
+.tools/
+.venv/
+.cache/
+.tmp/
+results/
+__pycache__/
+*.pyc
+
+.clc
