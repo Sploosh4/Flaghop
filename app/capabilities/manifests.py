@@ -11,7 +11,7 @@ from app.contracts.actions.capabilities import CapabilityManifest
 _APPROVED_BASELINE = ()
 
 
-def load_manifests(root, registry):
+def load_manifests(root, registry, pipettes=()):
     root = Path(root)
     if root.is_symlink() or not root.is_dir():
         raise ValueError("manifest root must be a directory, not a symlink")
@@ -31,7 +31,7 @@ def load_manifests(root, registry):
         except (ValueError, OSError) as exc:
             raise ValueError(f"invalid manifest {folder.name}: {exc}") from exc
         manifests.append(manifest)
-    return validate_manifests(manifests, registry)
+    return validate_manifests(manifests, registry, pipettes)
 
 
 def validate_manifests(manifests, registry, pipettes=()):

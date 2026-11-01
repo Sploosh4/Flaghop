@@ -88,6 +88,34 @@ class CapabilityTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, match):
                 self.validate(payload)
 
+    def test_discovery_resolves_actual_pipette_without_execution(self):
+        from app.pipettes import list_pipettes
+
+        pipettes = list_pipettes()
+        self.assertTrue(pipettes)
+        pipette = pipettes[0]
+        payload = {
+            "version": 1,
+            "integrations": [{"id": pipette.tool_id}],
+            "modules": [
+                {
+                    "id": "fixture-pipette",
+                    "integration_ids": [pipette.tool_id],
+                    "action_ids": ["pipette:" + pipette.tool_id],
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp) / "example"
+            folder.mkdir()
+            (folder / "manifest.json").write_text(json.dumps(payload))
+            with patch("subprocess.Popen", side_effect=AssertionError("execution forbidden")):
+                result = load_manifests(temp, self.registry, pipettes)
+            self.assertEqual(result["modules"]["fixture-pipette"].action_ids, ["pipette:" + pipette.tool_id])
+            with self.assertRaisesRegex(ValueError, "missing action"):
+                load_manifests(temp, self.registry)
+            self.assertEqual(len(self.registry.all()), 2)
+
     def test_discovery_is_atomic_and_never_executes_code(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

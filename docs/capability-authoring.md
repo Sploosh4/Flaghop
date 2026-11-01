@@ -16,6 +16,9 @@ integration IDs and optional module dependencies. Categories contain an explicit
 positive definition and references to actions/modules; these are proposals.
 The loader validates the entire set before returning it, including unique IDs,
 known references, integration-to-action consistency and acyclic dependencies.
+Call `load_manifests(root, registry, pipettes)` with the already loaded pipette
+specifications to resolve `pipette:` action references; omit the third argument
+only when no pipettes are available. The function never executes those sources.
 Invalid JSON, unknown fields, version mismatch, symlinks and missing manifests
 fail with an error; nothing is registered or imported. Manifest discovery never
 executes code. The contract classes live in `app/contracts/actions/capabilities.py`;
