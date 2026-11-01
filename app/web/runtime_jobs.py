@@ -81,10 +81,14 @@ def start_job(
         try:
             if network_job:
                 network_service(runtime).load(reference)
-            result = runner_with_job_id(int(job_ref.get("id", 0) or 0)) or {}
+            result = runner_with_job_id(int(job_ref.get("id", 0) or 0))
             if isinstance(result, JobOutcome):
                 return result
-            if result.get("executed") is False and str(result.get("reason", "")).startswith("held:"):
+            if (
+                isinstance(result, dict)
+                and result.get("executed") is False
+                and str(result.get("reason", "")).startswith("held:")
+            ):
                 raise NetworkHeld(result["reason"])
             return result
         except NetworkHeld as exc:

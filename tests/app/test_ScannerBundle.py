@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from app.scanning.bundle import FILES, compare, install, manifest_bytes, read_bundle
-from app.scanning.source import BUNDLE, scanner_source
+from app.scanning.source import BUNDLE, scanner_source, pin_source
 
 
 class ScannerBundleTest(unittest.TestCase):
@@ -65,3 +65,35 @@ class ScannerBundleTest(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 scanner_source()
         self.assertFalse(compare(self.source, self.destination)[2]["installed_manifest_matches_files"])
+
+    def test_worker_snapshot_keeps_pinned_bytes_when_reviewed_install_changes(self):
+        expected = read_bundle(self.destination)[1]
+        scratch = self.root / "scratch"
+        scratch.mkdir()
+        with patch("app.scanning.source.BUNDLE", self.destination):
+            owned = pin_source(scratch, expected)
+            before = (owned / "settings.py").read_bytes()
+            (self.source / "settings.py").write_bytes(before + b"\n# reviewed fixture update\n")
+            files, manifest, review = compare(self.source, self.destination)
+            install(self.destination, files, manifest, review["candidate_manifest_sha256"])
+            self.assertEqual(expected, read_bundle(owned)[1])
+            self.assertEqual(before, (owned / "settings.py").read_bytes())
+            with self.assertRaisesRegex(RuntimeError, "Queued scanner source changed"):
+                pin_source(scratch, expected)
+
+    def test_worker_identity_failure_holds_before_import_inventory_or_scanner_work(self):
+        from app.scanning.worker import main
+        from unittest.mock import Mock
+
+        request = self.root / "request.json"
+        request.write_text(json.dumps({"scratch": str(self.root), "source_identity": {}}))
+        tool_probe = Mock(side_effect=AssertionError("Tool work before source pin"))
+        with (
+            patch("sys.argv", ["worker", str(request)]),
+            patch("app.scanning.worker.pin_source", side_effect=RuntimeError("changed source")),
+            patch("app.scanning.worker.snapshot", tool_probe),
+            patch("app.scanning.worker.configure_environment", tool_probe),
+        ):
+            self.assertEqual(78, main())
+        tool_probe.assert_not_called()
+        self.assertEqual("held", json.loads((self.root / "worker-status.json").read_text())["status"])

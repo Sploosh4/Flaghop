@@ -11,6 +11,19 @@ jobs:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@v4
+      - name: Place the checkout and dedicated tooling on capped storage
+        shell: bash
+        run: |
+          set -euo pipefail
+          capped="$RUNNER_TEMP/flaghop-capped"
+          mkdir -p "$capped"
+          sudo mount -t tmpfs -o "size=1999998976,uid=$(id -u),gid=$(id -g),mode=700" tmpfs "$capped"
+          shopt -s dotglob nullglob
+          for entry in "$GITHUB_WORKSPACE"/*; do mv -- "$entry" "$capped/"; done
+          sudo mount --bind "$capped" "$GITHUB_WORKSPACE"
+          mkdir -p "$GITHUB_WORKSPACE/.tmp" "$GITHUB_WORKSPACE/.cache" "$GITHUB_WORKSPACE/.artifacts/disposable"
+          mountpoint -q "$GITHUB_WORKSPACE"
+          echo "TMPDIR=$GITHUB_WORKSPACE/.tmp" >> "$GITHUB_ENV"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -22,7 +35,7 @@ jobs:
       - name: Install desktop runtime libraries
         run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libopengl0 libxkbcommon0 libdbus-1-3 libnss3 libasound2t64 libgbm1 libxcomposite1 libxdamage1 libxrandr2 libxi6 libxtst6 libfontconfig1
       - name: Install Python dependencies
-        run: python -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt
+        run: python -m venv .venv && .venv/bin/python -m pip install --no-cache-dir -r requirements-dev.txt
       - name: Check frontend contracts, components and production bundle
         run: scripts/frontend.sh check
       - name: Tests, formatting and lint

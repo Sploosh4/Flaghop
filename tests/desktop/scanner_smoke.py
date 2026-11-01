@@ -31,6 +31,7 @@ from app.scanning.source import scanner_source
 from app.contracts.actions.network import NetworkUpdate
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
+from app.services.execution_journal import ExecutionJournal
 from db.entities.host import hostObj
 from tests.app.test_ProjectNetworks import FixtureProbe
 from tests.support.asgi_server import live_asgi_server
@@ -49,7 +50,9 @@ if os.environ.get("LEGION_SCANNER_SMOKE_ARTIFACTS"):
         raise ValueError("Visual fixture artifacts must remain in the project disposable directory.")
 ARTIFACTS.mkdir(parents=True, exist_ok=True)
 logic = create_default_logic()
-runtime = WebRuntime(logic)
+runtime = WebRuntime(
+    logic, execution_journal=ExecutionJournal(Path(os.environ["LEGION_HOME"]) / "protected-executions")
+)
 web = create_app(runtime)
 hub = web.state.project_hub
 project = hub.create("Synthetic scanner lab")["project"]

@@ -81,3 +81,6 @@ export async function stopDeepScan(jobId: number) {return result(await client.PO
 export function documentUrl(id: string, path: string) {return `/api/hub/projects/${encodeURIComponent(id)}/editor?${new URLSearchParams({path})}`;}
 
 export async function deepScan(id: string, scanId: string) {return result(await client.GET('/api/hub/projects/{identifier}/deep-scans/{scan_id}', {params: {path: {identifier: id, scan_id: scanId}}}));}
+export async function recoverDeepScan(id: string, scanId: string) {return result(await client.POST('/api/hub/projects/{identifier}/deep-scans/{scan_id}/recover', {params: {path: {identifier: id, scan_id: scanId}}}));}
+export async function executionRecovery() {return result(await client.GET('/api/recovery'));}
+export async function retryExecutionRecovery() {return result(await client.POST('/api/recovery'));}

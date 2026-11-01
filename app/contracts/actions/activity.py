@@ -4,6 +4,7 @@ from app.contracts.base import ActionModel
 from typing import Annotated, Literal
 from pydantic import ConfigDict, Field, JsonValue
 from app.contracts.actions.job_api import Job
+from app.contracts.observations.process_history import ProcessHistoryView
 
 TargetPort = str | int | None
 Text = str | None
@@ -42,6 +43,7 @@ class ProcessOutput(Process):
     completed: bool
     progress: ProcessProgress = Field(default_factory=ProcessProgress)
     network_context: dict[str, JsonValue] = Field(default_factory=dict)
+    history_origin: ProcessHistoryView | None = None
 
 
 class ActivityRequest(ActionModel):
@@ -60,6 +62,13 @@ class ProcessAction(ActionModel):
     model_config = ConfigDict(extra="allow")
     status: Literal["ok"] = "ok"
     process_id: int
+
+
+class ProcessKillResult(ProcessAction):
+    killed: bool
+    had_live_handle: bool = False
+    cancel_requested: bool = False
+    reason: str = ""
 
 
 class ClearedProcesses(ActionModel):

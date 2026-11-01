@@ -6,7 +6,7 @@ class WebResponseSchemaTest(unittest.TestCase):
         from app.contracts.actions.responses import AcceptedJobResponse, ScanHistoryResponse
         from app.web.response_schema import ProjectListResponse, ProjectOkResponse
 
-        with self.assertRaisesRegex(ValueError, "job must be an object"):
+        with self.assertRaisesRegex(TypeError, "invalid job result"):
             AcceptedJobResponse.from_job(["not", "a", "job"])
         with self.assertRaisesRegex(ValueError, "project must be an object"):
             ProjectOkResponse.from_project(["not", "a", "project"])
@@ -20,8 +20,8 @@ class WebResponseSchemaTest(unittest.TestCase):
         from app.web.response_schema import ProjectListResponse, ProjectOkResponse
 
         self.assertEqual(
-            {"status": "accepted", "job": {"id": 7}},
-            AcceptedJobResponse.from_job({"id": 7}).to_dict(),
+            {"status": "accepted", "job": {"id": 7, "type": "fixture", "status": "queued"}},
+            AcceptedJobResponse.from_job({"id": 7, "type": "fixture", "status": "queued"}).to_dict(),
         )
         self.assertEqual(
             {"status": "ok", "project": {"name": "demo.legion"}},

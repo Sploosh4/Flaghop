@@ -419,7 +419,10 @@ class WebRuntime:
     _ui_events = OwnedState("events", "events", EventStream)
     _ui_last_emit_monotonic = OwnedState("events", "last_emit_monotonic", EventStream)
 
-    def __init__(self, logic):
+    def __init__(self, logic, *, execution_journal=None):
+        from app.services.execution_journal import ExecutionJournal
+
+        self.execution_journal = execution_journal if execution_journal is not None else ExecutionJournal()
         self.workspace = WorkspaceSession(logic)
         self.autosave = self.workspace.autosave
         self.process_registry = ProcessRegistry()

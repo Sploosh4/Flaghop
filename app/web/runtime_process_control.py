@@ -64,37 +64,57 @@ def signal_process_tree(proc: Optional[subprocess.Popen], *, force: bool = False
 
 def kill_process(runtime, process_id: int) -> Dict[str, Any]:
     process_key = int(process_id)
-    with runtime._process_runtime_lock:
-        runtime._kill_requests.add(process_key)
-        proc = runtime._active_processes.get(process_key)
+    # Pin the original repository and handle together, then release all project
+    # locks before waiting. A completed job can make switching legal during wait.
+    with runtime._lock:
+        original_repo = runtime._require_active_project().repositoryContainer.processRepository
+        with runtime._process_runtime_lock:
+            proc = runtime._active_processes.get(process_key)
+            if proc is not None and proc.poll() is None:
+                runtime._kill_requests.add(process_key)
 
     had_live_handle = proc is not None
+    if proc is None:
+        from app.services.project_networks import NetworkHeld
+
+        raise NetworkHeld(
+            "No owned live process handle is available. Retry protected cleanup/recovery; a saved PID cannot prove ownership."
+        )
+    if proc.poll() is not None:
+        with runtime._process_runtime_lock:
+            runtime._kill_requests.discard(process_key)
+        return {
+            "killed": False,
+            "process_id": process_key,
+            "had_live_handle": True,
+            "cancel_requested": False,
+            "reason": "The process already exited; its recorded outcome was preserved.",
+        }
     if proc is not None and proc.poll() is None:
         runtime._signal_process_tree(proc, force=False)
         try:
             proc.wait(timeout=2)
         except Exception:
             runtime._signal_process_tree(proc, force=True)
-    else:
-        with runtime._lock:
-            project = runtime._require_active_project()
-            process_repo = project.repositoryContainer.processRepository
-            pid = process_repo.getPIDByProcessId(str(process_key))
-        try:
-            if pid not in (None, "", "-1"):
-                os.kill(int(pid), signal.SIGTERM)
-        except Exception:
-            pass
+            try:
+                proc.wait(timeout=2)
+            except Exception:
+                pass
+    # A restored SQLite PID may now belong to another process. Only a live
+    # owned handle or the protected recovery journal can authorize signalling.
 
     with runtime._lock:
         project = runtime._require_active_project()
         process_repo = project.repositoryContainer.processRepository
-        process_repo.storeProcessKillStatus(str(process_key))
+        if process_repo is original_repo and proc.poll() is not None:
+            original_repo.storeProcessKillStatus(str(process_key))
 
     result = {
-        "killed": True,
+        "killed": proc.poll() is not None,
         "process_id": process_key,
         "had_live_handle": had_live_handle,
+        "cancel_requested": True,
+        "reason": "" if proc.poll() is not None else "Cancellation requested; the process has not yet exited.",
     }
     runtime._emit_ui_invalidation("processes", "overview", throttle_seconds=0.1)
     return result
@@ -167,6 +187,12 @@ def get_process_output(runtime, process_id: int, offset: int = 0, max_chars: int
             data["network_context"] = json.loads(network) if network else {}
         finally:
             session.close()
+
+        from app.services.process_history import origin_view
+
+        origin = origin_view(project, process_id)
+        if origin is not None:
+            data["history_origin"] = origin
 
     full_output = str(data.get("output", "") or "")
     output_length = len(full_output)
@@ -250,6 +276,7 @@ def ensure_process_tables(runtime):
             text(
                 "CREATE TABLE IF NOT EXISTS process ("
                 "pid TEXT,"
+                "execution_id TEXT,"
                 "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 "display TEXT,"
                 "name TEXT,"
@@ -288,6 +315,7 @@ def ensure_process_tables(runtime):
             )
         )
         for column_name, column_type in (
+            ("execution_id", "TEXT"),
             ("progressMessage", "TEXT"),
             ("progressSource", "TEXT"),
             ("progressUpdatedAt", "TEXT"),

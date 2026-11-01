@@ -1,11 +1,8 @@
 from __future__ import annotations
-
 from app.contracts.base import ActionData
-
+from app.core.contract_values import as_bool, clamp_int
 from dataclasses import dataclass
 from typing import Any
-
-from app.core.contract_values import as_bool, clamp_int
 
 
 @dataclass(frozen=True)

@@ -1,8 +1,8 @@
-from typing import Literal
-from pydantic import BaseModel
-from app.contracts.actions.job_api import Job
 from app.api.contracts import Project
-from app.services.project_hub_requests import Connector
+from app.contracts.actions.hub_requests import Connector
+from app.contracts.actions.job_api import Job
+from pydantic import BaseModel
+from typing import Literal
 
 
 class HubProject(BaseModel):

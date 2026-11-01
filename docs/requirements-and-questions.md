@@ -5,8 +5,9 @@ observation definitions and artifact references in their dedicated `app/contract
 folders, with no runtime/IO code, tests or documentation in those folders. Use
 approved class roots, one canonical owner, a local/CI checker with rejection
 tests, and contributor instructions for both people and AI agents. This
-checkpoint updates existing consumers together. Persistent
-run recovery is deferred; independent project execution remains separate work.
+checkpoint updates existing consumers together. On 1 November 2026, Josh extended
+the review to include protected owned cleanup and offline result recovery.
+Network replay stays prohibited; independent project execution remains separate work.
 See [the authoring standard](contract-authoring.md).
 
 Included transport: all HTTP routes, pages, ZIP transfer and WebSockets use FastAPI. The Flask fallback and transport selector are removed; existing project and reader formats are preserved. The separately authorised [architecture improvements](architecture-follow-ups.md) are included in this revision and verified locally.

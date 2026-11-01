@@ -22,7 +22,28 @@ def settled(owner, job):
             (parent / "log.txt").write_text(record["reason"])
             record["log_path"] = str((parent / "log.txt").relative_to(current.root))
         record["settlement"] = "complete"
+        progress = record.get("import_progress", {})
+        finish_authority = False
+        preparation_aborted = job.get("result", {}).get("preparation_aborted") is True
+        if preparation_aborted:
+            record["recovery"] = {"policy": "never-replay", "state": "no_profile", "retry_available": False}
+        if record.get("execution_id") and not preparation_aborted:
+            from app.services.execution_journal import for_runtime
+
+            journal = for_runtime(owner.hub.runtime)
+            if journal.get(record["execution_id"]).phase == "cleaned":
+                if progress.get("status") == "completed":
+                    record["recovery"] = {"policy": "never-replay", "state": "complete", "retry_available": False}
+                    finish_authority = True
+                elif not progress and not record.get("profile_path"):
+                    record["recovery"] = {"policy": "never-replay", "state": "no_profile", "retry_available": False}
+                    finish_authority = True
         atomic_json(path, record)
+        if finish_authority:
+            from app.scanning.recovery import settle_process
+
+            settle_process(owner.hub.runtime._require_active_project(), journal.get(record["execution_id"]))
+            journal.finish(record["execution_id"])
 
 
 def reconcile(owner, path, record):

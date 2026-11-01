@@ -8,6 +8,8 @@ from app.contracts.base import ObservationModel
 from app.contracts.actions.scanner_facts import TaskFacts
 from app.contracts.observations.scanner import CandidateFinding, VerifiedFinding, ScannerObservation
 from app.contracts.artifacts.scanner import Artifact
+from app.contracts.observations.classification import ClassificationFacts
+from app.contracts.observations.discovery import NmapFacts
 
 
 class ProfileTarget(ObservationModel):
@@ -27,5 +29,5 @@ class Profile(ObservationModel):
     assessment_findings: list[CandidateFinding] = Field(default_factory=list, max_length=1000)
     validated_vulnerabilities: list[VerifiedFinding] = Field(default_factory=list, max_length=1000)
     artifacts: list[Artifact] = Field(max_length=248)
-    classification: dict | None = None
-    nmap: dict | None = None
+    classification: ClassificationFacts | None = None
+    nmap: NmapFacts | None = None

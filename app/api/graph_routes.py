@@ -1,12 +1,13 @@
 """Native FastAPI endpoints preserving existing service and HTTP contracts."""
 
-from typing import Any
-from fastapi import Body, Request
-from fastapi.responses import FileResponse, Response
-from urllib.parse import quote
 from app.api.dependencies import Runtime, native_router
+from app.contracts.actions.graph_requests import GraphAnnotationSaveRequest, GraphLayoutSaveRequest, GraphRebuildRequest
+from app.contracts.actions.mutation_results import GraphAnnotationResult, GraphLayoutResult, GraphRebuildResult
 from app.web.http_utils import json_error
 from app.web.services.graph_service import GraphService
+from fastapi import Request
+from fastapi.responses import FileResponse, Response
+from urllib.parse import quote
 
 router = native_router()
 
@@ -45,11 +46,16 @@ def evidence_graph(request: Request, runtime: Runtime):
         return json_error(str(exc), 500)
 
 
-@router.post("/api/graph/rebuild", operation_id="evidence_graph_rebuild")
-def evidence_graph_rebuild(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/graph/rebuild",
+    operation_id="evidence_graph_rebuild",
+    response_model=GraphRebuildResult,
+    response_model_exclude_unset=True,
+)
+def evidence_graph_rebuild(request: Request, runtime: Runtime, payload: GraphRebuildRequest):
     service = GraphService(runtime)
     try:
-        return service.rebuild(payload or {})
+        return service.rebuild(payload)
     except Exception as exc:
         return json_error(str(exc), 500)
 
@@ -74,11 +80,16 @@ def evidence_graph_layouts(request: Request, runtime: Runtime):
         return json_error(str(exc), 500)
 
 
-@router.post("/api/graph/layouts", operation_id="evidence_graph_save_layout")
-def evidence_graph_save_layout(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/graph/layouts",
+    operation_id="evidence_graph_save_layout",
+    response_model=GraphLayoutResult,
+    response_model_exclude_unset=True,
+)
+def evidence_graph_save_layout(request: Request, runtime: Runtime, payload: GraphLayoutSaveRequest):
     service = GraphService(runtime)
     try:
-        return service.save_layout(payload or {})
+        return service.save_layout(payload)
     except ValueError as exc:
         return json_error(str(exc), 400)
     except Exception as exc:
@@ -94,11 +105,16 @@ def evidence_graph_annotations(request: Request, runtime: Runtime):
         return json_error(str(exc), 500)
 
 
-@router.post("/api/graph/annotations", operation_id="evidence_graph_save_annotation")
-def evidence_graph_save_annotation(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/graph/annotations",
+    operation_id="evidence_graph_save_annotation",
+    response_model=GraphAnnotationResult,
+    response_model_exclude_unset=True,
+)
+def evidence_graph_save_annotation(request: Request, runtime: Runtime, payload: GraphAnnotationSaveRequest):
     service = GraphService(runtime)
     try:
-        return service.save_annotation(payload or {})
+        return service.save_annotation(payload)
     except ValueError as exc:
         return json_error(str(exc), 400)
     except Exception as exc:

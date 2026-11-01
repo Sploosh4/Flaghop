@@ -58,6 +58,7 @@ class NmapImporter:
         self.updateProgressObservable = updateProgressObservable
         self.hostRepository = hostRepository
         self._cancel_requested = False  # Cancellation flag
+        self.completed = False
 
     def cancel(self):
         self._cancel_requested = True
@@ -105,6 +106,7 @@ class NmapImporter:
     def run(self):
         """Import stages retain their historical commits; the session owns lock cleanup."""
         started_at = time()
+        self.completed = False
         try:
             if self.updateProgressObservable is not None:
                 self.updateProgressObservable.start()
@@ -128,6 +130,7 @@ class NmapImporter:
                 self._store_scripts(unit.session, hosts)
                 self._enrich_hosts(unit.session, hosts)
                 unit.session.commit()
+                self.completed = True
                 # Listeners may write to the database, so release before notification.
                 unit.release_write_lock()
                 self.tsLog(f"Finished in {time() - started_at} seconds.")

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shutil
+from app.services.storage_admission import StorageAdmission
 from typing import Any, Dict
 
 from app.web import runtime_project_bundle_archive as web_runtime_project_bundle_archive
@@ -10,12 +11,14 @@ from app.web import runtime_project_bundle_rebase as web_runtime_project_bundle_
 
 def start_restore_project_zip_job(runtime, path: str) -> Dict[str, Any]:
     zip_path = web_runtime_project_bundle_archive.normalize_existing_file(path)
+    admission = getattr(runtime, "storage_admission", None) or StorageAdmission()
     return runtime._start_job(
         "project-restore-zip",
         lambda _job_id: restore_project_bundle_zip_job(runtime, zip_path, cleanup_source=True),
         payload={"path": zip_path},
         queue_front=True,
         exclusive=True,
+        on_finish=lambda _job: admission.release_upload(zip_path),
     )
 
 
@@ -30,70 +33,16 @@ def restore_project_bundle_zip_job(runtime, zip_path: str, cleanup_source: bool)
         return restore_project_bundle_zip_impl(runtime, normalized)
     finally:
         if cleanup_source:
-            try:
-                if os.path.isfile(normalized):
-                    os.remove(normalized)
-            except Exception:
-                pass
+            admission = getattr(runtime, "storage_admission", None) or StorageAdmission()
+            admission.release_upload(normalized)
 
 
 def restore_project_bundle_zip_impl(runtime, zip_path: str) -> Dict[str, Any]:
-    normalized = web_runtime_project_bundle_archive.normalize_existing_file(zip_path)
-    restored = web_runtime_project_bundle_archive.extract_project_bundle_zip(normalized)
-    manifest = dict(restored.get("manifest") or {})
-    restore_root = str(restored.get("restore_root", "") or "")
-    project_path = str(restored.get("project_path", "") or "")
-    output_folder = str(restored.get("output_folder", "") or "")
-    running_folder = str(restored.get("running_folder", "") or "")
+    from app.services.project_hub import ProjectHub
 
-    web_runtime_project_bundle_rebase.rebase_restored_project_paths(
-        project_path=project_path,
-        manifest=manifest,
-        output_folder=output_folder,
-        running_folder=running_folder,
-    )
-
-    with runtime._lock:
-        if runtime._save_in_progress:
-            raise RuntimeError("Project save is in progress. Try again when it finishes.")
-        previous_project = getattr(runtime.logic, "activeProject", None)
-        restored_project = None
-        try:
-            project_manager = getattr(runtime.logic, "projectManager", None)
-            if project_manager is not None and hasattr(project_manager, "openExistingProject"):
-                restored_project = project_manager.openExistingProject(project_path, projectType="legion")
-            else:
-                runtime.logic.openExistingProject(project_path, projectType="legion")
-                restored_project = getattr(runtime.logic, "activeProject", None)
-            if restored_project is None:
-                raise RuntimeError("Restored project could not be opened.")
-
-            runtime.logic.activeProject = restored_project
-            attach_restored_running_folder_locked(runtime, running_folder)
-            runtime._ensure_scheduler_table()
-            runtime._ensure_scheduler_approval_store()
-            runtime._ensure_process_tables()
-            details = runtime.get_project_details()
-        except Exception:
-            runtime.logic.activeProject = previous_project
-            if restored_project is not None and restored_project is not previous_project:
-                close_project_instance(runtime, restored_project)
-            raise
-
-        if previous_project is not None and previous_project is not restored_project:
-            close_project_instance(runtime, previous_project)
-
-    return {
-        "project": details,
-        "restored": {
-            "restore_root": restore_root,
-            "project_path": project_path,
-            "output_folder": output_folder,
-            "running_folder": running_folder,
-            "manifest_project_file": str(manifest.get("project_file", "") or ""),
-            "manifest_format": str(manifest.get("format", "") or ""),
-        },
-    }
+    hub = getattr(getattr(runtime, "project_networks", None), "hub", None) or ProjectHub(runtime)
+    result = hub.operations.restore_zip(zip_path)
+    return {"project": result["workspace"], "restored": result["restored"], "hub_project": result["project"]}
 
 
 def close_project_instance(runtime, project) -> None:

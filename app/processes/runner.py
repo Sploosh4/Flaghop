@@ -6,6 +6,8 @@ import queue
 import subprocess
 import threading
 import time
+import sys
+from pathlib import Path
 from typing import List, Optional
 from app.settings import AppSettings
 from app.timing import getTimestamp
@@ -53,7 +55,15 @@ class ProcessRunner:
     def run(self, request: CommandRequest) -> ExecutionResult:
         self.request = request
         self.state = ExecutionState()
-        return self._execute()
+        result = self._execute()
+        guard = self.ports.network_guard
+        if guard is not None and guard.report and guard.report.get("status") == "held":
+            from dataclasses import replace
+
+            return replace(
+                result, executed=False, reason="held: " + guard.report.get("reason", "Owned cleanup is incomplete.")
+            )
+        return result
 
     def _execute(self):
         self.state.process_repo = self.ports.repository()
@@ -68,6 +78,8 @@ class ProcessRunner:
             start_time=self.state.start_time,
             outputfile=str(self.request.outputfile),
         )
+        if self.ports.ownership is not None:
+            stub.execution_id = self.ports.ownership[1]
         try:
             self.state.process_id = int(self.state.process_repo.storeProcess(stub) or 0)
         except Exception:
@@ -75,6 +87,9 @@ class ProcessRunner:
             self.state.process_id = int(self.state.process_repo.storeProcess(stub) or 0)
         if self.state.process_id <= 0:
             return self._build_result(False, "error: failed to create process record", 0)
+        if self.ports.ownership is not None:
+            journal, identifier = self.ports.ownership
+            journal.update(identifier, process_id=self.state.process_id)
         self.state.resolved_job_id = int(self.request.job_id or 0)
         if self.state.resolved_job_id > 0:
             self.ports.register_job_process(self.state.resolved_job_id, int(self.state.process_id))
@@ -159,6 +174,9 @@ class ProcessRunner:
                     self._record_network()
                 except Exception:
                     logging.getLogger(__name__).exception("Unable to persist final network observation")
+            elif self.ports.ownership is not None:
+                journal, identifier = self.ports.ownership
+                journal.cleanup(identifier)
             with self.ports.registry.lock:
                 self.ports.registry.active.pop(int(self.state.process_id), None)
                 self.ports.registry.kill_requests.discard(int(self.state.process_id))
@@ -166,26 +184,48 @@ class ProcessRunner:
             self.ports.emit_ui_invalidation("processes", "overview", throttle_seconds=0.1)
 
     def _start_process(self):
+        if self.state.resolved_job_id and self.ports.jobs.is_cancel_requested(self.state.resolved_job_id):
+            raise RuntimeError("Cancelled before process launch.")
         guarded = self.ports.network_guard is not None
         argv = self.ports.network_guard.prepare() if guarded else self.request.command
         self._record_network()
         env = build_tool_execution_env()
         if guarded:
             env["NMAP_UNPRIVILEGED"] = "1"
-        self.state.proc = subprocess.Popen(
-            argv,
-            shell=not guarded,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-            # Keep the authenticated terminal session for sudo's timestamp,
-            # while retaining a separate process group for cancellation.
-            start_new_session=os.name != "nt" and not guarded,
-            process_group=0 if os.name != "nt" and guarded else None,
-            env=env,
-            cwd=self.request.cwd,
-        )
+        read_fd = write_fd = None
+        if self.ports.ownership is not None:
+            journal, identifier = self.ports.ownership
+            env["FLAGHOP_EXECUTION_TOKEN"] = journal.get(identifier).token
+            read_fd, write_fd = os.pipe()
+            child = list(argv) if guarded else ["/bin/sh", "-c", argv]
+            argv = [sys.executable, "-I", str(Path(__file__).with_name("gated_exec.py")), str(read_fd), *child]
+        try:
+            self.state.proc = subprocess.Popen(
+                argv,
+                shell=not guarded and self.ports.ownership is None,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                # Keep the authenticated terminal session for sudo's timestamp,
+                # while retaining a separate process group for cancellation.
+                start_new_session=os.name != "nt" and not guarded,
+                process_group=0 if os.name != "nt" and guarded else None,
+                env=env,
+                cwd=self.request.cwd,
+                **({"pass_fds": (read_fd,)} if read_fd is not None else {}),
+            )
+            with self.ports.registry.lock:
+                self.ports.registry.active[int(self.state.process_id)] = self.state.proc
+            if self.ports.ownership is not None:
+                journal.launched(identifier, self.state.proc)
+                if self.state.resolved_job_id and self.ports.jobs.is_cancel_requested(self.state.resolved_job_id):
+                    raise RuntimeError("Cancelled before tool execution.")
+                os.write(write_fd, b"G")
+        finally:
+            for descriptor in (read_fd, write_fd):
+                if descriptor is not None:
+                    os.close(descriptor)
         self.state.process_repo.storeProcessRunningStatus(str(self.state.process_id), str(self.state.proc.pid))
         with self.ports.registry.lock:
             self.ports.registry.active[int(self.state.process_id)] = self.state.proc
@@ -260,8 +300,9 @@ class ProcessRunner:
                 self.state.elapsed_due_at = now + 1.0
             with self.ports.registry.lock:
                 kill_requested = int(self.state.process_id) in self.ports.registry.kill_requests
-            if kill_requested and self.state.proc.poll() is None:
+            if kill_requested:
                 self.state.killed = True
+            if kill_requested and self.state.proc.poll() is None:
                 self.ports.signal_process_tree(self.state.proc, force=False)
                 try:
                     self.state.proc.wait(timeout=self.request.cancel_grace)

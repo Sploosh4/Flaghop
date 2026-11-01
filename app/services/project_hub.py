@@ -134,9 +134,12 @@ class ProjectHub:
 
     def _adopt(self, record):
         """Save through the existing SQLite backup/output-copy path, never overwrite a folder."""
+        from app.services.execution_journal import require_settled
+
+        require_settled(self.runtime, self._current()["name"])
         folder = self._folder(project_name(record["name"]))
         try:
-            self.runtime.save_project_as(str(folder / "workspace.legion"), replace=False)
+            self.runtime.save_project_as(str(folder / "workspace.legion"), replace=False, owner_id=record["id"])
         except Exception:
             if not any(folder.iterdir()):
                 folder.rmdir()
@@ -230,9 +233,14 @@ class ProjectHub:
             return {"status": "ok"}
 
     def set_save_folder(self, path, move_existing=False):
-        destination = writable_save_folder(path)
         with self.lock, self.runtime._lock:
             data = self._read()
+            if move_existing:
+                from app.services.execution_journal import require_settled
+
+                for record in data["projects"]:
+                    require_settled(self.runtime, record["path"])
+            destination = writable_save_folder(path)
             data["save_folder"] = str(destination)
             if move_existing and destination != self.root.resolve():
                 migrate_project_folders(self, destination, data)

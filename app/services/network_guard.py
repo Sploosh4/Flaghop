@@ -10,6 +10,8 @@ import subprocess
 import tempfile
 import time
 import sys
+import shutil
+from types import SimpleNamespace
 
 from app.services.network_probe import command, executable
 from app.services.project_networks import JOB_NETWORK, NetworkHeld, command_targets
@@ -27,9 +29,15 @@ class NetworkLease:
         self.installed = False
         self.hosts_folder = None
         self.proxy_sequence = ""
+        self.ownership = None
 
     def prepare(self):
         try:
+            if self.ownership:
+                from app.services.execution_journal import require_network_ready
+
+                journal, identifier = self.ownership
+                require_network_ready(self.service.runtime, journal.get(identifier).project_path, exclude=identifier)
             self.reference = JOB_NETWORK.get() or self.service.capture()
             if self.request.job_id:
                 job = self.service.runtime.jobs.get_job(self.request.job_id)
@@ -50,6 +58,9 @@ class NetworkLease:
                 raise NetworkHeld("A required service could not be verified. See Network settings.")
             self.gid = self._unused_gid()
             self.table = f"flaghop_{self.gid}"
+            if self.ownership:
+                journal, identifier = self.ownership
+                journal.update(identifier, gid=self.gid, table=self.table, phase="guard_preparing")
             command([executable("nft"), "-f", "-"], admin=True, input=self.rules())
             self.installed = True
             self.service.verify(self.snapshot)
@@ -68,7 +79,9 @@ class NetworkLease:
             try:
                 grp.getgrgid(gid)
             except KeyError:
-                return gid
+                occupied = subprocess.run([executable("pgrep"), "-G", str(gid)], capture_output=True, timeout=5)
+                if occupied.returncode == 1:
+                    return gid
         raise NetworkHeld("Could not allocate a private command network group.")
 
     def rules(self):
@@ -81,6 +94,9 @@ class NetworkLease:
             f"add chain inet {table} targets",
             f"add rule inet {table} output meta skgid {self.gid} jump targets",
         ]
+        if self.ownership:
+            journal, identifier = self.ownership
+            lines[0] = f'create table inet {table} {{ comment "flaghop:{journal.get(identifier).token}"; }}'
         if self.request.tool_name == "device-profile" and self.request.proxy_channel:
             lines += [
                 f"add set inet {table} scan_proxy {{ type inet_service; }}",
@@ -128,7 +144,16 @@ class NetworkLease:
             uid = int(os.environ.get("SUDO_UID", os.environ.get("PKEXEC_UID", uid)))
         temporary_root = Path(__file__).resolve().parents[2] / ".tmp"
         temporary_root.mkdir(mode=0o700, parents=True, exist_ok=True)
-        self.hosts_folder = tempfile.TemporaryDirectory(prefix="network-hosts-", dir=temporary_root)
+        if self.ownership:
+            journal, identifier = self.ownership
+            folder = temporary_root / ("network-hosts-" + identifier)
+            journal.update(identifier, hosts_folder=str(folder))
+            folder.mkdir(mode=0o700)
+            self.hosts_folder = SimpleNamespace(
+                name=str(folder), cleanup=lambda: shutil.rmtree(folder) if folder.exists() else None
+            )
+        else:
+            self.hosts_folder = tempfile.TemporaryDirectory(prefix="network-hosts-", dir=temporary_root)
         hosts = Path(self.hosts_folder.name) / "hosts"
         entries = []
         for hostname, networks in self.snapshot.get("resolved", {}).items():
@@ -146,6 +171,10 @@ class NetworkLease:
 
             environment = build_tool_execution_env()
             names = ("PATH", "HOME", "USER", "LOGNAME", "LANG", "LC_ALL", "TERM", "TZ", "TMPDIR", "XDG_CACHE_HOME")
+            if self.ownership:
+                journal, identifier = self.ownership
+                environment["FLAGHOP_EXECUTION_TOKEN"] = journal.get(identifier).token
+                names += ("FLAGHOP_EXECUTION_TOKEN",)
             child = [
                 executable("env"),
                 "-i",
@@ -154,6 +183,9 @@ class NetworkLease:
                 "PYTHONDONTWRITEBYTECODE=1",
                 *child,
             ]
+        elif self.ownership:
+            journal, identifier = self.ownership
+            child = [executable("env"), "FLAGHOP_EXECUTION_TOKEN=" + journal.get(identifier).token, *child]
         args = [
             executable("setpriv"),
             f"--reuid={uid}",
@@ -235,6 +267,12 @@ class NetworkLease:
                 self.report.update(report)
 
     def close(self):
+        if self.ownership:
+            journal, identifier = self.ownership
+            journal.cleanup(identifier)
+            self.table = ""
+            self.installed = False
+            return
         if not self.installed:
             if self.hosts_folder is not None:
                 self.hosts_folder.cleanup()

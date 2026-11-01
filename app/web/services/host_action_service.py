@@ -8,6 +8,7 @@ from app.contracts.actions.host_action_requests import (
     ScriptCreateRequest,
     ScriptOutputQuery,
     WorkspacePortMutationRequest,
+    WorkspaceServiceMutationRequest,
 )
 
 
@@ -24,7 +25,7 @@ class HostActionService:
         )
 
     def delete_workspace_service(self, payload: Any) -> Dict[str, Any]:
-        request = WorkspacePortMutationRequest.from_payload(payload)
+        request = WorkspaceServiceMutationRequest.from_payload(payload)
         return self.runtime.delete_workspace_service(
             host_id=request.host_id,
             port=request.port,

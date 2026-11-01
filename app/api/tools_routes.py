@@ -1,12 +1,11 @@
 """Native FastAPI endpoints preserving existing service and HTTP contracts."""
 
-from typing import Any
-from fastapi import Body, Request
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
 from app.api.dependencies import Runtime, native_router
+from app.contracts.actions.responses import AcceptedJobResponse
+from app.contracts.actions.tool_requests import ToolRunRequest
 from app.web.http_utils import json_error
 from app.web.services.tool_service import ToolService
+from fastapi import Request, Response
 
 router = native_router()
 
@@ -29,11 +28,17 @@ def workspace_tool_targets(request: Request, runtime: Runtime):
         return json_error(str(exc), 500)
 
 
-@router.post("/api/workspace/tools/run", operation_id="workspace_tool_run")
-def workspace_tool_run(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/workspace/tools/run",
+    operation_id="workspace_tool_run",
+    response_model=AcceptedJobResponse,
+    response_model_exclude_unset=True,
+)
+def workspace_tool_run(request: Request, runtime: Runtime, response: Response, payload: ToolRunRequest):
     service = ToolService(runtime)
     try:
-        return JSONResponse(jsonable_encoder(service.start_tool_run(payload or {})), status_code=202)
+        response.status_code = 202
+        return service.start_tool_run(payload)
     except KeyError as exc:
         return json_error(str(exc), 404)
     except ValueError as exc:

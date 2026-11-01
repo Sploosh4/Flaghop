@@ -24,6 +24,23 @@ class DeepScanRequest(ActionModel):
         return literal_ip(value) if value is not None else None
 
 
+class ScanRecovery(ActionModel):
+    policy: Literal["never-replay"] = "never-replay"
+    state: Literal[
+        "available",
+        "no_profile",
+        "copied",
+        "cleaning",
+        "importing",
+        "cleanup_required",
+        "cleaned",
+        "failed",
+        "complete",
+    ] = "available"
+    retry_available: bool = False
+    previous_status: str = ""
+
+
 class DeepScanRun(ActionModel):
     model_config = ConfigDict(extra="allow")
     id: str
@@ -41,6 +58,7 @@ class DeepScanRun(ActionModel):
     log_path: str = ""
     directory: str = ""
     import_progress: ImportProgress | None = None
+    recovery: ScanRecovery | None = None
     summary: ScanSummary = Field(default_factory=ScanSummary)
 
 

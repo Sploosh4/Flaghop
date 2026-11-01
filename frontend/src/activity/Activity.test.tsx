@@ -133,6 +133,16 @@ it('shows output failures and allows a manual refresh', async () => {
   expect(screen.queryByRole('alert')).toBeNull(); expect(screen.getByText('Recovered output')).toBeTruthy();
 });
 
+it('labels copied process controls as history without resuming or signalling', async () => {
+  const fetch=vi.fn().mockResolvedValue(response({id:1,status:'Interrupted',command:'fixture',output_chunk:'Original output',output_length:15,offset:0,next_offset:15,completed:true,history_origin:{original_status:'Running',original_pid:'999999',reason:'Copied process history; no process was resumed.',recorded_at:'fixture'}}));
+  vi.stubGlobal('fetch',fetch); await controller.output.open(1);
+  render(<ProcessOutputPanel controller={controller}/>);
+  expect(screen.getByRole('note').textContent).toContain('Copied process history; no process was resumed. Previous status: Running.');
+  expect(screen.getByText('Original output')).toBeTruthy();
+  expect(fetch.mock.calls).toHaveLength(1);
+  expect(fetch.mock.calls[0][0].method).toBe('GET');
+});
+
 it('prevents stale list responses from repopulating a switched workspace', async () => {
   const list = deferred<Response>();
   vi.stubGlobal('fetch', vi.fn(() => list.promise));

@@ -3,6 +3,8 @@ import collections.abc
 import threading
 import time
 import unittest
+import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -204,6 +206,28 @@ class _ClockDrivenProc:
 class WebRuntimeKillHandlingTest(unittest.TestCase):
     def _make_runtime(self, repo):
         from app.web.runtime import WebRuntime
+        from app.services.execution_journal import ExecutionJournal
+
+        directory = tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parents[2] / ".tmp")
+        self.addCleanup(directory.cleanup)
+        journal = ExecutionJournal(Path(directory.name) / "protected")
+        # These clock-driven fixtures have deliberately fictional PIDs. Never
+        # pass them to /proc, OS signalling or privileged cleanup. The separate
+        # ExecutionRecovery fixtures exercise real identity publication/cleanup.
+        launched = patch.object(
+            journal,
+            "launched",
+            side_effect=lambda identifier, process: journal.update(
+                identifier, pid=process.pid, pid_stamp="timing-fixture", pgid=process.pid, phase="running"
+            ),
+        )
+        cleanup = patch.object(
+            journal, "cleanup", side_effect=lambda identifier: journal.update(identifier, phase="cleaned")
+        )
+        launched.start()
+        cleanup.start()
+        self.addCleanup(launched.stop)
+        self.addCleanup(cleanup.stop)
 
         # These tests isolate process timing/cancellation. Network policy has its own
         # fixture and real-tunnel acceptance coverage, and must not touch the host here.
@@ -217,10 +241,12 @@ class WebRuntimeKillHandlingTest(unittest.TestCase):
         self.addCleanup(lease.stop)
 
         runtime = WebRuntime.__new__(WebRuntime)
+        runtime.execution_journal = journal
         runtime._lock = threading.RLock()
         runtime._process_runtime_lock = threading.Lock()
         runtime._active_processes = {}
         runtime._kill_requests = set()
+        runtime._signal_process_tree = lambda process, force=False: process.kill() if force else process.terminate()
         runtime._job_process_ids = {}
         runtime._process_job_id = {}
         runtime._ensure_process_tables = lambda: None
@@ -229,7 +255,8 @@ class WebRuntimeKillHandlingTest(unittest.TestCase):
         runtime._update_nmap_process_progress = lambda *_args, **_kwargs: None
         runtime._write_process_output_partial = lambda *_args, **_kwargs: None
         runtime._require_active_project = lambda: SimpleNamespace(
-            repositoryContainer=SimpleNamespace(processRepository=repo)
+            repositoryContainer=SimpleNamespace(processRepository=repo),
+            properties=SimpleNamespace(projectName=str(Path(directory.name) / "project.legion")),
         )
         return runtime
 

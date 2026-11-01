@@ -23,7 +23,9 @@ New checker rules require rejection tests as well as a valid example. Regenerate
 OpenAPI/TypeScript when wire shapes change and run the frontend contract check.
 Report actual checks and remaining limits; a structural checker does not prove a
 tool result is true. Keep candidates, reproduced findings, execution and sessions
-distinct. Do not add persistent run recovery until that deferred work is requested.
+distinct. Persistent recovery is now authorized for owned-process cleanup and
+idempotent offline import/settlement of saved results. Never replay network
+commands on restart or trust imported/copy-local PID/lease metadata as authority.
 
 ## Keep project descriptions current
 

@@ -225,7 +225,7 @@ class _WorkspaceRouteRuntime:
                 dict(parameters or {}),
             )
         )
-        return {"id": 702, "type": "tool-run"}
+        return {"id": 702, "type": "tool-run", "status": "queued"}
 
     def kill_process(self, process_id):
         self.calls.append(("kill_process", int(process_id)))
@@ -334,6 +334,12 @@ class WebWorkspaceRoutesTest(unittest.TestCase):
                 "tool_id": "smbmap",
                 "command_override": "id",
             },
+        )
+        self.assertEqual(422, tool_run.status_code)
+        self.assertFalse(any(call[0] == "start_tool_run_job" for call in self.runtime.calls))
+        tool_run = self.client.post(
+            "/api/workspace/tools/run",
+            json={"host_ip": "10.0.0.5", "port": "445", "protocol": "tcp", "tool_id": "smbmap"},
         )
         self.assertEqual(202, tool_run.status_code)
         self.assertEqual("tool-run", tool_run.json()["job"]["type"])

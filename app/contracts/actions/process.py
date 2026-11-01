@@ -23,6 +23,7 @@ class CommandRequest(ActionData):
     hard_timeout: int = 0
     proxy_channel: str = ""
     proxy_token: str = ""
+    execution_id: str = ""
 
 
 @dataclass(frozen=True)

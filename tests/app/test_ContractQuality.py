@@ -168,6 +168,47 @@ print('pure contracts')
         )
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
+    def test_record_decorators_and_model_bases_resolve_normal_import_spellings(self):
+        sources = [
+            "from dataclasses import dataclass as record\n@record\nclass Payload:\n    target: str\n",
+            "import dataclasses as records\n@records.dataclass(frozen=True)\nclass Payload:\n    target: str\n",
+            "import dataclasses\n@dataclasses.dataclass\nclass Payload:\n    target: str\n",
+            "from pydantic import BaseModel as Model\nclass Payload(Model):\n    target: str\n",
+            "import pydantic as models\nclass Payload(models.BaseModel):\n    target: str\n",
+            "import app.contracts.base\nclass Payload(app.contracts.base.ActionModel):\n    target: str\n",
+        ]
+        for source in sources:
+            with self.subTest(source=source), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                self.fixture(root)
+                (root / "app/scanning").mkdir()
+                (root / "app/scanning/leak.py").write_text(source)
+                errors = check_contracts(root, load_models=False)
+                self.assertTrue(any("C015" in error for error in errors), errors)
+
+    def test_both_module_import_forms_detect_cycles_without_duplicate_classes(self):
+        for template in (
+            "import app.contracts.actions.{name}",
+            "import app.contracts.actions.{name} as other",
+            "from app.contracts.actions import {name}",
+        ):
+            with self.subTest(template=template), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                folder = self.fixture(root)
+                (folder / "actions/a.py").write_text(template.format(name="b") + "\n")
+                (folder / "actions/b.py").write_text(template.format(name="a") + "\n")
+                self.assertTrue(any("C012" in error for error in check_contracts(root, load_models=False)))
+
+    def test_qualified_canonical_bases_decorators_and_reference_aliases_are_valid(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            folder = self.fixture(root)
+            (folder / "actions/example.py").write_text(
+                "import dataclasses as records\nimport app.contracts.base as roots\n"
+                "@records.dataclass(frozen=True)\nclass Example(roots.ActionData):\n    target: str\n"
+            )
+            self.assertEqual([], check_contracts(root, load_models=False))
+
 
 class ActionDefinitionTest(unittest.TestCase):
     def action(self):

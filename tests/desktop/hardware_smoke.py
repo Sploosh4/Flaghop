@@ -25,10 +25,13 @@ from app.api import create_app
 from app.contracts.actions.network import NetworkUpdate
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
+from app.services.execution_journal import ExecutionJournal
 from tests.support.asgi_server import live_asgi_server
 
 logic = create_default_logic()
-runtime = WebRuntime(logic)
+runtime = WebRuntime(
+    logic, execution_journal=ExecutionJournal(Path(os.environ["LEGION_HOME"]) / "protected-executions")
+)
 web = create_app(runtime)
 hub = web.state.project_hub
 other = hub.create("Other lab")["project"]

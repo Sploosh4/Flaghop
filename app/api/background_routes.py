@@ -1,14 +1,15 @@
 """Reader routes are bound to catalog IDs, never the globally active database."""
 
 from app.api.dependencies import native_router
-from app.api.hub_routes import Hub
 from app.api.hub_contracts import HubOk
+from app.api.hub_routes import Hub
+from app.contracts.actions.inputs import EmptyAction
 from app.contracts.actions.reader import BackgroundStatus, ReaderResult
 from app.contracts.actions.reader_control import BackgroundControl
 from app.services.project_background import ProjectBackground
 from app.services.project_files import ProjectFiles
+from fastapi import Body, Query
 from fastapi.responses import FileResponse
-from fastapi import Query
 from pathlib import Path
 
 router = native_router()
@@ -37,7 +38,7 @@ def control(identifier: str, payload: BackgroundControl, hub: Hub):
     response_model=HubOk,
     operation_id="dismissHubAlert",
 )
-def dismiss(identifier: str, alert_id: str, hub: Hub):
+def dismiss(identifier: str, alert_id: str, hub: Hub, payload: EmptyAction = Body(default_factory=EmptyAction)):
     with hub.lock:
         return ProjectBackground(hub, identifier).dismiss(alert_id)
 

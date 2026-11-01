@@ -37,7 +37,14 @@ export function useDeepScans(project: api.HubProject | null) {
     try {await api.stopDeepScan(run.job_id); if (current.current === id) await refresh.current();}
     catch (e) {if (current.current === id) setError(e instanceof Error ? e.message : String(e));}
   }
-  return {runs, error, busy, start, cancel};
+  async function recover(run: api.DeepScanRun) {
+    if (!project || busy) return;
+    const id = project.id; setBusy(run.host_id); setError('');
+    try {await api.recoverDeepScan(id, run.id); if (current.current === id) await refresh.current();}
+    catch (e) {if (current.current === id) setError(e instanceof Error ? e.message : String(e));}
+    finally {if (current.current === id) setBusy(null);}
+  }
+  return {runs, error, busy, start, cancel, recover};
 }
 
 export type DeepScanController = ReturnType<typeof useDeepScans>;

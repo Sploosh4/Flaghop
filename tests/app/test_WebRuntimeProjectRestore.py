@@ -3,6 +3,7 @@ import collections.abc
 import datetime
 import json
 import os
+from pathlib import Path
 import shutil
 import tempfile
 import unittest
@@ -19,19 +20,39 @@ for _name in ("Mapping", "MutableMapping", "Sequence", "Callable"):
 
 
 class WebRuntimeProjectRestoreTest(unittest.TestCase):
+    def setUp(self):
+        from pathlib import Path
+        from unittest.mock import patch
+
+        root = Path(__file__).resolve().parents[2]
+        self.temp = tempfile.TemporaryDirectory(dir=root / ".tmp")
+        self.addCleanup(self.temp.cleanup)
+        self.env = patch.dict(
+            os.environ,
+            {
+                "LEGION_HOME": str(Path(self.temp.name) / "config"),
+                "LEGION_PROJECTS_DIR": str(Path(self.temp.name) / "projects"),
+            },
+        )
+        self.env.start()
+        self.addCleanup(self.env.stop)
+
     def _create_runtime(self):
         from app.ProjectManager import ProjectManager
         from app.logic import Logic
         from app.logging.legionLog import getAppLogger, getDbLogger
         from app.shell.DefaultShell import DefaultShell
         from app.web.runtime import WebRuntime
+        from app.services.execution_journal import ExecutionJournal
         from db.RepositoryFactory import RepositoryFactory
 
         shell = DefaultShell()
         repository_factory = RepositoryFactory(getDbLogger())
         project_manager = ProjectManager(shell, repository_factory, getAppLogger())
         logic = Logic(shell, project_manager, MagicMock())
-        runtime = WebRuntime(logic)
+        runtime = WebRuntime(
+            logic, execution_journal=ExecutionJournal(Path(os.environ["LEGION_HOME"]) / "protected-executions")
+        )
         return project_manager, logic, runtime
 
     def test_legacy_single_legion_zip_restores_and_creates_missing_output_folder(self):

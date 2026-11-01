@@ -25,6 +25,7 @@ beforeEach(() => {
   vi.mocked(api.setProjectConnector).mockResolvedValue({status: 'ok'});
   vi.mocked(api.background).mockImplementation(async id => backgroundState(id, false));
   vi.mocked(api.deepScans).mockResolvedValue({runs: []});
+  vi.mocked(api.executionRecovery).mockResolvedValue({pending: []});
   vi.mocked(api.documentUrl).mockImplementation((id, path) => '/api/hub/projects/' + id + '/editor?path=' + encodeURIComponent(path));
   vi.spyOn(window, 'open').mockReturnValue(null);
   vi.mocked(api.filesystemUrl).mockImplementation(id => '/api/hub/projects/' + id + '/filesystem');

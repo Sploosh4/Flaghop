@@ -123,6 +123,30 @@ class WebJobManagerTest(unittest.TestCase):
         next_job = manager.start("next", lambda: {"ok": True})
         self.assertEqual("completed", self._wait_for_state(manager, next_job["id"], {"completed"})["status"])
 
+    def test_falsey_non_records_are_rejected_while_none_is_explicit_legacy_void(self):
+        from app.web.jobs import WebJobManager
+
+        manager = WebJobManager()
+        for value in (False, 0, [], "", ()):
+            with self.subTest(value=value):
+                job = manager.start("invalid", lambda value=value: value, exclusive=True)
+                result = self._wait_for_state(manager, job["id"], {"failed", "completed"})
+                self.assertEqual("failed", result["status"])
+        for value in (None, {}):
+            job = manager.start("valid-void", lambda value=value: value)
+            self.assertEqual("completed", self._wait_for_state(manager, job["id"], {"completed"})["status"])
+
+    def test_negative_execution_cannot_be_reported_as_success(self):
+        from app.web.jobs import WebJobManager
+        from app.contracts.actions.jobs import JobOutcome
+
+        manager = WebJobManager()
+        for value in ({"executed": False, "reason": "blocked"}, JobOutcome("completed", {"executed": False})):
+            job = manager.start("negative", lambda value=value: value)
+            result = self._wait_for_state(manager, job["id"], {"failed", "completed"})
+            self.assertEqual("failed", result["status"])
+            self.assertFalse(result["result"]["executed"])
+
     def _wait_for_state(self, manager, job_id, states, timeout=1.5):
         deadline = time.time() + timeout
         while time.time() < deadline:

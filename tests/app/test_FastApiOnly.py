@@ -1,6 +1,8 @@
 """Retained routes and transport boundaries must work without the removed stack."""
 
 import json
+import io
+import zipfile
 from pathlib import Path
 import re
 import subprocess
@@ -58,6 +60,12 @@ print('ASGI only')
 
 
 class NativeTransferLifecycleTest(unittest.TestCase):
+    def archive(self):
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("owned-fixture.txt", b"original upload")
+        return stream.getvalue()
+
     def test_download_streams_original_bytes_then_removes_temporary_export(self):
         with tempfile.TemporaryDirectory() as folder:
             archive = Path(folder) / "export.zip"
@@ -73,14 +81,15 @@ class NativeTransferLifecycleTest(unittest.TestCase):
 
     def test_failed_restore_removes_upload_and_preserves_service_error(self):
         uploads = []
+        original = self.archive()
 
         def reject(path):
             uploads.append(Path(path))
-            self.assertEqual(b"original upload", Path(path).read_bytes())
+            self.assertEqual(original, Path(path).read_bytes())
             raise ValueError("Invalid project archive")
 
         with TestClient(create_app(SimpleNamespace(start_restore_project_zip_job=reject))) as client:
-            response = client.post("/api/project/restore-zip", files={"bundle": ("project.zip", b"original upload")})
+            response = client.post("/api/project/restore-zip", files={"bundle": ("project.zip", original)})
         self.assertEqual(400, response.status_code)
         self.assertEqual("Invalid project archive", response.json()["error"])
         self.assertEqual(1, len(uploads))
@@ -88,20 +97,22 @@ class NativeTransferLifecycleTest(unittest.TestCase):
 
     def test_restore_hands_ownership_to_background_job_and_rejects_missing_upload(self):
         uploads = []
+        original = self.archive()
 
         def accept(path):
             uploads.append(Path(path))
             return {"id": 1, "type": "project-restore-zip", "status": "queued"}
 
+        application = create_app(SimpleNamespace(start_restore_project_zip_job=accept))
         try:
-            with TestClient(create_app(SimpleNamespace(start_restore_project_zip_job=accept))) as client:
+            with TestClient(application) as client:
                 self.assertEqual(400, client.post("/api/project/restore-zip").status_code)
-                response = client.post("/api/project/restore-zip", files={"bundle": ("project.zip", b"upload")})
+                response = client.post("/api/project/restore-zip", files={"bundle": ("project.zip", original)})
             self.assertEqual(202, response.status_code)
-            self.assertEqual(b"upload", uploads[0].read_bytes())
+            self.assertEqual(original, uploads[0].read_bytes())
         finally:
             for path in uploads:
-                path.unlink(missing_ok=True)
+                application.state.storage_admission.release_upload(path)
 
 
 class InterruptedExportTest(unittest.IsolatedAsyncioTestCase):

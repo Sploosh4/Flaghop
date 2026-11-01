@@ -1,6 +1,26 @@
 # FlagHop delivery status
 
-## Contract sweep
+## Review repairs — 1 November 2026
+
+Developed on `codex/review-boundaries` from `e23c5ce`, these changes repair eight
+failures found in independent review. These include pre-write
+profile/XML validation, actual UI/action contracts, alias/cycle enforcement,
+bounded shutdown and protected offline recovery, bounded atomic ZIP restores,
+queued source pinning, full copied-history preservation and truthful outcomes.
+See [the eight-item acceptance record](review-boundary-repairs.md).
+
+Targeted fixtures include real non-network child termination, detached scanner
+Runner children, unreaped crashed owners, actual SQLite rollback, SIGKILL at four
+import boundaries and original-A recovery with B still selected. Unverified
+ownership and missing cleanup permission remain held. None of these fixtures
+adds a new live scanner/browser/VPN certification. The frozen candidate passes
+652 Python tests, Black/flake8, contract checks, 62 frontend tests, generated
+OpenAPI/TypeScript and reproducible production assets, and 128 native desktop
+checks without JavaScript errors. Dependency and mounted storage checks pass.
+Builder independently signed off after another 95 focused tests and a matching
+740-file source identity. All eight review findings are closed in this revision.
+
+## Historical contract sweep
 
 31 October 2026 checkpoint, developed from `main` revision `877b794`.
 Action/result, observation and artifact-reference definitions now have dedicated
@@ -10,8 +30,8 @@ folder contents, import cycles and structured reference types. Contributor rules
 and rejection tests make violations actionable for future human/AI changes.
 Parser/target-state, network-report and reader-result boundaries use the shared
 models while services retain file ownership, links and checksum enforcement.
-This checkpoint includes the contract consolidation; persistent run recovery
-remains deferred.
+At this historical checkpoint, persistent recovery was deferred. The current
+authorized cleanup/offline-settlement work above supersedes that limitation.
 Final local validation passed 588 Python tests, Black/flake8, the contract checker,
 58 frontend tests, generated OpenAPI/TypeScript checks and the reproducible
 production bundle. Native fixtures passed 110 checks (66 workspace, 16 hardware,

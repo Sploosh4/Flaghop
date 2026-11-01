@@ -8,7 +8,7 @@ import sys
 import time
 import uuid
 
-from app.scanning.source import scanner_source
+from app.scanning.source import pin_source
 from app.scanning.proxy_channel import read_json
 from app.scanning.implementations import snapshot, comparison
 from app.services.project_background import atomic_json
@@ -79,14 +79,40 @@ def configure_environment(scratch):
     )
 
 
+def install_execution_identity(token):
+    """Add app ownership at the real launch boundary without changing vendor policy."""
+    import re
+
+    if not re.fullmatch("[a-f0-9]{64}", token or ""):
+        raise ValueError("Scanner execution identity is missing or invalid.")
+    import tool_environment
+    import execution
+    import identities
+
+    original = tool_environment.child_environment
+
+    def child_environment():
+        return {**original(), "FLAGHOP_EXECUTION_TOKEN": token}
+
+    tool_environment.child_environment = child_environment
+    execution.child_environment = child_environment
+    identities.child_environment = child_environment
+
+
 def main():
     # This executable is selected by the app, never by an API-supplied command.
     request = Path(sys.argv[1])
     config = json.loads(request.read_text())
-    source, _ = scanner_source()
+    try:
+        source = pin_source(config["scratch"], config.get("source_identity"))
+    except (OSError, ValueError, RuntimeError) as exc:
+        atomic_json(request.with_name("worker-status.json"), {"status": "held", "reason": str(exc)[:1000]})
+        return 78
     sys.path.insert(0, str(source))
     import ctf_profiler
     import staged_workflow
+
+    install_execution_identity(os.environ.get("FLAGHOP_EXECUTION_TOKEN"))
 
     staged_workflow.TargetProxy = proxy_adapter(
         request.with_name("proxy.json"), config["proxy_token"], staged_workflow.TargetProxy

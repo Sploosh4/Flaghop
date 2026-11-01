@@ -15,3 +15,5 @@ class JobOutcome(ActionData):
     def __post_init__(self):
         if self.status not in {"completed", "partial", "failed", "cancelled", "held"}:
             raise ValueError("Invalid terminal job outcome.")
+        if not isinstance(self.result, dict) or not isinstance(self.error, str):
+            raise TypeError("JobOutcome requires a result dictionary and text error.")

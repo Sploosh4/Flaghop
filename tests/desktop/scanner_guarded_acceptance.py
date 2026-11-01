@@ -87,6 +87,7 @@ def main():
     from app.contracts.actions.network import NetworkUpdate
     from app.web.bootstrap import create_default_logic
     from app.web.runtime import WebRuntime
+    from app.services.execution_journal import ExecutionJournal
     from db.entities.host import hostObj
 
     fixture = tempfile.TemporaryDirectory(dir=ROOT / ".tmp", delete=False)
@@ -99,7 +100,9 @@ def main():
     blocked_thread = threading.Thread(target=blocked.serve_forever, daemon=True)
     blocked_thread.start()
     logic = create_default_logic()
-    runtime = WebRuntime(logic)
+    runtime = WebRuntime(
+        logic, execution_journal=ExecutionJournal(Path(os.environ["LEGION_HOME"]) / "protected-executions")
+    )
     web = create_app(runtime)
     hub = web.state.project_hub
     project = hub.create("Owned loopback scanner acceptance")["project"]

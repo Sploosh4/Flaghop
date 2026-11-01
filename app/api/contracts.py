@@ -1,11 +1,9 @@
 """Validated contracts for the first native API slice; extension fields remain compatible."""
 
-from app.contracts.base import ExtensibleModel
 from app.contracts.actions.job_api import Job
-
-
-from typing import Annotated, Literal
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator
+from app.contracts.base import ExtensibleModel
+from pydantic import BaseModel, Field, JsonValue
+from typing import Literal
 
 
 class Autosave(ExtensibleModel):
@@ -25,20 +23,7 @@ class Project(ExtensibleModel):
     autosave: Autosave = Field(default_factory=Autosave)
 
 
-class RenameProject(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    name: Annotated[str, Field(strict=True, min_length=1, max_length=120)]
-    expected_path: str = ""
-
-    @field_validator("name")
-    @classmethod
-    def reject_control_characters(cls, value):
-        if any(ord(char) < 32 or ord(char) == 127 for char in value):
-            raise ValueError("Workspace name cannot contain control characters.")
-        return value
-
-
-class ProjectResponse(BaseModel):
+class ProjectResponse(ExtensibleModel):
     status: Literal["ok"] = "ok"
     project: Project
 

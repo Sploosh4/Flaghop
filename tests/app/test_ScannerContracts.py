@@ -11,6 +11,44 @@ from tests.support.scanner_fixture import write_profile
 
 
 class ScannerContractsTest(unittest.TestCase):
+    def test_discovery_and_classification_facts_are_validated_against_retained_xml(self):
+        import json
+
+        updates = [
+            lambda p: p["nmap"]["services"][0].update(port={"bad": "port"}),
+            lambda p: p["nmap"]["services"][0].update(port=True),
+            lambda p: p["nmap"]["services"][0].update(port=8081),
+            lambda p: p["nmap"]["services"][0].update(protocol="udp"),
+            lambda p: p["nmap"]["services"][0].update(state="closed"),
+            lambda p: p["nmap"]["services"][0]["fingerprint"].update(product="Invented Apache"),
+            lambda p: p["nmap"]["services"][0]["fingerprint"].update(version={"not": "a version"}),
+            lambda p: p["nmap"].update(services=[]),
+            lambda p: p["nmap"].update(hostnames=[{"name": "invented.test", "type": "user"}]),
+            lambda p: p["classification"]["primary"].update(score=1000),
+            lambda p: p["classification"]["primary"].update(confidence="certain"),
+            lambda p: p["classification"].update(primary="server"),
+        ]
+        for index, update in enumerate(updates):
+            with tempfile.TemporaryDirectory() as folder, self.subTest(case=index):
+                profile = write_profile(folder)
+                update(profile)
+                raw = json.dumps(profile).encode()
+                Path(folder, "device-profile.json").write_bytes(raw)
+                with self.assertRaises(ValueError):
+                    validate_profile(folder, "192.0.2.10", profile["source_identity"])
+                self.assertEqual(raw, Path(folder, "device-profile.json").read_bytes())
+
+    def test_valid_discovery_extensions_remain_available_without_inventing_facts(self):
+        import json
+
+        with tempfile.TemporaryDirectory() as folder:
+            profile = write_profile(folder)
+            profile["nmap"]["extension"] = {"note": "retained"}
+            profile["classification"]["primary"]["extension"] = ["retained"]
+            Path(folder, "device-profile.json").write_text(json.dumps(profile))
+            doc, _, _ = validate_profile(folder, "192.0.2.10", profile["source_identity"])
+            self.assertEqual({"note": "retained"}, doc["nmap"]["extension"])
+
     def test_all_recorded_task_outcomes_and_extension_fields_survive_validation(self):
         for status in (
             "completed",

@@ -1,16 +1,19 @@
 """Native FastAPI endpoints preserving existing service and HTTP contracts."""
 
-from typing import Any
-from fastapi import Body, Request, File, UploadFile
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse, FileResponse
-from pathlib import Path
-import tempfile
 import shutil
-from app.api.downloads import TemporaryFileResponse
+import tempfile
+from app.api.contracts import ProjectResponse
 from app.api.dependencies import Runtime, native_router
+from app.api.downloads import TemporaryFileResponse
+from app.contracts.actions.inputs import EmptyAction
+from app.contracts.actions.project_requests import ProjectPathRequest, ProjectSaveRequest
+from app.contracts.actions.responses import AcceptedJobResponse
 from app.web.http_utils import json_error
 from app.web.services.project_service import ProjectService
+from fastapi import Body, File, Request, Response, UploadFile
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import FileResponse, JSONResponse
+from pathlib import Path
 
 router = native_router()
 
@@ -25,38 +28,42 @@ def project_download_zip(runtime: Runtime):
     )
 
 
-@router.post("/api/project/restore-zip", operation_id="restoreWorkspaceZip")
-def project_restore_zip(runtime: Runtime, bundle: UploadFile | None = File(default=None)):
-    if bundle is None:
-        return json_error("Field 'bundle' is required.", 400)
-    if not str(bundle.filename or "").strip():
-        return json_error("Uploaded bundle filename is required.", 400)
-    with tempfile.NamedTemporaryFile(prefix="legion-restore-upload-", suffix=".zip", delete=False) as temporary:
-        path = Path(temporary.name)
-    handed_off = False
-    try:
-        with path.open("wb") as target:
-            shutil.copyfileobj(bundle.file, target)
+@router.post(
+    "/api/project/restore-zip",
+    operation_id="restoreWorkspaceZip",
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {
+                "multipart/form-data": {
+                    "schema": {
+                        "type": "object",
+                        "required": ["bundle"],
+                        "properties": {"bundle": {"type": "string", "format": "binary"}},
+                        "additionalProperties": False,
+                    }
+                }
+            },
+        }
+    },
+    response_model=AcceptedJobResponse | ProjectResponse,
+    response_model_exclude_unset=True,
+)
+async def project_restore_zip(request: Request, runtime: Runtime, response: Response):
+    from app.api.uploads import staged_upload
+    from starlette.concurrency import run_in_threadpool
+
+    async with staged_upload(request, multipart=True) as upload:
         if hasattr(runtime, "start_restore_project_zip_job"):
-            job = runtime.start_restore_project_zip_job(str(path))
-            handed_off = True
-            return JSONResponse(jsonable_encoder({"status": "accepted", "job": job}), status_code=202)
+            job = await run_in_threadpool(runtime.start_restore_project_zip_job, str(upload.path))
+            body = AcceptedJobResponse.from_job(job).to_dict()
+            upload.handoff()
+            response.status_code = 202
+            return body
         if hasattr(runtime, "restore_project_bundle_zip"):
-            result = runtime.restore_project_bundle_zip(str(path))
+            result = await run_in_threadpool(runtime.restore_project_bundle_zip, str(upload.path))
             return {"status": "ok", "project": result.get("project", {}), "result": result}
         return json_error("Runtime does not support ZIP restore.", 501)
-    except FileNotFoundError as exc:
-        return json_error(str(exc), 404)
-    except ValueError as exc:
-        return json_error(str(exc), 400)
-    except RuntimeError as exc:
-        return json_error(str(exc), 409)
-    except Exception as exc:
-        return json_error(str(exc), 500)
-    finally:
-        bundle.file.close()
-        if not handed_off:
-            path.unlink(missing_ok=True)
 
 
 @router.get("/api/projects", operation_id="project_list")
@@ -68,8 +75,13 @@ def project_list(request: Request, runtime: Runtime):
         return json_error(str(exc), 500)
 
 
-@router.post("/api/project/new-temp", operation_id="project_new_temp")
-def project_new_temp(request: Request, runtime: Runtime):
+@router.post(
+    "/api/project/new-temp",
+    operation_id="project_new_temp",
+    response_model=ProjectResponse,
+    response_model_exclude_unset=True,
+)
+def project_new_temp(request: Request, runtime: Runtime, payload: EmptyAction = Body(default_factory=EmptyAction)):
     service = ProjectService(runtime)
     try:
         return service.create_new_temp()
@@ -79,11 +91,13 @@ def project_new_temp(request: Request, runtime: Runtime):
         return json_error(str(exc), 500)
 
 
-@router.post("/api/project/open", operation_id="project_open")
-def project_open(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/project/open", operation_id="project_open", response_model=ProjectResponse, response_model_exclude_unset=True
+)
+def project_open(request: Request, runtime: Runtime, payload: ProjectPathRequest):
     service = ProjectService(runtime)
     try:
-        return service.open_project(payload or {})
+        return service.open_project(payload)
     except FileNotFoundError as exc:
         return json_error(str(exc), 404)
     except ValueError as exc:
@@ -94,12 +108,18 @@ def project_open(request: Request, runtime: Runtime, payload: Any = Body(default
         return json_error(str(exc), 500)
 
 
-@router.post("/api/project/save-as", operation_id="project_save_as")
-def project_save_as(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/project/save-as",
+    operation_id="project_save_as",
+    response_model=AcceptedJobResponse | ProjectResponse,
+    response_model_exclude_unset=True,
+)
+def project_save_as(request: Request, runtime: Runtime, response: Response, payload: ProjectSaveRequest):
     service = ProjectService(runtime)
     try:
-        body, status_code = service.save_project_as(payload or {})
-        return JSONResponse(jsonable_encoder(body), status_code=status_code)
+        body, status_code = service.save_project_as(payload)
+        response.status_code = status_code
+        return body
     except ValueError as exc:
         return json_error(str(exc), 400)
     except RuntimeError as exc:

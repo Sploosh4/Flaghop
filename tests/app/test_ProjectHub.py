@@ -14,9 +14,108 @@ from app.services.project_hub import ProjectHub
 from app.services.project_storage import download_folder
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
+from app.services.execution_journal import ExecutionJournal
 
 
 class ProjectHubTest(TestCase):
+    def test_restored_process_controls_are_history_and_copy_remains_usable(self):
+        from db.entities.process import process
+        from sqlalchemy import text
+
+        first = self.hub.create("Historical process archive")["project"]
+        session = self.logic.activeProject.database.session()
+        row = process(
+            pid="999999",
+            status="Running",
+            command="original command",
+            estimatedRemaining=65,
+            execution_id="imported-not-authority",
+        )
+        session.add(row)
+        session.commit()
+        identifier = row.id
+        session.close()
+        raw = Path(first["folder"]) / "original-proof.bin"
+        raw.write_bytes(b"original proof")
+        original_db = Path(first["path"]).read_bytes()
+        bundle, _ = self.hub.operations.bundle(first["id"])
+        self.addCleanup(Path(bundle).unlink, missing_ok=True)
+        with (
+            patch.object(self.runtime, "_signal_process_tree") as signal,
+            patch("app.scanning.execution.execute_command") as launch,
+        ):
+            restored = self.hub.operations.restore_zip(bundle)["project"]
+            self.assertEqual(original_db, Path(first["path"]).read_bytes())
+            self.assertEqual(b"original proof", raw.read_bytes())
+            self.assertEqual(b"original proof", (Path(restored["folder"]) / "original-proof.bin").read_bytes())
+            with self.logic.activeProject.database.engine.connect() as connection:
+                current = connection.execute(
+                    text("SELECT pid,status,execution_id,command,estimatedRemaining FROM process WHERE id=:id"),
+                    {"id": identifier},
+                ).first()
+                original = json.loads(
+                    connection.execute(
+                        text("SELECT provenance FROM flaghop_process_history WHERE process_id=:id"), {"id": identifier}
+                    ).scalar()
+                )
+            self.assertEqual(("-1", "Interrupted", None, "original command", None), tuple(current))
+            self.assertEqual("999999", original["original_controls"]["pid"])
+            self.assertEqual("Running", original["original_controls"]["status"])
+            self.assertEqual("imported-not-authority", original["original_controls"]["execution_id"])
+            output = self.runtime.get_process_output(identifier)
+            self.assertIn("no process was resumed", output["history_origin"]["reason"])
+            self.assertEqual("Running", output["history_origin"]["original_status"])
+            copied = self.hub.operations.save_as(restored["id"], "Usable adopted copy")["project"]
+            self.assertTrue(Path(copied["path"]).is_file())
+            signal.assert_not_called()
+            launch.assert_not_called()
+
+    def test_legacy_reopen_resets_only_unowned_history_and_preserves_protected_rows(self):
+        from db.entities.process import process
+        from app.services.process_history import reconcile
+        from app.scanning.recovery import settle_process
+
+        first = self.hub.create("Legacy process history")["project"]
+        session = self.logic.activeProject.database.session()
+        legacy = process(pid="999999", status="Waiting", command="original evidence")
+        session.add(legacy)
+        session.commit()
+        identifier = legacy.id
+        session.close()
+        self.hub.create("Other project")
+        with (
+            patch.object(self.runtime, "_signal_process_tree") as signal,
+            patch("app.scanning.execution.execute_command") as launch,
+        ):
+            self.hub.open(first["id"])
+            self.assertEqual(
+                "Interrupted",
+                self.logic.activeProject.repositoryContainer.processRepository.getStatusByProcessId(str(identifier)),
+            )
+            self.assertEqual(
+                "Waiting", self.runtime.get_process_output(identifier)["history_origin"]["original_status"]
+            )
+            journal = self.runtime.execution_journal
+            entry = journal.create(first["path"])
+            session = self.logic.activeProject.database.session()
+            live = process(pid="888888", status="Running", execution_id=entry.id)
+            session.add(live)
+            session.commit()
+            owned_id = live.id
+            session.close()
+            reconcile(self.logic.activeProject, runtime=self.runtime)
+            self.assertEqual(
+                "Running",
+                self.logic.activeProject.repositoryContainer.processRepository.getStatusByProcessId(str(owned_id)),
+            )
+            with self.assertRaisesRegex(RuntimeError, "cleanup/recovery"):
+                self.hub.operations.save_as(first["id"], "Must stay held")
+            signal.assert_not_called()
+            launch.assert_not_called()
+        journal.cleanup(entry.id)
+        settle_process(self.logic.activeProject, journal.get(entry.id))
+        journal.finish(entry.id)
+        self.hub.operations.save_as(first["id"], "After protected cleanup")
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -27,7 +126,9 @@ class ProjectHubTest(TestCase):
         )
         self.env.start()
         self.logic = create_default_logic()
-        self.runtime = WebRuntime(self.logic)
+        self.runtime = WebRuntime(
+            self.logic, execution_journal=ExecutionJournal(Path(os.environ["LEGION_HOME"]) / "protected-executions")
+        )
         self.hub = ProjectHub(self.runtime)
 
     def tearDown(self):
@@ -346,3 +447,55 @@ class ProjectHubTest(TestCase):
         with self.assertRaises(ValueError):
             self.hub.operations.restore_zip(path)
         self.assertEqual(restored["path"], self.runtime.get_project_details()["name"])
+
+    def test_restore_copy_and_post_publication_faults_keep_original_workspace_and_catalog(self):
+        import shutil
+
+        row = self.hub.create("Original for restore fault")["project"]
+        note = Path(row["folder"]) / "notes.txt"
+        note.write_text("original user evidence")
+        archive, _ = self.hub.operations.bundle(row["id"])
+        self.addCleanup(Path(archive).unlink, missing_ok=True)
+        original = self.logic.activeProject
+        catalog = self.hub.config_path.read_bytes()
+        folders = {p.name for p in self.hub.root.iterdir()}
+
+        def fail_copy(source, destination, admission):
+            member = next(source.glob("*.legion"))
+            shutil.copyfile(member, destination / member.name)
+            raise OSError("owned mid-copy space failure")
+
+        original_write = self.hub._write
+
+        def fail_publication(data):
+            original_write(data)
+            raise OSError("owned failure after catalog replacement")
+
+        for target, callback in [
+            ("app.services.project_restore.move_owned_tree", fail_copy),
+            ("app.services.project_hub.ProjectHub._write", lambda _self, data: fail_publication(data)),
+        ]:
+            with self.subTest(target=target), patch(target, callback):
+                with self.assertRaises(OSError):
+                    self.hub.operations.restore_zip(archive)
+            self.assertIs(original, self.logic.activeProject)
+            self.assertEqual(row["path"], self.runtime.get_project_details()["name"])
+            self.assertEqual(catalog, self.hub.config_path.read_bytes())
+            self.assertEqual(folders, {p.name for p in self.hub.root.iterdir()})
+            self.assertEqual("original user evidence", note.read_text())
+
+    def test_restore_document_collision_is_rejected_before_any_adoption(self):
+        row = self.hub.create("Original for document collision")["project"]
+        output = Path(self.logic.activeProject.properties.outputFolder)
+        (output / "proof.txt").write_text("original evidence")
+        archive, _ = self.hub.operations.bundle(row["id"])
+        self.addCleanup(Path(archive).unlink, missing_ok=True)
+        with zipfile.ZipFile(archive, "a") as writer:
+            writer.writestr("project-files/" + output.name + "/proof.txt", "conflicting replacement")
+        original = self.logic.activeProject
+        catalog = self.hub.config_path.read_bytes()
+        with self.assertRaisesRegex(ValueError, "collide"):
+            self.hub.operations.restore_zip(archive)
+        self.assertIs(original, self.logic.activeProject)
+        self.assertEqual(catalog, self.hub.config_path.read_bytes())
+        self.assertEqual("original evidence", (output / "proof.txt").read_text())

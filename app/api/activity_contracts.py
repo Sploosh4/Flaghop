@@ -1,14 +1,10 @@
 """Activity wire contracts retain historical SQLite fields and extension metadata."""
 
-from app.contracts.actions.activity import Process, Decision, Approval, Scan
-from app.contracts.observations.rationale import Rationale
-
-
-from typing import Annotated, Literal
-from pydantic import BaseModel, ConfigDict, Field, JsonValue
-from app.contracts.base import ExtensibleModel
-from app.contracts.actions.job_api import Job
 from app.api.contracts import Project, Snapshot
+from app.contracts.actions.activity import Approval, Decision, Process, Scan
+from app.contracts.base import ExtensibleModel
+from app.contracts.observations.rationale import Rationale
+from pydantic import Field, JsonValue
 
 TargetPort = str | int | None
 Text = str | None

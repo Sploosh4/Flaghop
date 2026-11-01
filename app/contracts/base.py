@@ -14,6 +14,16 @@ class ActionModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class ActionRequest(ActionModel):
+    """Canonical untrusted action input, also consumed by service adapters."""
+
+    model_config = ConfigDict(extra="forbid", strict=True, str_strip_whitespace=True)
+
+    @classmethod
+    def from_payload(cls, payload):
+        return cls.model_validate(payload)
+
+
 class ActionData:
     """Marker for typed internal action dataclasses; not an execution interface."""
 

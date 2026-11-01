@@ -69,6 +69,9 @@ class DeepScans(ProjectBackground):
                 ):
                     return self.detail(payload["scan_id"])
             _, identity = scanner_source()
+            from app.services.execution_journal import require_network_ready
+
+            require_network_ready(runtime, self.record["path"])
             run_id = uuid.uuid4().hex
             parent = self.folder() / run_id
             parent.mkdir(mode=0o700, parents=True, exist_ok=False)
@@ -85,6 +88,7 @@ class DeepScans(ProjectBackground):
                 "profile_path": "",
                 "summary": {},
                 "reason": "",
+                "source_identity": identity,
             }
             atomic_json(parent / "run.json", record)
 
@@ -93,6 +97,8 @@ class DeepScans(ProjectBackground):
                     self.current(request.host_id, request.target_ip)
                     if self.hub.networks.get(self.identifier)["revision"] != request.expected_revision:
                         raise NetworkHeld("Network settings changed while Deep scan was queued. Reload and retry.")
+                    if scanner_source()[1] != identity:
+                        raise NetworkHeld("Scanner source changed while queued. Review it and start a new scan.")
                 return execute_scan(self, record, request, identity, job_id)
 
             try:
@@ -106,6 +112,7 @@ class DeepScans(ProjectBackground):
                         "targets": targets,
                         "expected_revision": request.expected_revision,
                         "directory": record["directory"],
+                        "source_identity": identity,
                     },
                     exclusive=True,
                     on_finish=lambda job: settled(self, job),

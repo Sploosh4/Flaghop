@@ -137,6 +137,8 @@ body.workspace-part[data-workspace-part="app-settings"] .tool-audit-table-wrap c
 #project-hub-root .hub-network-report>span {display:block;color:#888;}
 @media(max-width:900px){#project-hub-root .hub-network-settings fieldset{grid-template-columns:1fr}}
 #project-hub-root .hub-error {color:#db8d8d;font-size:12px;padding:10px 25px;margin:0;}
+#project-hub-root .hub-recovery-notice {padding:8px 20px;border-bottom:1px solid #383030;flex-shrink:0;}
+#project-hub-root .hub-recovery-notice .hub-error {padding:4px 0;}
 #project-hub-root .hub-modal-backdrop {position:fixed;inset:0;display:grid;place-items:center;background:#0009;backdrop-filter:blur(3px);z-index:100;}
 #project-hub-root .hub-modal {width:min(390px,calc(100vw - 40px));padding:22px;background:#141414;border:1px solid #333;border-radius:10px;box-sizing:border-box;}
 #project-hub-root .hub-modal h2 {font-size:15px;margin-bottom:17px;}

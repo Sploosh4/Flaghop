@@ -1,9 +1,11 @@
 """Scheduler action requests and history queries."""
 
 from app.contracts.base import ActionData
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from app.contracts.base import ActionRequest
 from app.core.contract_values import as_bool, clamp_int
+from dataclasses import dataclass
+from pydantic import Field
+from typing import Any, Optional
 
 
 @dataclass(frozen=True)
@@ -91,22 +93,15 @@ class SchedulerRejectionRequest(ActionData):
         )
 
 
-@dataclass(frozen=True)
-class SchedulerFamilyApprovalRequest(ActionData):
-    family_id: str
-    metadata: Dict[str, Any]
+class SchedulerFamilyApprovalRequest(ActionRequest):
+    family_id: str = Field(min_length=1, max_length=512)
+    tool_id: str = Field(default="", max_length=512)
+    label: str = Field(default="", max_length=1000)
+    danger_categories: list[str] = Field(default_factory=list, max_length=1000)
 
-    @classmethod
-    def from_payload(cls, payload: Any) -> "SchedulerFamilyApprovalRequest":
-        source = payload if isinstance(payload, dict) else {}
-        return cls(
-            family_id=str(source.get("family_id", "") or "").strip(),
-            metadata={
-                "tool_id": str(source.get("tool_id", "") or ""),
-                "label": str(source.get("label", "") or ""),
-                "danger_categories": source.get("danger_categories", []),
-            },
-        )
+    @property
+    def metadata(self):
+        return self.model_dump(exclude={"family_id"})
 
 
 @dataclass(frozen=True)

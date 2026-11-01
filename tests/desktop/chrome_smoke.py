@@ -24,9 +24,12 @@ from app.desktop import LegionWindow
 from app.services.project_hub import ProjectHub
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
+from app.services.execution_journal import ExecutionJournal
 from tests.support.asgi_server import live_asgi_server
 
-runtime = WebRuntime(create_default_logic())
+runtime = WebRuntime(
+    create_default_logic(), execution_journal=ExecutionJournal(Path(os.environ["LEGION_HOME"]) / "protected-executions")
+)
 harbour = ProjectHub(runtime).create("Harbour")["project"]
 server = live_asgi_server(create_app(runtime))
 url = server.__enter__()

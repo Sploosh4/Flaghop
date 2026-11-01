@@ -33,6 +33,9 @@ class ProjectHubOperations:
     def save(self, identifier):
         with self.hub.lock, self.runtime._lock:
             record = self._active(identifier)
+            from app.services.execution_journal import require_settled
+
+            require_settled(self.runtime, record["path"])
             self.hub._check_idle()
             self.runtime.save_project_as(record["path"], replace=True)
             return self._response(record)
@@ -42,6 +45,9 @@ class ProjectHubOperations:
 
         with self.hub.lock, self.runtime._lock:
             source = self._active(identifier)
+            from app.services.execution_journal import require_settled
+
+            require_settled(self.runtime, source["path"])
             self.hub._check_idle()
             name = project_name(name)
             try:
@@ -52,6 +58,9 @@ class ProjectHubOperations:
                     if not destination.exists():
                         destination.parent.mkdir(parents=True, exist_ok=True)
                         shutil.copy2(path, destination)
+                from app.scanning.history_identity import rebind_history
+
+                rebind_history(self.runtime.logic.activeProject, record["id"])
             except Exception:
                 if self.hub._current().get("name") != source["path"]:
                     self.runtime.open_project(source["path"])
@@ -78,6 +87,12 @@ class ProjectHubOperations:
             try:
                 with zipfile.ZipFile(path, "a", compression=zipfile.ZIP_DEFLATED) as archive:
                     for source in self.hub.visible_files(identifier):
+                        properties = self.runtime.logic.activeProject.properties
+                        if any(
+                            source.is_relative_to(Path(folder))
+                            for folder in (properties.outputFolder, properties.runningFolder)
+                        ):
+                            continue
                         archive.write(source, "project-files/" + source.relative_to(record["folder"]).as_posix())
             except Exception:
                 Path(path).unlink(missing_ok=True)
@@ -85,37 +100,6 @@ class ProjectHubOperations:
             return path, filename
 
     def restore_zip(self, path):
-        with self.hub.lock, self.runtime._lock:
-            self.hub._check_idle()
-            if not zipfile.is_zipfile(path):
-                raise ValueError("Select a valid workspace ZIP.")
-            with zipfile.ZipFile(path) as archive:
-                documents = []
-                for member in archive.infolist():
-                    if not member.filename.startswith("project-files/") or member.is_dir():
-                        continue
-                    relative = Path(member.filename[len("project-files/") :])
-                    if (
-                        not relative.parts
-                        or relative.is_absolute()
-                        or any(part.startswith(".") for part in relative.parts)
-                        or ".legion" in relative.name
-                        or "\\" in str(relative)
-                    ):
-                        raise ValueError("Invalid project document path in ZIP.")
-                    documents.append((member.filename, relative))
-            self.runtime.restore_project_bundle_zip(path)
-            record = self.hub._adopt(self.hub._legacy(self.hub._current()))
-            # The existing restore validates session/tool output. Restore the new
-            # shell's documents separately, using the same containment boundary.
-            with zipfile.ZipFile(path) as archive:
-                for member, relative in documents:
-                    if relative.as_posix() in {"reader-control.json", "reader-alerts.json"}:
-                        continue
-                    destination = Path(record["folder"]) / relative
-                    if not destination.resolve().is_relative_to(Path(record["folder"]).resolve()):
-                        raise ValueError("Invalid project document path in ZIP.")
-                    destination.parent.mkdir(parents=True, exist_ok=True)
-                    with archive.open(member) as source, destination.open("wb") as target:
-                        shutil.copyfileobj(source, target)
-            return self._response(record)
+        from app.services.project_restore import restore_into_hub
+
+        return restore_into_hub(self.hub, path)

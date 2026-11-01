@@ -1,8 +1,11 @@
 """Tool audit/install request values; OS detection belongs to the service."""
 
-from dataclasses import dataclass
-from typing import Any, List
 from app.contracts.base import ActionData
+from app.contracts.base import ActionRequest
+from dataclasses import dataclass
+from pydantic import Field
+from typing import Any, List
+from typing import Literal
 
 
 def _platform_input(value):
@@ -31,22 +34,7 @@ class ToolAuditPlanQuery(ActionData):
         )
 
 
-@dataclass(frozen=True)
-class ToolAuditInstallRequest(ActionData):
-    platform: str
-    scope: str
-    tool_keys: List[str]
-
-    @classmethod
-    def from_payload(cls, payload: Any) -> "ToolAuditInstallRequest":
-        source = payload if isinstance(payload, dict) else {}
-        tool_keys = source.get("tool_keys", [])
-        if tool_keys is None:
-            tool_keys = []
-        if not isinstance(tool_keys, list):
-            raise ValueError("Field 'tool_keys' must be an array when provided.")
-        return cls(
-            platform=_platform_input(source.get("platform", "")),
-            scope=str(source.get("scope", "missing") or "missing"),
-            tool_keys=[str(item or "").strip() for item in tool_keys if str(item or "").strip()],
-        )
+class ToolAuditInstallRequest(ActionRequest):
+    platform: Literal["", "kali", "ubuntu"] = ""
+    scope: Literal["missing", "all", "selected"] = "missing"
+    tool_keys: list[str] = Field(default_factory=list, max_length=1000)

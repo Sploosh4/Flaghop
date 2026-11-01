@@ -76,6 +76,16 @@ class Database:
 
         try:
             self.metadata.create_all(self.engine)
+            from db.schema import ensure_column
+
+            with self.engine.begin() as connection:
+                # A direct Database() can be opened before entity registration.
+                # New tables receive the column from their ORM definition; only
+                # an existing legacy process table needs this migration.
+                if connection.exec_driver_sql(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='process'"
+                ).scalar():
+                    ensure_column(connection, "process", "execution_id", "TEXT")
         except SADatabaseError as exc:
             self.dispose()
             raise DatabaseIntegrityError(f"Failed to initialise SQLite metadata: {exc}") from exc

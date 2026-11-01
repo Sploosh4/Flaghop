@@ -14,8 +14,9 @@ Parser output and normalized target rows are checked against shared observation
 models. Network reports use typed route/service responses. Reader provenance
 retains extensions and missing fields; artifact manifests and relative result
 paths are typed without replacing byte/path ownership checks in the services.
-This sweep does not implement persistent run recovery, concurrent project
-execution or the planned Metasploit/session workflow.
+The reviewed repairs add protected owned-process cleanup and idempotent
+offline result recovery. Concurrent project execution and the planned
+Metasploit/session workflow remain separate work.
 
 The HTTP server is now FastAPI-only. Workspace identity and activity use React; the remaining HTML/JavaScript views use the same native server. The UI migration remains incremental. Python, SQLite, the scheduler, approval checks, subprocess execution and the Qt WebEngine window remain in use.
 
@@ -120,6 +121,41 @@ must finish rather than claiming cancellation. Persistence failures report faile
 jobs, preserving the execution outcome separately. Queued work has explicit
 backpressure at the configured active-job limit. Restart recovery marks saved
 work interrupted and never automatically launches its stored command.
+
+The reviewed repairs add a private execution journal outside copied/exported
+workspaces. Child execution waits for durable identity publication. Cleanup uses
+boot/start identity, pidfds, private network ownership and inherited app tags;
+unverified ownership or missing administrator access remains held. Active
+process rows are linked to that journal before network preparation. Database
+initialization adds nullable `process.execution_id` to legacy tables
+without changing existing row values. Process repositories remain free of
+constructor migration side effects. ASGI
+shutdown stops admission, requests cancellation and waits on one bounded
+deadline, including persistence callbacks. An unfinished shutdown is reported.
+
+Startup can settle original-project process rows and import a validated retained
+profile without changing the selected project or rerunning network work.
+Inventory and its idempotency marker commit together; summary files and final
+run state can then be retried after interruption. History provides Recover saved
+result/Retry cleanup, and a workspace notice exposes held generic executions.
+`GET /api/recovery` checks pending work; `POST /api/recovery` retries eligible
+cleanup/settlement. It accepts no PID, command or filesystem path. A scan-specific
+`POST .../deep-scans/{scan_id}/recover` selects saved evidence by owned IDs.
+
+Save as and ZIP restore preserve full results and original evidence, retain
+lineage, stop copied readers and remove actionable old run identity. Copied
+metadata never authorizes process signalling. An unresolved protected execution
+blocks copying, saving or moving its original workspace; a cleanup hold also
+blocks another network run there. ZIP imports now share configurable streaming
+and expansion limits, owned staging, actual-filesystem reservations and atomic
+workspace adoption. Oversize and storage admission failures return 413/507.
+
+Copied process rows clear actionable PID/execution IDs; Running/Waiting becomes
+Interrupted. The original control values remain in bounded provenance, while
+commands/output remain unchanged. Legacy reopen applies this only to unowned
+history, preserving actual handles and protected journal links. Reconciliation
+uses 32-row batches and one transaction after admission. Invalid/oversized
+controls or provenance reject the adoption without truncating evidence.
 
 `GET /api/hub/projects/{id}/deep-scans?compact=true` returns list metadata with
 `summary_omitted=true`; the workspace polls this form. `GET

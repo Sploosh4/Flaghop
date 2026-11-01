@@ -1,6 +1,10 @@
 """Action submission and scan-history responses."""
 
 from app.contracts.base import ActionData
+from app.contracts.base import ActionModel
+from app.contracts.actions.job_api import Job
+from typing import Literal
+from pydantic import ValidationError
 from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping
 
@@ -17,16 +21,19 @@ def _list_payload(value: Any, field_name: str) -> List[Any]:
     return list(value)
 
 
-@dataclass(frozen=True)
-class AcceptedJobResponse(ActionData):
-    job: Dict[str, Any]
+class AcceptedJobResponse(ActionModel):
+    status: Literal["accepted"] = "accepted"
+    job: Job
 
     @classmethod
     def from_job(cls, job: Any) -> "AcceptedJobResponse":
-        return cls(job=_mapping_payload(job, "job"))
+        try:
+            return cls(status="accepted", job=_mapping_payload(job, "job"))
+        except (ValidationError, ValueError) as exc:
+            raise TypeError("Runtime returned an invalid job result.") from exc
 
     def to_dict(self) -> Dict[str, Any]:
-        return {"status": "accepted", "job": dict(self.job)}
+        return self.model_dump(exclude_unset=True)
 
 
 @dataclass(frozen=True)
