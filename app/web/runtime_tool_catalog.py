@@ -4,7 +4,8 @@ from typing import Any, Dict, List
 
 from sqlalchemy import text
 
-from app.pipettes import find_pipette, list_pipettes
+from app.pipettes import find_pipette
+from app.capabilities.catalog import catalog_sources
 from app.scheduler.risk import classify_command_danger
 
 _SCHEDULER_ONLY_LABELS = {}
@@ -98,16 +99,20 @@ def workspace_tools_rows(runtime, service: str = "", port: str = "", protocol: s
         normalized_protocol = str(protocol or "tcp").strip().lower() or "tcp"
         run_stats = runtime._tool_run_stats(project)
         dangerous_categories = runtime.scheduler_config.get_dangerous_categories()
+        sources = catalog_sources(settings, dangerous_categories, _is_supported_tool)
         rows = []
         seen_tool_ids = set()
 
-        for action in settings.portActions:
+        for action in sources["port_actions"]:
             label = str(action[0])
             tool_id = str(action[1])
             command_template = str(action[2])
             service_scope = runtime._split_csv(str(action[3] if len(action) > 3 else ""))
 
             if not _is_supported_tool(tool_id):
+                continue
+            spec = sources["registry"].get_by_tool_id(tool_id)
+            if spec is None or spec.action_id not in sources["relationships"]["modules"]["legacy-settings"].action_ids:
                 continue
             if not _service_matches_scope(normalized_service, service_scope):
                 continue
@@ -128,7 +133,7 @@ def workspace_tools_rows(runtime, service: str = "", port: str = "", protocol: s
             )
             seen_tool_ids.add(tool_id)
 
-        for automated in settings.automatedAttacks:
+        for automated in sources["automated_attacks"]:
             tool_id = str(automated[0] if len(automated) > 0 else "").strip()
             if not tool_id or tool_id in seen_tool_ids:
                 continue
@@ -154,7 +159,7 @@ def workspace_tools_rows(runtime, service: str = "", port: str = "", protocol: s
             )
             seen_tool_ids.add(tool_id)
 
-        for pipette in list_pipettes():
+        for pipette in sources["pipettes"]:
             tool_id = pipette.tool_id
             if tool_id in seen_tool_ids:
                 continue

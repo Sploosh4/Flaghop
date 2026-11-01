@@ -45,3 +45,10 @@ def workspace_tool_run(request: Request, runtime: Runtime, response: Response, p
         return json_error(str(exc), 400)
     except Exception as exc:
         return json_error(str(exc), 500)
+
+
+@router.get("/api/workspace/capabilities", operation_id="workspace_capabilities")
+def workspace_capabilities(runtime: Runtime):
+    from app.capabilities.inspection import inspect_workspace
+
+    return inspect_workspace(runtime)
