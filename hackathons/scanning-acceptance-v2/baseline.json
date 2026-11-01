@@ -1,0 +1,29 @@
+{
+  "measured_at": "2026-10-31T06:42:34.120809+00:00",
+  "baseline_run": "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/validation/deepseek-evaluation/candidate-4",
+  "retained_logical_bytes": 751037028,
+  "retained_allocated_bytes": 753659904,
+  "regular_files": 2081,
+  "manifest_groups": {
+    "zap_runtime": 743513663,
+    "browser_state": 5308749,
+    "isolated_tool_state": 1224223,
+    "raw_evidence": 268899
+  },
+  "non_zap_bytes": 7523365,
+  "evidence_and_reports_estimate_bytes": 990393,
+  "targets": {
+    "retained_bytes_per_run": 16777216,
+    "peak_new_workspace_bytes": 268435456,
+    "shared_cache_bytes": 209715200
+  },
+  "retained_target_reduction_percent": 97.76612665228005,
+  "retained_target_savings_bytes": 734259812,
+  "peak_target_reduction_vs_retained_baseline_percent": 64.25802643648085,
+  "source_sha256": {
+    "ctf_profiler.py": "d8db52548c1563561743c989f601018f57193cbeb5b7a0d6b284138116cbfac4",
+    "staged_workflow.py": "6eae6789f7749f9a62b2ac6cb78eef5cb8f43deb82ad3df969594029a0ce8785",
+    "lab/verify_staged_profile.py": "8e43b8605d91ace148fa2a21bdcc032f2d27645c9ed8883a36cc408064a53bdd"
+  },
+  "note": "Measured retained baseline, not historical peak. Targets are proposed budgets, not demonstrated results."
+}

@@ -1,0 +1,26 @@
+# Local environments, installed tools, runtime state and credentials
+**/.git/
+**/.venv*/
+**/venv/
+**/node_modules/
+**/__pycache__/
+**/*.py[cod]
+**/.cache/
+**/.tmp/
+**/.tools/
+**/.runtime/
+**/.state/
+**/.artifacts/
+**/.desktop-profile/
+**/.env
+**/.env.local
+**/.env.*.local
+**/private/
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+**/*.pid
+**/*.lock
+**/*.pot
+/.consolidation/

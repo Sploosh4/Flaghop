@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "scan_id": "95ffa7a9d2d343fa8de91b3640687ed7",
+  "created_at": "2026-10-30T20:39:45.701067+00:00",
+  "source": "unsupported.txt",
+  "source_sha256": "9010e2101429980ea34d557aa85bb41b4d1d9e383e4f9c4b827aaeb598f6d704",
+  "source_size": 91,
+  "config": "16199ae9aa9366a8d050b2f55734ed92b7b5b4efcdd3f00712eb943d3db793b6",
+  "tool_sha256": {
+    "john": "059ade5c34432ec8aebde4e6dc4477eabd9e7ff0b9890497685a842334822b25",
+    "hashcat": "e9fe2167fd1814341cf7c6c1c559768c372363438124ed668d16f6952e4359bb",
+    "hashcat_core": "dbccb98217c95a79c0b648f452ad1778317777fe069eb2a20d66c0f0b8751a14",
+    "hashcat_modules": "e780d05f44f7e43b4a3ee60284cf1b15f9a0c665a0da963a2a341909ee6ced8d",
+    "pocl": "790cb654b158eaf794da1b441ef7be2f04c5ff95447e0957d80d733fb59b47b7",
+    "rusticl": "6669c5324719506923601fa66c0b5396e37b22589a4b055ace18bd8b2951f773"
+  },
+  "status": "complete",
+  "warnings": [],
+  "candidates": [
+    {
+      "value": "$argon2id$v=19$m=65536,t=3,p=4$c29tZXNhbHQ$c29tZWhhc2g",
+      "format": null,
+      "format_basis": "recognized structured record; recovery adapter not implemented",
+      "identifications": {
+        "$argon2id$v=19$m=65536,t=3,p=4$c29tZXNhbHQ$c29tZWhhc2g": [
+          {
+            "name": "Argon2id",
+            "hashcat": null,
+            "john": null,
+            "extended": false,
+            "description": null
+          }
+        ]
+      },
+      "unsupported_type": true,
+      "location": {
+        "offset": 36,
+        "length": 54,
+        "line": 2,
+        "byte_column": 1
+      },
+      "target_id": "d4739a8760b6c474b27df3b67d0dcdbc7231c2bad97e16f3d83d99e546320a81"
+    }
+  ],
+  "host_ip": null
+}

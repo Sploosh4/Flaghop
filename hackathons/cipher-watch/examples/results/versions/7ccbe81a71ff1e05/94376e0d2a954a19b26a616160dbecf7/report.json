@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "producer": "cipher-watch",
+  "prototype_version": "0.1.0",
+  "scan_id": "94376e0d2a954a19b26a616160dbecf7",
+  "created_at": "2026-10-30T20:01:21.497391+00:00",
+  "configuration_id": "87e26b7f126fd41104c16a5bf4b1720a61246d15c9d5f8f66777d6f4b312977f",
+  "code_sha256": "1be2d659c63fd7611357e9fac83dcc68c7d2ea09b113a29586bdd478b4631454",
+  "source": {
+    "watch_root": "/home/joshua/Documents/ChatGPT/Hackathons/cipher-watch/examples/inbox",
+    "relative_path": "layered.json",
+    "sha256": "5830a35d33af0088c6fb08e5e19d1c0b95668774db1def60677fa254c41f1b0d",
+    "fingerprint": "5830a35d33af0088c6fb08e5e19d1c0b95668774db1def60677fa254c41f1b0d",
+    "size_bytes": 97,
+    "mtime_ns": 1793390276790324622
+  },
+  "settings": {
+    "encodings": "b64,hex,bx,bu,pu",
+    "min_decoded_bytes": 8,
+    "max_file_bytes": 2000000,
+    "max_candidate_bytes": 16384,
+    "max_candidates": 64,
+    "decode_seconds": 2,
+    "file_seconds": 30,
+    "regex": "hello there general",
+    "ignore": []
+  },
+  "tools": {
+    "base64dump": {
+      "path": "/home/joshua/Documents/ChatGPT/Hackathons/cipher-watch/.tools/base64dump.py",
+      "sha256": "57a6efe8315e17274c9299cc567a2dc6263bc6d580d4cd63ace19d6cf870f34f"
+    },
+    "ciphey": {
+      "path": "/home/joshua/Documents/ChatGPT/Hackathons/cipher-watch/.tools/ciphey",
+      "sha256": "ebd54286e3eab26db8f3add2cd2702f448905f475e3e389ccae618bc8634fe8c",
+      "adapter": "Ciphey v0.12.1 CLI"
+    }
+  },
+  "status": "complete",
+  "coverage": {
+    "scope": "contiguous encoded sequences in raw file bytes",
+    "attempted": 1,
+    "extracted": 1,
+    "warnings": [],
+    "excluded": "symlinks and configured ignore patterns"
+  },
+  "candidates": [
+    {
+      "encoding": "b64",
+      "offset": 37,
+      "length": 56,
+      "line": 3,
+      "byte_column": 15,
+      "encoded_b64": "V1ZWa1YyTXlTa2hQUjJSclVqSm9jMWt5TVZaYU1XOTVWbTVXWVZkRmNHOVphMFU1VUZFOVBRPT0=",
+      "decoded_b64": "WVVkV2MySkhPR2RrUjJoc1kyMVZaMW95Vm5WYVdFcG9Za0U5UFE9PQ==",
+      "id": "candidate-001",
+      "status": "accepted_candidate"
+    }
+  ],
+  "findings": [
+    {
+      "id": "candidate-001",
+      "status": "accepted_candidate",
+      "human_verified": false,
+      "location": {
+        "offset": 37,
+        "length": 56,
+        "line": 3,
+        "byte_column": 15
+      },
+      "steps": [
+        "base64dump:b64",
+        "Base64",
+        "Base64"
+      ],
+      "text": "hello there general",
+      "decoded_sha256": "5d9d3d40d92da505f31b215f94751434517ff55cdc0e017aae6ab9bc54be4d94",
+      "decoded_file": "decoded/candidate-001.txt",
+      "validation": "Ciphey checker accepted; not human verified"
+    }
+  ],
+  "legion_export": {
+    "host_ip": null,
+    "findings": [
+      {
+        "title": "Decoded content candidate",
+        "severity": "info",
+        "source_kind": "observed",
+        "observed": true,
+        "evidence": "layered.json byte 37; base64dump:b64 \u2192 Base64 \u2192 Base64",
+        "evidence_items": [
+          "versions/7ccbe81a71ff1e05/94376e0d2a954a19b26a616160dbecf7/decoded/candidate-001.txt"
+        ],
+        "human_verified": false
+      }
+    ],
+    "artifacts": [
+      {
+        "ref": "versions/7ccbe81a71ff1e05/94376e0d2a954a19b26a616160dbecf7/decoded/candidate-001.txt",
+        "kind": "decoded_text",
+        "tool_id": "cipher-watch",
+        "source_kind": "observed",
+        "observed": true
+      }
+    ]
+  }
+}

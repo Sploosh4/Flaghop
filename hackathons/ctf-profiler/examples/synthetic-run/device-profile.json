@@ -1,0 +1,471 @@
+{
+  "schema_version": "1.0",
+  "profiler_version": "0.1.0",
+  "label": "Synthetic example; not a real device",
+  "run": {
+    "started_at": "2026-10-30T19:47:07.101752+00:00",
+    "status": "completed",
+    "mode": "offline",
+    "finished_at": "2026-10-30T19:47:07.102530+00:00"
+  },
+  "target": {
+    "ip": "192.0.2.10",
+    "ip_version": 4,
+    "scope": "single_ip",
+    "dns_resolver": null
+  },
+  "policy": {
+    "supplied_target_credentials": false,
+    "target_installation": false,
+    "http_redirects": "never",
+    "implicit_dns": false,
+    "optional_tools": "run if applicable and installed",
+    "supplied_xml_authentication": "unverified"
+  },
+  "configuration": {
+    "ports": "top1000",
+    "os_detection": "auto",
+    "max_followup_services": 32,
+    "tool_timeout_seconds": 30,
+    "tls_timeout_seconds": 120,
+    "max_http_body_bytes": 262144
+  },
+  "tool_inventory": {
+    "nmap": "/usr/bin/nmap",
+    "http": "/usr/bin/curl",
+    "whatweb": null,
+    "tls": null,
+    "smb": null,
+    "ssh": "/usr/bin/ssh-keyscan",
+    "dns": "/usr/bin/dig"
+  },
+  "nmap": {
+    "nmap_version": "fixture",
+    "recorded_arguments": "SYNTHETIC fixture, not a scan",
+    "started_epoch": "1793404800",
+    "finished_epoch": "1793404801",
+    "host_status": {
+      "state": "up",
+      "reason": "fixture"
+    },
+    "addresses": [
+      {
+        "addr": "192.0.2.10",
+        "addrtype": "ipv4"
+      }
+    ],
+    "hostnames": [
+      {
+        "name": "fixture.ctf.invalid",
+        "type": "user"
+      }
+    ],
+    "scan_coverage": [
+      {
+        "type": "connect",
+        "protocol": "tcp",
+        "numservices": "4",
+        "services": "445,2222,8080,8443"
+      }
+    ],
+    "other_port_states": [],
+    "services": [
+      {
+        "port": 445,
+        "protocol": "tcp",
+        "state": "open",
+        "state_reason": "fixture",
+        "fingerprint": {
+          "name": "microsoft-ds",
+          "product": "Samba smbd",
+          "version": "fixture",
+          "method": "probed",
+          "conf": "10"
+        },
+        "cpes": [],
+        "scripts": []
+      },
+      {
+        "port": 2222,
+        "protocol": "tcp",
+        "state": "open",
+        "state_reason": "fixture",
+        "fingerprint": {
+          "name": "ssh",
+          "product": "OpenSSH",
+          "version": "fixture",
+          "method": "probed",
+          "conf": "10"
+        },
+        "cpes": [],
+        "scripts": []
+      },
+      {
+        "port": 8080,
+        "protocol": "tcp",
+        "state": "open",
+        "state_reason": "fixture",
+        "fingerprint": {
+          "name": "http",
+          "product": "nginx",
+          "version": "fixture",
+          "method": "probed",
+          "conf": "10"
+        },
+        "cpes": [],
+        "scripts": []
+      },
+      {
+        "port": 8443,
+        "protocol": "tcp",
+        "state": "open",
+        "state_reason": "fixture",
+        "fingerprint": {
+          "name": "http",
+          "tunnel": "ssl",
+          "product": "nginx",
+          "version": "fixture",
+          "method": "probed",
+          "conf": "10"
+        },
+        "cpes": [
+          "cpe:/a:example:synthetic_fixture"
+        ],
+        "scripts": [
+          {
+            "id": "ssl-cert",
+            "output": "Synthetic certificate: fixture.ctf.invalid; </ruby> is data, not code."
+          }
+        ]
+      }
+    ],
+    "os_candidates": [
+      {
+        "description": "Synthetic Linux candidate",
+        "nmap_match_accuracy": "93",
+        "classes": [
+          {
+            "vendor": "Linux",
+            "osfamily": "Linux",
+            "osgen": "5.X",
+            "type": "general purpose",
+            "accuracy": "93",
+            "cpes": [
+              "cpe:/o:linux:linux_kernel:5"
+            ]
+          }
+        ]
+      }
+    ],
+    "host_scripts": []
+  },
+  "tasks": [
+    {
+      "id": "discovery",
+      "tool": "nmap",
+      "status": "supplied",
+      "source": "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/tests/fixtures/single-target.xml",
+      "reason": "Existing single-target XML; no discovery command executed"
+    },
+    {
+      "id": "smb",
+      "tool": "smb",
+      "command": [
+        "enum4linux-ng",
+        "-O",
+        "-S",
+        "-oJ",
+        "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/smb",
+        "192.0.2.10"
+      ],
+      "trigger": "Nmap reports microsoft-ds on tcp/445",
+      "timeout": 30,
+      "json_artifact": "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/smb.json",
+      "watch": [
+        "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/smb.json"
+      ],
+      "port": 445,
+      "started_at": "2026-10-30T19:47:07.102431+00:00",
+      "exit_code": null,
+      "status": "skipped_offline",
+      "reason": "Offline mode makes no tool calls"
+    },
+    {
+      "id": "ssh-2222",
+      "tool": "ssh",
+      "command": [
+        "/usr/bin/ssh-keyscan",
+        "-T",
+        "5",
+        "-p",
+        "2222",
+        "-4",
+        "192.0.2.10"
+      ],
+      "trigger": "Nmap reports ssh on tcp/2222",
+      "timeout": 30,
+      "port": 2222,
+      "started_at": "2026-10-30T19:47:07.102467+00:00",
+      "exit_code": null,
+      "status": "skipped_offline",
+      "reason": "Offline mode makes no tool calls"
+    },
+    {
+      "id": "http-8080",
+      "tool": "http",
+      "command": [
+        "/usr/bin/curl",
+        "--disable",
+        "--silent",
+        "--show-error",
+        "--noproxy",
+        "*",
+        "--proto",
+        "=http,https",
+        "--connect-timeout",
+        "5",
+        "--max-time",
+        "30",
+        "--dump-header",
+        "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/http-8080.headers",
+        "--output",
+        "-",
+        "--url",
+        "http://192.0.2.10:8080/"
+      ],
+      "trigger": "Nmap reports http on tcp/8080",
+      "timeout": 32,
+      "port": 8080,
+      "url": "http://192.0.2.10:8080/",
+      "watch": [
+        "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/http-8080.headers"
+      ],
+      "stdout_limit": 262144,
+      "started_at": "2026-10-30T19:47:07.102480+00:00",
+      "exit_code": null,
+      "status": "skipped_offline",
+      "reason": "Offline mode makes no tool calls"
+    },
+    {
+      "id": "whatweb-8080",
+      "tool": "whatweb",
+      "command": [
+        "whatweb",
+        "--aggression=1",
+        "--follow-redirect=never",
+        "--no-cookies",
+        "--max-threads=1",
+        "--open-timeout=5",
+        "--read-timeout=30",
+        "--log-json=/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/whatweb-8080.json",
+        "http://192.0.2.10:8080/"
+      ],
+      "trigger": "HTTP response confirmed by curl",
+      "timeout": 30,
+      "port": 8080,
+      "url": "http://192.0.2.10:8080/",
+      "requires": "http-8080",
+      "json_artifact": "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/whatweb-8080.json",
+      "watch": [
+        "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/whatweb-8080.json"
+      ],
+      "started_at": "2026-10-30T19:47:07.102496+00:00",
+      "exit_code": null,
+      "status": "skipped_offline",
+      "reason": "Offline mode makes no tool calls"
+    },
+    {
+      "id": "http-8443",
+      "tool": "http",
+      "command": [
+        "/usr/bin/curl",
+        "--disable",
+        "--silent",
+        "--show-error",
+        "--noproxy",
+        "*",
+        "--proto",
+        "=http,https",
+        "--connect-timeout",
+        "5",
+        "--max-time",
+        "30",
+        "--dump-header",
+        "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/http-8443.headers",
+        "--output",
+        "-",
+        "--insecure",
+        "--url",
+        "https://192.0.2.10:8443/"
+      ],
+      "trigger": "Nmap reports http on tcp/8443",
+      "timeout": 32,
+      "port": 8443,
+      "url": "https://192.0.2.10:8443/",
+      "watch": [
+        "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/http-8443.headers"
+      ],
+      "stdout_limit": 262144,
+      "started_at": "2026-10-30T19:47:07.102505+00:00",
+      "exit_code": null,
+      "status": "skipped_offline",
+      "reason": "Offline mode makes no tool calls"
+    },
+    {
+      "id": "whatweb-8443",
+      "tool": "whatweb",
+      "command": [
+        "whatweb",
+        "--aggression=1",
+        "--follow-redirect=never",
+        "--no-cookies",
+        "--max-threads=1",
+        "--open-timeout=5",
+        "--read-timeout=30",
+        "--log-json=/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/whatweb-8443.json",
+        "https://192.0.2.10:8443/"
+      ],
+      "trigger": "HTTP response confirmed by curl",
+      "timeout": 30,
+      "port": 8443,
+      "url": "https://192.0.2.10:8443/",
+      "requires": "http-8443",
+      "json_artifact": "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/whatweb-8443.json",
+      "watch": [
+        "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/whatweb-8443.json"
+      ],
+      "started_at": "2026-10-30T19:47:07.102514+00:00",
+      "exit_code": null,
+      "status": "skipped_offline",
+      "reason": "Offline mode makes no tool calls"
+    },
+    {
+      "id": "tls-8443",
+      "tool": "tls",
+      "command": [
+        "testssl.sh",
+        "-p",
+        "-S",
+        "-s",
+        "--nodns",
+        "none",
+        "--warnings",
+        "batch",
+        "--color",
+        "0",
+        "--connect-timeout",
+        "5",
+        "--openssl-timeout",
+        "5",
+        "--jsonfile-pretty",
+        "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/tls-8443.json",
+        "192.0.2.10:8443"
+      ],
+      "trigger": "Nmap reports http on tcp/8443",
+      "timeout": 120,
+      "port": 8443,
+      "json_artifact": "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/tls-8443.json",
+      "watch": [
+        "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/examples/synthetic-run/raw/tls-8443.json"
+      ],
+      "started_at": "2026-10-30T19:47:07.102520+00:00",
+      "exit_code": null,
+      "status": "skipped_offline",
+      "reason": "Offline mode makes no tool calls"
+    },
+    {
+      "id": "dns",
+      "tool": "dns",
+      "command": [],
+      "trigger": "Reverse DNS",
+      "timeout": 30,
+      "skip_reason": "No DNS resolver configured; no implicit resolver requests",
+      "status": "skipped",
+      "reason": "No DNS resolver configured; no implicit resolver requests"
+    }
+  ],
+  "observations": [],
+  "candidate_products": [
+    {
+      "product": "Samba smbd",
+      "version": "fixture",
+      "endpoint": "tcp/445",
+      "source": "Nmap service fingerprint",
+      "physical_device_identity": false
+    },
+    {
+      "product": "OpenSSH",
+      "version": "fixture",
+      "endpoint": "tcp/2222",
+      "source": "Nmap service fingerprint",
+      "physical_device_identity": false
+    },
+    {
+      "product": "nginx",
+      "version": "fixture",
+      "endpoint": "tcp/8080",
+      "source": "Nmap service fingerprint",
+      "physical_device_identity": false
+    },
+    {
+      "product": "nginx",
+      "version": "fixture",
+      "endpoint": "tcp/8443",
+      "source": "Nmap service fingerprint",
+      "physical_device_identity": false
+    }
+  ],
+  "identity_hypotheses": {
+    "vendor": {
+      "value": null,
+      "status": "unassessed",
+      "evidence": []
+    },
+    "product_family": {
+      "value": null,
+      "status": "unassessed",
+      "evidence": []
+    },
+    "model": {
+      "value": null,
+      "status": "unassessed",
+      "evidence": []
+    },
+    "firmware": {
+      "value": null,
+      "status": "unassessed",
+      "evidence": []
+    },
+    "device_role": {
+      "value": null,
+      "status": "unassessed",
+      "evidence": []
+    }
+  },
+  "ngfw_capability": "unknown",
+  "ngfw_features_active": "unknown",
+  "validated_vulnerabilities": [],
+  "limitations": [
+    "A service fingerprint does not establish physical device identity.",
+    "OS match scores are fingerprint similarity, not identity probabilities.",
+    "No supplied credentials; anonymous SMB sessions may be denied.",
+    "Only the default IP-based web site is examined; named virtual hosts may differ.",
+    "Redirect destinations and names in certificates are recorded, not scanned.",
+    "Active discovery scans TCP only; UDP coverage is absent unless present in supplied XML.",
+    "STARTTLS, web crawling, content guessing, WAF probes, ARP and packet capture are outside v0.1.",
+    "Optional parsers preserve tool JSON; tools may have additional local dependencies."
+  ],
+  "followup_services_omitted_by_limit": [],
+  "task_summary": {
+    "supplied": 1,
+    "skipped_offline": 7,
+    "skipped": 1
+  },
+  "artifacts": [
+    {
+      "path": "raw/nmap.xml",
+      "bytes": 1953,
+      "sha256": "2471e698c4c9252067a8f0defb2614c29afa96dac4a628c40069644288216f19"
+    }
+  ]
+}

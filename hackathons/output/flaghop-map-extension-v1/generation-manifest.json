@@ -1,0 +1,11 @@
+{
+  "tool": "built-in image_gen",
+  "status": "unapproved concepts, not integrated",
+  "style_references": [
+    "references/computer.png",
+    "references/server.png",
+    "references/vpn-appliance.png"
+  ],
+  "prompts": "prompts.json",
+  "note": "First two entries retain the revised prompts returned in the original generation record; last two retain the exact submitted prompts."
+}

@@ -1,0 +1,8 @@
+{
+  "purpose": "Observer-owned additional Chrome prerequisite requested by Josh. Keep original v2/v3 manifests intact; do not bypass or edit this gate to make the scanner pass.",
+  "sha256": {
+    "scanning-acceptance-v3/browser_preflight.py": "8cd2488b8f803e0b6a867312be45ca7cc9f98791db8f40e668466b4382809062",
+    "scanning-acceptance-v3/CHROME-PREFLIGHT.md": "8b816f731ba7899ea521bed8337cf73727603f46b914a5dd89fd5a987721fa9c",
+    "ctf-profiler/validation/round3-browser-preflight-harness-controls.json": "2ddaaeee24a2ba8b65764e340821df6da744b8cbe39fc219a46d3c18c93a8c0d"
+  }
+}

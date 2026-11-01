@@ -1,0 +1,9 @@
+{
+  "purpose": "Independent acceptance inputs. Do not edit to make an implementation pass; report a demonstrable harness issue for review.",
+  "sha256": {
+    "scanning-acceptance-v2/acceptance.py": "f54639936febee049b8c4be0a42f6b6fa984987f4de1ba070a1d6fd59e5dc633",
+    "scanning-acceptance-v2/measure_storage.py": "727a82727c7f721c1abdc3829e6794346d4c7e3bf6011a4accc8552fa5b2feb2",
+    "scanning-acceptance-v2/baseline.json": "88468d6e9eca7038eab0520446b79d9fe8df753515337ad7ac3bd1d2c2dbaa01",
+    "DEEPSEEK-SCANNING-NEXT-STEPS.md": "3eefaa4c5aafc4679a7c6f86af05d33c91366813ef39b264c5785d06a4afbc1a"
+  }
+}

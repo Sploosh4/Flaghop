@@ -1,0 +1,51 @@
+{
+  "created_at": "2026-10-30T20:12:17.668708+00:00",
+  "target_ip": "127.0.0.2",
+  "description": "Owned live localhost protocol target; independent ground truth, not scanner input",
+  "services": [
+    {
+      "protocol": "tcp",
+      "port": 53,
+      "implementation": "dnspython DNS fixture"
+    },
+    {
+      "protocol": "tcp",
+      "port": 445,
+      "implementation": "Impacket SMB"
+    },
+    {
+      "protocol": "tcp",
+      "port": 12222,
+      "implementation": "Paramiko SSH"
+    },
+    {
+      "protocol": "tcp",
+      "port": 18080,
+      "implementation": "Python http.server"
+    },
+    {
+      "protocol": "tcp",
+      "port": 18443,
+      "implementation": "Python http.server with TLS"
+    },
+    {
+      "protocol": "udp",
+      "port": 53,
+      "implementation": "dnspython DNS fixture"
+    }
+  ],
+  "closed_control_tcp_port": 18444,
+  "host_os": "PRETTY_NAME=\"Ubuntu 26.04.1 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"26.04\"\nVERSION=\"26.04.1 LTS (Resolute Raccoon)\"\nVERSION_CODENAME=resolute\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=resolute\nLOGO=ubuntu-logo\n",
+  "os_detection_limit": "Network stack belongs to the host laptop, not an independent guest",
+  "service_unit": "ctf-profiler-local-lab.service",
+  "authentication": "No supplied target credentials; SSH logins rejected; anonymous read-only SMB",
+  "versions": {
+    "paramiko": "5.1.0",
+    "impacket": "0.13.0.dev0",
+    "dnspython": "2.8.0",
+    "cryptography": "50.0.2"
+  },
+  "source_sha256": "c09ae1053b660be2bc0f5ec733cb78c0db56a282aec4ba7929522c5d46de03c1",
+  "smb_read_only_enforcement": "Server share setting plus backing files0444 and directory0555; denied live upload verified",
+  "ipc_share": "Empty runtime/ipc working directory; named-pipe RPC preserved"
+}

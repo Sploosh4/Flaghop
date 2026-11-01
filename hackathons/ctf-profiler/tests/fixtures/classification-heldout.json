@@ -1,0 +1,60 @@
+{
+  "version": "heldout-2026-10-31-v1",
+  "note": "Reserved evaluation inputs and evaluator-only expectations; production classification receives only input.",
+  "cases": [
+    {
+      "id": "insufficient-unknown-services",
+      "input": {"nmap": {"services": [
+        {"port": 443, "protocol": "tcp", "state": "open", "fingerprint": {"name": "unknown"}},
+        {"port": 9000, "protocol": "tcp", "state": "open", "fingerprint": {"name": "unknown"}}
+      ], "os_candidates": []}, "observations": []},
+      "expected": {"no_primary": true, "max_confidence": "low", "ngfw": "unknown"}
+    },
+    {
+      "id": "ambiguous-rdp-smb",
+      "input": {"nmap": {"services": [
+        {"port": 3389, "protocol": "tcp", "state": "open", "fingerprint": {"name": "ms-wbt-server"}},
+        {"port": 445, "protocol": "tcp", "state": "open", "fingerprint": {"name": "microsoft-ds"}}
+      ], "os_candidates": []}, "observations": []},
+      "expected": {"max_confidence": "medium", "forbid_roles": ["desktop"], "ngfw": "unknown"}
+    },
+    {
+      "id": "conflicting-appliance-products",
+      "input": {"nmap": {"services": [
+        {"port": 443, "protocol": "tcp", "state": "open", "fingerprint": {"name": "https"}}
+      ], "os_candidates": []}, "observations": [
+        {"task_id": "http-443", "tool": "http", "port": 443, "execution_status": "completed", "title": "FortiGate"},
+        {"task_id": "whatweb-8443", "tool": "whatweb", "port": 8443, "execution_status": "completed", "data": [{"plugins": {"Title": {"string": ["PAN-OS"]}}}]}
+      ]},
+      "expected": {"max_confidence": "medium", "unknown_vendor": true, "conflict": "multiple_appliance_families", "ngfw": "unknown"}
+    },
+    {
+      "id": "repeated-single-web-channel",
+      "input": {"nmap": {"services": [
+        {"port": 443, "protocol": "tcp", "state": "open", "fingerprint": {"name": "https", "product": "FortiGate"}}
+      ], "os_candidates": []}, "observations": [
+        {"task_id": "http-443", "tool": "http", "port": 443, "execution_status": "completed", "title": "FortiGate"},
+        {"task_id": "http-8443", "tool": "http", "port": 8443, "execution_status": "completed", "title": "FortiGate"},
+        {"task_id": "whatweb-443", "tool": "whatweb", "port": 443, "execution_status": "completed", "data": [{"plugins": {"Title": {"string": ["FortiGate"]}}}]}
+      ]},
+      "expected": {"max_confidence": "medium", "channels": ["web"], "ngfw": "likely"}
+    },
+    {
+      "id": "generic-firewall-wording-not-ngfw",
+      "input": {"nmap": {"services": [
+        {"port": 22, "protocol": "tcp", "state": "open", "fingerprint": {"name": "ssh", "product": "OpenSSH"}},
+        {"port": 80, "protocol": "tcp", "state": "open", "fingerprint": {"name": "http", "product": "nginx"}}
+      ], "os_candidates": []}, "observations": [
+        {"task_id": "http-80", "tool": "http", "port": 80, "execution_status": "completed", "title": "VPN gateway Firewall IPS"}
+      ]},
+      "expected": {"max_confidence": "medium", "forbid_roles": ["ngfw_appliance"], "ngfw": "unknown"}
+    },
+    {
+      "id": "os-evidence-without-services",
+      "input": {"nmap": {"services": [], "os_candidates": [
+        {"description": "Linux 5.0 - 6.2", "nmap_match_accuracy": "96", "classes": [{"osfamily": "Linux"}]}
+      ]}, "observations": []},
+      "expected": {"no_primary": true, "max_confidence": "low", "ngfw": "unknown"}
+    }
+  ]
+}

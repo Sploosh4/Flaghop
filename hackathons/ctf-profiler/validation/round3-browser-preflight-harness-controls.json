@@ -1,0 +1,23 @@
+{
+  "positive_browser_cases": {
+    "pass": 4,
+    "fail": 0,
+    "unmeasured": 0
+  },
+  "positive_launch": true,
+  "child_exit_7_preserved": true,
+  "negative_browser_cases": {
+    "pass": 0,
+    "fail": 4,
+    "unmeasured": 0
+  },
+  "real_socket_crashes_detected": 4,
+  "negative_launch_blocked": true,
+  "owned_workspaces_cleaned": true,
+  "evaluator_sha256": {
+    "browser_preflight.py": "8cd2488b8f803e0b6a867312be45ca7cc9f98791db8f40e668466b4382809062",
+    "record_command.py": "4a8eaaa1a827d868115d2aaa7f279097a99e8e3d882d0975bd7a548999574021"
+  },
+  "positive_report": "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/validation/round3-browser-preflight-launch-control-001.json",
+  "negative_report": "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/validation/round3-browser-preflight-block-control-001.json"
+}

@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-10-30T19:56:53.528492+00:00",
+  "packages": [
+    "metasploit-framework\t6.5.9~20261030055723.git.3.494135f~1rapid7-1\tii ",
+    "python3-impacket\t0.13.0-2\tii ",
+    "python3-ldap3\t2.9.1-2build1\tii ",
+    "python3-yaml\t6.0.3-1build1\tii ",
+    "samba-common-bin\t2:4.23.6+dfsg-1ubuntu2.2\tii ",
+    "smbclient\t2:4.23.6+dfsg-1ubuntu2.2\tii ",
+    "testssl.sh\t3.2.2+dfsg-1\tii ",
+    "whatweb\t0.6.3-1\tii "
+  ],
+  "user_tools": {
+    "whatweb": {
+      "executable": "/home/joshua/.local/bin/whatweb",
+      "source": "https://github.com/urbanadventurer/WhatWeb.git",
+      "commit": "d279d93042d034f3fd29d5a893d44ccc0595d3f8"
+    },
+    "enum4linux-ng": {
+      "executable": "/home/joshua/.local/bin/enum4linux-ng",
+      "source": "https://github.com/cddmp/enum4linux-ng.git",
+      "commit": "288826fd9ee89b61d846e59f17b77bae4fb671ee"
+    }
+  },
+  "metasploit": {
+    "executable": "/usr/bin/msfconsole",
+    "database": "local user database on 127.0.0.1:5433"
+  }
+}

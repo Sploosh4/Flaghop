@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "scan_id": "27a0c5df26894b10929c6a5431b16518",
+  "created_at": "2026-10-30T20:39:45.625568+00:00",
+  "source": "deep-bcrypt.txt",
+  "source_sha256": "d7cb0d522c292bbdb028b4e76bc45d0b63564aef03d8e49858748f04076c87a3",
+  "source_size": 92,
+  "config": "16199ae9aa9366a8d050b2f55734ed92b7b5b4efcdd3f00712eb943d3db793b6",
+  "tool_sha256": {
+    "john": "059ade5c34432ec8aebde4e6dc4477eabd9e7ff0b9890497685a842334822b25",
+    "hashcat": "e9fe2167fd1814341cf7c6c1c559768c372363438124ed668d16f6952e4359bb",
+    "hashcat_core": "dbccb98217c95a79c0b648f452ad1778317777fe069eb2a20d66c0f0b8751a14",
+    "hashcat_modules": "e780d05f44f7e43b4a3ee60284cf1b15f9a0c665a0da963a2a341909ee6ced8d",
+    "pocl": "790cb654b158eaf794da1b441ef7be2f04c5ff95447e0957d80d733fb59b47b7",
+    "rusticl": "6669c5324719506923601fa66c0b5396e37b22589a4b055ace18bd8b2951f773"
+  },
+  "status": "complete",
+  "warnings": [],
+  "candidates": [
+    {
+      "value": "$2b$05$abcdefghijklmnopqrstuutWvQaJ5MUipGeQyuBX5jSZn0S4azc6u",
+      "format": "bcrypt",
+      "format_basis": "self-describing prefix",
+      "identifications": {
+        "$2b$05$abcdefghijklmnopqrstuutWvQaJ5MUipGeQyuBX5jSZn0S4azc6u": []
+      },
+      "unsupported_type": false,
+      "location": {
+        "offset": 31,
+        "length": 60,
+        "line": 2,
+        "byte_column": 1
+      },
+      "target_id": "93a6ddf860072b2d6ced33ec1511898bade90312c935f98a3966eb0a29affc9d"
+    }
+  ],
+  "host_ip": null
+}
