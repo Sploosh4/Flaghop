@@ -1,3 +1,22 @@
+# Documentation ownership
+
+Only the **Project Manager** AI in chat
+`01a190c4-ad8b-7db0-8996-66d266abb314` may create, modify, delete, rename or
+generate Markdown or any other documentation for this codebase. This includes
+agent instructions, READMEs, guides, plans, status/review reports and documentation
+in other formats. Documentation edits in code comments/docstrings are covered
+too. Other AI agents must leave documentation to this Project Manager; changing
+the format, location or filename does not bypass this restriction. They may work
+on authorised code/tests and produce raw test logs or machine-readable results.
+
+No AI, including Project Manager, may recommend, solicit or ask Project Manager
+to add instructions or expand agent rules. Changes to agent instructions must
+originate from an explicit user request. Reporting a defect or test result is
+allowed; appending a request for new instructions is not.
+
+The human user may change documentation or these rules at any time. This grant
+does not authorise Project Manager to publish, push or change unrelated settings.
+
 # Local development
 
 This fork has a user-requested **2,000,000,000 byte** project storage cap, established before code edits/tests. Apply the bundled `project-storage-cap` skill in `skills/project-storage-cap/SKILL.md`. Read `.project-storage.json`; check the mounted filesystem before writing. Keep dedicated environments, tooling, caches, test outputs and desktop profiles inside the project. Never remove source, Git history or user evidence to make room. The initial setup baseline is local `.storage-baseline.json` and must not be overwritten.
@@ -29,14 +48,31 @@ commands on restart or trust imported/copy-local PID/lease metadata as authority
 
 ## Keep project descriptions current
 
-When a change alters user-visible capabilities, setup, limitations or agreed scope, update the relevant documentation in the same change:
+When a change alters user-visible capabilities, setup, limitations or agreed
+scope, Project Manager maintains the relevant documentation. This does not
+authorise other AI agents to edit it or request instruction additions:
 
 - `README.md`: concise product summary, available features and run instructions.
-- `docs/project-status.md`: published code versus local development, separate tools, active work, planned/deferred scope and unresolved problems. Date status reviews and retain evidence/revision boundaries.
-- `docs/ctf-workspace-roadmap.md` and `docs/requirements-and-questions.md`: delivery order, requirements and decisions still open. Remove resolved questions rather than adding contradictory updates.
-- `MIGRATION.md` and `docs/background-workspaces.md`: changed API, compatibility, reader and setup contracts.
+- `docs/product.md`: current capabilities, agreed requirements, outstanding work and unresolved decisions. Keep proposed or separately built features distinct from implemented app behaviour.
+- `docs/architecture.md`: current component ownership, execution, persistence and compatibility boundaries.
+- `docs/contract-authoring.md`: canonical definitions, allowed dependencies and required checks.
+- `docs/setup.md`: current network, reader and dependency configuration.
 - `.github/repository-description.txt`: the intended GitHub About description. Keep it consistent with the README and update the GitHub field when repository administration is available and authorized. Editing this text file does not automatically change GitHub settings.
 
 Working prototypes and reviewed Figma designs are not published app features. Separate execution completion, reproduced findings, sessions and privilege changes. Keep authenticated web investigation deferred until the basic integrated workflow is implemented; do not assume detailed pivoting or privilege-escalation scope is agreed.
 
-Verify that new documentation is tracked and that relative links resolve. Preserve upstream licence notices and historical plans, marking superseded plans clearly. Do not copy local investigation evidence, recovered secrets or machine-specific paths into public documentation. Documentation review does not authorize unrelated implementation, publishing or settings changes.
+Keep these six main documents concise and current. Delete superseded plans,
+completed task reports, old test counts and duplicated status text; do not create
+a historical archive or restore the removed migration/status documents. Keep
+licence/attribution notices and source-adjacent instructions needed to use assets,
+skills or vendored components. Do not delete actual investigation evidence.
+
+Categories and subcategories describe targets. A new subcategory or any expansion
+of an agreed definition/capability membership requires explicit user approval;
+AI review is not that approval. Define each action's purpose, inputs and outputs
+before implementing it. Share canonical tool integrations across modules.
+
+Verify that documentation is tracked and relative links resolve. Do not copy local
+investigation evidence, recovered secrets or machine-specific paths into public
+documentation. Documentation work does not authorize unrelated implementation,
+publishing or settings changes.
