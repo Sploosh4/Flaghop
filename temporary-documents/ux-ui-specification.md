@@ -11,13 +11,15 @@ the agreed design in the existing Figma file, review the visual result, and upda
 the written specification when decisions change. Open questions remain explicit;
 no proposed category or action gains approval merely by appearing in this file.
 
-Design destination: [FlagHop — UX Specification & Design](https://www.figma.com/design/LWCW4k3IdiQWJMoMPoX5Um).
+Design destination: [FlagHop — UX Specification & Design](https://www.figma.com/design/LWCW4k3IdiQWJMoMPoX5Um?node-id=4-560).
 
 Use the [Atlassian PRD template](https://www.atlassian.com/software/confluence/templates/product-requirements)
 for purpose, requirements and questions, supplemented with layer visibility,
 relationship and interaction tables. [NN/g's design-spec guidance](https://www.nngroup.com/articles/creating-design-specs-for-development/)
 provides a practical handoff checklist. This is a tailored working format, not a
 claim of compliance with an external standard.
+
+The developed baseline is on **Overview rebuild**, including **Overview — picture contour selection** (1520 × 960). Page 1 contains an older minimal Legion frame and is not the developed baseline. Existing baseline behaviour still requires Joshua’s confirmation item by item.
 
 ## First layer: purpose and agreed behaviour
 
