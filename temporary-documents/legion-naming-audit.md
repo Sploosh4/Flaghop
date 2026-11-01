@@ -16,7 +16,7 @@ FlagHop. Upstream Legion attribution and GPL notices must remain.
 | `LegionWindow`, Qt profile `Legion`, local socket prefix | Internal class/profile/process identities | Class naming is cosmetic; profile/socket changes require lifecycle and stored-state compatibility. |
 | `legion.js`, `legion.css`, CSS classes, JS globals | Existing frontend integration names | Rename together with all consumers if desired; current names do not independently label the visible product. |
 | Original Legion logos/screenshots and editable artwork | Inherited assets | Review usage before removal; preserve copyright/attribution. |
-| `legion-device-icons-v1` | Original illustration package | Candidate for a FlagHop package name; references/manifests must be updated together. |
+| `legion-device-icons-v1` | Superseded illustration package | Replaced by `hackathons/output/flaghop-artwork`; recovered red equivalents replace matching old pictures. |
 | Upstream repository URLs and attribution | Origin/licence | Retain Legion. |
 
 ## Repository and source consolidation
@@ -24,10 +24,12 @@ FlagHop. Upstream Legion attribution and GPL notices must remain.
 Remote branches were already ancestors of origin/main. Local documentation,
 independently accepted capabilities and the collected source/assets were merged
 into local main. Incoming Markdown was placed under temporary-documents.
-The imported hackathons subtree is approximately 37 MB on disk; it is a source
+The imported hackathons subtree is approximately 32 MB on disk; it is a source
 and design bundle, not a replacement for installed tool runtimes or raw outputs.
 
 The original Hackathons workspace contains the cipher/hash watchers, scanner,
 filesystem integration, shared reader, Pi bridge, acceptance harnesses, artwork,
-tools, generated browser/scan validation output and a scanner backup. Its large
-runtime/evidence folders remain external and are not silently deleted by import.
+tools and selected current validation evidence. Its original Git objects and
+Codex checkpoints were explicitly deleted at Joshua's request, together with
+superseded run outputs. Installed runtimes remain in the original workspace
+because they cannot fit into the capped application mount alongside the app.

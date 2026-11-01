@@ -40,6 +40,14 @@ Follow [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, builds, tests
 and contract authoring. See [architecture](docs/architecture.md) for how the
 application fits together; [AGENTS.md](AGENTS.md) contains AI-agent instructions.
 
+The collected Hackathons sources are under `hackathons/`, with current images
+in [the artwork gallery](hackathons/output/flaghop-artwork/index.html). This is
+ordinary source in the FlagHop repository, with no nested Hackathons Git history.
+The existing reader installation still uses its original runtime folder;
+moving those installed tools into the capped code mount requires a separate
+dependency/storage migration. Incoming documentation awaits review in
+`temporary-documents/`.
+
 ## Licence and credits
 
 Based on [Hackman238/legion](https://github.com/Hackman238/legion).

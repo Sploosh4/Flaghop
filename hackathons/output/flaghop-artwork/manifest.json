@@ -1,0 +1,288 @@
+{
+  "assets": [
+    {
+      "name": "active-directory",
+      "file": "active-directory.png",
+      "variant": "recovered red",
+      "sha256": "b9fa67095d74b5ab996f56b56eccdaaa132a025d6c5501259be312d73326e8f4",
+      "source_file": "exec-55fd58b0-7146-4234-87cf-71ffcf928591.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "cloud-identity",
+      "file": "cloud-identity.png",
+      "variant": "recovered red",
+      "sha256": "a2385b5611e29bd9022d99691829d3d353f1f78a68c008465381cb3892c4f6b9",
+      "source_file": "exec-af0a9fd2-7d27-4f9b-a3e8-45eca90d68e8.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "computer",
+      "file": "computer.png",
+      "variant": "recovered red",
+      "sha256": "dcf1381223f0f70b9188bae0748d7ba2c1bb703d02b0e2c3f1a16db1784a0a75",
+      "source_file": "exec-efb8b0bf-bae1-4239-aea3-e7dc8218464f.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "firewall",
+      "file": "firewall.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "1aaf35a14cf5683d6bf8fa40e1cba1da9968ea38a90a39461ee79e53faaec1d6",
+      "source_file": "firewall.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "iot-device",
+      "file": "iot-device.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "f7e2e7a70c32363d50ad8c3e9087908fea41b5894f46c4695235b1032cd4b63d",
+      "source_file": "iot-device.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "ip-camera",
+      "file": "ip-camera.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "15cc2e0b8c69fde3788cc3f2554f4d2aefc18628e796bb1f3efcfa77dff37c4b",
+      "source_file": "ip-camera.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "laptop",
+      "file": "laptop.png",
+      "variant": "recovered red",
+      "sha256": "37ed15cd0ca3fc10d744ebe5ead551920e82295974c69ccb2ef8085fc3c139e0",
+      "source_file": "exec-a81327b0-9cd0-4b6a-a57b-d6060eeecccd.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "load-balancer",
+      "file": "load-balancer.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "14b472506c309ba4ed024eaa4d0b05ba7569bc965af1e3711a3a11c35da0444c",
+      "source_file": "load-balancer.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "managed-switch",
+      "file": "managed-switch.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "ab3dee31f8b299b2305316ca31f62caa30067a46db7407f1a16d903a2d6bae66",
+      "source_file": "managed-switch.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "mobile-devices",
+      "file": "mobile-devices.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "a16d5b8d34f15fb6c352c8897705d9ad287863d01924e2abac98a80901ce74ce",
+      "source_file": "mobile-devices.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "nas",
+      "file": "nas.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "37939cf0a0e19ce495d8fb0b272ecf562bdb97125239987de7f63fcc20d1701f",
+      "source_file": "nas.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "network-printer",
+      "file": "network-printer.png",
+      "variant": "recovered red",
+      "sha256": "7dc72adfb74037aacc2296ecd77e96b773b09f3071f2788b35325c840f4b8d64",
+      "source_file": "exec-865c8831-58f0-4d72-b5f4-903c469e34b9.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "network-video-recorder",
+      "file": "network-video-recorder.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "9464d486ccef4b695d66a32e30546553211f916dc41541415c0919496ee4e989",
+      "source_file": "network-video-recorder.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "ngfw",
+      "file": "ngfw.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "7a6e3808379483a4d3bf42ddb7d8c7a7325d9c65e2e94ca90ae9b9f6968bbc66",
+      "source_file": "ngfw.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "pbx",
+      "file": "pbx.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "abe612d342e8e5dd2008d186521428177cb29f1ec89e2181e79b1fb084492ba8",
+      "source_file": "pbx.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "router",
+      "file": "router.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "a3dbc24b7c24318775dd2d776cf92451ef079c6c8b0bfaed6f590bd619a947fd",
+      "source_file": "router.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "server",
+      "file": "server.png",
+      "variant": "recovered red",
+      "sha256": "a9ad9c78876924d05dfb65c3eb7afae023d58b8d30056f209c40813d99a5bc7d",
+      "source_file": "exec-7208b4d3-7f2c-4baf-9886-6070f5eac1f4.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "smart-tv",
+      "file": "smart-tv.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "6ceb57dcab7678312b31d064d0129ca5a12c00cac442c42c6beb4d47032e4397",
+      "source_file": "smart-tv.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "software-application",
+      "file": "software-application.png",
+      "variant": "recovered red",
+      "sha256": "b4fabcd6c5ad1334d13cd682dd6b72004d37a52c134077abc9584df9a18bd872",
+      "source_file": "exec-fcc5efa8-d442-42a1-b8ba-a5f2a9f49fb1.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "unknown-device",
+      "file": "unknown-device.png",
+      "variant": "recovered red",
+      "sha256": "05ea441426a0f63c007e9f2a02baa14119d10e1c908f5a227ad990ac504adee9",
+      "source_file": "exec-f04b1d72-33fa-4327-9ca4-2cdfa134cf4c.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "ups",
+      "file": "ups.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "c1171d04bb0d188cca8b283ce78fdb46c1c36f4fcca22c5cf7f32f7960071725",
+      "source_file": "ups.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "voip-phone",
+      "file": "voip-phone.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "9388b41a50b681b171fd01878ab8f04cd281ff73d87f7ee87c68f1ac28fd91db",
+      "source_file": "voip-phone.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "vpn-appliance",
+      "file": "vpn-appliance.png",
+      "variant": "recovered red",
+      "sha256": "4ef4364823be88aa6a7527653300a81ecf088332fa658bbf82aa57605711c052",
+      "source_file": "exec-ba0ea41c-21f4-4927-b40a-62990e9a3531.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "web-application",
+      "file": "web-application.png",
+      "variant": "recovered red",
+      "sha256": "c624068f5f2e693d067e1431f627a08f0828b695b4fc3e3959c5fe721ef40a84",
+      "source_file": "exec-92fc84b1-e4b2-4b63-878f-9d1bff31455b.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "wireless-access-point",
+      "file": "wireless-access-point.png",
+      "variant": "retained original; no supplied replacement",
+      "sha256": "ce4de406f936182fd0b4c9e04e37d9fad6c0386f30b55a2b5cc96c89edfc693e",
+      "source_file": "wireless-access-point.png",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    }
+  ],
+  "active_map_artwork": [
+    "computer",
+    "laptop",
+    "network-printer",
+    "server",
+    "unknown-device",
+    "vpn-appliance"
+  ],
+  "note": "Ten recovered red PNGs supplied by Joshua; copied byte-for-byte. Remaining assets have no supplied red replacement. Exact generation prompts for recovered files were not recovered."
+}
