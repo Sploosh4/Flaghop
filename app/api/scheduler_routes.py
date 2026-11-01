@@ -1,22 +1,36 @@
 """Native FastAPI endpoints preserving existing service and HTTP contracts."""
 
-from typing import Any
-from fastapi import Body, Request
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
 from app.api.dependencies import Runtime, native_router
+from app.contracts.actions.inputs import EmptyAction
+from app.contracts.actions.mutation_results import (
+    EngagementPolicyResult,
+    FamilyApprovalResult,
+    SchedulerPreferencesResult,
+)
+from app.contracts.actions.responses import AcceptedJobResponse
+from app.contracts.actions.scheduler_preferences import EngagementPolicyPatch, SchedulerPreferencesPatch
+from app.contracts.actions.scheduler_requests import SchedulerFamilyApprovalRequest
 from app.web.http_utils import json_error
 from app.web.services.scheduler_service import SchedulerService
+from fastapi import Body, Request, Response
 
 router = native_router()
 
 
-@router.post("/api/scheduler/run", operation_id="scheduler_run")
-def scheduler_run(request: Request, runtime: Runtime):
+@router.post(
+    "/api/scheduler/run",
+    operation_id="scheduler_run",
+    response_model=AcceptedJobResponse,
+    response_model_exclude_unset=True,
+)
+def scheduler_run(
+    request: Request, runtime: Runtime, response: Response, payload: EmptyAction = Body(default_factory=EmptyAction)
+):
     service = SchedulerService(runtime)
     try:
         body, status_code = service.start_run()
-        return JSONResponse(jsonable_encoder(body), status_code=status_code)
+        response.status_code = status_code
+        return body
     except Exception as exc:
         return json_error(str(exc), 500)
 
@@ -27,11 +41,16 @@ def scheduler_preferences(request: Request, runtime: Runtime):
     return service.get_preferences()
 
 
-@router.post("/api/scheduler/preferences", operation_id="scheduler_preferences_update")
-def scheduler_preferences_update(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/scheduler/preferences",
+    operation_id="scheduler_preferences_update",
+    response_model=SchedulerPreferencesResult,
+    response_model_exclude_unset=True,
+)
+def scheduler_preferences_update(request: Request, runtime: Runtime, payload: SchedulerPreferencesPatch):
     service = SchedulerService(runtime)
     try:
-        return service.update_preferences(payload or {})
+        return service.update_preferences(payload)
     except Exception as exc:
         return json_error(str(exc), 500)
 
@@ -42,20 +61,30 @@ def engagement_policy_get(request: Request, runtime: Runtime):
     return service.get_engagement_policy()
 
 
-@router.post("/api/engagement-policy", operation_id="engagement_policy_update")
-def engagement_policy_update(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/engagement-policy",
+    operation_id="engagement_policy_update",
+    response_model=EngagementPolicyResult,
+    response_model_exclude_unset=True,
+)
+def engagement_policy_update(request: Request, runtime: Runtime, payload: EngagementPolicyPatch):
     service = SchedulerService(runtime)
     try:
-        return service.update_engagement_policy(payload or {})
+        return service.update_engagement_policy(payload)
     except Exception as exc:
         return json_error(str(exc), 500)
 
 
-@router.post("/api/scheduler/approve-family", operation_id="scheduler_approve_family")
-def scheduler_approve_family(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/scheduler/approve-family",
+    operation_id="scheduler_approve_family",
+    response_model=FamilyApprovalResult,
+    response_model_exclude_unset=True,
+)
+def scheduler_approve_family(request: Request, runtime: Runtime, payload: SchedulerFamilyApprovalRequest):
     service = SchedulerService(runtime)
     try:
-        return service.approve_family(payload or {})
+        return service.approve_family(payload)
     except Exception as exc:
         return json_error(str(exc), 500)
 

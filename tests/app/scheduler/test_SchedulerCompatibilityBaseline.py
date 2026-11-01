@@ -288,12 +288,17 @@ class SchedulerCompatibilityBaselineTest(unittest.TestCase):
                 "ignored_field": "should-not-pass-through",
             },
         )
+        self.assertEqual(422, updated.status_code)
+        self.assertIsNone(runtime.last_updates)
+        updated = client.post(
+            "/api/scheduler/preferences", json={"mode": "deterministic", "goal_profile": "external_pentest"}
+        )
         self.assertEqual(200, updated.status_code)
-        self.assertEqual("ai", updated.json()["mode"])
+        self.assertEqual("deterministic", updated.json()["mode"])
         self.assertEqual("external_pentest", updated.json()["goal_profile"])
         self.assertEqual(
             {
-                "mode": "ai",
+                "mode": "deterministic",
                 "goal_profile": "external_pentest",
             },
             runtime.last_updates,

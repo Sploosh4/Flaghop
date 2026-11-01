@@ -1,9 +1,9 @@
 """Native FastAPI endpoints preserving existing service and HTTP contracts."""
 
-from fastapi import Request
 from app.api.dependencies import Runtime, native_router
 from app.web.http_utils import json_error
 from app.web.services.workspace_service import WorkspaceService
+from fastapi import Request
 
 router = native_router()
 

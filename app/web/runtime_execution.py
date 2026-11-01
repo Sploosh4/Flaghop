@@ -26,6 +26,17 @@ def execute_command(runtime, **kwargs):
     guard = NetworkLease(network_service(runtime), request)
     with runtime._lock:
         execution_project = runtime._require_active_project()
+    from app.services.execution_journal import for_runtime
+
+    journal = for_runtime(runtime)
+    identity = (
+        journal.get(request.execution_id)
+        if request.execution_id
+        else journal.create(str(execution_project.properties.projectName), job_id=request.job_id)
+    )
+    if identity.project_path != str(execution_project.properties.projectName):
+        raise RuntimeError("Execution journal belongs to another project.")
+    guard.ownership = (journal, identity.id)
 
     def repository():
         with runtime._lock:
@@ -80,12 +91,27 @@ def execute_command(runtime, **kwargs):
         write_process_output_partial=runtime._write_process_output_partial,
         network_guard=guard,
         record_network_context=record_network,
+        ownership=guard.ownership,
     )
-    return ProcessRunner(
-        ports,
-        reader_exit_grace=_PROCESS_READER_EXIT_GRACE_SECONDS,
-        crash_min_runtime=_PROCESS_CRASH_MIN_RUNTIME_SECONDS,
-    ).run(request)
+    try:
+        result = ProcessRunner(
+            ports,
+            reader_exit_grace=_PROCESS_READER_EXIT_GRACE_SECONDS,
+            crash_min_runtime=_PROCESS_CRASH_MIN_RUNTIME_SECONDS,
+        ).run(request)
+    except Exception:
+        journal.cleanup(identity.id)
+        from app.scanning.recovery import settle_process
+
+        settle_process(execution_project, journal.get(identity.id))
+        if not request.execution_id:
+            journal.finish(identity.id)
+        raise
+    if journal.get(identity.id).phase in {"prepared", "guard_preparing", "running"}:
+        journal.cleanup(identity.id)
+    if not request.execution_id and journal.get(identity.id).phase == "cleaned":
+        journal.finish(identity.id)
+    return result
 
 
 def run_command_with_tracking(runtime, *, return_metadata=False, **kwargs):

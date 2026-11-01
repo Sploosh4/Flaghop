@@ -1,15 +1,7 @@
 from __future__ import annotations
-
+from app.contracts.actions.graph_requests import GraphRebuildRequest, GraphLayoutSaveRequest, GraphAnnotationSaveRequest
+from app.web.graph_schema import GraphAnnotationQuery, GraphContentQuery, GraphQuery
 from typing import Any, Dict
-
-from app.web.graph_schema import (
-    GraphAnnotationQuery,
-    GraphAnnotationSaveRequest,
-    GraphContentQuery,
-    GraphLayoutSaveRequest,
-    GraphQuery,
-    GraphRebuildRequest,
-)
 
 
 class GraphService:
@@ -38,10 +30,6 @@ class GraphService:
 
     def save_layout(self, payload: Any) -> Dict[str, Any]:
         request = GraphLayoutSaveRequest.from_payload(payload)
-        if not request.view_id:
-            raise ValueError("view_id is required")
-        if not isinstance(request.layout_state, dict):
-            raise ValueError("layout must be an object")
         layout = self.runtime.save_evidence_graph_layout(
             view_id=request.view_id,
             name=request.name or "default",
@@ -60,12 +48,6 @@ class GraphService:
 
     def save_annotation(self, payload: Any) -> Dict[str, Any]:
         request = GraphAnnotationSaveRequest.from_payload(payload)
-        if not request.target_kind:
-            raise ValueError("target_kind is required")
-        if not request.target_ref:
-            raise ValueError("target_ref is required")
-        if not request.body:
-            raise ValueError("body is required")
         annotation = self.runtime.save_evidence_graph_annotation(
             target_kind=request.target_kind,
             target_ref=request.target_ref,

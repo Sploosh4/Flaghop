@@ -14,7 +14,7 @@ from app.tooling import (
     tool_audit_summary,
 )
 from app.web.http_utils import as_bool
-from app.web.settings_schema import DisplaySettingsRequest
+from app.contracts.actions.display import DisplaySettingsRequest
 from app.contracts.actions.tooling_requests import ToolAuditInstallRequest, ToolAuditPlanQuery
 
 

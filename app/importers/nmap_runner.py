@@ -11,10 +11,11 @@ def import_nmap_xml_into_project(
     output: str = "",
     update_progress_observable=None,
     host_repository=None,
+    database=None,
 ):
     repo = host_repository or project.repositoryContainer.hostRepository
     importer = NmapImporter(update_progress_observable, repo)
-    importer.setDB(project.database)
+    importer.setDB(database or project.database)
     importer.setHostRepository(repo)
     importer.setFilename(xml_path)
     importer.setOutput(str(output or ""))

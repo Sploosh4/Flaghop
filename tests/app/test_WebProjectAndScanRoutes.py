@@ -25,19 +25,19 @@ class _RouteRuntime:
 
     def start_save_project_as_job(self, path, replace=True):
         self.calls.append(("start_save_project_as_job", str(path), bool(replace)))
-        return {"id": 41}
+        return {"id": 41, "type": "project-save-as", "status": "queued"}
 
     def start_targets_import_job(self, path):
         self.calls.append(("start_targets_import_job", str(path)))
-        return {"id": 51}
+        return {"id": 51, "type": "targets-import", "status": "queued"}
 
     def start_nmap_xml_import_job(self, path, run_actions=False):
         self.calls.append(("start_nmap_xml_import_job", str(path), bool(run_actions)))
-        return {"id": 61}
+        return {"id": 61, "type": "nmap-import", "status": "queued"}
 
     def start_nmap_scan_job(self, **kwargs):
         self.calls.append(("start_nmap_scan_job", dict(kwargs)))
-        return {"id": 71}
+        return {"id": 71, "type": "nmap-scan", "status": "queued"}
 
     def get_capture_interface_inventory(self):
         self.calls.append(("get_capture_interface_inventory",))
@@ -47,15 +47,15 @@ class _RouteRuntime:
         self.calls.append(
             ("start_passive_capture_scan_job", str(interface_name), int(duration_minutes), bool(run_actions))
         )
-        return {"id": 81}
+        return {"id": 81, "type": "passive-capture", "status": "queued"}
 
     def start_host_rescan_job(self, host_id):
         self.calls.append(("start_host_rescan_job", int(host_id)))
-        return {"id": 91}
+        return {"id": 91, "type": "host-rescan", "status": "queued"}
 
     def start_subnet_rescan_job(self, subnet):
         self.calls.append(("start_subnet_rescan_job", str(subnet)))
-        return {"id": 101}
+        return {"id": 101, "type": "subnet-rescan", "status": "queued"}
 
     def get_scan_history(self, limit=100):
         self.calls.append(("get_scan_history", int(limit)))

@@ -315,6 +315,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/hub/projects/{identifier}/deep-scans/{scan_id}/recover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recover */
+        post: operations["recoverDeepScan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/hub/projects/{identifier}/editor": {
         parameters: {
             query?: never;
@@ -962,6 +979,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/recovery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recovery Status */
+        get: operations["getExecutionRecovery"];
+        put?: never;
+        /** Retry Recovery */
+        post: operations["retryExecutionRecovery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/scan/passive-capture": {
         parameters: {
             query?: never;
@@ -1513,6 +1548,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AcceptedJobResponse */
+        AcceptedJobResponse: {
+            job: components["schemas"]["Job"];
+            /**
+             * Status
+             * @default accepted
+             * @constant
+             */
+            status?: "accepted";
+        };
         /** ActivitySnapshot */
         ActivitySnapshot: {
             /** Jobs */
@@ -1761,11 +1806,6 @@ export interface components {
                 [key: string]: string;
             }[];
         };
-        /** Body_restoreWorkspaceZip */
-        Body_restoreWorkspaceZip: {
-            /** Bundle */
-            bundle?: string | null;
-        };
         /** CandidateFinding */
         CandidateFinding: {
             /**
@@ -1778,6 +1818,72 @@ export interface components {
             title?: string | null;
             /** Type */
             type?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /** ClassificationConflict */
+        ClassificationConflict: {
+            /** Explanation */
+            explanation: string;
+            /** Id */
+            id: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /** ClassificationEvidence */
+        ClassificationEvidence: {
+            /** Channel */
+            channel: string;
+            /** Path */
+            path: string;
+            /** Source */
+            source: string;
+            /** Value */
+            value: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /** ClassificationFacts */
+        ClassificationFacts: {
+            /** Alternatives */
+            alternatives?: components["schemas"]["ClassificationHypothesis"][];
+            /**
+             * Confidence
+             * @default unknown
+             * @enum {string}
+             */
+            confidence?: "unknown" | "low" | "medium" | "high";
+            /** Conflicts */
+            conflicts?: components["schemas"]["ClassificationConflict"][];
+            os_assessment?: components["schemas"]["OSAssessment"] | null;
+            primary?: components["schemas"]["ClassificationHypothesis"] | null;
+            /**
+             * Status
+             * @default unassessed
+             * @enum {string}
+             */
+            status?: "hypothesis" | "insufficient_evidence" | "unassessed";
+        } & {
+            [key: string]: unknown;
+        };
+        /** ClassificationHypothesis */
+        ClassificationHypothesis: {
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "unknown" | "low" | "medium" | "high";
+            /** Device Type */
+            device_type: string;
+            /** Evidence */
+            evidence?: components["schemas"]["ClassificationEvidence"][];
+            /**
+             * Explanation
+             * @default
+             */
+            explanation?: string;
+            /** Score */
+            score: number;
         } & {
             [key: string]: unknown;
         };
@@ -1931,6 +2037,7 @@ export interface components {
              * @default
              */
             reason?: string;
+            recovery?: components["schemas"]["ScanRecovery"] | null;
             /**
              * Settling
              * @default false
@@ -1949,6 +2056,672 @@ export interface components {
             summary_omitted?: boolean;
             /** Target Ip */
             target_ip: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /** DeviceCategoryRule */
+        "DeviceCategoryRule-Input": {
+            /**
+             * Built In
+             * @default false
+             */
+            built_in?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /** Cpe */
+            cpe?: string[];
+            /** Fingerprint Fragments */
+            fingerprint_fragments?: string[];
+            /**
+             * Id
+             * @default
+             */
+            id?: string;
+            /**
+             * Min Score
+             * @default 2
+             */
+            min_score?: number | string;
+            /** Name */
+            name: string;
+            /** Ports */
+            ports?: (number | string)[];
+            /** Suppresses */
+            suppresses?: string[];
+        };
+        /** DeviceCategoryRule */
+        "DeviceCategoryRule-Output": {
+            /**
+             * Built In
+             * @default false
+             */
+            built_in?: boolean;
+            /** Cpe */
+            cpe?: string[];
+            /** Fingerprint Fragments */
+            fingerprint_fragments?: string[];
+            /**
+             * Id
+             * @default
+             */
+            id?: string;
+            /**
+             * Min Score
+             * @default 2
+             */
+            min_score?: number;
+            /** Name */
+            name: string;
+            /** Ports */
+            ports?: number[];
+            /** Suppresses */
+            suppresses?: string[];
+        };
+        /** DisplaySettingsRequest */
+        DisplaySettingsRequest: {
+            /**
+             * Colorful Ascii Background
+             * @default false
+             */
+            colorful_ascii_background?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+        };
+        /** DisplaySettingsResponse */
+        DisplaySettingsResponse: {
+            /** Colorful Ascii Background */
+            colorful_ascii_background: boolean;
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status?: "ok";
+        };
+        /**
+         * EmptyAction
+         * @description An action with no user-supplied options rejects unexpected input.
+         */
+        EmptyAction: Record<string, never>;
+        /** EngagementPolicyFields */
+        "EngagementPolicyFields-Input": {
+            /**
+             * Allow Exploitation
+             * @default false
+             */
+            allow_exploitation?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Allow Lateral Movement
+             * @default false
+             */
+            allow_lateral_movement?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Approval Mode
+             * @default risky
+             * @enum {string}
+             */
+            approval_mode?: "never" | "risky" | "always";
+            /**
+             * Credential Attack Mode
+             * @default blocked
+             * @enum {string}
+             */
+            credential_attack_mode?: "blocked" | "approval" | "allowed";
+            /**
+             * Detection Risk Mode
+             * @default low
+             * @enum {string}
+             */
+            detection_risk_mode?: "low" | "medium" | "high";
+            /**
+             * Intent
+             * @default recon
+             * @enum {string}
+             */
+            intent?: "recon" | "pentest";
+            /**
+             * Lockout Risk Mode
+             * @default blocked
+             * @enum {string}
+             */
+            lockout_risk_mode?: "blocked" | "approval" | "allowed";
+            /**
+             * Noise Budget
+             * @default low
+             * @enum {string}
+             */
+            noise_budget?: "low" | "medium" | "high";
+            /**
+             * Runner Preference
+             * @default local
+             * @constant
+             */
+            runner_preference?: "local";
+            /**
+             * Scope
+             * @default internal
+             * @enum {string}
+             */
+            scope?: "internal" | "external" | "mixed";
+            /**
+             * Stability Risk Mode
+             * @default approval
+             * @enum {string}
+             */
+            stability_risk_mode?: "blocked" | "approval" | "allowed";
+        };
+        /** EngagementPolicyFields */
+        "EngagementPolicyFields-Output": {
+            /**
+             * Allow Exploitation
+             * @default false
+             */
+            allow_exploitation?: boolean;
+            /**
+             * Allow Lateral Movement
+             * @default false
+             */
+            allow_lateral_movement?: boolean;
+            /**
+             * Approval Mode
+             * @default risky
+             * @enum {string}
+             */
+            approval_mode?: "never" | "risky" | "always";
+            /**
+             * Credential Attack Mode
+             * @default blocked
+             * @enum {string}
+             */
+            credential_attack_mode?: "blocked" | "approval" | "allowed";
+            /**
+             * Detection Risk Mode
+             * @default low
+             * @enum {string}
+             */
+            detection_risk_mode?: "low" | "medium" | "high";
+            /**
+             * Intent
+             * @default recon
+             * @enum {string}
+             */
+            intent?: "recon" | "pentest";
+            /**
+             * Lockout Risk Mode
+             * @default blocked
+             * @enum {string}
+             */
+            lockout_risk_mode?: "blocked" | "approval" | "allowed";
+            /**
+             * Noise Budget
+             * @default low
+             * @enum {string}
+             */
+            noise_budget?: "low" | "medium" | "high";
+            /**
+             * Runner Preference
+             * @default local
+             * @constant
+             */
+            runner_preference?: "local";
+            /**
+             * Scope
+             * @default internal
+             * @enum {string}
+             */
+            scope?: "internal" | "external" | "mixed";
+            /**
+             * Stability Risk Mode
+             * @default approval
+             * @enum {string}
+             */
+            stability_risk_mode?: "blocked" | "approval" | "allowed";
+        };
+        /** EngagementPolicyPatch */
+        "EngagementPolicyPatch-Input": {
+            /**
+             * Allow Exploitation
+             * @default false
+             */
+            allow_exploitation?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Allow Lateral Movement
+             * @default false
+             */
+            allow_lateral_movement?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Approval Mode
+             * @default risky
+             * @enum {string}
+             */
+            approval_mode?: "never" | "risky" | "always";
+            /**
+             * Credential Attack Mode
+             * @default blocked
+             * @enum {string}
+             */
+            credential_attack_mode?: "blocked" | "approval" | "allowed";
+            custom_overrides?: components["schemas"]["EngagementPolicyFields-Input"];
+            /**
+             * Detection Risk Mode
+             * @default low
+             * @enum {string}
+             */
+            detection_risk_mode?: "low" | "medium" | "high";
+            /**
+             * Intent
+             * @default recon
+             * @enum {string}
+             */
+            intent?: "recon" | "pentest";
+            /** Legacy Goal Profile */
+            legacy_goal_profile?: ("internal_asset_discovery" | "external_pentest") | null;
+            /**
+             * Lockout Risk Mode
+             * @default blocked
+             * @enum {string}
+             */
+            lockout_risk_mode?: "blocked" | "approval" | "allowed";
+            /**
+             * Noise Budget
+             * @default low
+             * @enum {string}
+             */
+            noise_budget?: "low" | "medium" | "high";
+            /**
+             * Preset
+             * @default internal_recon
+             * @enum {string}
+             */
+            preset?: "external_recon" | "external_pentest" | "internal_quick_recon" | "internal_recon" | "internal_pentest" | "custom";
+            /**
+             * Preset Description
+             * @default
+             */
+            preset_description?: string;
+            /**
+             * Preset Label
+             * @default
+             */
+            preset_label?: string;
+            /**
+             * Runner Preference
+             * @default local
+             * @constant
+             */
+            runner_preference?: "local";
+            /**
+             * Scope
+             * @default internal
+             * @enum {string}
+             */
+            scope?: "internal" | "external" | "mixed";
+            /**
+             * Stability Risk Mode
+             * @default approval
+             * @enum {string}
+             */
+            stability_risk_mode?: "blocked" | "approval" | "allowed";
+        };
+        /** EngagementPolicyPatch */
+        "EngagementPolicyPatch-Output": {
+            /**
+             * Allow Exploitation
+             * @default false
+             */
+            allow_exploitation?: boolean;
+            /**
+             * Allow Lateral Movement
+             * @default false
+             */
+            allow_lateral_movement?: boolean;
+            /**
+             * Approval Mode
+             * @default risky
+             * @enum {string}
+             */
+            approval_mode?: "never" | "risky" | "always";
+            /**
+             * Credential Attack Mode
+             * @default blocked
+             * @enum {string}
+             */
+            credential_attack_mode?: "blocked" | "approval" | "allowed";
+            custom_overrides?: components["schemas"]["EngagementPolicyFields-Output"];
+            /**
+             * Detection Risk Mode
+             * @default low
+             * @enum {string}
+             */
+            detection_risk_mode?: "low" | "medium" | "high";
+            /**
+             * Intent
+             * @default recon
+             * @enum {string}
+             */
+            intent?: "recon" | "pentest";
+            /** Legacy Goal Profile */
+            legacy_goal_profile?: ("internal_asset_discovery" | "external_pentest") | null;
+            /**
+             * Lockout Risk Mode
+             * @default blocked
+             * @enum {string}
+             */
+            lockout_risk_mode?: "blocked" | "approval" | "allowed";
+            /**
+             * Noise Budget
+             * @default low
+             * @enum {string}
+             */
+            noise_budget?: "low" | "medium" | "high";
+            /**
+             * Preset
+             * @default internal_recon
+             * @enum {string}
+             */
+            preset?: "external_recon" | "external_pentest" | "internal_quick_recon" | "internal_recon" | "internal_pentest" | "custom";
+            /**
+             * Preset Description
+             * @default
+             */
+            preset_description?: string;
+            /**
+             * Preset Label
+             * @default
+             */
+            preset_label?: string;
+            /**
+             * Runner Preference
+             * @default local
+             * @constant
+             */
+            runner_preference?: "local";
+            /**
+             * Scope
+             * @default internal
+             * @enum {string}
+             */
+            scope?: "internal" | "external" | "mixed";
+            /**
+             * Stability Risk Mode
+             * @default approval
+             * @enum {string}
+             */
+            stability_risk_mode?: "blocked" | "approval" | "allowed";
+        };
+        /** EngagementPolicyResult */
+        EngagementPolicyResult: {
+            /**
+             * Allow Exploitation
+             * @default false
+             */
+            allow_exploitation?: boolean;
+            /**
+             * Allow Lateral Movement
+             * @default false
+             */
+            allow_lateral_movement?: boolean;
+            /**
+             * Approval Mode
+             * @default risky
+             * @enum {string}
+             */
+            approval_mode?: "never" | "risky" | "always";
+            /**
+             * Credential Attack Mode
+             * @default blocked
+             * @enum {string}
+             */
+            credential_attack_mode?: "blocked" | "approval" | "allowed";
+            custom_overrides?: components["schemas"]["EngagementPolicyFields-Output"];
+            /**
+             * Detection Risk Mode
+             * @default low
+             * @enum {string}
+             */
+            detection_risk_mode?: "low" | "medium" | "high";
+            /**
+             * Intent
+             * @default recon
+             * @enum {string}
+             */
+            intent?: "recon" | "pentest";
+            /** Legacy Goal Profile */
+            legacy_goal_profile?: ("internal_asset_discovery" | "external_pentest") | null;
+            /**
+             * Lockout Risk Mode
+             * @default blocked
+             * @enum {string}
+             */
+            lockout_risk_mode?: "blocked" | "approval" | "allowed";
+            /**
+             * Noise Budget
+             * @default low
+             * @enum {string}
+             */
+            noise_budget?: "low" | "medium" | "high";
+            /**
+             * Preset
+             * @default internal_recon
+             * @enum {string}
+             */
+            preset?: "external_recon" | "external_pentest" | "internal_quick_recon" | "internal_recon" | "internal_pentest" | "custom";
+            /**
+             * Preset Description
+             * @default
+             */
+            preset_description?: string;
+            /**
+             * Preset Label
+             * @default
+             */
+            preset_label?: string;
+            /**
+             * Runner Preference
+             * @default local
+             * @constant
+             */
+            runner_preference?: "local";
+            /**
+             * Scope
+             * @default internal
+             * @enum {string}
+             */
+            scope?: "internal" | "external" | "mixed";
+            /**
+             * Stability Risk Mode
+             * @default approval
+             * @enum {string}
+             */
+            stability_risk_mode?: "blocked" | "approval" | "allowed";
+        } & {
+            [key: string]: unknown;
+        };
+        /** ExecutionRecoveryItem */
+        ExecutionRecoveryItem: {
+            /** Execution Id */
+            execution_id: string;
+            /** Phase */
+            phase: string;
+            /**
+             * Project Id
+             * @default
+             */
+            project_id?: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Run Id
+             * @default
+             */
+            run_id?: string;
+        };
+        /** ExecutionRecoveryReport */
+        ExecutionRecoveryReport: {
+            /** Held */
+            held?: components["schemas"]["ExecutionRecoveryItem"][];
+            /** Pending */
+            pending?: components["schemas"]["ExecutionRecoveryItem"][];
+            /** Recovered */
+            recovered?: string[];
+        };
+        /** FamilyApprovalResult */
+        FamilyApprovalResult: {
+            /** Family Id */
+            family_id: string;
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status?: "ok";
+        };
+        /** FeatureFlagsPatch */
+        FeatureFlagsPatch: {
+            /**
+             * Context Summary Enabled
+             * @default true
+             */
+            context_summary_enabled?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Graph Workspace
+             * @default false
+             */
+            graph_workspace?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+        };
+        /** GraphAnnotationRecord */
+        GraphAnnotationRecord: {
+            /** Annotation Id */
+            annotation_id: string;
+            /**
+             * Body
+             * @default
+             */
+            body?: string;
+            /**
+             * Created By
+             * @default
+             */
+            created_by?: string;
+            /**
+             * Source Ref
+             * @default
+             */
+            source_ref?: string;
+            /**
+             * Target Kind
+             * @default
+             */
+            target_kind?: string;
+            /**
+             * Target Ref
+             * @default
+             */
+            target_ref?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /** GraphAnnotationResult */
+        GraphAnnotationResult: {
+            annotation: components["schemas"]["GraphAnnotationRecord"];
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status?: "ok";
+        };
+        /** GraphAnnotationSaveRequest */
+        GraphAnnotationSaveRequest: {
+            /**
+             * Annotation Id
+             * @default
+             */
+            annotation_id?: string;
+            /** Body */
+            body: string;
+            /**
+             * Created By
+             * @default operator
+             */
+            created_by?: string;
+            /**
+             * Source Ref
+             * @default
+             */
+            source_ref?: string;
+            /**
+             * Target Kind
+             * @enum {string}
+             */
+            target_kind: "node" | "edge";
+            /** Target Ref */
+            target_ref: string;
+        };
+        /** GraphLayoutRecord */
+        GraphLayoutRecord: {
+            /** Layout */
+            layout?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            /** Layout Id */
+            layout_id: string;
+            /**
+             * Name
+             * @default
+             */
+            name?: string;
+            /**
+             * View Id
+             * @default
+             */
+            view_id?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /** GraphLayoutResult */
+        GraphLayoutResult: {
+            layout: components["schemas"]["GraphLayoutRecord"];
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status?: "ok";
+        };
+        /** GraphLayoutSaveRequest */
+        GraphLayoutSaveRequest: {
+            /** Layout */
+            layout?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            /**
+             * Layout Id
+             * @default
+             */
+            layout_id?: string;
+            /**
+             * Name
+             * @default
+             */
+            name?: string;
+            /** View Id */
+            view_id: string;
+        };
+        /** GraphRebuildRequest */
+        GraphRebuildRequest: {
+            /**
+             * Host Id
+             * @default 0
+             */
+            host_id?: number | string;
+        };
+        /** GraphRebuildResult */
+        GraphRebuildResult: {
+            /** Host Id */
+            host_id?: number | null;
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status?: "ok";
         } & {
             [key: string]: unknown;
         };
@@ -2273,6 +3046,158 @@ export interface components {
             expected_revision: number;
             settings: components["schemas"]["NetworkPreferences"];
         };
+        /** NmapImportRequest */
+        NmapImportRequest: {
+            /** Path */
+            path: string;
+            /**
+             * Run Actions
+             * @default false
+             */
+            run_actions?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+        };
+        /** NmapScanOptions */
+        NmapScanOptions: {
+            /**
+             * Aggressive
+             * @default false
+             */
+            aggressive?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Arp Ping
+             * @default true
+             */
+            arp_ping?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Chunk Concurrency
+             * @default 1
+             */
+            chunk_concurrency?: number | string;
+            /**
+             * Default Scripts
+             * @default true
+             */
+            default_scripts?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Discovery
+             * @default true
+             */
+            discovery?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Explicit Ports
+             * @default
+             */
+            explicit_ports?: string;
+            /**
+             * Force Pn
+             * @default false
+             */
+            force_pn?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Full Ports
+             * @default false
+             */
+            full_ports?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Host Discovery Only
+             * @default false
+             */
+            host_discovery_only?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Os Detection
+             * @default false
+             */
+            os_detection?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Scan Profile
+             * @default quick
+             * @enum {string}
+             */
+            scan_profile?: "quick" | "comprehensive";
+            /**
+             * Service Detection
+             * @default true
+             */
+            service_detection?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Skip Dns
+             * @default true
+             */
+            skip_dns?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Timing
+             * @default T3
+             * @enum {string}
+             */
+            timing?: "T0" | "T1" | "T2" | "T3" | "T4" | "T5";
+            /**
+             * Top Ports
+             * @default 1000
+             */
+            top_ports?: number | string;
+            /**
+             * Vuln Scripts
+             * @default false
+             */
+            vuln_scripts?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+        };
+        /** NmapScanRequest */
+        NmapScanRequest: {
+            /**
+             * Discovery
+             * @default true
+             */
+            discovery?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Nmap Args
+             * @default
+             */
+            nmap_args?: string;
+            /**
+             * Nmap Path
+             * @default nmap
+             */
+            nmap_path?: string;
+            /**
+             * Run Actions
+             * @default false
+             */
+            run_actions?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Scan Mode
+             * @default legacy
+             * @enum {string}
+             */
+            scan_mode?: "legacy" | "rfc1918_discovery" | "easy" | "hard";
+            scan_options?: components["schemas"]["NmapScanOptions"];
+            /**
+             * Staged
+             * @default false
+             */
+            staged?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /** Targets */
+            targets: string[] | string;
+        };
+        /** OSAssessment */
+        OSAssessment: {
+            /**
+             * Confidence
+             * @default unknown
+             * @enum {string}
+             */
+            confidence?: "unknown" | "low" | "medium" | "high";
+            /** Evidence */
+            evidence?: components["schemas"]["ClassificationEvidence"][];
+            /**
+             * Explanation
+             * @default
+             */
+            explanation?: string;
+            /** Likely Family */
+            likely_family?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
         /** OpenHubPath */
         OpenHubPath: {
             /** Path */
@@ -2298,6 +3223,27 @@ export interface components {
             };
         } & {
             [key: string]: unknown;
+        };
+        /** PassiveCaptureRequest */
+        PassiveCaptureRequest: {
+            /**
+             * Duration Minutes
+             * @default 15
+             */
+            duration_minutes?: number | string;
+            /** Interface Name */
+            interface_name: string;
+            /**
+             * Run Actions
+             * @default false
+             */
+            run_actions?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
+            /**
+             * Scan Mode
+             * @default passive_capture
+             * @constant
+             */
+            scan_mode?: "passive_capture";
         };
         /** Process */
         Process: {
@@ -2351,6 +3297,52 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** ProcessHistoryView */
+        ProcessHistoryView: {
+            /** Original Pid */
+            original_pid: string;
+            /** Original Status */
+            original_status: string;
+            /** Reason */
+            reason: string;
+            /** Recorded At */
+            recorded_at: string;
+            /**
+             * Source Project
+             * @default
+             */
+            source_project?: string;
+        };
+        /** ProcessKillResult */
+        ProcessKillResult: {
+            /**
+             * Cancel Requested
+             * @default false
+             */
+            cancel_requested?: boolean;
+            /**
+             * Had Live Handle
+             * @default false
+             */
+            had_live_handle?: boolean;
+            /** Killed */
+            killed: boolean;
+            /** Process Id */
+            process_id: number;
+            /**
+             * Reason
+             * @default
+             */
+            reason?: string;
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status?: "ok";
+        } & {
+            [key: string]: unknown;
+        };
         /** ProcessList */
         ProcessList: {
             /** Processes */
@@ -2367,6 +3359,7 @@ export interface components {
             completed: boolean;
             /** Estimatedremaining */
             estimatedRemaining?: number | string | null;
+            history_origin?: components["schemas"]["ProcessHistoryView"] | null;
             /**
              * Hostip
              * @default
@@ -2468,6 +3461,11 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** ProjectPathRequest */
+        ProjectPathRequest: {
+            /** Path */
+            path: string;
+        };
         /** ProjectResponse */
         ProjectResponse: {
             project: components["schemas"]["Project"];
@@ -2477,6 +3475,18 @@ export interface components {
              * @constant
              */
             status?: "ok";
+        } & {
+            [key: string]: unknown;
+        };
+        /** ProjectSaveRequest */
+        ProjectSaveRequest: {
+            /** Path */
+            path: string;
+            /**
+             * Replace
+             * @default true
+             */
+            replace?: boolean | ("true" | "false" | "1" | "0" | "yes" | "no" | "on" | "off");
         };
         /** Rationale */
         Rationale: {
@@ -2735,16 +3745,38 @@ export interface components {
             /** Scans */
             scans: components["schemas"]["Scan"][];
         };
+        /** ScanRecovery */
+        ScanRecovery: {
+            /**
+             * Policy
+             * @default never-replay
+             * @constant
+             */
+            policy?: "never-replay";
+            /**
+             * Previous Status
+             * @default
+             */
+            previous_status?: string;
+            /**
+             * Retry Available
+             * @default false
+             */
+            retry_available?: boolean;
+            /**
+             * State
+             * @default available
+             * @enum {string}
+             */
+            state?: "available" | "no_profile" | "copied" | "cleaning" | "importing" | "cleanup_required" | "cleaned" | "failed" | "complete";
+        };
         /** ScanSummary */
         ScanSummary: {
             /** Artifacts */
             artifacts?: components["schemas"]["Artifact"][];
             /** Candidates */
             candidates?: components["schemas"]["CandidateFinding"][];
-            /** Classification */
-            classification?: {
-                [key: string]: components["schemas"]["JsonValue"];
-            };
+            classification?: components["schemas"]["ClassificationFacts"];
             /**
              * Dependency Audit
              * @default
@@ -2764,18 +3796,118 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** SchedulerFamilyApprovalRequest */
+        SchedulerFamilyApprovalRequest: {
+            /** Danger Categories */
+            danger_categories?: string[];
+            /** Family Id */
+            family_id: string;
+            /**
+             * Label
+             * @default
+             */
+            label?: string;
+            /**
+             * Tool Id
+             * @default
+             */
+            tool_id?: string;
+        };
+        /** SchedulerPreferencesPatch */
+        SchedulerPreferencesPatch: {
+            /** Dangerous Categories */
+            dangerous_categories?: string[];
+            /** Device Categories */
+            device_categories?: (components["schemas"]["DeviceCategoryRule-Input"] | string)[];
+            engagement_policy?: components["schemas"]["EngagementPolicyPatch-Input"];
+            feature_flags?: components["schemas"]["FeatureFlagsPatch"];
+            /**
+             * Goal Profile
+             * @default internal_asset_discovery
+             * @enum {string}
+             */
+            goal_profile?: "internal_asset_discovery" | "external_pentest";
+            /**
+             * Max Concurrency
+             * @default 1
+             */
+            max_concurrency?: number | string;
+            /**
+             * Max Host Concurrency
+             * @default 1
+             */
+            max_host_concurrency?: number | string;
+            /**
+             * Max Jobs
+             * @default 200
+             */
+            max_jobs?: number | string;
+            /**
+             * Mode
+             * @default deterministic
+             * @constant
+             */
+            mode?: "deterministic";
+        };
+        /** SchedulerPreferencesResult */
+        SchedulerPreferencesResult: {
+            /** Dangerous Categories */
+            dangerous_categories?: string[];
+            /** Device Categories */
+            device_categories?: (components["schemas"]["DeviceCategoryRule-Output"] | string)[];
+            engagement_policy?: components["schemas"]["EngagementPolicyPatch-Output"];
+            /** Feature Flags */
+            feature_flags?: {
+                [key: string]: boolean;
+            };
+            /**
+             * Goal Profile
+             * @default internal_asset_discovery
+             * @enum {string}
+             */
+            goal_profile?: "internal_asset_discovery" | "external_pentest";
+            /**
+             * Max Concurrency
+             * @default 1
+             */
+            max_concurrency?: number;
+            /**
+             * Max Host Concurrency
+             * @default 1
+             */
+            max_host_concurrency?: number;
+            /**
+             * Max Jobs
+             * @default 200
+             */
+            max_jobs?: number;
+            /**
+             * Mode
+             * @default deterministic
+             * @constant
+             */
+            mode?: "deterministic";
+        } & {
+            [key: string]: unknown;
+        };
         /** ServiceFacts */
         ServiceFacts: {
             /** Fingerprint */
             fingerprint?: {
-                [key: string]: components["schemas"]["JsonValue"];
+                [key: string]: string;
             };
             /** Port */
             port: number | string;
-            /** Protocol */
-            protocol: string;
-            /** State */
-            state: string;
+            /**
+             * Protocol
+             * @enum {string}
+             */
+            protocol: "tcp" | "udp" | "sctp" | "ip";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "open" | "closed" | "filtered" | "unfiltered" | "open|filtered" | "closed|filtered" | "unknown";
         } & {
             [key: string]: unknown;
         };
@@ -2809,6 +3941,11 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** SubnetRescanRequest */
+        SubnetRescanRequest: {
+            /** Subnet */
+            subnet: string;
+        };
         /** TaskProblem */
         TaskProblem: {
             /** Id */
@@ -2837,6 +3974,114 @@ export interface components {
             tool?: string;
         } & {
             [key: string]: unknown;
+        };
+        /** ToolAuditInstallRequest */
+        ToolAuditInstallRequest: {
+            /**
+             * Platform
+             * @default
+             * @enum {string}
+             */
+            platform?: "" | "kali" | "ubuntu";
+            /**
+             * Scope
+             * @default missing
+             * @enum {string}
+             */
+            scope?: "missing" | "all" | "selected";
+            /** Tool Keys */
+            tool_keys?: string[];
+        };
+        /** ToolRunRequest */
+        ToolRunRequest: {
+            /** Host Ip */
+            host_ip: string;
+            /** Parameters */
+            parameters?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            /** Port */
+            port: number | string;
+            /**
+             * Protocol
+             * @default tcp
+             * @enum {string}
+             */
+            protocol?: "tcp" | "udp";
+            /**
+             * Timeout
+             * @default 300
+             */
+            timeout?: number | string;
+            /** Tool Id */
+            tool_id: string;
+        };
+        /** WorkspaceMutationResult */
+        WorkspaceMutationResult: {
+            deleted?: components["schemas"]["JsonValue"];
+            /** Host Id */
+            host_id?: number | null;
+            /**
+             * Port
+             * @default
+             */
+            port?: string;
+            /**
+             * Protocol
+             * @default
+             */
+            protocol?: string;
+            /**
+             * Removed
+             * @default false
+             */
+            removed?: boolean;
+            /**
+             * Service
+             * @default
+             */
+            service?: string;
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status?: "ok";
+        } & {
+            [key: string]: unknown;
+        };
+        /** WorkspacePortMutationRequest */
+        WorkspacePortMutationRequest: {
+            /** Host Id */
+            host_id: number | string;
+            /** Port */
+            port: number | string;
+            /**
+             * Protocol
+             * @default tcp
+             * @enum {string}
+             */
+            protocol?: "tcp" | "udp";
+            /**
+             * Service
+             * @default
+             */
+            service?: string;
+        };
+        /** WorkspaceServiceMutationRequest */
+        WorkspaceServiceMutationRequest: {
+            /** Host Id */
+            host_id: number | string;
+            /** Port */
+            port: number | string;
+            /**
+             * Protocol
+             * @default tcp
+             * @enum {string}
+             */
+            protocol?: "tcp" | "udp";
+            /** Service */
+            service: string;
         };
     };
     responses: never;
@@ -2892,8 +4137,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2910,9 +4173,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["EngagementPolicyPatch-Input"];
             };
         };
         responses: {
@@ -2922,7 +4185,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["EngagementPolicyResult"];
                 };
             };
             /** @description Bad Request */
@@ -2952,8 +4215,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3008,8 +4289,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3064,8 +4363,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3082,9 +4399,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["GraphAnnotationSaveRequest"];
             };
         };
         responses: {
@@ -3094,7 +4411,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["GraphAnnotationResult"];
                 };
             };
             /** @description Bad Request */
@@ -3124,8 +4441,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3182,8 +4517,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3238,8 +4591,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3256,9 +4627,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["GraphLayoutSaveRequest"];
             };
         };
         responses: {
@@ -3268,7 +4639,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["GraphLayoutResult"];
                 };
             };
             /** @description Bad Request */
@@ -3298,8 +4669,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3356,8 +4745,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3374,9 +4781,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["GraphRebuildRequest"];
             };
         };
         responses: {
@@ -3386,7 +4793,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["GraphRebuildResult"];
                 };
             };
             /** @description Bad Request */
@@ -3416,8 +4823,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3476,8 +4901,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3536,8 +4979,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3592,8 +5053,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3652,8 +5131,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3710,8 +5207,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3731,7 +5246,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -3769,8 +5288,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3831,8 +5368,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3890,8 +5445,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3946,8 +5519,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4008,8 +5599,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4068,8 +5677,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4130,8 +5757,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4189,8 +5834,107 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    recoverDeepScan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+                scan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeepScanRun"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4245,8 +5989,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4303,8 +6065,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4361,8 +6141,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4417,8 +6215,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4477,8 +6293,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4537,8 +6371,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4595,8 +6447,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4653,8 +6523,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4715,8 +6603,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4777,8 +6683,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4797,7 +6721,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -4835,8 +6763,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4897,8 +6843,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4917,7 +6881,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -4955,8 +6923,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5017,8 +7003,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5079,8 +7083,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5097,7 +7119,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/zip": string;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -5135,8 +7161,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5191,8 +7235,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5251,8 +7313,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5311,8 +7391,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5369,8 +7467,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5427,8 +7543,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5447,7 +7581,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -5485,8 +7623,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5541,8 +7697,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5559,9 +7733,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["NmapImportRequest"];
             };
         };
         responses: {
@@ -5571,7 +7745,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AcceptedJobResponse"];
                 };
             };
             /** @description Bad Request */
@@ -5601,8 +7775,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5619,9 +7811,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["NmapScanRequest"];
             };
         };
         responses: {
@@ -5631,7 +7823,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AcceptedJobResponse"];
                 };
             };
             /** @description Bad Request */
@@ -5661,8 +7853,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5719,8 +7929,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5779,8 +8007,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5799,7 +8045,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -5837,8 +8087,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5857,7 +8125,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -5865,7 +8137,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProcessAction"];
+                    "application/json": components["schemas"]["ProcessKillResult"];
                 };
             };
             /** @description Bad Request */
@@ -5895,8 +8167,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5956,8 +8246,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6018,8 +8326,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6074,8 +8400,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6128,8 +8472,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6146,7 +8508,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -6154,7 +8520,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ProjectResponse"];
                 };
             };
             /** @description Bad Request */
@@ -6184,8 +8550,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6202,9 +8586,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["ProjectPathRequest"];
             };
         };
         responses: {
@@ -6214,7 +8598,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ProjectResponse"];
                 };
             };
             /** @description Bad Request */
@@ -6244,8 +8628,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6304,8 +8706,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6322,9 +8742,12 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_restoreWorkspaceZip"];
+                "multipart/form-data": {
+                    /** Format: binary */
+                    bundle: string;
+                };
             };
         };
         responses: {
@@ -6334,7 +8757,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AcceptedJobResponse"] | components["schemas"]["ProjectResponse"];
                 };
             };
             /** @description Bad Request */
@@ -6364,8 +8787,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6382,9 +8823,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["ProjectSaveRequest"];
             };
         };
         responses: {
@@ -6394,7 +8835,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AcceptedJobResponse"] | components["schemas"]["ProjectResponse"];
                 };
             };
             /** @description Bad Request */
@@ -6424,8 +8865,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6480,6 +8939,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
@@ -6489,20 +8957,25 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Insufficient Storage */
+            507: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
         };
     };
-    passive_capture_scan: {
+    getExecutionRecovery: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": unknown;
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -6510,7 +8983,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ExecutionRecoveryReport"];
                 };
             };
             /** @description Bad Request */
@@ -6540,8 +9013,182 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    retryExecutionRecovery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutionRecoveryReport"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    passive_capture_scan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PassiveCaptureRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcceptedJobResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6598,8 +9245,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6657,8 +9322,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6728,8 +9411,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6790,8 +9491,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6808,9 +9527,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["SchedulerFamilyApprovalRequest"];
             };
         };
         responses: {
@@ -6820,7 +9539,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["FamilyApprovalResult"];
                 };
             };
             /** @description Bad Request */
@@ -6850,8 +9569,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6908,8 +9645,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6964,8 +9719,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7022,8 +9795,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7078,8 +9869,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7134,8 +9943,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7152,9 +9979,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["SchedulerPreferencesPatch"];
             };
         };
         responses: {
@@ -7164,7 +9991,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SchedulerPreferencesResult"];
                 };
             };
             /** @description Bad Request */
@@ -7194,8 +10021,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7212,7 +10057,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -7220,7 +10069,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AcceptedJobResponse"];
                 };
             };
             /** @description Bad Request */
@@ -7250,8 +10099,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7306,8 +10173,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7324,9 +10209,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["DisplaySettingsRequest"];
             };
         };
         responses: {
@@ -7336,7 +10221,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DisplaySettingsResponse"];
                 };
             };
             /** @description Bad Request */
@@ -7366,8 +10251,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7422,8 +10325,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7440,9 +10361,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["ToolAuditInstallRequest"];
             };
         };
         responses: {
@@ -7452,7 +10373,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AcceptedJobResponse"];
                 };
             };
             /** @description Bad Request */
@@ -7482,8 +10403,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7538,8 +10477,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7594,8 +10551,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7650,8 +10625,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7706,8 +10699,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7764,8 +10775,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7784,7 +10813,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -7792,7 +10825,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["WorkspaceMutationResult"];
                 };
             };
             /** @description Bad Request */
@@ -7822,8 +10855,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7842,7 +10893,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyAction"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -7850,7 +10905,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AcceptedJobResponse"];
                 };
             };
             /** @description Bad Request */
@@ -7880,8 +10935,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7938,8 +11011,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7994,8 +11085,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8012,9 +11121,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["WorkspacePortMutationRequest"];
             };
         };
         responses: {
@@ -8024,7 +11133,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["WorkspaceMutationResult"];
                 };
             };
             /** @description Bad Request */
@@ -8054,8 +11163,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8112,8 +11239,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8168,8 +11313,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8186,9 +11349,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["WorkspaceServiceMutationRequest"];
             };
         };
         responses: {
@@ -8198,7 +11361,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["WorkspaceMutationResult"];
                 };
             };
             /** @description Bad Request */
@@ -8228,8 +11391,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8246,9 +11427,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["SubnetRescanRequest"];
             };
         };
         responses: {
@@ -8258,7 +11439,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AcceptedJobResponse"];
                 };
             };
             /** @description Bad Request */
@@ -8288,8 +11469,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8344,8 +11543,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8400,8 +11617,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8418,9 +11653,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": unknown;
+                "application/json": components["schemas"]["ToolRunRequest"];
             };
         };
         responses: {
@@ -8430,7 +11665,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AcceptedJobResponse"];
                 };
             };
             /** @description Bad Request */
@@ -8460,8 +11695,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8516,8 +11769,26 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
                 headers: {
                     [name: string]: unknown;
                 };

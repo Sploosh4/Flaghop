@@ -1,11 +1,12 @@
 from __future__ import annotations
-
+from app.contracts.actions.inputs import LegacyInt, PortText
 from app.contracts.base import ActionData
-
-from dataclasses import dataclass
-from typing import Any, Dict
-
+from app.contracts.base import ActionRequest
 from app.core.contract_values import clamp_int
+from dataclasses import dataclass
+from pydantic import Field, JsonValue
+from typing import Any
+from typing import Literal
 
 
 @dataclass(frozen=True)
@@ -42,30 +43,10 @@ class WorkspaceToolTargetsQuery(ActionData):
         )
 
 
-@dataclass(frozen=True)
-class ToolRunRequest(ActionData):
-    host_ip: str
-    port: str
-    protocol: str
-    tool_id: str
-    parameters: Dict[str, Any]
-    timeout: int
-
-    @classmethod
-    def from_payload(cls, payload: Any) -> "ToolRunRequest":
-        source = payload if isinstance(payload, dict) else {}
-        timeout_value = source.get("timeout", 300)
-        try:
-            timeout = int(timeout_value or 300)
-        except (TypeError, ValueError):
-            raise ValueError("timeout must be an integer.")
-        return cls(
-            host_ip=str(source.get("host_ip", "") or "").strip(),
-            port=str(source.get("port", "") or "").strip(),
-            protocol=str(source.get("protocol", "tcp") or "tcp").strip().lower() or "tcp",
-            tool_id=str(source.get("tool_id", "") or "").strip(),
-            parameters=(
-                dict(source.get("parameters", {}) or {}) if isinstance(source.get("parameters", {}), dict) else {}
-            ),
-            timeout=timeout,
-        )
+class ToolRunRequest(ActionRequest):
+    host_ip: str = Field(min_length=1, max_length=253)
+    port: PortText
+    protocol: Literal["tcp", "udp"] = "tcp"
+    tool_id: str = Field(min_length=1, max_length=256)
+    parameters: dict[str, JsonValue] = Field(default_factory=dict)
+    timeout: LegacyInt = Field(default=300, ge=1, le=86400)

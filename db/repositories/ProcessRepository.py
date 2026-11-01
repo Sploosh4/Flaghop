@@ -243,6 +243,7 @@ class ProcessRepository:
             [p_output],
             None,
             0,
+            execution_id=getattr(proc, "execution_id", ""),
         )
 
         self.log.info(f"Adding process: {p}")

@@ -1,29 +1,23 @@
 from __future__ import annotations
-
+from app.contracts.actions.inputs import LegacyInt, PortText
 from app.contracts.base import ActionData
-
-from dataclasses import dataclass
-from typing import Any, List
-
+from app.contracts.base import ActionRequest
 from app.core.contract_values import as_bool, clamp_int
+from dataclasses import dataclass
+from pydantic import Field
+from typing import Any, List
+from typing import Literal
 
 
-@dataclass(frozen=True)
-class WorkspacePortMutationRequest(ActionData):
-    host_id: int
-    port: str
-    protocol: str
-    service: str
+class WorkspacePortMutationRequest(ActionRequest):
+    host_id: LegacyInt = Field(ge=1)
+    port: PortText
+    protocol: Literal["tcp", "udp"] = "tcp"
+    service: str = Field(default="", max_length=256)
 
-    @classmethod
-    def from_payload(cls, payload: Any) -> "WorkspacePortMutationRequest":
-        source = payload if isinstance(payload, dict) else {}
-        return cls(
-            host_id=clamp_int(source.get("host_id", 0), 0, 0, 10**9),
-            port=str(source.get("port", "") or ""),
-            protocol=str(source.get("protocol", "tcp") or "tcp"),
-            service=str(source.get("service", "") or ""),
-        )
+
+class WorkspaceServiceMutationRequest(WorkspacePortMutationRequest):
+    service: str = Field(min_length=1, max_length=256)
 
 
 @dataclass(frozen=True)

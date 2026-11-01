@@ -6,15 +6,17 @@ import re
 import shutil
 import tempfile
 import zipfile
+from app.services.archive_storage import open_archive, BoundedArchive, restore_directory
+from app.services.storage_admission import StorageRejected
 from typing import Any, Dict, Tuple
 
 
-def extract_project_bundle_zip(zip_path: str) -> Dict[str, Any]:
+def extract_project_bundle_zip(zip_path: str, admission=None) -> Dict[str, Any]:
     normalized = normalize_existing_file(zip_path)
     if not zipfile.is_zipfile(normalized):
         raise ValueError(f"Invalid ZIP file: {normalized}")
 
-    with zipfile.ZipFile(normalized, "r") as archive:
+    with open_archive(normalized, admission) as archive:
         try:
             manifest_name, root_prefix, manifest = read_bundle_manifest(archive)
         except ValueError as exc:
@@ -39,7 +41,7 @@ def extract_project_bundle_zip(zip_path: str) -> Dict[str, Any]:
             project_file_name = f"{project_file_name}.legion"
         project_stem = os.path.splitext(project_file_name)[0]
 
-        restore_root = tempfile.mkdtemp(prefix="legion-restore-")
+        restore_root = restore_directory()
         project_path = os.path.join(restore_root, project_file_name)
         output_folder = os.path.join(restore_root, f"{project_stem}-tool-output")
         running_folder = os.path.join(restore_root, f"{project_stem}-running")
@@ -58,6 +60,9 @@ def extract_project_bundle_zip(zip_path: str) -> Dict[str, Any]:
                 archive,
                 prefix=bundle_prefix(root_prefix, "running"),
                 destination_dir=running_folder,
+            )
+            extract_zip_prefix_to_dir(
+                archive, prefix="project-files", destination_dir=os.path.join(restore_root, "project-documents")
             )
         except Exception:
             shutil.rmtree(restore_root, ignore_errors=True)
@@ -97,7 +102,7 @@ def extract_legacy_project_zip(archive: zipfile.ZipFile) -> Dict[str, Any]:
         project_file_name = f"{project_file_name}.legion"
     project_stem = os.path.splitext(project_file_name)[0]
 
-    restore_root = tempfile.mkdtemp(prefix="legion-restore-")
+    restore_root = restore_directory()
     project_path = os.path.join(restore_root, project_file_name)
     output_folder = os.path.join(restore_root, f"{project_stem}-tool-output")
     running_folder = os.path.join(restore_root, f"{project_stem}-running")
@@ -169,6 +174,8 @@ def read_bundle_manifest(archive: zipfile.ZipFile) -> Tuple[str, str, Dict[str, 
         raise ValueError("Bundle manifest.json is missing.")
 
     try:
+        if archive.getinfo(manifest_name).file_size > 1024 * 1024:
+            raise StorageRejected("Bundle manifest exceeds its metadata limit.")
         raw_manifest = archive.read(manifest_name)
     except KeyError as exc:
         raise ValueError("Bundle manifest.json is missing.") from exc
@@ -224,8 +231,11 @@ def extract_zip_member_to_file(archive: zipfile.ZipFile, member_name: str, desti
         raise ValueError("Destination path is required.")
     os.makedirs(os.path.dirname(target), exist_ok=True)
     try:
-        with archive.open(member_name, "r") as source, open(target, "wb") as handle:
-            shutil.copyfileobj(source, handle)
+        if isinstance(archive, BoundedArchive):
+            archive.copy_member(member_name, target)
+        else:
+            with open_archive(archive.filename) as bounded:
+                bounded.copy_member(member_name, target)
     except KeyError as exc:
         raise ValueError(f"Bundle member is missing: {member_name}") from exc
 
@@ -261,8 +271,9 @@ def extract_zip_prefix_to_dir(archive: zipfile.ZipFile, prefix: str, destination
 
         os.makedirs(os.path.dirname(destination), exist_ok=True)
         try:
-            with archive.open(name, "r") as source, open(destination, "wb") as handle:
-                shutil.copyfileobj(source, handle)
+            extract_zip_member_to_file(archive, name, destination)
+        except StorageRejected:
+            raise
         except Exception as exc:
             extraction_errors.append(f"{normalized}: {exc}")
 

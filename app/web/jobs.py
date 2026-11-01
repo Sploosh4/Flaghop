@@ -3,6 +3,7 @@ import datetime
 import logging
 import itertools
 import threading
+import time
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional
 
@@ -28,6 +29,8 @@ class WebJobManager:
         self._workers: List[threading.Thread] = []
         self._running_job_count = 0
         self._running_exclusive_job_id = 0
+        self._closing = False
+        self._shutdown_settler = None
 
         self.ensure_worker_count(self.worker_count)
 
@@ -57,6 +60,8 @@ class WebJobManager:
             "error": "",
         }
         with self._queue_cv:
+            if self._closing:
+                raise RuntimeError("The application is stopping; new work is held.")
             if sum(row["status"] in {"queued", "running"} for row in self._jobs) >= self.max_jobs:
                 raise RuntimeError(f"Job queue is full ({self.max_jobs} active jobs). Wait or cancel queued work.")
             self._jobs.append(job)
@@ -165,6 +170,8 @@ class WebJobManager:
             with self._queue_cv:
                 selected = None
                 while selected is None:
+                    if self._closing:
+                        return
                     selected = self._dequeue_next_runnable_locked()
                     if selected is not None:
                         break
@@ -180,18 +187,80 @@ class WebJobManager:
                 self._notify_change(started_job, "running")
 
             try:
-                result = runner() or {}
+                result = runner()
+                # Existing void callbacks explicitly return None. Other falsey
+                # values are malformed outcomes, not a successful empty record.
+                if result is None:
+                    result = {}
                 status = result.status if isinstance(result, JobOutcome) else "completed"
                 error = result.error if isinstance(result, JobOutcome) else ""
                 result = result.result if isinstance(result, JobOutcome) else result
                 if not isinstance(result, dict):
                     raise TypeError("Job runner must return a result dictionary or JobOutcome.")
+                if status == "completed" and result.get("executed") is False:
+                    status, error = "failed", result.get("reason") or "Execution did not run."
             except Exception as exc:
                 from app.services.project_networks import NetworkHeld
 
                 status = "held" if isinstance(exc, NetworkHeld) else "failed"
                 result, error = {}, str(exc)
             self._settle(job_id, status, result, error, running=True)
+
+    def begin_shutdown(self):
+        """Stop admission before cancelling; persistence callbacks keep their slot."""
+        with self._queue_cv:
+            if self._closing:
+                return
+            self._closing = True
+            queued = []
+            for job in self._jobs:
+                if job["status"] not in {"queued", "running"}:
+                    continue
+                job.update(cancel_requested=True, cancel_reason="Application shutdown; available evidence retained.")
+                if job["status"] == "queued" and not job.get("_settling"):
+                    self._pending_job_ids.remove(job["id"])
+                    self._runners.pop(job["id"], None)
+                    job["_settling"] = True
+                    queued.append(job["id"])
+            if queued:
+
+                def settle_cancelled():
+                    for identifier in queued:
+                        self._settle(
+                            identifier,
+                            "cancelled",
+                            {},
+                            "Application shutdown; available evidence retained.",
+                            running=False,
+                        )
+
+                self._shutdown_settler = threading.Thread(
+                    target=settle_cancelled, daemon=True, name="flaghop-shutdown-settlement"
+                )
+                self._shutdown_settler.start()
+            self._queue_cv.notify_all()
+
+    def shutdown(self, timeout=10):
+        self.begin_shutdown()
+        deadline = time.monotonic() + max(0, timeout)
+        for worker in [*self._workers, *([self._shutdown_settler] if self._shutdown_settler else [])]:
+            if worker is not threading.current_thread():
+                worker.join(max(0, deadline - time.monotonic()))
+        return [row["id"] for row in self.list_jobs() if row["status"] in {"queued", "running"}]
+
+    def startup(self):
+        with self._queue_cv:
+            if not self._closing:
+                return
+            if (
+                any(worker.is_alive() for worker in self._workers)
+                or self._shutdown_settler
+                and self._shutdown_settler.is_alive()
+            ):
+                raise RuntimeError("Previous jobs are still settling after shutdown; new work is held.")
+            self._workers.clear()
+            self._closing = False
+        self.ensure_worker_count(self.worker_count)
 
     def _settle(self, job_id, status, result, error, *, running):
         """Keep the job active and its exclusive slot until persistence finishes.

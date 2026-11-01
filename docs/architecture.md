@@ -71,8 +71,12 @@ flowchart TD
 
 ## Persistence and events
 
-The contract consolidation does not add durable
-job recovery or independent multi-project execution. Those remain separate work.
+The reviewed repairs add durable owned cleanup and offline result
+settlement, using a protected journal outside project archives. It never replays
+a network command. Inventory and its marker share one transaction; file and
+metadata settlement can be retried afterward. See the
+[repair acceptance record](review-boundary-repairs.md). Independent multi-project
+execution remains separate work.
 The checker runs in the maintainability/CI gate and catches ownership, dependency,
 class, reference-type and import-cycle regressions. Behavioural and desktop fixture
 tests verify the consuming paths; a structural pass does not verify a finding.

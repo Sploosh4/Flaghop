@@ -2,6 +2,8 @@
 
 from app.contracts.observations.profile import Profile
 from app.core.contract_values import literal_ip
+from app.contracts.observations.scanner import ScanSummary
+from app.scanning.xml_facts import verify_discovery
 
 
 import hashlib
@@ -83,6 +85,10 @@ def validate_profile(root, target, source_identity):
             or finished.get("exit") != "success"
         ):
             raise ValueError("Nmap evidence is incomplete or contains another target.")
+        verify_discovery(document, tree)
+    # Validate the entire public summary before inventory or metadata writes.
+    # Returning originals preserves extensions and checksum provenance.
+    ScanSummary.model_validate(summarize(document))
     return document, hashlib.sha256(raw).hexdigest(), xml
 
 

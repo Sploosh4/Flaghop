@@ -19,6 +19,7 @@ import {BackgroundControl, BackgroundPanel} from './reader/BackgroundPanel';
 import type {HardwareNode} from './hardware/model';
 import {hardwareGraph} from './hardware/model';
 import {useDeepScans} from './scanner/useDeepScans';
+import {RecoveryNotice} from './RecoveryNotice';
 
 const message = (error: unknown) => error instanceof Error ? error.message : String(error);
 type Page = 'home' | 'project' | 'project-setup' | 'setup' | 'part' | 'files';
@@ -212,6 +213,7 @@ export function ProjectHub() {
     <main className="hub-main">
       <header className="hub-header" onPointerDown={titlebarPointer} onDoubleClick={titlebarDoubleClick}>{sidebarCollapsed && <button id="hub-sidebar-reopen" className="hub-sidebar-toggle" aria-label="Show sidebar" title="Show sidebar" aria-controls="hub-sidebar" aria-expanded="false" onClick={() => toggleSidebar(false)}><Icon kind="right"/></button>}{sidebarCollapsed && <button className="hub-collapsed-brand" onClick={home}>FlagHop</button>}{selected ? <><span className="hub-avatar" aria-hidden="true">FH</span><ProjectLabel key={selected.id} name={selected.name} onRename={rename}/><span className="hub-divider">/</span><span>{title}</span></> : <span>{page === 'setup' || page === 'part' ? title : 'Projects'}</span>}{selected && <BackgroundControl {...background}/>}<button className="hub-header-details" aria-label="Workspace details" title="Workspace details" onClick={() => form('details')}>ⓘ</button>{desktop && <WindowControls desktop={desktop}/>}</header>
       {error && !dialog && <p className="hub-error" role="alert">{error}</p>}
+      <RecoveryNotice/>
       <div className="hub-workspace-body"><div className={`hub-content${page === 'part' ? ' hub-content-part' : ''}${page === 'project' || page === 'project-setup' ? ' hub-content-project' : ''}${page === 'project' ? ' hub-content-hardware' : ''}${page === 'files' ? ' hub-content-files' : ''}`}>
         {page === 'home' && <section className="hub-home" aria-label="Project home"><span className="hub-home-mark">F</span><h1>Projects</h1><div className="hub-home-list">{visible.map(project => <button key={project.id} disabled={busy} onContextMenu={event => context(event, project)} onKeyDown={event => context(event, project)} onClick={() => ignore(run(() => api.openProject(project.id)))}><span className="hub-avatar" aria-hidden="true">FH</span><span>{project.name}</span></button>)}</div><div className="hub-home-actions"><button className="hub-create-link" disabled={busy} onClick={() => form('create')}>+ New project</button><button disabled={busy} onClick={() => form('open')}>Open project</button><button disabled={busy} onClick={() => restoreInput.current?.click()}>Restore ZIP</button></div></section>}
         {page === 'project' && selected && <ProjectOverview key={selected.id} project={selected} snapshot={live.snapshot} settings={settings}

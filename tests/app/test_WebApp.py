@@ -2472,10 +2472,10 @@ class WebAppTest(unittest.TestCase):
 
     def test_graph_api_validation(self):
         missing_layout = self.client.post("/api/graph/layouts", json={"layout": {}})
-        self.assertEqual(400, missing_layout.status_code)
+        self.assertEqual(422, missing_layout.status_code)
 
         missing_annotation = self.client.post("/api/graph/annotations", json={"target_kind": "node", "target_ref": ""})
-        self.assertEqual(400, missing_annotation.status_code)
+        self.assertEqual(422, missing_annotation.status_code)
 
     def test_scan_and_import_endpoints(self):
         nmap_import = self.client.post("/api/nmap/import-xml", json={"path": "/tmp/scan.xml", "run_actions": True})

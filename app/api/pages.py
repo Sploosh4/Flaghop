@@ -1,13 +1,13 @@
 """Server-rendered application shell and static assets on the ASGI application."""
 
-from pathlib import Path
 import re
-from fastapi import Request
-from fastapi.templating import Jinja2Templates
-from app.api.dependencies import Runtime, native_router
 from app.ApplicationInfo import applicationInfo, getConsoleLogo
+from app.api.dependencies import Runtime, native_router
 from app.scan_presets import SCAN_PRESETS
 from app.web.services.settings_service import load_display_settings
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
+from pathlib import Path
 
 WEB_ROOT = Path(__file__).resolve().parents[1] / "web"
 templates = Jinja2Templates(directory=str(WEB_ROOT / "templates"))

@@ -4,7 +4,9 @@ The application owns one definition of each action, result, observation and
 artifact reference. All application consumers and tests import its canonical
 module directly. HTTP routes and tool adapters translate these values; they do
 not define copies. Database entities and page/snapshot compositions remain in
-their existing layers. This change does not implement persistent run recovery.
+their existing layers. Recovery actions may retry owned cleanup and offline
+result settlement using a protected local execution journal. Copied metadata
+cannot authorize process signalling, and recovery never replays network commands.
 
 | Folder | Contents | Approved roots |
 | --- | --- | --- |

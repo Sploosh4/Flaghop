@@ -1,11 +1,13 @@
-# Architecture follow-up work
+# Architecture follow-up work — historical 31 October checkpoint
 
 Owner: the coding agent working with Josh. Reviewed 31 October 2026.
 
-The FastAPI-only migration and the eight material improvements below are
-included in this revision and verified locally. Each has a baseline, a concrete
-code change and regression evidence. The earlier scanner checkpoint remains
-separate. Original local test and live-run reports are preserved. The ten-minute DeepSeek monitor remains paused.
+The FastAPI-only migration and the eight initial material improvements below
+describe the 31 October checkpoint. Independent review then found eight gaps;
+their reviewed repairs and completed local checks are tracked in the
+[review acceptance record](review-boundary-repairs.md). The historical counts and
+live measurements below do not certify the changed code. Original
+reports are preserved. The ten-minute DeepSeek monitor remains paused.
 
 ## Transport prerequisite
 
@@ -45,7 +47,7 @@ run's 1,014 assertions include repeated retention checks, not 1,014 distinct UI
 behaviours. Qt/WebEngine and SQLite remain justified choices for this application;
 no extra deployment services or unrelated framework rewrite were introduced.
 
-## Final verification
+## Historical verification
 
 Verification `008` passes with unchanged production/test hashes:
 

@@ -27,10 +27,13 @@ from app.services.project_background import atomic_json
 from app.services.project_files import ProjectFiles
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
+from app.services.execution_journal import ExecutionJournal
 from tests.support.asgi_server import live_asgi_server
 
 logic = create_default_logic()
-runtime = WebRuntime(logic)
+runtime = WebRuntime(
+    logic, execution_journal=ExecutionJournal(Path(os.environ["LEGION_HOME"]) / "protected-executions")
+)
 web = create_app(runtime)
 hub = web.state.project_hub
 project = hub.create("Harbour")["project"]

@@ -25,6 +25,7 @@ from db.database import Base
 class process(Base):
     __tablename__ = "process"
     pid = Column(String)
+    execution_id = Column(String)
     id = Column(Integer, primary_key=True)
     display = Column(String)
     name = Column(String)
@@ -70,6 +71,7 @@ class process(Base):
     ):
         self.display = "True"
         self.pid = pid
+        self.execution_id = kwargs.get("execution_id", "")
         self.name = kwargs.get("name", name) or ""
         self.tabTitle = kwargs.get("tabTitle", tabTitle) or ""
         self.hostIp = kwargs.get("hostIp", hostIp) or ""

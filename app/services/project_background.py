@@ -57,7 +57,14 @@ def atomic_json(path, value):
         with temporary.open("x", encoding="utf-8") as stream:
             os.chmod(temporary, 0o600)
             json.dump(value, stream, ensure_ascii=True)
+            stream.flush()
+            os.fsync(stream.fileno())
         temporary.replace(path)
+        descriptor = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
     finally:
         temporary.unlink(missing_ok=True)
 

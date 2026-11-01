@@ -1,7 +1,7 @@
 import {getProcessOutput} from '../api/activity';
 import {createStore} from '../store';
 
-const empty = () => ({id: 0, text: '', command: '', progress: '', meta: 'No process selected',
+const empty = () => ({id: 0, text: '', command: '', progress: '', history: '', meta: 'No process selected',
   loading: false, error: '', offset: 0, complete: true});
 
 /** One output session; late responses cannot repaint a closed or newly selected process. */
@@ -36,6 +36,7 @@ export class OutputSession {
       const detail = [progress?.source, progress?.updated_at && `updated ${progress.updated_at}`].filter(Boolean).join(' | ');
       this.store.set({...current, text: current.text + payload.output_chunk, command: payload.command || '',
         progress: [progress?.summary, detail].filter(Boolean).join('\n'),
+        history: payload.history_origin ? `${payload.history_origin.reason} Previous status: ${payload.history_origin.original_status}.` : '',
         meta: `Process ${payload.id} | ${payload.status || ''} | bytes ${payload.next_offset}/${payload.output_length}`,
         offset: payload.next_offset, complete: payload.completed && payload.next_offset >= payload.output_length,
         loading: false, error: ''});

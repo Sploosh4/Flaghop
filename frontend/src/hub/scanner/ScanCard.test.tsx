@@ -13,6 +13,17 @@ const scans = {cancel: vi.fn()} as unknown as DeepScanController;
 afterEach(() => {cleanup(); vi.clearAllMocks();});
 
 describe('lazy scan results', () => {
+  it('offers offline recovery for a failed result and cleanup retry for a permission hold', async () => {
+    const recover = vi.fn(); const controls = {...scans, recover, busy: null};
+    const view = render(<ScanCard run={{...run, status:'failed', recovery:{policy:'never-replay',state:'failed',retry_available:true}}} project={project} scans={controls}/>);
+    fireEvent.click(screen.getByRole('button',{name:'Recover saved result'}));
+    expect(recover).toHaveBeenCalledTimes(1);
+    expect(recover.mock.calls[0][0].id).toBe(run.id);
+    view.rerender(<ScanCard run={{...run,status:'held',reason:'Administrator authentication required',recovery:{policy:'never-replay',state:'cleanup_required',retry_available:true}}} project={project} scans={controls}/>);
+    expect(screen.getByText('Administrator authentication required')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'Retry cleanup'}));
+    expect(recover).toHaveBeenCalledTimes(2);
+  });
   it('loads full evidence only after expansion and releases it on close', async () => {
     vi.mocked(api.deepScan).mockResolvedValue({...run, summary: {candidates: [{title: 'Saved candidate', status: 'candidate'}]}});
     render(<ScanCard run={run} project={project} scans={scans}/>);

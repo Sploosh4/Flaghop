@@ -1,6 +1,7 @@
 """Project database records use relative evidence paths; reload never reruns a scan."""
 
 import json
+from contextlib import nullcontext
 from sqlalchemy import text
 
 
@@ -12,8 +13,8 @@ def table(connection):
     )
 
 
-def save(project, run_id, host_id, target, digest, summary):
-    with project.database.engine.begin() as connection:
+def save(project, run_id, host_id, target, digest, summary, *, connection=None):
+    with nullcontext(connection) if connection is not None else project.database.engine.begin() as connection:
         table(connection)
         previous = connection.execute(
             text("SELECT profile_sha256 FROM flaghop_deep_scans WHERE run_id=:id"), {"id": run_id}

@@ -1354,15 +1354,17 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
             with zipfile.ZipFile(bundle_path, "w") as archive:
                 archive.writestr("bundle/tool-output/report.txt", "report")
 
-            with zipfile.ZipFile(bundle_path, "r") as archive:
-                original_open = archive.open
+            from app.services.archive_storage import open_archive
+
+            with open_archive(bundle_path, destination=destination) as archive:
+                original_open = archive.archive.open
 
                 def failing_open(name, *args, **kwargs):
-                    if str(name or "") == "bundle/tool-output/report.txt":
+                    if getattr(name, "filename", str(name or "")) == "bundle/tool-output/report.txt":
                         raise OSError("simulated extraction failure")
                     return original_open(name, *args, **kwargs)
 
-                archive.open = failing_open
+                archive.archive.open = failing_open
                 with self.assertRaisesRegex(ValueError, "Failed to extract bundled artifacts"):
                     runtime_project_bundle_archive.extract_zip_prefix_to_dir(
                         archive,
@@ -1417,65 +1419,28 @@ class WebRuntimeDomainModulesTest(unittest.TestCase):
     def test_runtime_project_bundle_restore_preserves_active_project_when_staged_init_fails(self):
         from app.web import runtime_project_bundle_restore
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            bundle_path = os.path.join(tmpdir, "bundle.zip")
-            restored_project_path = os.path.join(tmpdir, "restored.legion")
-            restored_running_folder = os.path.join(tmpdir, "restored-running")
-            with open(bundle_path, "wb") as handle:
-                handle.write(b"placeholder")
-            with open(restored_project_path, "wb") as handle:
-                handle.write(b"placeholder")
-            os.makedirs(restored_running_folder)
+        from tests.app.test_ProjectHub import ProjectHubTest
+        from pathlib import Path
 
-            previous_db = SimpleNamespace(dispose=mock.MagicMock())
-            restored_db = SimpleNamespace(dispose=mock.MagicMock())
-            previous_project = SimpleNamespace(
-                database=previous_db,
-                properties=SimpleNamespace(runningFolder=os.path.join(tmpdir, "previous-running")),
-            )
-            restored_project = SimpleNamespace(
-                database=restored_db,
-                properties=SimpleNamespace(runningFolder=os.path.join(tmpdir, "new-running")),
-            )
-            project_manager = SimpleNamespace(
-                openExistingProject=mock.MagicMock(return_value=restored_project),
-                closeProject=mock.MagicMock(),
-            )
-            runtime = SimpleNamespace(
-                _lock=threading.RLock(),
-                _save_in_progress=False,
-                logic=SimpleNamespace(activeProject=previous_project, projectManager=project_manager),
-                _ensure_scheduler_table=mock.MagicMock(side_effect=RuntimeError("schema init failed")),
-                _ensure_scheduler_approval_store=mock.MagicMock(),
-                _ensure_process_tables=mock.MagicMock(),
-                get_project_details=mock.MagicMock(return_value={}),
-            )
+        case = ProjectHubTest("test_create_switch_and_reload_catalog_with_project_folders")
+        case.setUp()
+        self.addCleanup(case.tearDown)
+        row = case.hub.create("Legacy restore rollback")["project"]
+        original = case.logic.activeProject
+        before = case.hub._read()
+        folders = set(case.hub.root.iterdir())
+        archive, _ = case.hub.operations.bundle(row["id"])
+        self.addCleanup(Path(archive).unlink, missing_ok=True)
+        with mock.patch.object(case.runtime, "_ensure_scheduler_table", side_effect=RuntimeError("schema init failed")):
+            with self.assertRaisesRegex(RuntimeError, "schema init failed"):
+                runtime_project_bundle_restore.restore_project_bundle_zip_impl(case.runtime, archive)
+        self.assertIs(original, case.logic.activeProject)
+        self.assertEqual(before, case.hub._read())
+        self.assertEqual(folders, set(case.hub.root.iterdir()))
+        with original.database.engine.connect() as connection:
+            from sqlalchemy import text
 
-            with (
-                mock.patch.object(
-                    runtime_project_bundle_restore.web_runtime_project_bundle_archive,
-                    "extract_project_bundle_zip",
-                    return_value={
-                        "manifest": {},
-                        "restore_root": tmpdir,
-                        "project_path": restored_project_path,
-                        "output_folder": os.path.join(tmpdir, "output"),
-                        "running_folder": restored_running_folder,
-                    },
-                ),
-                mock.patch.object(
-                    runtime_project_bundle_restore.web_runtime_project_bundle_rebase,
-                    "rebase_restored_project_paths",
-                    return_value=None,
-                ),
-            ):
-                with self.assertRaisesRegex(RuntimeError, "schema init failed"):
-                    runtime_project_bundle_restore.restore_project_bundle_zip_impl(runtime, bundle_path)
-
-            self.assertIs(runtime.logic.activeProject, previous_project)
-            restored_db.dispose.assert_called_once()
-            previous_db.dispose.assert_not_called()
-            project_manager.closeProject.assert_called_once_with(restored_project)
+            self.assertEqual(1, connection.execute(text("SELECT 1")).scalar())
 
     def test_runtime_scan_nmap_uses_unique_output_prefix_per_job(self):
         from app.web import runtime_scan_nmap

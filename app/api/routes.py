@@ -1,13 +1,15 @@
 """Synchronous service calls run in FastAPI's worker pool, away from the ASGI event loop."""
 
-from typing import Annotated
-from fastapi import Path, Query
-from app.api.contracts import Health, Project, ProjectResponse, RenameProject
+from app.api.activity_contracts import ActivitySnapshot
+from app.api.contracts import Health, Project, ProjectResponse
+from app.api.dependencies import Runtime, native_router
+from app.contracts.actions.inputs import EmptyAction
 from app.contracts.actions.job_api import Job, JobList, StopJobResponse
+from app.contracts.actions.project_requests import RenameProject
 from app.web.services.project_service import ProjectService
 from app.web.services.runtime_service import RuntimeService
-from app.api.activity_contracts import ActivitySnapshot
-from app.api.dependencies import Runtime, native_router
+from fastapi import Body, Path, Query
+from typing import Annotated
 
 JobId = Annotated[int, Path(ge=1)]
 router = native_router()
@@ -53,5 +55,5 @@ def get_job(job_id: JobId, runtime: Runtime):
 @router.post(
     "/api/jobs/{job_id}/stop", response_model=StopJobResponse, response_model_exclude_unset=True, operation_id="stopJob"
 )
-def stop_job(job_id: JobId, runtime: Runtime):
+def stop_job(job_id: JobId, runtime: Runtime, payload: EmptyAction = Body(default_factory=EmptyAction)):
     return {"status": "ok", **RuntimeService(runtime).stop_job(job_id)}

@@ -19,8 +19,6 @@ class ScanService:
 
     def import_nmap_xml(self, payload: Any) -> Dict[str, Any]:
         request = NmapImportRequest.from_payload(payload)
-        if not request.path:
-            raise ValueError("Nmap XML path is required.")
         job = self.runtime.start_nmap_xml_import_job(request.path, run_actions=request.run_actions)
         return AcceptedJobResponse.from_job(job).to_dict()
 
@@ -34,7 +32,7 @@ class ScanService:
             nmap_path=request.nmap_path,
             nmap_args=request.nmap_args,
             scan_mode=request.scan_mode,
-            scan_options=request.scan_options,
+            scan_options=request.scan_options.model_dump(exclude_unset=True),
         )
         return AcceptedJobResponse.from_job(job).to_dict()
 
@@ -56,8 +54,6 @@ class ScanService:
 
     def subnet_rescan(self, payload: Any) -> Dict[str, Any]:
         request = SubnetRescanRequest.from_payload(payload)
-        if not request.subnet:
-            raise ValueError("Subnet is required.")
         job = self.runtime.start_subnet_rescan_job(request.subnet)
         return AcceptedJobResponse.from_job(job).to_dict()
 

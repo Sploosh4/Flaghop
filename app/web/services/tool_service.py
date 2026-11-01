@@ -33,8 +33,6 @@ class ToolService:
 
     def start_tool_run(self, payload: Any) -> Dict[str, Any]:
         request = ToolRunRequest.from_payload(payload)
-        if not request.host_ip or not request.port or not request.tool_id:
-            raise ValueError("host_ip, port and tool_id are required.")
         job = self.runtime.start_tool_run_job(
             host_ip=request.host_ip,
             port=request.port,

@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from app.api import create_app
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
+from app.services.execution_journal import ExecutionJournal
 from app.settings import AppSettings, Settings
 from app.tooling import audit_legion_tools
 
@@ -19,7 +20,10 @@ class FeatureRetirementTest(TestCase):
         self.directory = tempfile.TemporaryDirectory()
         self.env = patch.dict(os.environ, {"LEGION_HOME": self.directory.name})
         self.env.start()
-        self.runtime = WebRuntime(create_default_logic())
+        self.runtime = WebRuntime(
+            create_default_logic(),
+            execution_journal=ExecutionJournal(Path(os.environ["LEGION_HOME"]) / "protected-executions"),
+        )
 
     def tearDown(self):
         project = self.runtime.logic.activeProject

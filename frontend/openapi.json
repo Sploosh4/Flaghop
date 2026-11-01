@@ -1,6 +1,25 @@
 {
   "components": {
     "schemas": {
+      "AcceptedJobResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/Job"
+          },
+          "status": {
+            "const": "accepted",
+            "default": "accepted",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job"
+        ],
+        "title": "AcceptedJobResponse",
+        "type": "object"
+      },
       "ActivitySnapshot": {
         "additionalProperties": true,
         "properties": {
@@ -389,9 +408,9 @@
           }
         },
         "required": [
-          "path",
           "bytes",
-          "sha256"
+          "sha256",
+          "path"
         ],
         "title": "Artifact",
         "type": "object"
@@ -554,24 +573,6 @@
         "title": "BackgroundStatus",
         "type": "object"
       },
-      "Body_restoreWorkspaceZip": {
-        "properties": {
-          "bundle": {
-            "anyOf": [
-              {
-                "contentMediaType": "application/octet-stream",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Bundle"
-          }
-        },
-        "title": "Body_restoreWorkspaceZip",
-        "type": "object"
-      },
       "CandidateFinding": {
         "additionalProperties": true,
         "properties": {
@@ -605,6 +606,163 @@
           }
         },
         "title": "CandidateFinding",
+        "type": "object"
+      },
+      "ClassificationConflict": {
+        "additionalProperties": true,
+        "properties": {
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "explanation"
+        ],
+        "title": "ClassificationConflict",
+        "type": "object"
+      },
+      "ClassificationEvidence": {
+        "additionalProperties": true,
+        "properties": {
+          "channel": {
+            "title": "Channel",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "path",
+          "value",
+          "channel"
+        ],
+        "title": "ClassificationEvidence",
+        "type": "object"
+      },
+      "ClassificationFacts": {
+        "additionalProperties": true,
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/ClassificationHypothesis"
+            },
+            "maxItems": 1000,
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "confidence": {
+            "default": "unknown",
+            "enum": [
+              "unknown",
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "conflicts": {
+            "items": {
+              "$ref": "#/components/schemas/ClassificationConflict"
+            },
+            "maxItems": 1000,
+            "title": "Conflicts",
+            "type": "array"
+          },
+          "os_assessment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OSAssessment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "primary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ClassificationHypothesis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "default": "unassessed",
+            "enum": [
+              "hypothesis",
+              "insufficient_evidence",
+              "unassessed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "ClassificationFacts",
+        "type": "object"
+      },
+      "ClassificationHypothesis": {
+        "additionalProperties": true,
+        "properties": {
+          "confidence": {
+            "enum": [
+              "unknown",
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "device_type": {
+            "minLength": 1,
+            "title": "Device Type",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/ClassificationEvidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "explanation": {
+            "default": "",
+            "title": "Explanation",
+            "type": "string"
+          },
+          "score": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "device_type",
+          "score",
+          "confidence"
+        ],
+        "title": "ClassificationHypothesis",
         "type": "object"
       },
       "ClearProcesses": {
@@ -946,6 +1104,16 @@
             "title": "Reason",
             "type": "string"
           },
+          "recovery": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScanRecovery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "settling": {
             "default": false,
             "title": "Settling",
@@ -987,6 +1155,1304 @@
           "status"
         ],
         "title": "DeepScanRun",
+        "type": "object"
+      },
+      "DeviceCategoryRule-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "built_in": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Built In"
+          },
+          "cpe": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Cpe",
+            "type": "array"
+          },
+          "fingerprint_fragments": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Fingerprint Fragments",
+            "type": "array"
+          },
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "min_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "default": 2,
+            "title": "Min Score"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "ports": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "pattern": "^[0-9]+$",
+                  "type": "string"
+                }
+              ],
+              "ge": 1,
+              "le": 65535
+            },
+            "maxItems": 65535,
+            "title": "Ports",
+            "type": "array"
+          },
+          "suppresses": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Suppresses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "DeviceCategoryRule",
+        "type": "object"
+      },
+      "DeviceCategoryRule-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "built_in": {
+            "default": false,
+            "title": "Built In",
+            "type": "boolean"
+          },
+          "cpe": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Cpe",
+            "type": "array"
+          },
+          "fingerprint_fragments": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Fingerprint Fragments",
+            "type": "array"
+          },
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "min_score": {
+            "default": 2,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Min Score",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "ports": {
+            "items": {
+              "ge": 1,
+              "le": 65535,
+              "type": "integer"
+            },
+            "maxItems": 65535,
+            "title": "Ports",
+            "type": "array"
+          },
+          "suppresses": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Suppresses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "DeviceCategoryRule",
+        "type": "object"
+      },
+      "DisplaySettingsRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "colorful_ascii_background": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Colorful Ascii Background"
+          }
+        },
+        "title": "DisplaySettingsRequest",
+        "type": "object"
+      },
+      "DisplaySettingsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "colorful_ascii_background": {
+            "title": "Colorful Ascii Background",
+            "type": "boolean"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "colorful_ascii_background"
+        ],
+        "title": "DisplaySettingsResponse",
+        "type": "object"
+      },
+      "EmptyAction": {
+        "additionalProperties": false,
+        "description": "An action with no user-supplied options rejects unexpected input.",
+        "properties": {},
+        "title": "EmptyAction",
+        "type": "object"
+      },
+      "EngagementPolicyFields-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_exploitation": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Allow Exploitation"
+          },
+          "allow_lateral_movement": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Allow Lateral Movement"
+          },
+          "approval_mode": {
+            "default": "risky",
+            "enum": [
+              "never",
+              "risky",
+              "always"
+            ],
+            "title": "Approval Mode",
+            "type": "string"
+          },
+          "credential_attack_mode": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Credential Attack Mode",
+            "type": "string"
+          },
+          "detection_risk_mode": {
+            "default": "low",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Detection Risk Mode",
+            "type": "string"
+          },
+          "intent": {
+            "default": "recon",
+            "enum": [
+              "recon",
+              "pentest"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "lockout_risk_mode": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Lockout Risk Mode",
+            "type": "string"
+          },
+          "noise_budget": {
+            "default": "low",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Noise Budget",
+            "type": "string"
+          },
+          "runner_preference": {
+            "const": "local",
+            "default": "local",
+            "title": "Runner Preference",
+            "type": "string"
+          },
+          "scope": {
+            "default": "internal",
+            "enum": [
+              "internal",
+              "external",
+              "mixed"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "stability_risk_mode": {
+            "default": "approval",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Stability Risk Mode",
+            "type": "string"
+          }
+        },
+        "title": "EngagementPolicyFields",
+        "type": "object"
+      },
+      "EngagementPolicyFields-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_exploitation": {
+            "default": false,
+            "title": "Allow Exploitation",
+            "type": "boolean"
+          },
+          "allow_lateral_movement": {
+            "default": false,
+            "title": "Allow Lateral Movement",
+            "type": "boolean"
+          },
+          "approval_mode": {
+            "default": "risky",
+            "enum": [
+              "never",
+              "risky",
+              "always"
+            ],
+            "title": "Approval Mode",
+            "type": "string"
+          },
+          "credential_attack_mode": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Credential Attack Mode",
+            "type": "string"
+          },
+          "detection_risk_mode": {
+            "default": "low",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Detection Risk Mode",
+            "type": "string"
+          },
+          "intent": {
+            "default": "recon",
+            "enum": [
+              "recon",
+              "pentest"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "lockout_risk_mode": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Lockout Risk Mode",
+            "type": "string"
+          },
+          "noise_budget": {
+            "default": "low",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Noise Budget",
+            "type": "string"
+          },
+          "runner_preference": {
+            "const": "local",
+            "default": "local",
+            "title": "Runner Preference",
+            "type": "string"
+          },
+          "scope": {
+            "default": "internal",
+            "enum": [
+              "internal",
+              "external",
+              "mixed"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "stability_risk_mode": {
+            "default": "approval",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Stability Risk Mode",
+            "type": "string"
+          }
+        },
+        "title": "EngagementPolicyFields",
+        "type": "object"
+      },
+      "EngagementPolicyPatch-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_exploitation": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Allow Exploitation"
+          },
+          "allow_lateral_movement": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Allow Lateral Movement"
+          },
+          "approval_mode": {
+            "default": "risky",
+            "enum": [
+              "never",
+              "risky",
+              "always"
+            ],
+            "title": "Approval Mode",
+            "type": "string"
+          },
+          "credential_attack_mode": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Credential Attack Mode",
+            "type": "string"
+          },
+          "custom_overrides": {
+            "$ref": "#/components/schemas/EngagementPolicyFields-Input"
+          },
+          "detection_risk_mode": {
+            "default": "low",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Detection Risk Mode",
+            "type": "string"
+          },
+          "intent": {
+            "default": "recon",
+            "enum": [
+              "recon",
+              "pentest"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "legacy_goal_profile": {
+            "anyOf": [
+              {
+                "enum": [
+                  "internal_asset_discovery",
+                  "external_pentest"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legacy Goal Profile"
+          },
+          "lockout_risk_mode": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Lockout Risk Mode",
+            "type": "string"
+          },
+          "noise_budget": {
+            "default": "low",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Noise Budget",
+            "type": "string"
+          },
+          "preset": {
+            "default": "internal_recon",
+            "enum": [
+              "external_recon",
+              "external_pentest",
+              "internal_quick_recon",
+              "internal_recon",
+              "internal_pentest",
+              "custom"
+            ],
+            "title": "Preset",
+            "type": "string"
+          },
+          "preset_description": {
+            "default": "",
+            "maxLength": 10000,
+            "title": "Preset Description",
+            "type": "string"
+          },
+          "preset_label": {
+            "default": "",
+            "maxLength": 256,
+            "title": "Preset Label",
+            "type": "string"
+          },
+          "runner_preference": {
+            "const": "local",
+            "default": "local",
+            "title": "Runner Preference",
+            "type": "string"
+          },
+          "scope": {
+            "default": "internal",
+            "enum": [
+              "internal",
+              "external",
+              "mixed"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "stability_risk_mode": {
+            "default": "approval",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Stability Risk Mode",
+            "type": "string"
+          }
+        },
+        "title": "EngagementPolicyPatch",
+        "type": "object"
+      },
+      "EngagementPolicyPatch-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_exploitation": {
+            "default": false,
+            "title": "Allow Exploitation",
+            "type": "boolean"
+          },
+          "allow_lateral_movement": {
+            "default": false,
+            "title": "Allow Lateral Movement",
+            "type": "boolean"
+          },
+          "approval_mode": {
+            "default": "risky",
+            "enum": [
+              "never",
+              "risky",
+              "always"
+            ],
+            "title": "Approval Mode",
+            "type": "string"
+          },
+          "credential_attack_mode": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Credential Attack Mode",
+            "type": "string"
+          },
+          "custom_overrides": {
+            "$ref": "#/components/schemas/EngagementPolicyFields-Output"
+          },
+          "detection_risk_mode": {
+            "default": "low",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Detection Risk Mode",
+            "type": "string"
+          },
+          "intent": {
+            "default": "recon",
+            "enum": [
+              "recon",
+              "pentest"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "legacy_goal_profile": {
+            "anyOf": [
+              {
+                "enum": [
+                  "internal_asset_discovery",
+                  "external_pentest"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legacy Goal Profile"
+          },
+          "lockout_risk_mode": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Lockout Risk Mode",
+            "type": "string"
+          },
+          "noise_budget": {
+            "default": "low",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Noise Budget",
+            "type": "string"
+          },
+          "preset": {
+            "default": "internal_recon",
+            "enum": [
+              "external_recon",
+              "external_pentest",
+              "internal_quick_recon",
+              "internal_recon",
+              "internal_pentest",
+              "custom"
+            ],
+            "title": "Preset",
+            "type": "string"
+          },
+          "preset_description": {
+            "default": "",
+            "maxLength": 10000,
+            "title": "Preset Description",
+            "type": "string"
+          },
+          "preset_label": {
+            "default": "",
+            "maxLength": 256,
+            "title": "Preset Label",
+            "type": "string"
+          },
+          "runner_preference": {
+            "const": "local",
+            "default": "local",
+            "title": "Runner Preference",
+            "type": "string"
+          },
+          "scope": {
+            "default": "internal",
+            "enum": [
+              "internal",
+              "external",
+              "mixed"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "stability_risk_mode": {
+            "default": "approval",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Stability Risk Mode",
+            "type": "string"
+          }
+        },
+        "title": "EngagementPolicyPatch",
+        "type": "object"
+      },
+      "EngagementPolicyResult": {
+        "additionalProperties": true,
+        "properties": {
+          "allow_exploitation": {
+            "default": false,
+            "title": "Allow Exploitation",
+            "type": "boolean"
+          },
+          "allow_lateral_movement": {
+            "default": false,
+            "title": "Allow Lateral Movement",
+            "type": "boolean"
+          },
+          "approval_mode": {
+            "default": "risky",
+            "enum": [
+              "never",
+              "risky",
+              "always"
+            ],
+            "title": "Approval Mode",
+            "type": "string"
+          },
+          "credential_attack_mode": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Credential Attack Mode",
+            "type": "string"
+          },
+          "custom_overrides": {
+            "$ref": "#/components/schemas/EngagementPolicyFields-Output"
+          },
+          "detection_risk_mode": {
+            "default": "low",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Detection Risk Mode",
+            "type": "string"
+          },
+          "intent": {
+            "default": "recon",
+            "enum": [
+              "recon",
+              "pentest"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "legacy_goal_profile": {
+            "anyOf": [
+              {
+                "enum": [
+                  "internal_asset_discovery",
+                  "external_pentest"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legacy Goal Profile"
+          },
+          "lockout_risk_mode": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Lockout Risk Mode",
+            "type": "string"
+          },
+          "noise_budget": {
+            "default": "low",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Noise Budget",
+            "type": "string"
+          },
+          "preset": {
+            "default": "internal_recon",
+            "enum": [
+              "external_recon",
+              "external_pentest",
+              "internal_quick_recon",
+              "internal_recon",
+              "internal_pentest",
+              "custom"
+            ],
+            "title": "Preset",
+            "type": "string"
+          },
+          "preset_description": {
+            "default": "",
+            "maxLength": 10000,
+            "title": "Preset Description",
+            "type": "string"
+          },
+          "preset_label": {
+            "default": "",
+            "maxLength": 256,
+            "title": "Preset Label",
+            "type": "string"
+          },
+          "runner_preference": {
+            "const": "local",
+            "default": "local",
+            "title": "Runner Preference",
+            "type": "string"
+          },
+          "scope": {
+            "default": "internal",
+            "enum": [
+              "internal",
+              "external",
+              "mixed"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "stability_risk_mode": {
+            "default": "approval",
+            "enum": [
+              "blocked",
+              "approval",
+              "allowed"
+            ],
+            "title": "Stability Risk Mode",
+            "type": "string"
+          }
+        },
+        "title": "EngagementPolicyResult",
+        "type": "object"
+      },
+      "ExecutionRecoveryItem": {
+        "additionalProperties": false,
+        "properties": {
+          "execution_id": {
+            "title": "Execution Id",
+            "type": "string"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "project_id": {
+            "default": "",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "run_id": {
+            "default": "",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "execution_id",
+          "phase",
+          "reason"
+        ],
+        "title": "ExecutionRecoveryItem",
+        "type": "object"
+      },
+      "ExecutionRecoveryReport": {
+        "additionalProperties": false,
+        "properties": {
+          "held": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutionRecoveryItem"
+            },
+            "title": "Held",
+            "type": "array"
+          },
+          "pending": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutionRecoveryItem"
+            },
+            "title": "Pending",
+            "type": "array"
+          },
+          "recovered": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Recovered",
+            "type": "array"
+          }
+        },
+        "title": "ExecutionRecoveryReport",
+        "type": "object"
+      },
+      "FamilyApprovalResult": {
+        "additionalProperties": false,
+        "properties": {
+          "family_id": {
+            "title": "Family Id",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "family_id"
+        ],
+        "title": "FamilyApprovalResult",
+        "type": "object"
+      },
+      "FeatureFlagsPatch": {
+        "additionalProperties": false,
+        "properties": {
+          "context_summary_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": true,
+            "title": "Context Summary Enabled"
+          },
+          "graph_workspace": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Graph Workspace"
+          }
+        },
+        "title": "FeatureFlagsPatch",
+        "type": "object"
+      },
+      "GraphAnnotationRecord": {
+        "additionalProperties": true,
+        "properties": {
+          "annotation_id": {
+            "title": "Annotation Id",
+            "type": "string"
+          },
+          "body": {
+            "default": "",
+            "title": "Body",
+            "type": "string"
+          },
+          "created_by": {
+            "default": "",
+            "title": "Created By",
+            "type": "string"
+          },
+          "source_ref": {
+            "default": "",
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "target_kind": {
+            "default": "",
+            "title": "Target Kind",
+            "type": "string"
+          },
+          "target_ref": {
+            "default": "",
+            "title": "Target Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "annotation_id"
+        ],
+        "title": "GraphAnnotationRecord",
+        "type": "object"
+      },
+      "GraphAnnotationResult": {
+        "additionalProperties": false,
+        "properties": {
+          "annotation": {
+            "$ref": "#/components/schemas/GraphAnnotationRecord"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "annotation"
+        ],
+        "title": "GraphAnnotationResult",
+        "type": "object"
+      },
+      "GraphAnnotationSaveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "annotation_id": {
+            "default": "",
+            "maxLength": 512,
+            "title": "Annotation Id",
+            "type": "string"
+          },
+          "body": {
+            "maxLength": 100000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "created_by": {
+            "default": "operator",
+            "maxLength": 256,
+            "title": "Created By",
+            "type": "string"
+          },
+          "source_ref": {
+            "default": "",
+            "maxLength": 4096,
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "target_kind": {
+            "enum": [
+              "node",
+              "edge"
+            ],
+            "title": "Target Kind",
+            "type": "string"
+          },
+          "target_ref": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Target Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_kind",
+          "target_ref",
+          "body"
+        ],
+        "title": "GraphAnnotationSaveRequest",
+        "type": "object"
+      },
+      "GraphLayoutRecord": {
+        "additionalProperties": true,
+        "properties": {
+          "layout": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Layout",
+            "type": "object"
+          },
+          "layout_id": {
+            "title": "Layout Id",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "title": "Name",
+            "type": "string"
+          },
+          "view_id": {
+            "default": "",
+            "title": "View Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "layout_id"
+        ],
+        "title": "GraphLayoutRecord",
+        "type": "object"
+      },
+      "GraphLayoutResult": {
+        "additionalProperties": false,
+        "properties": {
+          "layout": {
+            "$ref": "#/components/schemas/GraphLayoutRecord"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "layout"
+        ],
+        "title": "GraphLayoutResult",
+        "type": "object"
+      },
+      "GraphLayoutSaveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "layout": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Layout",
+            "type": "object"
+          },
+          "layout_id": {
+            "default": "",
+            "maxLength": 512,
+            "title": "Layout Id",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 256,
+            "title": "Name",
+            "type": "string"
+          },
+          "view_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "View Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "view_id"
+        ],
+        "title": "GraphLayoutSaveRequest",
+        "type": "object"
+      },
+      "GraphRebuildRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "host_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "default": 0,
+            "title": "Host Id"
+          }
+        },
+        "title": "GraphRebuildRequest",
+        "type": "object"
+      },
+      "GraphRebuildResult": {
+        "additionalProperties": true,
+        "properties": {
+          "host_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Host Id"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "GraphRebuildResult",
         "type": "object"
       },
       "Health": {
@@ -1680,6 +3146,505 @@
         "title": "NetworkUpdate",
         "type": "object"
       },
+      "NmapImportRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Path",
+            "type": "string"
+          },
+          "run_actions": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Run Actions"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "NmapImportRequest",
+        "type": "object"
+      },
+      "NmapScanOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "aggressive": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Aggressive"
+          },
+          "arp_ping": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": true,
+            "title": "Arp Ping"
+          },
+          "chunk_concurrency": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "default": 1,
+            "title": "Chunk Concurrency"
+          },
+          "default_scripts": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": true,
+            "title": "Default Scripts"
+          },
+          "discovery": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": true,
+            "title": "Discovery"
+          },
+          "explicit_ports": {
+            "default": "",
+            "maxLength": 65536,
+            "pattern": "^[0-9,\\- ]*$",
+            "title": "Explicit Ports",
+            "type": "string"
+          },
+          "force_pn": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Force Pn"
+          },
+          "full_ports": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Full Ports"
+          },
+          "host_discovery_only": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Host Discovery Only"
+          },
+          "os_detection": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Os Detection"
+          },
+          "scan_profile": {
+            "default": "quick",
+            "enum": [
+              "quick",
+              "comprehensive"
+            ],
+            "title": "Scan Profile",
+            "type": "string"
+          },
+          "service_detection": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": true,
+            "title": "Service Detection"
+          },
+          "skip_dns": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": true,
+            "title": "Skip Dns"
+          },
+          "timing": {
+            "default": "T3",
+            "enum": [
+              "T0",
+              "T1",
+              "T2",
+              "T3",
+              "T4",
+              "T5"
+            ],
+            "title": "Timing",
+            "type": "string"
+          },
+          "top_ports": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "default": 1000,
+            "title": "Top Ports"
+          },
+          "vuln_scripts": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Vuln Scripts"
+          }
+        },
+        "title": "NmapScanOptions",
+        "type": "object"
+      },
+      "NmapScanRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "discovery": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": true,
+            "title": "Discovery"
+          },
+          "nmap_args": {
+            "default": "",
+            "maxLength": 16384,
+            "title": "Nmap Args",
+            "type": "string"
+          },
+          "nmap_path": {
+            "default": "nmap",
+            "maxLength": 4096,
+            "title": "Nmap Path",
+            "type": "string"
+          },
+          "run_actions": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Run Actions"
+          },
+          "scan_mode": {
+            "default": "legacy",
+            "enum": [
+              "legacy",
+              "rfc1918_discovery",
+              "easy",
+              "hard"
+            ],
+            "title": "Scan Mode",
+            "type": "string"
+          },
+          "scan_options": {
+            "$ref": "#/components/schemas/NmapScanOptions"
+          },
+          "staged": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Staged"
+          },
+          "targets": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Targets"
+          }
+        },
+        "required": [
+          "targets"
+        ],
+        "title": "NmapScanRequest",
+        "type": "object"
+      },
+      "OSAssessment": {
+        "additionalProperties": true,
+        "properties": {
+          "confidence": {
+            "default": "unknown",
+            "enum": [
+              "unknown",
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/ClassificationEvidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "explanation": {
+            "default": "",
+            "title": "Explanation",
+            "type": "string"
+          },
+          "likely_family": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Likely Family"
+          }
+        },
+        "title": "OSAssessment",
+        "type": "object"
+      },
       "OpenHubPath": {
         "additionalProperties": false,
         "properties": {
@@ -1745,6 +3710,63 @@
           "scheduler"
         ],
         "title": "Overview",
+        "type": "object"
+      },
+      "PassiveCaptureRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "default": 15,
+            "title": "Duration Minutes"
+          },
+          "interface_name": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Interface Name",
+            "type": "string"
+          },
+          "run_actions": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": false,
+            "title": "Run Actions"
+          },
+          "scan_mode": {
+            "const": "passive_capture",
+            "default": "passive_capture",
+            "title": "Scan Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "interface_name"
+        ],
+        "title": "PassiveCaptureRequest",
         "type": "object"
       },
       "Process": {
@@ -1873,6 +3895,80 @@
         "title": "ProcessAction",
         "type": "object"
       },
+      "ProcessHistoryView": {
+        "additionalProperties": false,
+        "properties": {
+          "original_pid": {
+            "title": "Original Pid",
+            "type": "string"
+          },
+          "original_status": {
+            "title": "Original Status",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "recorded_at": {
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "source_project": {
+            "default": "",
+            "title": "Source Project",
+            "type": "string"
+          }
+        },
+        "required": [
+          "original_status",
+          "original_pid",
+          "reason",
+          "recorded_at"
+        ],
+        "title": "ProcessHistoryView",
+        "type": "object"
+      },
+      "ProcessKillResult": {
+        "additionalProperties": true,
+        "properties": {
+          "cancel_requested": {
+            "default": false,
+            "title": "Cancel Requested",
+            "type": "boolean"
+          },
+          "had_live_handle": {
+            "default": false,
+            "title": "Had Live Handle",
+            "type": "boolean"
+          },
+          "killed": {
+            "title": "Killed",
+            "type": "boolean"
+          },
+          "process_id": {
+            "title": "Process Id",
+            "type": "integer"
+          },
+          "reason": {
+            "default": "",
+            "title": "Reason",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "process_id",
+          "killed"
+        ],
+        "title": "ProcessKillResult",
+        "type": "object"
+      },
       "ProcessList": {
         "additionalProperties": false,
         "properties": {
@@ -1922,6 +4018,16 @@
               }
             ],
             "title": "Estimatedremaining"
+          },
+          "history_origin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProcessHistoryView"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "hostIp": {
             "anyOf": [
@@ -2107,7 +4213,24 @@
         "title": "Project",
         "type": "object"
       },
+      "ProjectPathRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "ProjectPathRequest",
+        "type": "object"
+      },
       "ProjectResponse": {
+        "additionalProperties": true,
         "properties": {
           "project": {
             "$ref": "#/components/schemas/Project"
@@ -2123,6 +4246,44 @@
           "project"
         ],
         "title": "ProjectResponse",
+        "type": "object"
+      },
+      "ProjectSaveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Path",
+            "type": "string"
+          },
+          "replace": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "true",
+                  "false",
+                  "1",
+                  "0",
+                  "yes",
+                  "no",
+                  "on",
+                  "off"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": true,
+            "title": "Replace"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "ProjectSaveRequest",
         "type": "object"
       },
       "Rationale": {
@@ -2493,6 +4654,7 @@
         "properties": {
           "expected_path": {
             "default": "",
+            "maxLength": 4096,
             "title": "Expected Path",
             "type": "string"
           },
@@ -2772,6 +4934,45 @@
         "title": "ScanList",
         "type": "object"
       },
+      "ScanRecovery": {
+        "additionalProperties": false,
+        "properties": {
+          "policy": {
+            "const": "never-replay",
+            "default": "never-replay",
+            "title": "Policy",
+            "type": "string"
+          },
+          "previous_status": {
+            "default": "",
+            "title": "Previous Status",
+            "type": "string"
+          },
+          "retry_available": {
+            "default": false,
+            "title": "Retry Available",
+            "type": "boolean"
+          },
+          "state": {
+            "default": "available",
+            "enum": [
+              "available",
+              "no_profile",
+              "copied",
+              "cleaning",
+              "importing",
+              "cleanup_required",
+              "cleaned",
+              "failed",
+              "complete"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "title": "ScanRecovery",
+        "type": "object"
+      },
       "ScanSummary": {
         "additionalProperties": true,
         "properties": {
@@ -2790,11 +4991,7 @@
             "type": "array"
           },
           "classification": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonValue"
-            },
-            "title": "Classification",
-            "type": "object"
+            "$ref": "#/components/schemas/ClassificationFacts"
           },
           "dependency_audit": {
             "default": "",
@@ -2831,12 +5028,214 @@
         "title": "ScanSummary",
         "type": "object"
       },
+      "SchedulerFamilyApprovalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "danger_categories": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Danger Categories",
+            "type": "array"
+          },
+          "family_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Family Id",
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Label",
+            "type": "string"
+          },
+          "tool_id": {
+            "default": "",
+            "maxLength": 512,
+            "title": "Tool Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "family_id"
+        ],
+        "title": "SchedulerFamilyApprovalRequest",
+        "type": "object"
+      },
+      "SchedulerPreferencesPatch": {
+        "additionalProperties": false,
+        "properties": {
+          "dangerous_categories": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Dangerous Categories",
+            "type": "array"
+          },
+          "device_categories": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DeviceCategoryRule-Input"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "maxItems": 1000,
+            "title": "Device Categories",
+            "type": "array"
+          },
+          "engagement_policy": {
+            "$ref": "#/components/schemas/EngagementPolicyPatch-Input"
+          },
+          "feature_flags": {
+            "$ref": "#/components/schemas/FeatureFlagsPatch"
+          },
+          "goal_profile": {
+            "default": "internal_asset_discovery",
+            "enum": [
+              "internal_asset_discovery",
+              "external_pentest"
+            ],
+            "title": "Goal Profile",
+            "type": "string"
+          },
+          "max_concurrency": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "default": 1,
+            "title": "Max Concurrency"
+          },
+          "max_host_concurrency": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "default": 1,
+            "title": "Max Host Concurrency"
+          },
+          "max_jobs": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "default": 200,
+            "title": "Max Jobs"
+          },
+          "mode": {
+            "const": "deterministic",
+            "default": "deterministic",
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "title": "SchedulerPreferencesPatch",
+        "type": "object"
+      },
+      "SchedulerPreferencesResult": {
+        "additionalProperties": true,
+        "properties": {
+          "dangerous_categories": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Dangerous Categories",
+            "type": "array"
+          },
+          "device_categories": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DeviceCategoryRule-Output"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "maxItems": 1000,
+            "title": "Device Categories",
+            "type": "array"
+          },
+          "engagement_policy": {
+            "$ref": "#/components/schemas/EngagementPolicyPatch-Output"
+          },
+          "feature_flags": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Feature Flags",
+            "type": "object"
+          },
+          "goal_profile": {
+            "default": "internal_asset_discovery",
+            "enum": [
+              "internal_asset_discovery",
+              "external_pentest"
+            ],
+            "title": "Goal Profile",
+            "type": "string"
+          },
+          "max_concurrency": {
+            "default": 1,
+            "maximum": 16.0,
+            "minimum": 1.0,
+            "title": "Max Concurrency",
+            "type": "integer"
+          },
+          "max_host_concurrency": {
+            "default": 1,
+            "maximum": 8.0,
+            "minimum": 1.0,
+            "title": "Max Host Concurrency",
+            "type": "integer"
+          },
+          "max_jobs": {
+            "default": 200,
+            "maximum": 2000.0,
+            "minimum": 20.0,
+            "title": "Max Jobs",
+            "type": "integer"
+          },
+          "mode": {
+            "const": "deterministic",
+            "default": "deterministic",
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "title": "SchedulerPreferencesResult",
+        "type": "object"
+      },
       "ServiceFacts": {
         "additionalProperties": true,
         "properties": {
           "fingerprint": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/JsonValue"
+              "type": "string"
             },
             "title": "Fingerprint",
             "type": "object"
@@ -2853,10 +5252,25 @@
             "title": "Port"
           },
           "protocol": {
+            "enum": [
+              "tcp",
+              "udp",
+              "sctp",
+              "ip"
+            ],
             "title": "Protocol",
             "type": "string"
           },
           "state": {
+            "enum": [
+              "open",
+              "closed",
+              "filtered",
+              "unfiltered",
+              "open|filtered",
+              "closed|filtered",
+              "unknown"
+            ],
             "title": "State",
             "type": "string"
           }
@@ -2931,6 +5345,22 @@
         "title": "StopJobResponse",
         "type": "object"
       },
+      "SubnetRescanRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "subnet": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Subnet",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subnet"
+        ],
+        "title": "SubnetRescanRequest",
+        "type": "object"
+      },
       "TaskProblem": {
         "additionalProperties": true,
         "properties": {
@@ -2994,6 +5424,254 @@
         ],
         "title": "TaskProblem",
         "type": "object"
+      },
+      "ToolAuditInstallRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "platform": {
+            "default": "",
+            "enum": [
+              "",
+              "kali",
+              "ubuntu"
+            ],
+            "title": "Platform",
+            "type": "string"
+          },
+          "scope": {
+            "default": "missing",
+            "enum": [
+              "missing",
+              "all",
+              "selected"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "tool_keys": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Tool Keys",
+            "type": "array"
+          }
+        },
+        "title": "ToolAuditInstallRequest",
+        "type": "object"
+      },
+      "ToolRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "host_ip": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Host Ip",
+            "type": "string"
+          },
+          "parameters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Parameters",
+            "type": "object"
+          },
+          "port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "title": "Port"
+          },
+          "protocol": {
+            "default": "tcp",
+            "enum": [
+              "tcp",
+              "udp"
+            ],
+            "title": "Protocol",
+            "type": "string"
+          },
+          "timeout": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "default": 300,
+            "title": "Timeout"
+          },
+          "tool_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Tool Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "host_ip",
+          "port",
+          "tool_id"
+        ],
+        "title": "ToolRunRequest",
+        "type": "object"
+      },
+      "WorkspaceMutationResult": {
+        "additionalProperties": true,
+        "properties": {
+          "deleted": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "host_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Host Id"
+          },
+          "port": {
+            "default": "",
+            "title": "Port",
+            "type": "string"
+          },
+          "protocol": {
+            "default": "",
+            "title": "Protocol",
+            "type": "string"
+          },
+          "removed": {
+            "default": false,
+            "title": "Removed",
+            "type": "boolean"
+          },
+          "service": {
+            "default": "",
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "WorkspaceMutationResult",
+        "type": "object"
+      },
+      "WorkspacePortMutationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "host_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "title": "Host Id"
+          },
+          "port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "title": "Port"
+          },
+          "protocol": {
+            "default": "tcp",
+            "enum": [
+              "tcp",
+              "udp"
+            ],
+            "title": "Protocol",
+            "type": "string"
+          },
+          "service": {
+            "default": "",
+            "maxLength": 256,
+            "title": "Service",
+            "type": "string"
+          }
+        },
+        "required": [
+          "host_id",
+          "port"
+        ],
+        "title": "WorkspacePortMutationRequest",
+        "type": "object"
+      },
+      "WorkspaceServiceMutationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "host_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "title": "Host Id"
+          },
+          "port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "pattern": "^[0-9]+$",
+                "type": "string"
+              }
+            ],
+            "title": "Port"
+          },
+          "protocol": {
+            "default": "tcp",
+            "enum": [
+              "tcp",
+              "udp"
+            ],
+            "title": "Protocol",
+            "type": "string"
+          },
+          "service": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Service",
+            "type": "string"
+          }
+        },
+        "required": [
+          "host_id",
+          "port",
+          "service"
+        ],
+        "title": "WorkspaceServiceMutationRequest",
+        "type": "object"
       }
     }
   },
@@ -3046,6 +5724,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3055,6 +5743,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Engagement Policy Get"
@@ -3065,16 +5763,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/EngagementPolicyPatch-Input"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/EngagementPolicyResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -3109,6 +5810,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3118,6 +5829,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Engagement Policy Update"
@@ -3165,6 +5886,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3174,6 +5905,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Evidence Graph"
@@ -3221,6 +5962,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3230,6 +5981,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Evidence Graph Annotations"
@@ -3240,16 +6001,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/GraphAnnotationSaveRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/GraphAnnotationResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -3284,6 +6048,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3293,6 +6067,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Evidence Graph Save Annotation"
@@ -3351,6 +6135,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3360,6 +6154,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Evidence Graph Content"
@@ -3407,6 +6211,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3416,6 +6230,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Evidence Graph Layouts"
@@ -3426,16 +6250,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/GraphLayoutSaveRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/GraphLayoutResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -3470,6 +6297,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3479,6 +6316,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Evidence Graph Save Layout"
@@ -3537,6 +6384,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3546,6 +6403,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Evidence Graph Node Content"
@@ -3558,16 +6425,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/GraphRebuildRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/GraphRebuildResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -3602,6 +6472,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3611,6 +6491,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Evidence Graph Rebuild"
@@ -3670,6 +6560,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3679,6 +6579,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Install Connector"
@@ -3738,6 +6648,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3747,6 +6667,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Open Path"
@@ -3796,6 +6726,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3805,6 +6745,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "List Projects"
@@ -3862,6 +6812,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3871,6 +6831,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Create Project"
@@ -3931,6 +6901,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3940,6 +6920,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Status"
@@ -3968,6 +6958,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -4009,6 +7008,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4018,6 +7027,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Dismiss"
@@ -4088,6 +7107,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4097,6 +7126,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Control"
@@ -4166,6 +7205,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4175,6 +7224,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Result"
@@ -4228,6 +7287,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4237,6 +7306,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Bundle"
@@ -4307,6 +7386,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4316,6 +7405,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Project Connector"
@@ -4386,6 +7485,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4395,6 +7504,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Scans"
@@ -4463,6 +7582,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4472,6 +7601,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Start"
@@ -4541,6 +7680,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4550,9 +7699,126 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Detail"
+      }
+    },
+    "/api/hub/projects/{identifier}/deep-scans/{scan_id}/recover": {
+      "post": {
+        "operationId": "recoverDeepScan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "title": "Identifier",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "scan_id",
+            "required": true,
+            "schema": {
+              "title": "Scan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeepScanRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
+          }
+        },
+        "summary": "Recover"
       }
     },
     "/api/hub/projects/{identifier}/editor": {
@@ -4603,6 +7869,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4612,6 +7888,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Editor"
@@ -4675,6 +7961,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4684,6 +7980,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "File"
@@ -4744,6 +8050,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4753,6 +8069,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Files"
@@ -4806,6 +8132,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4815,6 +8151,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Filesystem"
@@ -4883,6 +8229,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4892,6 +8248,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Filesystem List"
@@ -4960,6 +8326,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4969,6 +8345,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Filesystem Preview"
@@ -5027,6 +8413,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5036,6 +8432,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Filesystem Session"
@@ -5096,6 +8502,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5105,6 +8521,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Project Network"
@@ -5173,6 +8599,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5182,6 +8618,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Save Project Network"
@@ -5252,6 +8698,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5261,6 +8717,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Check Project Network"
@@ -5280,6 +8746,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -5321,6 +8796,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5330,6 +8815,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Open Project"
@@ -5400,6 +8895,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5409,6 +8914,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Rename"
@@ -5428,6 +8943,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -5469,6 +8993,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5478,6 +9012,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Save"
@@ -5548,6 +9092,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5557,6 +9111,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Save As"
@@ -5627,6 +9191,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5636,6 +9210,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Project Vpn"
@@ -5644,6 +9228,17 @@
     "/api/hub/restore-zip": {
       "post": {
         "operationId": "restoreHubBundle",
+        "requestBody": {
+          "content": {
+            "application/zip": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
@@ -5685,6 +9280,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5694,6 +9299,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Restore"
@@ -5743,6 +9358,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5752,6 +9377,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Settings"
@@ -5811,6 +9446,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5820,6 +9465,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Save Folder"
@@ -5879,6 +9534,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5888,6 +9553,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Default Vpn"
@@ -5951,6 +9626,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -5960,6 +9645,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "List Jobs"
@@ -6021,6 +9716,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6030,6 +9735,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Get Job"
@@ -6050,6 +9765,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -6091,6 +9815,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6100,6 +9834,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Stop Job"
@@ -6147,6 +9891,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6156,6 +9910,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Network Interfaces"
@@ -6168,16 +9932,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/NmapImportRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedJobResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -6212,6 +9979,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6221,6 +9998,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Import Nmap Xml"
@@ -6233,16 +10020,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/NmapScanRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedJobResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -6277,6 +10067,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6286,6 +10086,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Nmap Scan"
@@ -6349,6 +10159,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6358,6 +10178,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Processes"
@@ -6419,6 +10249,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6428,6 +10268,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Clear Processes"
@@ -6448,6 +10298,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -6489,6 +10348,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6498,6 +10367,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Close Process"
@@ -6518,12 +10397,21 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProcessAction"
+                  "$ref": "#/components/schemas/ProcessKillResult"
                 }
               }
             },
@@ -6559,6 +10447,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6568,6 +10466,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Kill Process"
@@ -6653,6 +10561,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6662,6 +10580,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Process Output"
@@ -6735,6 +10663,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6744,6 +10682,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Retry Process"
@@ -6793,6 +10741,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6802,6 +10760,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Get Project"
@@ -6844,6 +10812,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6853,6 +10831,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Project Download Zip"
@@ -6861,11 +10849,22 @@
     "/api/project/new-temp": {
       "post": {
         "operationId": "project_new_temp",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -6900,6 +10899,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6909,6 +10918,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Project New Temp"
@@ -6921,16 +10940,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/ProjectPathRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -6965,6 +10987,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -6974,6 +11006,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Project Open"
@@ -7033,6 +11075,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7042,6 +11094,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Rename Project"
@@ -7054,16 +11116,37 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_restoreWorkspaceZip"
+                "additionalProperties": false,
+                "properties": {
+                  "bundle": {
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "bundle"
+                ],
+                "type": "object"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AcceptedJobResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProjectResponse"
+                    }
+                  ],
+                  "title": "Response Restoreworkspacezip"
+                }
               }
             },
             "description": "Successful Response"
@@ -7098,6 +11181,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7107,6 +11200,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Project Restore Zip"
@@ -7119,16 +11222,27 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/ProjectSaveRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AcceptedJobResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProjectResponse"
+                    }
+                  ],
+                  "title": "Response Project Save As"
+                }
               }
             },
             "description": "Successful Response"
@@ -7163,6 +11277,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7172,6 +11296,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Project Save As"
@@ -7219,6 +11353,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7228,28 +11372,31 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Project List"
       }
     },
-    "/api/scan/passive-capture": {
-      "post": {
-        "operationId": "passive_capture_scan",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "title": "Payload"
-              }
-            }
-          }
-        },
+    "/api/recovery": {
+      "get": {
+        "operationId": "getExecutionRecovery",
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionRecoveryReport"
+                }
               }
             },
             "description": "Successful Response"
@@ -7284,6 +11431,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7293,6 +11450,189 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
+          }
+        },
+        "summary": "Recovery Status"
+      },
+      "post": {
+        "operationId": "retryExecutionRecovery",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionRecoveryReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
+          }
+        },
+        "summary": "Retry Recovery"
+      }
+    },
+    "/api/scan/passive-capture": {
+      "post": {
+        "operationId": "passive_capture_scan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PassiveCaptureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Passive Capture Scan"
@@ -7356,6 +11696,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7365,6 +11715,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Scans"
@@ -7445,6 +11805,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7454,6 +11824,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Approvals"
@@ -7539,6 +11919,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7548,6 +11938,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Approve"
@@ -7622,6 +12022,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7631,6 +12041,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Reject"
@@ -7643,16 +12063,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/SchedulerFamilyApprovalRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyApprovalResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -7687,6 +12110,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7696,6 +12129,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Scheduler Approve Family"
@@ -7759,6 +12202,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7768,6 +12221,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Decisions"
@@ -7815,6 +12278,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7824,6 +12297,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Scheduler Execution Traces"
@@ -7882,6 +12365,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7891,6 +12384,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Scheduler Execution Trace"
@@ -7938,6 +12441,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -7947,6 +12460,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Scheduler Plan Preview"
@@ -7994,6 +12517,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8003,6 +12536,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Scheduler Preferences"
@@ -8013,16 +12556,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/SchedulerPreferencesPatch"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SchedulerPreferencesResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -8057,6 +12603,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8066,6 +12622,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Scheduler Preferences Update"
@@ -8074,11 +12640,22 @@
     "/api/scheduler/run": {
       "post": {
         "operationId": "scheduler_run",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedJobResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -8113,6 +12690,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8122,6 +12709,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Scheduler Run"
@@ -8169,6 +12766,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8178,6 +12785,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Settings Display Get"
@@ -8188,16 +12805,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/DisplaySettingsRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/DisplaySettingsResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -8232,6 +12852,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8241,6 +12871,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Settings Display Save"
@@ -8288,6 +12928,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8297,6 +12947,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Settings Tool Audit"
@@ -8309,16 +12969,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/ToolAuditInstallRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedJobResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -8353,6 +13016,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8362,6 +13035,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Settings Tool Audit Install"
@@ -8409,6 +13092,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8418,6 +13111,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Settings Tool Audit Install Plan"
@@ -8467,6 +13170,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8476,6 +13189,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Get Snapshot"
@@ -8523,6 +13246,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8532,6 +13265,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Findings"
@@ -8579,6 +13322,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8588,6 +13341,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Hosts"
@@ -8607,11 +13370,22 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceMutationResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -8646,6 +13420,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8655,6 +13439,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Host Remove"
@@ -8711,6 +13505,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8720,6 +13524,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Host Detail"
@@ -8739,11 +13553,22 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyAction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedJobResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -8778,6 +13603,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8787,6 +13622,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Host Rescan"
@@ -8845,6 +13690,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8854,6 +13709,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Host Target State"
@@ -8903,6 +13768,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8912,6 +13787,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Overview"
@@ -8924,16 +13809,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/WorkspacePortMutationRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceMutationResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -8968,6 +13856,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -8977,6 +13875,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Port Delete"
@@ -9035,6 +13943,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -9044,6 +13962,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Host Script Output"
@@ -9091,6 +14019,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -9100,6 +14038,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Services"
@@ -9112,16 +14060,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/WorkspaceServiceMutationRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceMutationResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -9156,6 +14107,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -9165,6 +14126,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Service Delete"
@@ -9177,16 +14148,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/SubnetRescanRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedJobResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -9221,6 +14195,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -9230,6 +14214,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Subnet Rescan"
@@ -9277,6 +14271,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -9286,6 +14290,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Tool Targets"
@@ -9333,6 +14347,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -9342,6 +14366,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Tools"
@@ -9354,16 +14388,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "title": "Payload"
+                "$ref": "#/components/schemas/ToolRunRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedJobResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -9398,6 +14435,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -9407,6 +14454,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Workspace Tool Run"
@@ -9456,6 +14513,16 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -9465,6 +14532,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
           }
         },
         "summary": "Health"

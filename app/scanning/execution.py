@@ -9,8 +9,7 @@ import sys
 import tempfile
 
 from app.importers.nmap_runner import import_nmap_xml_into_project
-from app.scanning import repository
-from app.scanning.profile import summarize, validate_profile, owned_file
+from app.scanning.profile import owned_file
 from app.services.project_background import atomic_json
 from app.services.project_networks import NetworkHeld
 from app.contracts.actions.jobs import JobOutcome
@@ -44,12 +43,39 @@ def execute_scan(owner, record, request, identity, job_id):
     ]
     if request.dns_resolver:
         argv += ["--dns-server", request.dns_resolver]
-    atomic_json(parent / "request.json", {"argv": argv, "proxy_token": token, "scratch": str(scratch)})
-    record.update(status="running", job_id=job_id)
-    atomic_json(parent / "run.json", record)
+    atomic_json(
+        parent / "request.json",
+        {"argv": argv, "proxy_token": token, "scratch": str(scratch), "source_identity": identity},
+    )
+    from app.services.execution_journal import for_runtime
+
+    journal = for_runtime(runtime)
+    try:
+        entry = journal.create(
+            owner.record["path"],
+            project_id=owner.identifier,
+            run_id=record["id"],
+            directory=record["directory"],
+            source_identity=identity,
+            host_id=request.host_id,
+            target_ip=request.target_ip,
+            scratch=str(scratch),
+            job_id=job_id,
+        )
+    except Exception:
+        shutil.rmtree(scratch)
+        raise
+    record.update(status="running", job_id=job_id, execution_id=entry.id)
+    try:
+        atomic_json(parent / "run.json", record)
+        journal.update(entry.id, run_published=True)
+    except Exception as exc:
+        # No preparation or child launch is allowed before both publications.
+        journal.cleanup(entry.id)
+        journal.finish(entry.id)
+        return JobOutcome("failed", {"scan_id": record["id"], "preparation_aborted": True, "executed": False}, str(exc))
     command = (sys.executable, "-m", "app.scanning.worker", str(parent / "request.json"))
     state, reason, summary = "failed", "", {}
-    import_phase = "not_started"
     try:
         result = execute_command(
             runtime,
@@ -70,6 +96,7 @@ def execute_scan(owner, record, request, identity, job_id):
             cancel_grace=10,
             proxy_channel=str(parent / "proxy.json"),
             proxy_token=token,
+            execution_id=entry.id,
         )
         record["process_id"] = result.process_id
         record["execution"] = result.metadata
@@ -80,86 +107,21 @@ def execute_scan(owner, record, request, identity, job_id):
             (parent / "log.txt").write_text(output[: 1024 * 1024])
             record["log_path"] = str((parent / "log.txt").relative_to(owner.root))
             if (parent / "profile/device-profile.json").exists():
-                source_identity = {name: value for name, value in identity.items() if name.endswith(".py")}
-                document, digest, xml = validate_profile(parent / "profile", request.target_ip, source_identity)
-                record["profile_path"] = str((parent / "profile/device-profile.json").relative_to(owner.root))
-                record["profile_sha256"] = digest
-                summary = summarize(document)
-                record["implementation_unchanged"] = False
-                audit_path = parent / "implementation-audit.json"
-                if audit_path.is_file():
-                    from app.scanning.implementations import comparison
+                from app.scanning.settlement import settle_profile
 
-                    audit_path = owned_file(parent, "implementation-audit.json", 2 * 1024 * 1024)
-                    # The audit is app-owned but still bounded before parsing.
-                    with audit_path.open("rb") as stream:
-                        raw_audit = stream.read(2 * 1024 * 1024 + 1)
-                    if len(raw_audit) > 2 * 1024 * 1024:
-                        raise ValueError("Implementation audit exceeds its 2 MiB limit.")
-                    audit = json.loads(raw_audit)
-                    checked = comparison(audit["before"], audit["after"])
-                    record["implementation_audit_path"] = str(audit_path.relative_to(owner.root))
-                    summary["dependency_audit"] = (
-                        "Available implementation identities unchanged; missing tools and shared-library limits are recorded."
-                        if checked["unchanged"]
-                        else "Implementation changed or its coverage is unmeasured."
-                    )
-                    record["implementation_unchanged"] = checked["unchanged"]
-                summary.update(
-                    id=record["id"],
-                    host_id=request.host_id,
-                    target_ip=request.target_ip,
-                    profile_sha256=digest,
-                    profile_path=str((parent / "profile/device-profile.json").relative_to(owner.root)),
+                state, reason, summary = settle_profile(
+                    owner.current(request.host_id, request.target_ip),
+                    record,
+                    parent,
+                    owner.root,
+                    identity,
+                    import_nmap_xml_into_project,
+                    journal=journal,
+                    write=atomic_json,
                 )
-                project = owner.current(request.host_id, request.target_ip)
-                # Validated evidence remains openable even if a later DB/file
-                # write fails. The journal never implies cross-store atomicity.
-                progress = record["import_progress"] = {
-                    "status": "running",
-                    "phase": "inventory",
-                    "inventory_committed": False,
-                    "summary_committed": False,
-                    "inventory_may_be_partial": False,
-                }
-                import_phase = "inventory"
-                atomic_json(parent / "run.json", record)
-                prior = repository.get(project, record["id"])
-                if prior and prior["profile_sha256"] != digest:
-                    raise ValueError("Saved profile changed after import.")
-                if not prior:
-                    if xml is not None:
-                        progress["inventory_may_be_partial"] = True
-                        atomic_json(parent / "run.json", record)
-                        import_nmap_xml_into_project(project, str(xml))
-                    progress.update(inventory_committed=xml is not None, inventory_may_be_partial=False)
-                    import_phase = "summary_database"
-                    progress["phase"] = import_phase
-                    atomic_json(parent / "run.json", record)
-                    repository.save(project, record["id"], request.host_id, request.target_ip, digest, summary)
-                progress.update(inventory_committed=xml is not None, summary_committed=True, phase="summary_file")
-                import_phase = "summary_file"
-                atomic_json(parent / "run.json", record)
-                atomic_json(parent / "summary.json", summary)
-                progress.update(status="completed", phase="complete")
-                import_phase = "complete"
-                incomplete = (
-                    document["run"]["status"] == "partial"
-                    or summary["problems"]
-                    or document["run"].get("error")
-                    or document.get("cleanup", {}).get("success") is False
-                    or record.get("implementation_unchanged") is False
-                )
-                state = "partial" if incomplete else "completed"
-                if document["run"]["mode"] != "active":
-                    state = "planned"
-                if document["run"].get("interrupted"):
-                    state = "cancelled"
-                reason = document["run"].get("error") or (
-                    "Scanner output is incomplete; see task, cleanup and implementation audit outcomes."
-                    if incomplete
-                    else ""
-                )
+            elif (parent / "worker-status.json").is_file():
+                worker_status = json.loads(owned_file(parent, "worker-status.json", 8192).read_text())
+                state, reason = "held", worker_status.get("reason", "Scanner source verification failed.")
             elif any((parent / "profile").rglob("*")):
                 state = "partial"
                 reason = f"{reason}; no complete profile; raw evidence retained."
@@ -171,11 +133,24 @@ def execute_scan(owner, record, request, identity, job_id):
         state, reason = "held", str(exc)
     except Exception as exc:
         state, reason = "failed", str(exc)
-        if import_phase not in {"not_started", "complete"}:
-            record["import_progress"].update(status="failed", phase=import_phase, reason=str(exc))
     finally:
         try:
-            shutil.rmtree(scratch)
+            journal.cleanup(entry.id)
+        except Exception as exc:
+            state, reason = "held", str(exc)
+        cleanup_required = journal.get(entry.id).phase == "cleanup_required"
+        record["recovery"] = {
+            "policy": "never-replay",
+            "state": (
+                "cleanup_required"
+                if cleanup_required
+                else "available" if (parent / "profile/device-profile.json").is_file() else "no_profile"
+            ),
+            "retry_available": cleanup_required or (parent / "profile/device-profile.json").is_file(),
+        }
+        try:
+            if scratch.exists():
+                shutil.rmtree(scratch)
         except OSError as exc:
             state, reason = "partial", f"{reason}; Scan scratch cleanup failed: {exc}"
         if runtime.jobs.is_cancel_requested(job_id):

@@ -1,11 +1,12 @@
 """Scanner observations keep candidates distinct from reproduced findings."""
 
 from typing import Literal
-from pydantic import ConfigDict, Field, JsonValue, field_validator
+from pydantic import ConfigDict, Field, field_validator
 from app.contracts.base import ObservationModel
 from app.core.contract_values import raw_reference
 from app.contracts.actions.scanner_facts import TaskProblem
 from app.contracts.artifacts.scanner import Artifact
+from app.contracts.observations.classification import ClassificationFacts
 
 
 class Facts(ObservationModel):
@@ -13,10 +14,24 @@ class Facts(ObservationModel):
 
 
 class ServiceFacts(Facts):
+    model_config = ConfigDict(extra="allow", strict=True)
     port: int | str
-    protocol: str
-    state: str
-    fingerprint: dict[str, JsonValue] = Field(default_factory=dict)
+    protocol: Literal["tcp", "udp", "sctp", "ip"]
+    state: Literal["open", "closed", "filtered", "unfiltered", "open|filtered", "closed|filtered", "unknown"]
+    fingerprint: dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("port")
+    @classmethod
+    def port_range(cls, value):
+        # Decimal text is an explicit historical summary representation.
+        if (
+            isinstance(value, bool)
+            or not str(value).isascii()
+            or not str(value).isdigit()
+            or not 1 <= int(value) <= 65535
+        ):
+            raise ValueError("Service port must be within 1..65535.")
+        return value
 
 
 class ScannerObservation(Facts):
@@ -69,7 +84,7 @@ class VerifiedFinding(ReproducedFinding):
 class ScanSummary(Facts):
     profile_status: str = ""
     problems: list[TaskProblem] = Field(default_factory=list)
-    classification: dict[str, JsonValue] = Field(default_factory=dict)
+    classification: ClassificationFacts = Field(default_factory=ClassificationFacts)
     services: list[ServiceFacts] = Field(default_factory=list)
     candidates: list[CandidateFinding] = Field(default_factory=list)
     reproduced: list[ReproducedFinding] = Field(default_factory=list)

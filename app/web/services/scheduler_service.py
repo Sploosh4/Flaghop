@@ -14,7 +14,7 @@ from app.contracts.actions.scheduler_requests import (
     SchedulerPlanPreviewQuery,
     SchedulerRejectionRequest,
 )
-from app.contracts.actions.scheduler_preferences import SchedulerPreferencesPatch
+from app.contracts.actions.scheduler_preferences import SchedulerPreferencesPatch, EngagementPolicyPatch
 from app.contracts.actions.responses import AcceptedJobResponse
 
 
@@ -38,7 +38,7 @@ class SchedulerService:
         return self.runtime.get_scheduler_preferences().get("engagement_policy", {})
 
     def update_engagement_policy(self, payload: Any) -> Dict[str, Any]:
-        updates = payload if isinstance(payload, dict) else {}
+        updates = EngagementPolicyPatch.from_payload(payload).to_updates()
         if hasattr(self.runtime, "set_engagement_policy"):
             return self.runtime.set_engagement_policy(updates)
         return self.update_preferences({"engagement_policy": updates}).get("engagement_policy", {})

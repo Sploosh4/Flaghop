@@ -1,9 +1,7 @@
 from __future__ import annotations
-
+from app.web.http_utils import as_bool, clamp_int
 from dataclasses import dataclass
 from typing import Any, Dict, List
-
-from app.web.http_utils import as_bool, clamp_int
 
 
 def _parse_int(value: Any, default: int = 0) -> int:
@@ -110,16 +108,6 @@ class GraphQuery:
 
 
 @dataclass(frozen=True)
-class GraphRebuildRequest:
-    host_id: int
-
-    @classmethod
-    def from_payload(cls, payload: Any) -> "GraphRebuildRequest":
-        source = payload if isinstance(payload, dict) else {}
-        return cls(host_id=_parse_int(source.get("host_id", 0), 0))
-
-
-@dataclass(frozen=True)
 class GraphContentQuery:
     max_chars: int
     download: bool
@@ -133,24 +121,6 @@ class GraphContentQuery:
 
 
 @dataclass(frozen=True)
-class GraphLayoutSaveRequest:
-    view_id: str
-    name: str
-    layout_state: Any
-    layout_id: str
-
-    @classmethod
-    def from_payload(cls, payload: Any) -> "GraphLayoutSaveRequest":
-        source = payload if isinstance(payload, dict) else {}
-        return cls(
-            view_id=str(source.get("view_id", "") or "").strip(),
-            name=str(source.get("name", "") or "").strip(),
-            layout_state=source.get("layout", {}),
-            layout_id=str(source.get("layout_id", "") or ""),
-        )
-
-
-@dataclass(frozen=True)
 class GraphAnnotationQuery:
     target_ref: str
     target_kind: str
@@ -160,26 +130,4 @@ class GraphAnnotationQuery:
         return cls(
             target_ref=str(args.get("target_ref", "") or ""),
             target_kind=str(args.get("target_kind", "") or ""),
-        )
-
-
-@dataclass(frozen=True)
-class GraphAnnotationSaveRequest:
-    target_kind: str
-    target_ref: str
-    body: str
-    created_by: str
-    source_ref: str
-    annotation_id: str
-
-    @classmethod
-    def from_payload(cls, payload: Any) -> "GraphAnnotationSaveRequest":
-        source = payload if isinstance(payload, dict) else {}
-        return cls(
-            target_kind=str(source.get("target_kind", "") or "").strip(),
-            target_ref=str(source.get("target_ref", "") or "").strip(),
-            body=str(source.get("body", "") or "").strip(),
-            created_by=str(source.get("created_by", "") or "operator"),
-            source_ref=str(source.get("source_ref", "") or ""),
-            annotation_id=str(source.get("annotation_id", "") or ""),
         )

@@ -23,6 +23,7 @@ export function ProcessOutputPanel({controller}: {controller: ActivityController
       <IconButton id="process-output-download-button" label="Download .txt" icon="fa-solid fa-download" onClick={() => download(state.text, `process-${state.id}-output.txt`)}/>
     </div>
     {state.error && <p role="alert">{state.error}</p>}
+    {state.history && <p role="note">{state.history}</p>}
     <div className="process-command-block"><div className="process-command-header"><span>Command</span>
       <IconButton id="process-output-command-copy" label="Copy command" icon="fa-regular fa-copy" onClick={() => {void copyTextToClipboard(state.command, 'Command copied to clipboard', 'No command to copy');}}/></div>
       <div id="process-output-command" className="process-command-text">{state.command}</div></div>

@@ -95,7 +95,41 @@ def _symbol(node):
 
 
 def _module(path, root):
-    return ".".join(path.relative_to(root).with_suffix("").parts)
+    parts = path.relative_to(root).with_suffix("").parts
+    return ".".join(parts[:-1] if parts[-1] == "__init__" else parts)
+
+
+def _bindings(tree):
+    """Resolve normal import spellings without importing the inspected code."""
+    bindings = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and not node.level:
+            for alias in node.names:
+                bindings[alias.asname or alias.name] = f"{node.module}.{alias.name}"
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                # `import a.b` binds `a`, while `import a.b as c` binds `c`.
+                bindings[alias.asname or alias.name.split(".")[0]] = (
+                    alias.name if alias.asname else alias.name.split(".")[0]
+                )
+    return bindings
+
+
+def _resolve(node, bindings, module=""):
+    symbol = _symbol(node)
+    head, separator, tail = symbol.partition(".")
+    if head in bindings:
+        return bindings[head] + (separator + tail if separator else "")
+    return f"{module}.{symbol}" if module else symbol
+
+
+def _dependencies(tree):
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            yield from (alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and not node.level:
+            yield node.module
+            yield from (f"{node.module}.{alias.name}" for alias in node.names)
 
 
 def check_contracts(root, *, load_models=True):
@@ -156,6 +190,7 @@ def check_contracts(root, *, load_models=True):
                 )
             elif isinstance(node, ast.Expr) and not isinstance(node.value, ast.Constant):
                 report(path, node.lineno, "C004", "Module-level execution is not a contract definition.")
+        bindings = _bindings(tree)
         for node in ast.walk(tree):
             if isinstance(node, (ast.Import, ast.ImportFrom)):
                 modules = [a.name for a in node.names] if isinstance(node, ast.Import) else [node.module or ""]
@@ -174,7 +209,7 @@ def check_contracts(root, *, load_models=True):
                             "C005",
                             f"Contract imports {module!r}; move IO/runtime logic to its service or adapter.",
                         )
-            if isinstance(node, ast.Call) and _symbol(node.func).split(".")[-1] in FORBIDDEN_CALLS:
+            if isinstance(node, ast.Call) and _resolve(node.func, bindings).split(".")[-1] in FORBIDDEN_CALLS:
                 report(
                     path,
                     node.lineno,
@@ -198,9 +233,7 @@ def check_contracts(root, *, load_models=True):
     graph = {}
     for path, tree in trees.items():
         module_name = _module(path, root)
-        graph[module_name] = {
-            node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) and node.module in module_paths
-        }
+        graph[module_name] = {dependency for dependency in _dependencies(tree) if dependency in module_paths}
     visited = set()
 
     def visit(module_name, active):
@@ -224,12 +257,7 @@ def check_contracts(root, *, load_models=True):
     definitions, aliases = {}, {}
     for path, tree in trees.items():
         module_name = _module(path, root)
-        aliases[module_name] = {
-            alias.asname or alias.name: f"{node.module}.{alias.name}"
-            for node in tree.body
-            if isinstance(node, ast.ImportFrom)
-            for alias in node.names
-        }
+        aliases[module_name] = _bindings(tree)
         for node in tree.body:
             if isinstance(node, ast.ClassDef):
                 definitions[f"{module_name}.{node.name}"] = (path, node)
@@ -241,8 +269,7 @@ def check_contracts(root, *, load_models=True):
         module_name = _module(path, root)
         result = {name}
         for base in node.bases:
-            token = _symbol(base)
-            resolved = aliases[module_name].get(token, f"{module_name}.{token}")
+            resolved = _resolve(base, aliases[module_name], module_name)
             result.update(ancestors(resolved, (*active, name)))
         return result
 
@@ -263,7 +290,7 @@ def check_contracts(root, *, load_models=True):
                 f"{node.name} needs an approved {category} base; see docs/contract-authoring.md.",
             )
         if "app.contracts.base.ActionData" in lineage and not any(
-            _symbol(d) == "dataclass" for d in node.decorator_list
+            _resolve(d, aliases[_module(path, root)]) == "dataclasses.dataclass" for d in node.decorator_list
         ):
             report(path, node.lineno, "C010", f"{node.name}: ActionData requires @dataclass and typed fields.")
         if "app.contracts.base.ActionConstants" in lineage:
@@ -288,11 +315,10 @@ def check_contracts(root, *, load_models=True):
                     and member.target.id in {"artifact_refs", "linked_evidence_refs"}
                     and (
                         not any(
-                            isinstance(part, ast.Name) and part.id == "ArtifactLocator"
+                            _resolve(part, aliases[_module(path, root)])
+                            == "app.contracts.artifacts.references.ArtifactLocator"
                             for part in ast.walk(member.annotation)
                         )
-                        or aliases[_module(path, root)].get("ArtifactLocator")
-                        != "app.contracts.artifacts.references.ArtifactLocator"
                     )
                 ):
                     report(
@@ -310,12 +336,7 @@ def check_contracts(root, *, load_models=True):
             tree = ast.parse(path.read_text())
         except SyntaxError:
             continue
-        imports = {
-            a.asname or a.name: f"{n.module}.{a.name}"
-            for n in ast.walk(tree)
-            if isinstance(n, ast.ImportFrom)
-            for a in n.names
-        }
+        imports = _bindings(tree)
         for node in ast.walk(tree):
             modules = (
                 [node.module]
@@ -332,7 +353,7 @@ def check_contracts(root, *, load_models=True):
         for node in ast.walk(tree):
             if not isinstance(node, ast.ClassDef):
                 continue
-            bases = {_symbol(base).split(".")[-1] for base in node.bases}
+            bases = {_resolve(base, imports) for base in node.bases}
             annotations = {
                 n.target.id for n in node.body if isinstance(n, ast.AnnAssign) and isinstance(n.target, ast.Name)
             }
@@ -340,14 +361,12 @@ def check_contracts(root, *, load_models=True):
                 f"app.contracts.base.{name}"
                 for name in ("ActionModel", "ActionData", "ObservationModel", "ArtifactModel")
             }
-            lineage = set().union(*(ancestors(imports.get(base, base)) for base in bases))
+            lineage = set().union(*(ancestors(base) for base in bases))
             domain_base = bool(domain_roots & lineage)
             data_class = (
                 domain_base
-                or bool(
-                    bases & {"BaseModel", "ActionModel", "ActionData", "ObservationModel", "ArtifactModel", "TypedDict"}
-                )
-                or any(_symbol(d) == "dataclass" for d in node.decorator_list)
+                or bool(bases & {"pydantic.BaseModel", "typing.TypedDict", "typing_extensions.TypedDict"})
+                or any(_resolve(d, imports) == "dataclasses.dataclass" for d in node.decorator_list)
             )
             module_name = _module(path, root)
             tool_domain = module_name.startswith(

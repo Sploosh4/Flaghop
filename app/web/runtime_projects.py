@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import os
+from pathlib import Path
 from typing import Any, Dict, List
 
 from app.core.common import getTempFolder
@@ -207,6 +208,9 @@ def open_project(runtime, path: str) -> Dict[str, Any]:
             runtime._ensure_scheduler_table()
             runtime._ensure_scheduler_approval_store()
             runtime._ensure_process_tables()
+            from app.services.process_history import reconcile
+
+            reconcile(opened_project, runtime=runtime)
             details = get_project_details(runtime)
         except Exception:
             runtime.logic.activeProject = previous_project
@@ -230,17 +234,21 @@ def start_save_project_as_job(runtime, path: str, replace: bool = True) -> Dict[
     )
 
 
-def save_project_as(runtime, path: str, replace: bool = True) -> Dict[str, Any]:
+def save_project_as(runtime, path: str, replace: bool = True, *, owner_id=None) -> Dict[str, Any]:
     project_path = normalize_project_path(path)
-    return save_project_as_impl(runtime, project_path, bool(replace))
+    return save_project_as_impl(runtime, project_path, bool(replace), owner_id=owner_id)
 
 
-def save_project_as_impl(runtime, project_path: str, replace: bool = True) -> Dict[str, Any]:
+def save_project_as_impl(runtime, project_path: str, replace: bool = True, *, owner_id=None) -> Dict[str, Any]:
     source_project = None
     with runtime._lock:
         if runtime._save_in_progress:
             raise RuntimeError("Project save is already in progress.")
         source_project = require_active_project(runtime)
+        from app.services.execution_journal import require_settled
+
+        require_settled(runtime, source_project.properties.projectName)
+        require_settled(runtime, project_path)
         running_count = count_running_or_waiting_processes(source_project)
         active_subprocess_count = len(runtime._active_processes)
         active_jobs = count_running_scan_jobs(runtime, include_queued=False)
@@ -264,6 +272,31 @@ def save_project_as_impl(runtime, project_path: str, replace: bool = True) -> Di
 
         with runtime._lock:
             runtime.logic.activeProject = saved_project
+            if str(source_project.properties.projectName) != str(saved_project.properties.projectName):
+                from app.services.project_background import atomic_json
+
+                atomic_json(
+                    Path(saved_project.properties.projectName).parent / "reader-control.json",
+                    {"running": False, "pause_policy": "finish-bounded-step"},
+                )
+            if owner_id is None:
+                import hashlib
+
+                owner_id = hashlib.sha256(project_path.encode()).hexdigest()[:24]
+                service = getattr(runtime, "project_networks", None)
+                if service is not None:
+                    match = next((row for row in service.hub._read()["projects"] if row["path"] == project_path), None)
+                    if match:
+                        owner_id = match["id"]
+            from app.scanning.history_identity import rebind_history
+
+            rebind_history(
+                saved_project,
+                owner_id,
+                copied=str(source_project.properties.projectName) != str(saved_project.properties.projectName),
+                source_project=str(source_project.properties.projectName),
+                admission=getattr(runtime, "storage_admission", None),
+            )
             runtime._ensure_scheduler_table()
             runtime._ensure_scheduler_approval_store()
             runtime._ensure_process_tables()
@@ -321,6 +354,11 @@ def close_project_instance(runtime, project) -> None:
     except Exception:
         pass
 
+    journal = getattr(runtime, "execution_journal", None)
+    if journal is not None and journal.pending(project.properties.projectName):
+        # Leave original files under a surviving writer intact. Its protected
+        # journal remains available when a different workspace is selected.
+        return
     try:
         runtime.logic.projectManager.closeProject(project)
     except Exception:

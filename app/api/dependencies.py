@@ -1,9 +1,9 @@
 """Shared native API runtime dependency and response conventions."""
 
-from typing import Annotated
-from fastapi import Depends, Request, Response
-from app.api.protocol import ProtocolRouter
 from app.api.contracts import ApiError
+from app.api.protocol import ProtocolRouter
+from fastapi import Depends, Request, Response
+from typing import Annotated
 
 
 def mark_native(response: Response):
@@ -27,6 +27,8 @@ def native_router():
             400: {"model": ApiError},
             404: {"model": ApiError},
             409: {"model": ApiError},
+            413: {"model": ApiError},
+            507: {"model": ApiError},
             422: {"model": ApiError},
         },
     )

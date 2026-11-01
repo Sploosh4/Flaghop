@@ -1,7 +1,6 @@
 """Native activity endpoints, using the same services as the legacy application."""
 
-from typing import Annotated
-from fastapi import Body, Path, Query, Response
+from app.api.activity_contracts import Overview
 from app.api.dependencies import Runtime, native_router
 from app.contracts.actions.activity import (
     ApprovalList,
@@ -11,6 +10,7 @@ from app.contracts.actions.activity import (
     ClearedProcesses,
     DecisionList,
     ProcessAction,
+    ProcessKillResult,
     ProcessList,
     ProcessOutput,
     RejectApproval,
@@ -18,12 +18,14 @@ from app.contracts.actions.activity import (
     RetryProcess,
     ScanList,
 )
-from app.api.activity_contracts import Overview
+from app.contracts.actions.inputs import EmptyAction
 from app.web.services.process_service import ProcessService
 from app.web.services.runtime_service import RuntimeService
 from app.web.services.scan_service import ScanService
 from app.web.services.scheduler_service import SchedulerService
 from app.web.services.workspace_service import WorkspaceService
+from fastapi import Body, Path, Query, Response
+from typing import Annotated
 
 router = native_router()
 ActivityId = Annotated[int, Path(ge=1)]
@@ -60,11 +62,11 @@ def process_output(
 
 @router.post(
     "/api/processes/{process_id}/kill",
-    response_model=ProcessAction,
+    response_model=ProcessKillResult,
     response_model_exclude_unset=True,
     operation_id="killProcess",
 )
-def kill_process(process_id: ActivityId, runtime: Runtime):
+def kill_process(process_id: ActivityId, runtime: Runtime, payload: EmptyAction = Body(default_factory=EmptyAction)):
     return {"status": "ok", **ProcessService(runtime).kill_process(process_id)}
 
 
@@ -74,7 +76,7 @@ def kill_process(process_id: ActivityId, runtime: Runtime):
     response_model_exclude_unset=True,
     operation_id="closeProcess",
 )
-def close_process(process_id: ActivityId, runtime: Runtime):
+def close_process(process_id: ActivityId, runtime: Runtime, payload: EmptyAction = Body(default_factory=EmptyAction)):
     return {"status": "ok", **ProcessService(runtime).close_process(process_id)}
 
 

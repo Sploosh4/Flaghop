@@ -22,6 +22,7 @@ class ExecutionPorts:
     write_process_output_partial: Callable
     network_guard: Any = None
     record_network_context: Any = None
+    ownership: Any = None
 
 
 @dataclass

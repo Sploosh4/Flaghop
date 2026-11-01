@@ -34,7 +34,9 @@ This checkpoint adds guarded Deep scan jobs and profile/evidence import. Live ow
 This checkpoint centralizes action/result, observation and artifact-reference
 definitions. [Contract authoring](docs/contract-authoring.md)
 describes approved classes and the checker required for human and AI contributions.
-Persistent run recovery remains deferred.
+The reviewed repairs also recover owned cleanup and saved-result imports
+without replaying network commands. Its [review status](docs/review-boundary-repairs.md)
+separates current checks from historical live acceptance.
 
 ## Run
 

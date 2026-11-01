@@ -1,12 +1,12 @@
 """Native FastAPI endpoints preserving existing service and HTTP contracts."""
 
-from typing import Any
-from fastapi import Body, Request
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
 from app.api.dependencies import Runtime, native_router
+from app.contracts.actions.display import DisplaySettingsRequest, DisplaySettingsResponse
+from app.contracts.actions.responses import AcceptedJobResponse
+from app.contracts.actions.tooling_requests import ToolAuditInstallRequest
 from app.web.http_utils import json_error
 from app.web.services.settings_service import SettingsService
+from fastapi import Request, Response
 
 router = native_router()
 
@@ -20,11 +20,16 @@ def settings_display_get(request: Request, runtime: Runtime):
         return json_error(str(exc), 500)
 
 
-@router.post("/api/settings/display", operation_id="settings_display_save")
-def settings_display_save(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/settings/display",
+    operation_id="settings_display_save",
+    response_model=DisplaySettingsResponse,
+    response_model_exclude_unset=True,
+)
+def settings_display_save(request: Request, runtime: Runtime, payload: DisplaySettingsRequest):
     service = SettingsService(runtime)
     try:
-        payload = service.save_display_settings(payload or {})
+        payload = service.save_display_settings(payload)
         request.app.state.config["LEGION_COLORFUL_ASCII_BACKGROUND"] = bool(
             payload.get("colorful_ascii_background", False)
         )
@@ -55,11 +60,19 @@ def settings_tool_audit_install_plan(request: Request, runtime: Runtime):
         return json_error(str(exc), 500)
 
 
-@router.post("/api/settings/tool-audit/install", operation_id="settings_tool_audit_install")
-def settings_tool_audit_install(request: Request, runtime: Runtime, payload: Any = Body(default=None)):
+@router.post(
+    "/api/settings/tool-audit/install",
+    operation_id="settings_tool_audit_install",
+    response_model=AcceptedJobResponse,
+    response_model_exclude_unset=True,
+)
+def settings_tool_audit_install(
+    request: Request, runtime: Runtime, response: Response, payload: ToolAuditInstallRequest
+):
     service = SettingsService(runtime)
     try:
-        return JSONResponse(jsonable_encoder(service.start_tool_install(payload or {})), status_code=202)
+        response.status_code = 202
+        return service.start_tool_install(payload)
     except NotImplementedError as exc:
         return json_error(str(exc), 501)
     except ValueError as exc:

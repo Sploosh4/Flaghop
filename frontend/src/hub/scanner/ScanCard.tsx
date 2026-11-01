@@ -29,6 +29,7 @@ export function ScanCard({run, project, scans}: {run: DeepScanRun; project: HubP
       {active ? <button disabled={run.settling} onClick={() => {void scans.cancel(run);}}>{run.settling ? 'Saving…' : 'Stop'}</button> : Boolean(profile || run.log_path) && <a href={documentUrl(project.id, `${project.folder}/${profile || String(run.log_path)}`)} target="_blank" rel="noopener">Open</a>}
     </div>
     {run.reason && <p className="hub-error">{run.reason}</p>}
+    {!active && run.recovery?.retry_available && <button disabled={Boolean(scans.busy)} onClick={() => {void scans.recover(run);}}>{run.recovery.state === 'cleanup_required' ? 'Retry cleanup' : 'Recover saved result'}</button>}
     {!active && <details onToggle={event => setExpanded(event.currentTarget.open)}><summary>Results</summary>
       {error && <p className="hub-error">{error}</p>}
       {expanded && run.summary_omitted && !detail && !error && <small>Loading results…</small>}

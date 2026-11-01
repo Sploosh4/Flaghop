@@ -23,12 +23,28 @@ from app.services.project_hub import ProjectHub
 from app.services.project_networks import NetworkHeld
 from app.web.bootstrap import create_default_logic
 from app.web.runtime import WebRuntime
+from app.services.execution_journal import ExecutionJournal
 from db.entities.host import hostObj
 from tests.app.test_ProjectNetworks import FixtureProbe
 from tests.support.scanner_fixture import write_profile, write_fixture_audit
 
 
 class DeepScansTest(TestCase):
+
+    def test_runtime_wrapper_preserves_malformed_outcomes_until_api_reports_failure(self):
+        with TestClient(create_app(self.runtime)) as client:
+            for value in (False, 0, [], "", ()):
+                with self.subTest(value=value):
+                    job = self.runtime._start_job("synthetic-invalid-result", lambda _job_id, value=value: value)
+                    deadline = time.monotonic() + 2
+                    while time.monotonic() < deadline:
+                        response = client.get("/api/jobs/" + str(job["id"]))
+                        result = response.json()
+                        if result["status"] not in {"queued", "running"}:
+                            break
+                        time.sleep(0.01)
+                    self.assertEqual("failed", result["status"])
+                    self.assertIn("result dictionary", result["error"])
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -38,7 +54,9 @@ class DeepScansTest(TestCase):
         )
         self.env.start()
         self.logic = create_default_logic()
-        self.runtime = WebRuntime(self.logic)
+        self.runtime = WebRuntime(
+            self.logic, execution_journal=ExecutionJournal(Path(os.environ["LEGION_HOME"]) / "protected-executions")
+        )
         self.hub = ProjectHub(self.runtime)
         self.project = self.hub.create("Scanner fixture")["project"]
         self.hub.networks.probe = FixtureProbe()
@@ -408,8 +426,8 @@ class DeepScansTest(TestCase):
                 self.assertEqual("failed", job["status"])
                 progress = run["import_progress"]
                 self.assertEqual(("failed", phase), (progress["status"], progress["phase"]))
-                self.assertEqual(phase != "inventory", progress["inventory_committed"])
-                self.assertEqual(phase == "inventory", progress["inventory_may_be_partial"])
+                self.assertEqual(phase == "summary_file", progress["inventory_committed"])
+                self.assertFalse(progress["inventory_may_be_partial"])
                 self.assertEqual(phase == "summary_file", progress["summary_committed"])
                 self.assertTrue((Path(self.project["folder"]) / run["profile_path"]).is_file())
                 self.assertEqual(
@@ -466,16 +484,108 @@ class DeepScansTest(TestCase):
             lambda p: p["artifacts"][0].update(sha256="0" * 64),
             lambda p: p["run"].pop("finished_at"),
             lambda p: p["tasks"][0].update(parse_status="failed", stdout="../outside"),
+            lambda p: p["nmap"]["services"][0].update(port={"bad": "port"}),
+            lambda p: p["nmap"]["services"][0]["fingerprint"].update(product="Invented Apache"),
+            lambda p: p["classification"]["primary"].update(score=1000),
         ]
-        for mutation in mutations:
-            with (
-                self.subTest(mutation=mutation),
-                patch("app.scanning.execution.execute_command", side_effect=self.executor(mutate=mutation)),
-            ):
-                run, _ = self.wait(self.service.start(self.request))
-                self.assertEqual("failed", run["status"])
-                self.assertTrue((Path(self.project["folder"]) / run["directory"] / "profile/raw/nmap.xml").is_file())
-                self.assertFalse(repository.summaries(self.logic.activeProject))
+        with TestClient(create_app(self.runtime)) as client:
+            for mutation in mutations:
+                with (
+                    self.subTest(mutation=mutation),
+                    patch("app.scanning.execution.execute_command", side_effect=self.executor(mutate=mutation)),
+                ):
+                    run, job = self.wait(self.service.start(self.request))
+                    self.assertEqual("failed", run["status"])
+                    self.assertEqual("failed", job["status"])
+                    self.assertTrue(
+                        (Path(self.project["folder"]) / run["directory"] / "profile/raw/nmap.xml").is_file()
+                    )
+                    self.assertFalse(repository.summaries(self.logic.activeProject))
+                    response = client.get(f'/api/hub/projects/{self.project["id"]}/deep-scans/{run["id"]}')
+                    self.assertEqual(200, response.status_code)
+
+    def test_save_as_restore_and_folder_move_retain_history_without_resuming_work(self):
+        import hashlib
+
+        with patch("app.scanning.execution.execute_command", side_effect=self.executor()):
+            run, _ = self.wait(self.service.start(self.request))
+        original_profile = Path(self.project["folder"]) / run["profile_path"]
+        original_bytes = original_profile.read_bytes()
+        original_digest = hashlib.sha256(original_bytes).hexdigest()
+        from app.services.project_background import atomic_json
+        from sqlalchemy import text
+
+        complete = repository.get(self.logic.activeProject, run["id"])
+        complete["unknown_extension"] = {"original": ["keep", 1, None], "nested": {"source": "fixture"}}
+        with self.logic.activeProject.database.engine.begin() as connection:
+            connection.execute(
+                text("UPDATE flaghop_deep_scans SET summary=:summary WHERE run_id=:id"),
+                {"id": run["id"], "summary": json.dumps(complete)},
+            )
+        atomic_json(original_profile.parent.parent / "summary.json", complete)
+        atomic_json(
+            Path(self.project["folder"]) / "reader-control.json",
+            {"running": True, "pause_policy": "finish-bounded-step"},
+        )
+
+        def preserved():
+            current = repository.get(self.logic.activeProject, run["id"])
+            self.assertEqual(complete, current)
+            self.assertEqual(
+                complete,
+                json.loads(
+                    (
+                        Path(self.logic.activeProject.properties.outputFolder)
+                        / "deep-scans"
+                        / run["id"]
+                        / "summary.json"
+                    ).read_text()
+                ),
+            )
+            self.assertFalse(
+                json.loads(
+                    (Path(self.logic.activeProject.properties.projectName).parent / "reader-control.json").read_text()
+                )["running"]
+            )
+
+        saved = self.hub.operations.save_as(self.project["id"], "Saved scanner copy")["project"]
+        preserved()
+        copied = DeepScans(self.hub, saved["id"]).list()["runs"]
+        self.assertEqual(1, len(copied))
+        self.assertEqual(saved["id"], copied[0]["project_id"])
+        self.assertEqual(0, copied[0]["job_id"])
+        self.assertEqual(self.project["id"], copied[0]["lineage"][0]["project_id"])
+        self.assertEqual(original_bytes, (Path(saved["folder"]) / copied[0]["profile_path"]).read_bytes())
+        self.assertFalse(self.hub.networks.get(saved["id"])["configured"])
+        archive, _ = self.hub.operations.bundle(saved["id"])
+        try:
+            restored = self.hub.operations.restore_zip(archive)["project"]
+        finally:
+            Path(archive).unlink(missing_ok=True)
+        history = DeepScans(self.hub, restored["id"]).list()["runs"]
+        preserved()
+        self.assertEqual(1, len(history))
+        self.assertEqual(restored["id"], history[0]["project_id"])
+        self.assertEqual(original_bytes, (Path(restored["folder"]) / history[0]["profile_path"]).read_bytes())
+        self.assertFalse(json.loads((Path(restored["folder"]) / "reader-control.json").read_text())["running"])
+        self.assertFalse(self.hub.networks.get(restored["id"])["configured"])
+        destination = self.root / "moved-projects"
+        self.hub.set_save_folder(str(destination), True)
+        moved = self.hub._record(restored["id"])
+        detail = DeepScans(self.hub, moved["id"]).detail(run["id"])
+        preserved()
+        self.assertEqual(original_bytes, (Path(moved["folder"]) / detail["profile_path"]).read_bytes())
+        self.assertEqual(1, len(repository.summaries(self.logic.activeProject)))
+        self.hub.open(self.project["id"])
+        old = self.hub._record(self.project["id"])
+        self.assertEqual(
+            original_digest, hashlib.sha256((Path(old["folder"]) / run["profile_path"]).read_bytes()).hexdigest()
+        )
+        with patch("app.scanning.execution.execute_command") as launch:
+            self.hub.open(moved["id"])
+            with self.assertRaises(NetworkHeld):
+                DeepScans(self.hub, moved["id"]).start(self.request)
+            launch.assert_not_called()
 
     def test_large_valid_summaries_stay_visible_after_reload(self):
         def large_summary(profile):
@@ -588,6 +698,27 @@ class DeepScansTest(TestCase):
             self.hub.networks.save(
                 self.project["id"], NetworkUpdate(expected_revision=1, settings=self.context["settings"])
             )
+            gate.set()
+            _, job = self.wait(run)
+            self.assertEqual("held", job["status"])
+            launch.assert_not_called()
+
+    def test_changed_bundle_while_queued_is_held_before_any_child_launch(self):
+        from app.scanning.source import scanner_source
+
+        source, identity = scanner_source()
+        gate, entered = threading.Event(), threading.Event()
+        self.addCleanup(gate.set)
+        self.runtime.jobs.start("bundle-blocker", lambda: (entered.set(), gate.wait(5), {})[-1], exclusive=True)
+        self.assertTrue(entered.wait(1))
+        with (
+            patch("app.scanning.service.scanner_source", return_value=(source, identity)) as bundle,
+            patch("app.scanning.execution.execute_command") as launch,
+        ):
+            run = self.service.start(self.request)
+            self.assertEqual(identity, run["source_identity"])
+            self.assertEqual(identity, self.runtime.jobs.get_job(run["job_id"])["payload"]["source_identity"])
+            bundle.return_value = (source, {**identity, "settings.py": {"sha256": "0" * 64, "bytes": 1}})
             gate.set()
             _, job = self.wait(run)
             self.assertEqual("held", job["status"])

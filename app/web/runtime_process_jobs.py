@@ -97,8 +97,9 @@ def stop_job(runtime, job_id: int) -> Dict[str, Any]:
     process_ids = [] if job.get("type") == "deep-scan" else job_active_process_ids(runtime, target_job_id)
     for process_id in process_ids:
         try:
-            runtime.kill_process(int(process_id))
-            killed_process_ids.append(int(process_id))
+            outcome = runtime.kill_process(int(process_id))
+            if outcome.get("killed") is True:
+                killed_process_ids.append(int(process_id))
         except Exception:
             continue
 

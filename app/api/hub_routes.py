@@ -1,30 +1,24 @@
-from typing import Annotated
-from fastapi import Depends, Request, Query
-from fastapi.responses import FileResponse
-from app.api.downloads import TemporaryFileResponse
-from starlette.concurrency import run_in_threadpool
-from pathlib import Path
 import tempfile
 from app.api.dependencies import native_router
-from app.api.hub_contracts import (
-    HubConnectorInstallation,
-    HubFiles,
-    HubOk,
-    HubProjects,
-    HubSettings,
-    OpenHubProject,
-)
-from app.services.project_hub import ProjectHub
-from app.contracts.actions.network import NetworkContext, NetworkUpdate, NetworkCheckRequest
-from app.contracts.observations.network import NetworkReport
-from app.services.project_hub_requests import (
+from app.api.downloads import TemporaryFileResponse
+from app.api.hub_contracts import HubConnectorInstallation, HubFiles, HubOk, HubProjects, HubSettings, OpenHubProject
+from app.contracts.actions.hub_requests import (
     CreateHubProject,
     HubConnector,
     HubConnectorInstall,
+    HubSaveFolder,
     HubVpn,
     OpenHubPath,
-    HubSaveFolder,
 )
+from app.contracts.actions.inputs import EmptyAction
+from app.contracts.actions.network import NetworkCheckRequest, NetworkContext, NetworkUpdate
+from app.contracts.observations.network import NetworkReport
+from app.services.project_hub import ProjectHub
+from fastapi import Body, Depends, Query, Request
+from fastapi.responses import FileResponse
+from pathlib import Path
+from starlette.concurrency import run_in_threadpool
+from typing import Annotated
 
 router = native_router()
 
@@ -64,7 +58,7 @@ def create_project(payload: CreateHubProject, hub: Hub):
 
 
 @router.post("/api/hub/projects/{identifier}/open", response_model=OpenHubProject, operation_id="openHubProject")
-def open_project(identifier: str, hub: Hub):
+def open_project(identifier: str, hub: Hub, payload: EmptyAction = Body(default_factory=EmptyAction)):
     return hub.open(identifier)
 
 
@@ -79,7 +73,7 @@ def rename(identifier: str, payload: CreateHubProject, hub: Hub):
 
 
 @router.post("/api/hub/projects/{identifier}/save", response_model=OpenHubProject, operation_id="saveHubProject")
-def save(identifier: str, hub: Hub):
+def save(identifier: str, hub: Hub, payload: EmptyAction = Body(default_factory=EmptyAction)):
     return hub.operations.save(identifier)
 
 
@@ -98,17 +92,22 @@ def bundle(identifier: str, hub: Hub):
     )
 
 
-@router.post("/api/hub/restore-zip", response_model=OpenHubProject, operation_id="restoreHubBundle")
+@router.post(
+    "/api/hub/restore-zip",
+    response_model=OpenHubProject,
+    operation_id="restoreHubBundle",
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {"application/zip": {"schema": {"type": "string", "format": "binary"}}},
+        }
+    },
+)
 async def restore(request: Request, hub: Hub):
-    with tempfile.NamedTemporaryFile(prefix="legion-hub-restore-", suffix=".zip", delete=False) as upload:
-        path = Path(upload.name)
-        try:
-            async for chunk in request.stream():
-                upload.write(chunk)
-            upload.close()
-            return await run_in_threadpool(hub.operations.restore_zip, str(path))
-        finally:
-            path.unlink(missing_ok=True)
+    from app.api.uploads import staged_upload
+
+    async with staged_upload(request) as upload:
+        return await run_in_threadpool(hub.operations.restore_zip, str(upload.path))
 
 
 @router.get("/api/hub/settings", response_model=HubSettings, operation_id="getHubSettings")
