@@ -81,6 +81,9 @@ class CapabilityTests(unittest.TestCase):
             (lambda p: p["modules"][0]["integration_ids"].append("missing"), "missing"),
             (lambda p: p["modules"][0].update(depends_on=["second"]), "cyclic"),
             (lambda p: p.update(version=2), "version"),
+            (lambda p: p.update(version=True), "version"),
+            (lambda p: p.update(version=1.0), "version"),
+            (lambda p: p.update(version="1"), "version"),
             (lambda p: p["categories"][0].update(definition="   "), "definition"),
         ]:
             payload = copy.deepcopy(self.payload)

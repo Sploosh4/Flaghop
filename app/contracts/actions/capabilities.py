@@ -1,6 +1,6 @@
 """Declarative relationships around existing action definitions."""
 
-from typing import List, Literal, Optional
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -27,7 +27,7 @@ class CategoryProposal(ActionModel):
 
 
 class CapabilityManifest(ActionModel):
-    version: Literal[1]
+    version: int = Field(strict=True, ge=1, le=1)
     integrations: List[IntegrationMetadata] = Field(default_factory=list)
     modules: List[ModuleMetadata] = Field(default_factory=list)
     categories: List[CategoryProposal] = Field(default_factory=list)
