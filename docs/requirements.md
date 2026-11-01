@@ -27,6 +27,7 @@ Approval and implementation are independent. **Agreed** records an accepted
 product requirement; **Existing** identifies a compatibility requirement from
 current app behaviour. Neither status approves a new category/action by inference.
 Implementation is **Implemented**, **Partial** or **Planned** in this checkout.
+**Partial** and **Planned** both mean **incomplete**; neither is a completed feature.
 Linked code/tests identify verification paths, not a claim of a fresh test run.
 
 ## Functional requirements
@@ -35,8 +36,8 @@ Linked code/tests identify verification paths, not a claim of a fresh test run.
 | --- | --- | --- | --- | --- |
 | REQ-PRJ-001 | Project data and jobs shall retain their original project identity. | Switching, save-as and restore preserve isolation and evidence; [project checks](../tests/app/test_ProjectHub.py). | Existing | Implemented |
 | REQ-CAT-001 | Categories/subcategories shall describe targets and allow overlapping membership. | One machine can expose related OS, identity and application targets without losing their associations. | Agreed | Planned |
-| REQ-CAT-002 | Each subcategory shall positively define its capabilities and require explicit user approval for creation or expansion. | Unapproved definitions and indirect capability expansion cannot become active through discovery, installation or AI review. | Agreed | Planned |
-| REQ-MOD-001 | Modules/categories shall share canonical tool integrations by default. | Multiple modules reference one integration while distinct actions/profiles remain separate; use the [existing registry](../app/scheduler/registry.py). | Agreed | Planned |
+| REQ-CAT-002 | Each subcategory shall positively define its capabilities and require explicit user approval for creation or expansion. | The draft/approved metadata boundary exists; approved production definitions and their complete user workflow remain pending. Unapproved definitions cannot become active through discovery, installation or AI review. | Agreed | Partial — incomplete |
+| REQ-MOD-001 | Modules/categories shall share canonical tool integrations by default. | The catalogue consumes shared integration/module metadata while preserving distinct actions. Production categorisation and authoring/installation UX remain unfinished; use the [existing registry](../app/scheduler/registry.py). | Agreed | Partial — incomplete |
 | REQ-ACT-001 | An action's purpose, inputs, applicability and possible outputs shall be defined before implementation. | A definition is inspectable independently of its tool; unknown capabilities remain unknown. [ActionSpec](../app/contracts/actions/planning.py) supplies the existing foundation. | Agreed | Partial |
 | REQ-ACT-002 | The investigator shall choose meaningful actions while FlagHop abstracts tool selection and coordination. | Actions need no detailed tool knowledge, do not require a fixed investigation sequence and do not silently expand authorised scope. | Agreed | Partial |
 | REQ-MAP-001 | Devices shall use the approved neutral artwork with silhouette-based hover/focus/selection. | Grey marks hover/focus, purple marks selection, and device colour does not assert severity; [map checks](../frontend/src/hub/hardware/HardwareMap.test.tsx). | Agreed | Implemented |
@@ -60,7 +61,9 @@ Linked code/tests identify verification paths, not a claim of a fresh test run.
 
 ## Pending specification
 
-These are outstanding directions or questions, not approved new action definitions:
+**Incomplete:** these are outstanding directions or questions, not approved new
+action definitions. The [working UX/UI specification](../temporary-documents/ux-ui-specification.md)
+records agreed first-layer details and the decisions still open.
 
 - Initial taxonomy and precise action definitions; remaining module integration.
 - First map layer and whether layers are curated category combinations; network

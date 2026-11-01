@@ -1,6 +1,6 @@
 # FlagHop UX/UI specification
 
-Status: working specification. Agreed requirements describe intended behaviour;
+Status: **incomplete working specification**. Agreed requirements describe intended behaviour;
 they do not claim that behaviour is implemented. Discuss existing behaviour one
 item at a time with Joshua before treating it as intended design.
 
