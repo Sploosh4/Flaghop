@@ -5,6 +5,7 @@ import type {HubProject, HubSettings} from './api';
 import {Icon} from './Icon';
 import {useDesktopWindow} from './desktop';
 import {WindowControls} from './WindowControls';
+import {ToolUpdates} from './ToolUpdates';
 import {ProjectLabel} from './ProjectLabel';
 import {ProjectOverview, ProjectSetup, Setup} from './pages';
 import {Dialog} from './Dialog';
@@ -207,7 +208,7 @@ export function ProjectHub() {
         <div className="hub-section-label"><span>Projects</span><button id="hub-new-project" aria-label="New project" disabled={busy} onClick={() => form('create')}>+</button></div>
         <div className="hub-projects">{visible.map(project => <button key={project.id} className="hub-project" data-hub-project={project.id} disabled={busy} onContextMenu={event => context(event, project)} onKeyDown={event => context(event, project)} onClick={() => ignore(run(() => api.openProject(project.id)))}><span className="hub-avatar" aria-hidden="true">FH</span><span>{project.name}</span></button>)}</div>
       </>}
-      <button id="hub-setup" className="hub-setup needs-setup" onClick={setup} aria-label="Setup — VPN not configured" aria-current={page === 'setup' ? 'page' : undefined}><Icon kind="gear"/><span>Setup</span><span className="hub-dot"/></button>
+      <div className="hub-sidebar-footer"><button id="hub-setup" className="hub-setup needs-setup" onClick={setup} aria-label="Setup — VPN not configured" aria-current={page === 'setup' ? 'page' : undefined}><Icon kind="gear"/><span>Setup</span><span className="hub-dot"/></button><ToolUpdates/></div>
       <div className="hub-resizer" role="separator" aria-label="Resize sidebar" aria-orientation="vertical" aria-valuemin={210} aria-valuemax={340} aria-valuenow={width} tabIndex={0} {...resize}/>
     </aside>
     <main className="hub-main">

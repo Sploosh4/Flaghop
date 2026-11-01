@@ -13,4 +13,7 @@ for name in ("react", "react-dom", "scheduler", "openapi-fetch"):
     metadata = json.loads((package / "package.json").read_text())
     notices.append(f"{name} {metadata['version']}\n\n{(package / 'LICENSE').read_text().strip()}")
 output.mkdir(parents=True, exist_ok=True)
+notices.append(
+    f"T3 Code — adapted update-interface design\n\n{(ROOT / 'THIRD_PARTY_T3_CODE_LICENSE.txt').read_text().strip()}"
+)
 (output / "THIRD_PARTY_NOTICES.txt").write_text("\n\n".join(notices) + "\n")

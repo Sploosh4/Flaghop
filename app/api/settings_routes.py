@@ -6,9 +6,38 @@ from app.contracts.actions.responses import AcceptedJobResponse
 from app.contracts.actions.tooling_requests import ToolAuditInstallRequest
 from app.web.http_utils import json_error
 from app.web.services.settings_service import SettingsService
-from fastapi import Request, Response
+from fastapi import Body, Request, Response
+from app.contracts.actions.tool_updates import ToolUpdateRequest, ToolUpdateState
 
 router = native_router()
+
+
+def tool_updates(request, runtime):
+    with runtime._lock:
+        if not hasattr(runtime, "tool_updates"):
+            from app.services.tool_updates import ToolUpdates
+
+            runtime.tool_updates = ToolUpdates(runtime)
+        return runtime.tool_updates
+
+
+@router.get("/api/settings/tool-updates", response_model=ToolUpdateState, operation_id="getToolUpdates")
+def settings_tool_updates(request: Request, runtime: Runtime):
+    return tool_updates(request, runtime).snapshot()
+
+
+@router.post(
+    "/api/settings/tool-updates",
+    response_model=ToolUpdateState,
+    operation_id="startToolUpdates",
+    status_code=202,
+)
+def settings_tool_updates_start(
+    request: Request,
+    runtime: Runtime,
+    payload: ToolUpdateRequest = Body(default_factory=ToolUpdateRequest),
+):
+    return tool_updates(request, runtime).start(payload)
 
 
 @router.get("/api/settings/display", operation_id="settings_display_get")

@@ -15,8 +15,9 @@ from cipher_watch.extract_bridge import extract
 from cipher_watch.scanner import Scanner, Settings
 
 ROOT = Path(__file__).resolve().parent.parent
-B64DUMP = ROOT / ".tools/base64dump.py"
-CIPHEY = ROOT / ".tools/ciphey"
+from cipher_watch.tool_paths import tool_path
+B64DUMP = tool_path("base64dump.py")
+CIPHEY = tool_path("ciphey")
 MESSAGE = b"hello there general"
 
 

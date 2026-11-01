@@ -25,6 +25,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT / 'cipher-watch'), str(ROOT / 'hash-watch')]
 from cipher_watch.scanner import Scanner, Settings as CipherSettings
+from cipher_watch.tool_paths import tool_path
 from cipher_watch.adapters import decode
 from hash_watch.pipeline import Pipeline, Settings as HashSettings
 from hash_watch.detect import identify
@@ -140,7 +141,7 @@ def cipher_scan(case, source, folder):
     for key in ('encodings','max_candidates'):
         if key in case.options:
             settings[key]=case.options[key]
-    scanner=Scanner(source.parent,folder,ROOT/'cipher-watch/.tools/base64dump.py',ROOT/'cipher-watch/.tools/ciphey',CipherSettings(**settings))
+    scanner=Scanner(source.parent,folder,tool_path('base64dump.py'),tool_path('ciphey'),CipherSettings(**settings))
     try:
         report=scanner.scan(source)
         return json.loads(report.read_text()),str(report)
@@ -289,7 +290,7 @@ def execute(case,out):
         if not met and case.options.get('bridge_probe'):
             observed['manual_bridge_controls']=bridge_probe(case,observed,folder)
         if not met and case.options.get('direct_probe'):
-            observed['direct_ciphey_control'],raw=decode(ROOT/'cipher-watch/.tools/ciphey',case.data.decode(),home=folder/'direct-home',cwd=folder,seconds=3,regex=re.escape(case.expected.decode()))
+            observed['direct_ciphey_control'],raw=decode(tool_path('ciphey'),case.data.decode(),home=folder/'direct-home',cwd=folder,seconds=3,regex=re.escape(case.expected.decode()))
             (folder/'direct-ciphey.json').write_text(json.dumps(raw,indent=2))
         if not met and case.options.get('password_bridge_probe'):
             controls=[]

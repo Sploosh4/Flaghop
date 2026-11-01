@@ -1,16 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd -- "$(dirname -- "$0")"
-if [[ $(uname -s) != Linux || $(uname -m) != x86_64 ]]; then
-  echo 'This pinned prototype setup supports Linux x86_64.' >&2
-  exit 1
-fi
-mkdir -p .tools .tmp .cache
-if command -v uv >/dev/null 2>&1; then
-  UV_CACHE_DIR="$PWD/.cache/uv" uv venv --allow-existing .venv
-  UV_CACHE_DIR="$PWD/.cache/uv" uv pip install --python .venv/bin/python -r requirements.txt
-else
-  python3 -m venv .venv
-  .venv/bin/python -m pip install --cache-dir "$PWD/.cache/pip" -r requirements.txt
-fi
-.venv/bin/python setup_tools.py
+SOURCE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd -- "$SOURCE_DIR/../.." && pwd)"
+python3 "$PROJECT_DIR/skills/project-storage-cap/scripts/storage_guard.py" --root "$PROJECT_DIR" --check
+UV_CACHE_DIR="$PROJECT_DIR/.cache/uv" uv pip install --upgrade --python "$PROJECT_DIR/.venv/bin/python" -r "$SOURCE_DIR/requirements.txt"
+bash "$PROJECT_DIR/scripts/update-security-tools.sh" --only ciphey base64dump
+python3 "$PROJECT_DIR/skills/project-storage-cap/scripts/storage_guard.py" --root "$PROJECT_DIR" --check

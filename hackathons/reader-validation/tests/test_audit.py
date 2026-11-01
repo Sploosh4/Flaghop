@@ -9,6 +9,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from audit import Case, corpus, evaluate, evidence_issues, digest
 from audit import ROOT
 from cipher_watch.extract_bridge import extract
+from cipher_watch.tool_paths import tool_path
 from hash_watch.detect import identify
 
 class AuditTests(unittest.TestCase):
@@ -62,7 +63,7 @@ class ExtractorPropertyTests(unittest.TestCase):
             encoded=base64.b64encode(payload)
             data=b'\xff\n"'+encoded+b'"\n\xff"'+encoded+b'"\n"'+encoded+b'"'
             with self.subTest(iteration=iteration):
-                result=extract(ROOT/'cipher-watch/.tools/base64dump.py',data,['b64'],8,1024,64)
+                result=extract(tool_path('base64dump.py'),data,['b64'],8,1024,64)
                 matches=[c for c in result['candidates'] if base64.b64decode(c['decoded_b64'])==payload]
                 self.assertEqual(len(matches),3)
                 expected=[]

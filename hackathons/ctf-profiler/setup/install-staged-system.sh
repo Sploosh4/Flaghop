@@ -9,8 +9,6 @@ OWNER_DIRECTORY=$(getent passwd "$OWNER_UID" | cut -d: -f6)
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y --no-install-recommends ffuf sqlmap golang-go ruby-dev build-essential libcurl4-openssl-dev libxml2-dev libxslt1-dev zlib1g-dev libffi-dev
-runuser -u "$OWNER_NAME" -- env GOBIN="$PROJECT_DIR/.tools/bin" go install github.com/praetorian-inc/fingerprintx/cmd/fingerprintx@v1.1.19
-runuser -u "$OWNER_NAME" -- gem install wpscan --version 4.2.0 --no-document --install-dir "$PROJECT_DIR/.tools/gems"
-runuser -u "$OWNER_NAME" -- /usr/bin/python3 "$PROJECT_DIR/setup/write-staged-wrappers.py"
+runuser -u "$OWNER_NAME" -- /usr/bin/python3 "$PROJECT_DIR/setup/install-staged-tools.py"
 dpkg-query -W ffuf sqlmap golang-go ruby-dev
 echo 'Staged tool installation complete.'

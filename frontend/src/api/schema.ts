@@ -1271,6 +1271,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/settings/tool-updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Settings Tool Updates */
+        get: operations["getToolUpdates"];
+        put?: never;
+        /** Settings Tool Updates Start */
+        post: operations["startToolUpdates"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/snapshot": {
         parameters: {
             query?: never;
@@ -4032,6 +4050,57 @@ export interface components {
             timeout?: number | string;
             /** Tool Id */
             tool_id: string;
+        };
+        /** ToolUpdateEntry */
+        ToolUpdateEntry: {
+            /**
+             * Error
+             * @default
+             */
+            error?: string;
+            /**
+             * Installed
+             * @default
+             */
+            installed?: string;
+            /**
+             * Latest
+             * @default
+             */
+            latest?: string;
+            /** Name */
+            name: string;
+            /**
+             * Status
+             * @default pending
+             * @enum {string}
+             */
+            status?: "pending" | "checking" | "updating" | "current" | "updated" | "failed";
+        };
+        /** ToolUpdateRequest */
+        ToolUpdateRequest: {
+            /**
+             * Retry Failed
+             * @default false
+             */
+            retry_failed?: boolean;
+        };
+        /** ToolUpdateState */
+        ToolUpdateState: {
+            /**
+             * Error
+             * @default
+             */
+            error?: string;
+            /** Job Id */
+            job_id?: number | null;
+            /**
+             * Running
+             * @default false
+             */
+            running?: boolean;
+            /** Tools */
+            tools?: components["schemas"]["ToolUpdateEntry"][];
         };
         /** WorkspaceMutationResult */
         WorkspaceMutationResult: {
@@ -10465,6 +10534,158 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getToolUpdates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToolUpdateState"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    startToolUpdates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ToolUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToolUpdateState"];
                 };
             };
             /** @description Bad Request */

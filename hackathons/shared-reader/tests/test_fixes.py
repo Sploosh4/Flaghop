@@ -3,6 +3,7 @@ import base64,bz2,codecs,hashlib,json,lzma,tempfile,time,unittest,sys
 from pathlib import Path
 from unittest.mock import patch
 from shared_reader import ROOT
+from cipher_watch.tool_paths import tool_path
 from shared_reader.transforms import layers
 from shared_reader.project import Project
 from cipher_watch.extract_bridge import extract
@@ -18,7 +19,7 @@ RECORD=b'md5="'+hashlib.md5(b'password').hexdigest().encode()+b'"'
 class FixTests(unittest.TestCase):
  def test_duplicate_locations_do_not_hide_footer_in_either_extractor(self):
   data=b'service="ControllerAlphaBetaGamma" route="workspaceStatusPanel"\n'*30000+b'fixture="'+base64.b64encode(RECORD)+b'"\n'
-  raw=extract(ROOT/'cipher-watch/.tools/base64dump.py',data,['b64'],8,16384,64)
+  raw=extract(tool_path('base64dump.py'),data,['b64'],8,16384,64)
   self.assertIn(RECORD,[base64.b64decode(c['decoded_b64']) for c in raw['candidates']])
   self.assertNotIn('candidate_count_limit',raw['warnings']);self.assertLess(len(raw['candidates']),64)
   self.assertTrue(any(n['occurrences']>64 for n in raw['notes']))
@@ -26,7 +27,7 @@ class FixTests(unittest.TestCase):
   self.assertFalse(any(k=='normalization_candidate_limit' for _,k,_ in result))
  def test_real_distinct_candidate_limit_remains_visible(self):
   data=b'\n'.join(b'"'+base64.b64encode(f'known unique payload {i:03}'.encode())+b'"' for i in range(65))
-  raw=extract(ROOT/'cipher-watch/.tools/base64dump.py',data,['b64'],8,16384,64)
+  raw=extract(tool_path('base64dump.py'),data,['b64'],8,16384,64)
   self.assertEqual(raw['unique_values'],64);self.assertEqual(raw['omitted_unique_values'],1)
   self.assertIn('candidate_count_limit',raw['warnings'])
  def test_control_byte_plaintext_is_rejected(self):
@@ -37,7 +38,7 @@ class FixTests(unittest.TestCase):
    root=Path(t);inbox=root/'input';inbox.mkdir();source=inbox/'file'
    values=[b'first useful passage',b'second useful passage',b'third useful passage',RECORD]
    source.write_bytes(b'\n'.join(b'"'+base64.b64encode(v)+b'"' for v in values))
-   scanner=Scanner(inbox,root/'out',ROOT/'cipher-watch/.tools/base64dump.py',ROOT/'cipher-watch/.tools/ciphey',Settings(file_seconds=2,encodings='b64'))
+   scanner=Scanner(inbox,root/'out',tool_path('base64dump.py'),tool_path('ciphey'),Settings(file_seconds=2,encodings='b64'))
    def slow(*args,**kw):
     time.sleep(.7);return {'status':'not_found'},{'status':'complete','returncode':0,'stdout':'','stderr':'','elapsed_seconds':.7}
    try:

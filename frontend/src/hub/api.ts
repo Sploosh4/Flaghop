@@ -84,3 +84,7 @@ export async function deepScan(id: string, scanId: string) {return result(await 
 export async function recoverDeepScan(id: string, scanId: string) {return result(await client.POST('/api/hub/projects/{identifier}/deep-scans/{scan_id}/recover', {params: {path: {identifier: id, scan_id: scanId}}}));}
 export async function executionRecovery() {return result(await client.GET('/api/recovery'));}
 export async function retryExecutionRecovery() {return result(await client.POST('/api/recovery'));}
+
+export type ToolUpdateState = components['schemas']['ToolUpdateState'];
+export async function toolUpdates() {return result(await client.GET('/api/settings/tool-updates'));}
+export async function updateTools(retry_failed = false) {return result(await client.POST('/api/settings/tool-updates', {body: {retry_failed}}));}

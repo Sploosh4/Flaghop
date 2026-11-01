@@ -18,3 +18,7 @@ pydantic==2.14.2
 uvicorn==0.54.0
 websockets==17.4
 python-multipart==0.0.32
+
+# Readers use the shared project environment and current compatible packages.
+-r hackathons/hash-watch/requirements.txt
+paramiko

@@ -16,6 +16,7 @@ import time
 from . import ROOT
 from .transforms import layers
 from cipher_watch.scanner import Scanner, Settings as CipherSettings
+from cipher_watch.tool_paths import tool_path
 from hash_watch.pipeline import Pipeline, Settings as HashSettings
 from hash_watch.store import atomic, atomic_bytes, now
 
@@ -89,7 +90,7 @@ class Project:
         self.db.execute("UPDATE nodes SET status='queued' WHERE status='running'")
         self.db.commit()
         s=self.limits
-        self.cipher=Scanner(self.objects,self.path/'ciphey',ROOT/'cipher-watch/.tools/base64dump.py',ROOT/'cipher-watch/.tools/ciphey',
+        self.cipher=Scanner(self.objects,self.path/'ciphey',tool_path('base64dump.py'),tool_path('ciphey'),
             CipherSettings(max_file_bytes=s.max_file_bytes,max_candidate_bytes=min(s.max_file_bytes,16384),decode_seconds=s.decode_seconds,file_seconds=s.file_seconds,regex=s.regex))
         self.hashes=Pipeline(self.objects,self.path/'password-crackers',HashSettings(max_file_bytes=s.max_file_bytes,threads=s.threads,
             slice_seconds=s.slice_seconds,batch_size=s.batch_size),wordlist=wordlist,benchmark_file=benchmark)

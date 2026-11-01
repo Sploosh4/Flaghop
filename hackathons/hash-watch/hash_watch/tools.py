@@ -1,18 +1,23 @@
-"""Private tool environment and bounded, cancellable subprocess execution."""
+"""Shared tool environment and bounded, cancellable subprocess execution."""
 import hashlib
 import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import subprocess
 import sys
 import tempfile
 import time
 
 ROOT = Path(__file__).resolve().parent.parent
-TOOLS = ROOT / '.tools'
+TOOLS = Path(os.environ.get('SECURITY_TOOLS_HOME', Path.home() / '.local/share/security-tools')) / 'compute'
 JOHN = TOOLS / 'john/run/john'
 HASHCAT = TOOLS / 'hashcat/hashcat'
+if not JOHN.is_file():
+    JOHN = Path(shutil.which('john') or '/nonexistent/john').resolve()
+if not HASHCAT.is_file():
+    HASHCAT = Path(shutil.which('hashcat') or '/nonexistent/hashcat').resolve()
 
 
 def digest(data):
@@ -93,10 +98,10 @@ def save_raw(folder, prefix, result):
 
 
 def fingerprints():
-    """Include the shared core/plugins and private compute runtimes, not just launchers."""
+    """Identify shared binaries, plugins and compute runtimes for evidence."""
     modules=sorted((TOOLS/'hashcat/modules').glob('*.so'))
     result={'john':digest(JOHN.read_bytes()), 'hashcat':digest(HASHCAT.read_bytes()),
-            'hashcat_core':digest((TOOLS/'hashcat/libhashcat.so.8').read_bytes()),
+            'hashcat_core':digest(next(HASHCAT.parent.glob('libhashcat.so*')).read_bytes()) if list(HASHCAT.parent.glob('libhashcat.so*')) else None,
             'hashcat_modules':digest(b''.join(p.name.encode()+bytes.fromhex(digest(p.read_bytes())) for p in modules))}
     for name,path in [('pocl',TOOLS/'sysroot/usr/lib/x86_64-linux-gnu/libpocl.so.2'),
                       ('rusticl',TOOLS/'sysroot/usr/lib/x86_64-linux-gnu/libRusticlOpenCL-relocated.so')]:

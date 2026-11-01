@@ -218,3 +218,33 @@ body.workspace-part[data-workspace-part="app-settings"] .tool-audit-table-wrap c
 #project-hub-root .hub-scan-observation,#project-hub-root .hub-scan-evidence{display:block;font-size:11px;margin:6px 0;color:#aaa}
 @keyframes hub-scan-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#project-hub-root .hub-scan-active .hub-scan-heading>small::before{animation:none}}
+#project-hub-root .hub-sidebar-footer {display:flex;align-items:center;gap:6px;margin-top:14px;min-width:0;}
+#project-hub-root .hub-sidebar-footer .hub-setup {margin:0;width:auto;min-width:0;flex:1;}
+#project-hub-root .tool-update-control {position:relative;flex-shrink:0;}
+#project-hub-root .hub-app .tool-update-capsule {display:flex;align-items:center;justify-content:center;height:32px;padding:0;border:0;border-radius:999px;color:#b8b8b8;background:#262626;outline:none;transition:background .15s;}
+#project-hub-root .hub-app .tool-update-capsule:hover {background:#333;color:#eee;}
+#project-hub-root .hub-app .tool-update-capsule:focus-visible {box-shadow:inset 0 0 0 2px #858585;}
+#project-hub-root .tool-update-label {padding-left:12px;font-size:12px;white-space:nowrap;}
+#project-hub-root .tool-update-icon {width:32px;height:32px;display:grid;place-items:center;}
+#project-hub-root .tool-update-icon svg {width:32px;height:32px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+#project-hub-root .tool-update-track {opacity:.22;}
+#project-hub-root .tool-update-progress {transform:rotate(-90deg);transform-origin:16px 16px;transition:stroke-dashoffset .3s ease-out;}
+#project-hub-root .has-failures .tool-update-capsule {box-shadow:inset 0 0 0 1px #ef646466;color:#f07878;}
+#project-hub-root .tool-update-popover {position:fixed;z-index:90;box-sizing:border-box;width:300px;max-width:calc(100vw - 16px);padding:12px;border:1px solid #353535;border-radius:10px;background:#202020;color:#e5e5e5;box-shadow:0 8px 30px #0008;font-size:12px;}
+#project-hub-root .tool-update-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;}
+#project-hub-root .tool-update-heading strong {font-size:12px;font-weight:500;}
+#project-hub-root .hub-app .tool-update-heading button {font-size:18px;padding:0 3px;color:#999;line-height:18px;}
+#project-hub-root .tool-update-description {margin:4px 0 12px;color:#929292;line-height:1.5;}
+#project-hub-root .tool-update-rows {display:flex;flex-direction:column;gap:4px;max-height:50vh;overflow:auto;}
+#project-hub-root .tool-update-row>div {display:flex;justify-content:space-between;align-items:center;gap:12px;line-height:20px;}
+#project-hub-root .tool-update-name {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#project-hub-root .tool-update-state {display:flex;align-items:center;gap:6px;flex-shrink:0;color:#939393;font-variant-numeric:tabular-nums;}
+#project-hub-root .tool-update-state.state-failed {color:#f07878;}
+#project-hub-root .tool-update-error {margin:3px 0 6px;color:#b5a0a0;font-size:11px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap;}
+#project-hub-root .tool-update-spinner {width:9px;height:9px;border:1px solid #555;border-top-color:#ccc;border-radius:50%;animation:tool-update-spin .8s linear infinite;}
+#project-hub-root .tool-update-actions {display:flex;justify-content:flex-end;gap:6px;margin-top:12px;}
+#project-hub-root .hub-app .tool-update-actions button {padding:4px 8px;border:1px solid #454545;border-radius:5px;font-size:11px;}
+#project-hub-root .tool-update-credit {display:block;margin-top:12px;padding-top:9px;border-top:1px solid #343434;color:#878787;font-size:10px;text-decoration:none;}
+#project-hub-root .tool-update-credit:hover {color:#c5c5c5;}
+@keyframes tool-update-spin {to {transform:rotate(360deg);}}
+@media (prefers-reduced-motion:reduce) {#project-hub-root .tool-update-progress {transition:none;} #project-hub-root .tool-update-spinner {animation:none;}}

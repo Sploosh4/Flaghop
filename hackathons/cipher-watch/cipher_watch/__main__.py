@@ -10,6 +10,7 @@ from . import __version__
 from .scanner import Scanner, Settings
 from .extract_bridge import ENCODING_FUNCTIONS
 from .watcher import FolderWatcher
+from .tool_paths import tool_path
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -39,8 +40,8 @@ def main():
     parser.add_argument("--file-seconds", type=positive, default=30)
     parser.add_argument("--reconcile-seconds", type=positive, default=30)
     parser.add_argument("--ignore", action="append", default=[], help="Glob on relative path; repeatable")
-    parser.add_argument("--base64dump", type=Path, default=ROOT / ".tools/base64dump.py")
-    parser.add_argument("--ciphey", type=Path, default=ROOT / ".tools/ciphey")
+    parser.add_argument("--base64dump", type=Path, default=tool_path("base64dump.py"))
+    parser.add_argument("--ciphey", type=Path, default=tool_path("ciphey"))
     args = parser.parse_args()
     if args.encodings == "all":
         args.encodings = ",".join(ENCODING_FUNCTIONS)

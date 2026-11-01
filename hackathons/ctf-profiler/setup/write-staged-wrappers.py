@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Expose project-local Ruby dependencies without changing system gems."""
+"""Refresh shared WPScan and scanner launchers."""
 from pathlib import Path
-import shlex
+import subprocess
+import sys
 
-project = Path(__file__).resolve().parents[1]
-gems = project / ".tools/gems"
-wrapper = project / ".tools/bin/wpscan"
-wrapper.write_text("#!/bin/sh\nexport GEM_HOME=" + shlex.quote(str(gems)) + "\nexport GEM_PATH=" + shlex.quote(str(gems)) + "\nexec /usr/bin/ruby " + shlex.quote(str(gems / "bin/wpscan")) + ' "$@"\n')
-wrapper.chmod(0o755)
+if __name__ == '__main__':
+    subprocess.run([sys.executable, str(Path(__file__).resolve().parents[3] / 'scripts/security-tools.py'), 'launchers'], check=True)

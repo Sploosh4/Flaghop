@@ -56,7 +56,7 @@ class Scanner:
                 raise ValueError(f"Missing tool: {tool}; run setup.sh first")
         self.tools = {"base64dump": {"path": str(self.base64dump), "sha256": sha(self.base64dump.read_bytes())},
                       "ciphey": {"path": str(self.ciphey), "sha256": sha(self.ciphey.read_bytes()),
-                                 "adapter": "Ciphey v0.12.1 CLI"}}
+                                 "adapter": "Ciphey CLI"}}
         code_hash = sha(b"".join(p.read_bytes() for p in sorted(Path(__file__).parent.glob("*.py"))))
         config = {"prototype_version": __version__, "code_sha256": code_hash,
                   "settings": asdict(self.settings), "tools": self.tools}
