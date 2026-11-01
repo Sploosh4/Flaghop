@@ -1,4 +1,68 @@
-# Domain contract authoring
+# Contributing
+
+Use this guide to build, test and change FlagHop. Product requirements live in
+[requirements](docs/requirements.md), implementation structure in
+[architecture](docs/architecture.md), and runtime configuration in
+[operations](docs/operations.md). AI agents must follow [AGENTS.md](AGENTS.md).
+
+## Development environment
+
+Use Python 3.12+ on Linux and the existing project `.venv`. Install
+`requirements-dev.txt` there. Frontend development uses Node.js 24 LTS;
+`scripts/frontend.sh` also detects a project-local `.tools/node` installation.
+Production launches use the checked-in frontend assets and do not need Node.js.
+Keep dedicated environments, caches and temporary artifacts inside the mounted
+2,000,000,000-byte project cap. Check storage before installs/builds/tests:
+
+```sh
+python3 skills/project-storage-cap/scripts/storage_guard.py --root "$PWD" --check
+```
+
+## Build and verification
+
+Run commands from the repository root:
+
+```sh
+scripts/frontend.sh install     # install locked frontend development dependencies
+scripts/frontend.sh generate    # regenerate OpenAPI/client types after contract changes
+scripts/frontend.sh build       # production bundle and third-party notices
+scripts/frontend.sh check       # type/schema drift, frontend tests and bundle reproducibility
+scripts/check-maintainability.sh # contract checker, Black, flake8 and Python tests
+```
+
+Run targeted existing tests while developing and relevant broader checks at the
+finished candidate. Exercise accepted/rejected inputs, failures and compatibility
+boundaries. Use isolated fixtures; ordinary tests must not launch live scans,
+credential attempts or installers. Relevant native UI fixtures run against
+FastAPI, for example:
+
+```sh
+QT_QPA_PLATFORM=offscreen QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu --no-sandbox" \
+  .venv/bin/python -B tests/desktop/workspace_smoke.py
+```
+
+Use hardware/documents/scanner/window fixtures when their paths change.
+Privileged tunnel acceptance is opt-in: `tests/desktop/network_tunnels.py` must
+run in isolated network/mount namespaces with owned fixtures, never directly in
+the host network namespace:
+
+```sh
+pkexec env PYTHONDONTWRITEBYTECODE=1 unshare --mount --net --propagation private -- \
+  "$PWD/.venv/bin/python" "$PWD/tests/desktop/network_tunnels.py"
+```
+
+Tests establish the paths they exercise; a passing schema check does not prove
+a finding or network enforcement. Report actual command results and limitations.
+
+## Code and compatibility
+
+Follow component ownership in [architecture](docs/architecture.md). Keep stable
+project/action/tool IDs and compatible workspace/API behaviour. Preserve approval
+checks, guarded execution, cancellation, evidence ownership, original files and
+the distinction between execution success and an independently verified result.
+Do not modify trusted evaluation fixtures or weaken checks to obtain a pass.
+
+## Domain contracts
 
 The application owns one definition of each action, result, observation and
 artifact reference. All application consumers and tests import its canonical
@@ -20,7 +84,7 @@ instructions in docs, checks in `app/validation`/`scripts`, parsers in the parse
 layer, and executable adapters in services/processes/scanning. Do not put a tool
 implementation or an empty placeholder integration in the contract folders.
 
-## Adding an action or result
+### Adding an action or result
 
 1. Find the nearest existing action/request/result and reuse it where its meaning
    matches. Scheduler actions use `ActionSpec`, `PlanStep`, `ExecutionRecord`;
@@ -64,7 +128,7 @@ historical tool extensions declare `ConfigDict(extra="allow")` explicitly.
 Do not turn open historical metadata into a claim of validation: typed required
 fields carry guarantees, while extension fields preserve original context.
 
-## Observations and artifacts
+### Observations and artifacts
 
 Observations describe evidence, not UI state. Retain provenance, unknowns and
 the distinction between hypotheses, candidates and reproduced findings. Legacy
@@ -114,7 +178,7 @@ Pydantic/API or owning service boundary. Raw legacy SQLite JSON/text fields stay
 encoded at their transport boundary; do not treat them as structured locators
 until decoded and validated.
 
-## Feedback and verification
+### Contract checks
 
 | Area | Behavioural acceptance | Regression coverage |
 | --- | --- | --- |
@@ -122,14 +186,9 @@ until decoded and validated.
 | Observations | Parser output is checked, historical optional fields stay unknown, and candidates/reproduction remain distinct | `test_ObservationContracts`, target-state/network/scanner suites, hardware fixture |
 | Artifacts | References cannot escape the project; actual manifests/bytes still agree; reader origins retain provenance without inventing identity | `test_ArtifactContracts`, reader/scanner suites, document and scanner desktop fixtures |
 
-```sh
-.venv/bin/python -B scripts/check-contracts.py
-scripts/check-maintainability.sh
-scripts/frontend.sh check
-```
-
-The first command checks definition-folder contents, dependencies, duplicate or
-misplaced contract classes, approved bases and resolvable types/Pydantic schemas.
+`.venv/bin/python -B scripts/check-contracts.py` checks definition-folder
+contents, dependencies, duplicate/misplaced contract classes, approved bases and
+resolvable types/Pydantic schemas.
 It also rejects import cycles, runtime methods in data classes and untyped
 structured evidence-reference lists. Retired definition modules and imports cannot
 be restored as compatibility copies; consumers must use the canonical owner.

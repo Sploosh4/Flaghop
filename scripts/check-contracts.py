@@ -13,6 +13,6 @@ if __name__ == "__main__":
     diagnostics = check_contracts(ROOT)
     if diagnostics:
         print("\n".join(diagnostics))
-        print("Repair the owning definition; do not bypass this check. See docs/contract-authoring.md.")
+        print("Repair the owning definition; do not bypass this check. See CONTRIBUTING.md.")
         raise SystemExit(1)
     print("Contract checks passed: ownership, folder contents, dependencies, class roots and field schemas.")

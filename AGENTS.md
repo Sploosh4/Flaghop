@@ -27,7 +27,7 @@ Work on `codex/` branches. Keep `.state`, `.desktop-profile`, environments, test
 
 ## Domain contracts: required for human and AI contributions
 
-Read `docs/contract-authoring.md` before adding or changing tool actions/results,
+Read `CONTRIBUTING.md` before adding or changing tool actions/results,
 observations or artifact references. Their single source is respectively
 `app/contracts/actions`, `app/contracts/observations`, and `app/contracts/artifacts`.
 Use the approved roots from `app/contracts/base.py`; reuse existing definitions
@@ -53,10 +53,10 @@ scope, Project Manager maintains the relevant documentation. This does not
 authorise other AI agents to edit it or request instruction additions:
 
 - `README.md`: concise product summary, available features and run instructions.
-- `docs/product.md`: current capabilities, agreed requirements, outstanding work and unresolved decisions. Keep proposed or separately built features distinct from implemented app behaviour.
+- `docs/requirements.md`: scope, agreed requirements, acceptance criteria, implementation status and unresolved decisions. Keep proposed or separately built features distinct from implemented app behaviour.
 - `docs/architecture.md`: current component ownership, execution, persistence and compatibility boundaries.
-- `docs/contract-authoring.md`: canonical definitions, allowed dependencies and required checks.
-- `docs/setup.md`: current network, reader and dependency configuration.
+- `CONTRIBUTING.md`: development setup, build/test procedures, canonical definitions, allowed dependencies and required checks.
+- `docs/operations.md`: installation/configuration, network/readers, data recovery and troubleshooting.
 - `.github/repository-description.txt`: the intended GitHub About description. Keep it consistent with the README and update the GitHub field when repository administration is available and authorized. Editing this text file does not automatically change GitHub settings.
 
 Working prototypes and reviewed Figma designs are not published app features. Separate execution completion, reproduced findings, sessions and privilege changes. Keep authenticated web investigation deferred until the basic integrated workflow is implemented; do not assume detailed pivoting or privilege-escalation scope is agreed.

@@ -142,7 +142,7 @@ def check_contracts(root, *, load_models=True):
         errors.append(f"{path.relative_to(root)}:{line}: {code} {message}")
 
     if not directory.is_dir():
-        return ["app/contracts:1: C001 Missing contract folders; see docs/contract-authoring.md."]
+        return ["app/contracts:1: C001 Missing contract folders; see CONTRIBUTING.md."]
     for category in CATEGORIES:
         if not (directory / category / "__init__.py").is_file():
             report(directory, 1, "C001", f"Missing {category}/__init__.py; restore the dedicated definition package.")
@@ -287,7 +287,7 @@ def check_contracts(root, *, load_models=True):
                 path,
                 node.lineno,
                 "C009",
-                f"{node.name} needs an approved {category} base; see docs/contract-authoring.md.",
+                f"{node.name} needs an approved {category} base; see CONTRIBUTING.md.",
             )
         if "app.contracts.base.ActionData" in lineage and not any(
             _resolve(d, aliases[_module(path, root)]) == "dataclasses.dataclass" for d in node.decorator_list
@@ -443,6 +443,6 @@ def check_contracts(root, *, load_models=True):
                     path,
                     node.lineno,
                     "C010",
-                    f"{node.name} has an invalid data definition: {exc}; see docs/contract-authoring.md.",
+                    f"{node.name} has an invalid data definition: {exc}; see CONTRIBUTING.md.",
                 )
     return errors

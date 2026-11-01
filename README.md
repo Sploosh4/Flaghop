@@ -9,7 +9,7 @@ scans, service inventory, evidence reopening, project save/restore/export and
 local Files/editor windows. Cipher/password reader controls are integrated;
 their engines and service are separate dependencies. Text edits remain browser
 drafts. Full topology, contextual actions, Metasploit sessions and remote Files
-are still to build. See [product scope](docs/product.md).
+are still to build. See [requirements](docs/requirements.md).
 
 ## Install and run
 
@@ -32,23 +32,13 @@ frontend assets are included; Node.js is needed only for development.
 Projects default to `~/Documents/FlagHop/[project name]`; change the base folder
 in Setup. Existing `.legion` workspaces are supported. Network jobs require
 project scope, a matching route/profile and Linux enforcement privileges;
-unsupported or unconfigured work is held. Follow [setup](docs/setup.md).
+unsupported or unconfigured work is held. Follow [operations](docs/operations.md).
 
 ## Development
 
-Read [AGENTS.md](AGENTS.md) before changes. Install `requirements-dev.txt` in the
-project environment and use Node.js 24 LTS for frontend development.
-
-```sh
-scripts/frontend.sh install
-scripts/frontend.sh generate     # after changing API contracts
-scripts/frontend.sh build        # production assets and third-party notices
-scripts/frontend.sh check
-scripts/check-maintainability.sh
-```
-
-See [architecture](docs/architecture.md) and
-[contract authoring](docs/contract-authoring.md) for implementation boundaries.
+Follow [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, builds, tests
+and contract authoring. See [architecture](docs/architecture.md) for how the
+application fits together; [AGENTS.md](AGENTS.md) contains AI-agent instructions.
 
 ## Licence and credits
 

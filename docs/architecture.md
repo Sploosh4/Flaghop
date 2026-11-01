@@ -5,6 +5,20 @@ features share one Python runtime and one SQLite database per project. Modules
 separate their responsibilities; they are not independently deployed services
 or dynamically loaded plug-ins.
 
+This description uses a reduced [arc42 outline](https://arc42.org/overview/)
+and the architecture-description concepts of
+[ISO/IEC/IEEE 42010](https://www.iso.org/standard/74393.html). It describes the
+current checkout, with no claim of full standards conformance.
+
+## Context and concerns
+
+Investigators use the desktop/browser UI; developers maintain its shared
+contracts and integrations. External tool executables and the reader service
+are separate dependencies. Target services are outside the application boundary.
+Key concerns are project isolation (REQ-PRJ-001), enforced network scope
+(REQ-NET-001), evidence preservation (REQ-FIL-001) and interrupted-work recovery
+(REQ-REC-001); see [requirements](requirements.md).
+
 ```mermaid
 flowchart TD
   Desktop[Qt WebEngine windows] --> UI[React workspace and retained HTML views]
@@ -23,7 +37,7 @@ flowchart TD
   Reader[Separate cipher and password reader] --> Files
 ```
 
-## Ownership
+## Components and ownership
 
 | Area | Responsibility |
 | --- | --- |
@@ -31,7 +45,7 @@ flowchart TD
 | [`frontend/src/activity`](../frontend/src/activity) | Jobs, processes, output, approvals and other migrated activity panels. |
 | [`app/desktop.py`](../app/desktop.py) and [`desktop_documents.py`](../app/desktop_documents.py) | Native windows around the same localhost app. Window controls use a narrow trusted-origin Qt bridge. |
 | [`app/api`](../app/api) | FastAPI routes and application/page compositions. OpenAPI generates TypeScript client types from the canonical contracts. |
-| [`app/contracts`](../app/contracts) | Definition-only actions/results, observations and artifact references, using approved roots. Parsers, runners, storage and HTTP services stay outside. See [authoring and quality gate](contract-authoring.md). |
+| [`app/contracts`](../app/contracts) | Definition-only actions/results, observations and artifact references, using approved roots. Parsers, runners, storage and HTTP services stay outside. See [authoring and quality gate](../CONTRIBUTING.md#domain-contracts). |
 | [`app/web`](../app/web) | HTML/JavaScript assets, templates, job manager and framework-independent service adapters. There is no second web application. |
 | [`app/services`](../app/services) | Project catalog, workspace/session state, process registry, settings, events and network policy. |
 | [`app/web/jobs.py`](../app/web/jobs.py) | Bounded in-memory queue with background workers, exclusive jobs and cancellation. Completion callbacks persist results before terminal publication and release; write failures become visible job failures. |
@@ -42,7 +56,7 @@ flowchart TD
 | [`app/scheduler`](../app/scheduler) | Existing rule planning, risk/policy decisions, approvals and execution orchestration. Metasploit execution is not added by the scanner adapter. |
 | [`db`](../db) | SQLAlchemy entities, repositories and per-project SQLite persistence. |
 
-## Execution and evidence
+## Runtime: selected-device scan
 
 1. A Deep scan accepts a selected host ID/literal IP, expected network revision,
    timeout and optional resolver. Commands, scanner source and output paths are
@@ -54,7 +68,7 @@ flowchart TD
    The scanner proxy registers only a listener proven to belong to that scan;
    its forwarding remains restricted to the target and permitted ports. Changed
    routes/configuration interrupt work. Unverified ownership or missing privilege
-   holds execution/cleanup. See [supported setup](setup.md).
+   holds execution/cleanup. See [operations](operations.md#project-network).
 4. Before inventory writes, import validates typed facts, the complete summary,
    source/profile hashes, target, retained evidence paths/checksums and matching
    single-target XML. Hypotheses, candidates and reproduced findings remain
@@ -69,12 +83,34 @@ shared OS/browser libraries and arbitrary Ruby dependencies/plugins are outside
 that coverage. Scanner bundle updates use the explicit inventory/review-digest
 workflow in [`scripts/update-scanner.py`](../scripts/update-scanner.py).
 
-## Persistence and compatibility
+## Deployment and interfaces
+
+One local Python runtime serves FastAPI/Uvicorn HTTP, templates, static assets,
+file transfer and asynchronous WebSockets. Desktop mode wraps that same localhost
+interface in Qt WebEngine; browser mode uses an ordinary browser. React owns the
+workspace/activity components; retained HTML/JavaScript views share the server.
+This reuses project services and avoids separate deployment services for a local
+application. Scanner/tool children and the reader service remain separate processes.
+
+Generated `/docs`, `/openapi.json` and [frontend OpenAPI](../frontend/openapi.json)
+describe HTTP contracts. Project APIs use stable identifiers; OpenAPI-generated
+TypeScript types do not replace runtime response validation. WebSocket events
+invalidate snapshots, with polling fallback. Readers exchange project-scoped
+control, heartbeat, queue and result files; no per-project global engine launch
+is required.
+
+Project SQLite files and evidence directories persist across app launches.
+Network enforcement depends on local Linux privileges, nftables and namespace
+tools; supported clients/modes and service configuration are in
+[operations](operations.md). The desktop profile and native bridge are trusted
+local UI boundaries, not remote execution interfaces.
+
+## Cross-cutting concepts: persistence and compatibility
 
 The project catalog maps stable IDs to workspace databases/folders. Runtime and
 catalog operations share one reentrant lock; scanner transactions bind their
 workspace and recheck identity before import. Late UI responses cannot replace
-another selected project's data. WebSocket invalidations have polling fallback.
+another selected project's data.
 
 Jobs stay active/exclusive through result settlement. Persistence failures remain
 visible separately from execution outcomes. The bounded in-memory queue does not
@@ -98,7 +134,7 @@ cache; details load on expansion. Directory/stat work still grows with history.
 SQLite initialization supports existing `.legion` workspaces, including nullable
 execution links. Original evidence is not rewritten by editor drafts or recovery.
 
-## Remaining limits
+## Current limitations
 
 `WebRuntime` remains a broad facade. Host/service, graph and settings views still
 include imperative HTML/JavaScript. Pure canonical contracts are shared by the
@@ -108,4 +144,4 @@ filesystem checks remain necessary after schema validation.
 Readers use separate processes and project-scoped control/heartbeat/result files.
 Their Start/Stop controls do not control Deep scans. Independent multi-project
 execution, general workflow resumption, remote Files and unified Metasploit
-actions/sessions remain separate work; see [product scope](product.md).
+actions/sessions remain separate work; see [requirements](requirements.md#pending-specification).
