@@ -172,3 +172,12 @@ Current application contracts are described in [MIGRATION.md](../MIGRATION.md) a
 The local scanner's owning records are `ctf-profiler/validation/compat-python312-20261031/REPORT.md` and its source/evidence manifests. Earlier round-two reports and observer milestones remain historical records in the Hackathons workspace. Reader acceptance is under the app's ignored `.state/research/main-workspace-integration/`. Those local evidence files are not bundled in this public repository. Do not publish real investigation data or recovered secrets to fill that gap.
 
 Update this review alongside relevant implementation changes. Move a capability to the published section only when its code is actually published, and cite checks for the same revision.
+
+## Local capability-foundation candidate — 1 November 2026
+
+A local branch experiments with declarative module/integration metadata and a
+read-only inspection endpoint over existing action sources. Existing execution
+and policy remain in their current owners. No production category definitions
+are approved; proposals remain draft. See [authoring](capability-authoring.md)
+and [inventory](capability-action-inventory.md). This is a local candidate,
+not a published release or a new live scanner/network certification.

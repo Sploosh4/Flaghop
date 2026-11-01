@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "integrations": [{"id": "example-tool", "description": "Fixture integration"}],
+  "modules": [
+    {"id": "first", "integration_ids": ["example-tool"], "action_ids": ["first-action"]},
+    {"id": "second", "integration_ids": ["example-tool"], "action_ids": ["second-action"], "depends_on": ["first"]}
+  ],
+  "categories": [{"id": "proposed", "definition": "Synthetic positive definition for testing", "module_ids": ["second"]}]
+}
