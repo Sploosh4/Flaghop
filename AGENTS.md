@@ -1,7 +1,7 @@
 # Documentation ownership
 
 Only the **Project Manager** AI in chat
-`01a190c4-ad8b-7db0-8996-66d266abb314` may create, modify, delete, rename or
+`01a1975d-5358-7750-9118-52b4ce220c10` may create, modify, delete, rename or
 generate Markdown or any other documentation for this codebase. This includes
 agent instructions, READMEs, guides, plans, status/review reports and documentation
 in other formats. Documentation edits in code comments/docstrings are covered
@@ -16,6 +16,14 @@ allowed; appending a request for new instructions is not.
 
 The human user may change documentation or these rules at any time. This grant
 does not authorise Project Manager to publish, push or change unrelated settings.
+
+Joshua transferred project management to this chat. Linked checkout directories
+use the exact owning AI chat name. An AI taking over a checkout updates its name
+to match its chat, using Git worktree operations and preserving working changes.
+Coordinate path changes with other users of that checkout; retain compatibility
+aliases while existing processes depend on an old path. The primary repository
+keeps its product name. Newly merged Markdown awaiting review belongs under
+`temporary-documents/`; retain its original relative path within that folder.
 
 # Local development
 

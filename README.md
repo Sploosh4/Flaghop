@@ -21,11 +21,11 @@ dependencies. Keep dedicated environments, caches and data inside it; the
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-desktop.txt
-.venv/bin/python legion.py
+.venv/bin/python flaghop.py
 ```
 
 For browser-only mode, install `requirements.txt` instead and run
-`.venv/bin/python legion.py --web`. Open <http://127.0.0.1:5000>.
+`.venv/bin/python flaghop.py --web`. Open <http://127.0.0.1:5000>.
 FastAPI/Uvicorn serves all HTTP routes, pages, files and WebSockets. Production
 frontend assets are included; Node.js is needed only for development.
 

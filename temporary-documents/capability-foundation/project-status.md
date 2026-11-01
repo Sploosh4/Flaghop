@@ -89,7 +89,7 @@ and the existing desktop regressions passing on both transports. The scanner's
 owner completed fresh Python 3.12 compatibility validation and evidence review:
 51 regressions on each interpreter, 15 supplemental checks and three 28/28
 browser-gated runs. That standalone audit remains narrower; this revision adds actual Chrome/WPScan implementation fingerprints in the app worker. See [scanner integration](scanner-integration.md)
-and [architecture](architecture.md).
+and [architecture](../../docs/architecture.md).
 
 | Workstream | Current position | Remaining gate |
 | --- | --- | --- |
