@@ -1,0 +1,11 @@
+{
+  "purpose": "Observer-owned supplemental tests and baseline. Do not change to make implementation pass; report harness defects for review.",
+  "sha256": {
+    "scanning-acceptance-v3/acceptance.py": "13133b3378df357f07fd828173d0b9ba972dbe862e03d605947b63c9fc31c739",
+    "scanning-acceptance-v3/record_command.py": "4a8eaaa1a827d868115d2aaa7f279097a99e8e3d882d0975bd7a548999574021",
+    "scanning-acceptance-v3/test_harness.py": "1d28e44d28daf612113ae89c5c16aa60c70698320d314b0c817058a136c91716",
+    "scanning-acceptance-v3/README.md": "566eb8368b7db7fc39984e543cd6649e5a49a73344dfd4f622aa69c1f8380c2d",
+    "scanning-acceptance-v3/baseline-final.json": "08013e6c5f6558aabc8a4195b8e7e8563ef38fc4cbf4b47cce0f0a0ec00fce30",
+    "scanning-acceptance-v3/baseline-final.log": "034490e3a2c470ec13dde5bd8e41d2ef0d91b6cf2c5d2b3292993dc3e06455c9"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "suite": "scanning-acceptance-v3",
+  "measured_at": "2026-10-31T07:32:37.002519+00:00",
+  "project": "/tmp/cp-v3-source-ybor1zpl",
+  "group": "all",
+  "source_before": {
+    "ctf_profiler.py": "bfdeeac3fc88547f5740dcb2e95c81d0fa6aa0f87e38c6f38702f382258fbd32",
+    "dependencies.py": "0d508890b366e6948eb75c537a2c1b05b22a0b9f2af668fd6fa802b68a56d6c1",
+    "device_classifier.py": "4686cf0ff7e797df1c14b2cdad3cece0732d4a6699ef9e9bd0ba34bacb552134",
+    "scope_proxy.py": "fa9e07473462d3b15872cc7c93d6da2579791fc1b4a7f1a8c29697632eb34e4e",
+    "staged_workflow.py": "a3503172349017c1ab94e91a61fbcc5a91fe39bae30b5c94271d308f1c0bb5c0",
+    "workspace.py": "82d309705aa0cb2b38cc85bade63c6ad0e300dac4ad2a042e46590009b979f5d"
+  },
+  "acceptance_sha256": {
+    "acceptance.py": "13133b3378df357f07fd828173d0b9ba972dbe862e03d605947b63c9fc31c739",
+    "record_command.py": "4a8eaaa1a827d868115d2aaa7f279097a99e8e3d882d0975bd7a548999574021"
+  },
+  "source_after": {
+    "ctf_profiler.py": "bfdeeac3fc88547f5740dcb2e95c81d0fa6aa0f87e38c6f38702f382258fbd32",
+    "dependencies.py": "0d508890b366e6948eb75c537a2c1b05b22a0b9f2af668fd6fa802b68a56d6c1",
+    "device_classifier.py": "4686cf0ff7e797df1c14b2cdad3cece0732d4a6699ef9e9bd0ba34bacb552134",
+    "scope_proxy.py": "fa9e07473462d3b15872cc7c93d6da2579791fc1b4a7f1a8c29697632eb34e4e",
+    "staged_workflow.py": "a3503172349017c1ab94e91a61fbcc5a91fe39bae30b5c94271d308f1c0bb5c0",
+    "workspace.py": "82d309705aa0cb2b38cc85bade63c6ad0e300dac4ad2a042e46590009b979f5d"
+  },
+  "source_unchanged": true,
+  "tests": {
+    "__main__.B1TemporaryStorage.test_actual_browser_profile_path_is_measured": {
+      "status": "pass"
+    },
+    "__main__.B1TemporaryStorage.test_browser_process_tmp_is_within_measured_roots": {
+      "status": "pass"
+    },
+    "__main__.B1TemporaryStorage.test_observer_measures_24mib_then_small_final": {
+      "status": "pass"
+    },
+    "__main__.B1TemporaryStorage.test_version_probe_uses_declared_work_root": {
+      "status": "fail",
+      "detail": "Traceback (most recent call last):\n  File \"/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v3/acceptance.py\", line 88, in test_version_probe_uses_declared_work_root\n    self.assertTrue(Path(env['TMPDIR']).resolve().is_relative_to(self.work.resolve()), env['TMPDIR'])\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true : /tmp\n"
+    },
+    "__main__.B2Cleanup.test_failed_tool_retains_bounded_diagnostic": {
+      "status": "pass"
+    },
+    "__main__.B2Cleanup.test_interruption_cleans_owned_runtime": {
+      "status": "pass"
+    },
+    "__main__.B2Cleanup.test_large_runtime_home_has_bounded_diagnostic_before_removal": {
+      "status": "pass"
+    },
+    "__main__.B2Cleanup.test_real_permission_denied_cannot_report_completed": {
+      "status": "pass"
+    },
+    "__main__.B2Cleanup.test_successful_cleanup_is_explicit_and_preserves_neighbour": {
+      "status": "pass"
+    },
+    "__main__.B3DependencyIdentity.test_database_changed_during_run_prevents_clean_completion": {
+      "status": "fail",
+      "detail": "Traceback (most recent call last):\n  File \"/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v3/acceptance.py\", line 252, in test_database_changed_during_run_prevents_clean_completion\n    self.assertNotEqual(code, 0)\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^\nAssertionError: 0 == 0\n"
+    },
+    "__main__.B3DependencyIdentity.test_full_browser_version_is_preserved": {
+      "status": "pass"
+    },
+    "__main__.B3DependencyIdentity.test_selected_database_mutation_is_detected": {
+      "status": "fail",
+      "detail": "Traceback (most recent call last):\n  File \"/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v3/acceptance.py\", line 234, in test_selected_database_mutation_is_detected\n    self.assertIn(before_hash, list(values(before)))\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '282b161fbc285f9def9520672b9897dec61cbb3e3662c7a158cf50d1a374d902' not found in ['/tmp/cp-v3-nwabbyle/wpscan', 'present', 43, 'b43769bd96385e17ce777f4bf2c37d299f59f84cd6ff7a9ee7d60dff8d1e2bfe', '/usr/bin/python3.14', 'present', 7477160, '52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41', '/tmp/cp-v3-nwabbyle/wpscan', 'present', 43, 'b43769bd96385e17ce777f4bf2c37d299f59f84cd6ff7a9ee7d60dff8d1e2bfe', None, 0, '/home/joshua/.cache/wpscan/db', 'present', 25, 'eec1ef4cb88640fd69d8dfdb594fce0835fd8419a06553f1630b5ad63902a18f', 3395, '212637c014ab1a329bd2a97c57b3d9601e05fb6454df7665dbdcb67c691d2c0c', 91, '50399ddd4c3477abdd99e21f1dc82e21bdc4f2068a59e20122143c155defba5b', 2429, 'a24ed73c1a0256996f58565e306aa88ff20b79061e4e55404d1eb6773b691ca0', 1199, 'a68ba7664dd4f2ff8a8881d2c33cb971f22691d574030bffcaddedc762e57dc1', 3276000, '0735739d9f5b0ce51645bdac55def20ef0e377ecdd3bf3e3a5cf62e3c5f985d1', 17383159, '6ac81e68b6bc3e1b73d417bd80d887191acf368cb46a4ca637eb221b7a1b5183', 49, 'e75f1880aa0114ea692a9f0986c2443a24b42c27628f10b42398d605055c3f5b', 126111, '5735a76debab04033ff0bb4e32f1cac09c29a085b0eb5507dbd29ae3c29ce366', 5497101, 'b8e8ac1dc92f31512a424227015ecce9ecf307d003478292fa07cf5fa848f191', 10, 26289559]\n"
+    },
+    "__main__.B3DependencyIdentity.test_underlying_implementation_change_with_unchanged_wrapper": {
+      "status": "pass"
+    },
+    "__main__.B4CommandEvidence.test_documented_commands_have_current_receipts": {
+      "status": "unmeasured",
+      "detail": "Unmeasured: supply --evidence round3-evidence.json"
+    },
+    "__main__.ReleaseEvidence.test_three_matching_full_runs_with_storage_and_dependencies": {
+      "status": "unmeasured",
+      "detail": "Unmeasured: supply --evidence round3-evidence.json"
+    }
+  },
+  "counts": {
+    "pass": 10,
+    "fail": 3,
+    "unmeasured": 2
+  },
+  "complete": false
+}

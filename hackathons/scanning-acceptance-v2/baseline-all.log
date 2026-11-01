@@ -1,0 +1,478 @@
+test_both_pipes_closed (__main__.H02Deadlines.test_both_pipes_closed) ... FAIL
+test_one_pipe_closed (__main__.H02Deadlines.test_one_pipe_closed) ... ok
+test_quiet_open_pipes (__main__.H02Deadlines.test_quiet_open_pipes) ... ok
+test_installed_dalfox_positive_control (__main__.H05Schemas.test_installed_dalfox_positive_control) ... ok
+test_invalid_contract_matrix (__main__.H05Schemas.test_invalid_contract_matrix) ... 
+  test_invalid_contract_matrix (__main__.H05Schemas.test_invalid_contract_matrix) (case=0) ... ERROR
+  test_invalid_contract_matrix (__main__.H05Schemas.test_invalid_contract_matrix) (case=1) ... FAIL
+  test_invalid_contract_matrix (__main__.H05Schemas.test_invalid_contract_matrix) (case=2) ... FAIL
+  test_invalid_contract_matrix (__main__.H05Schemas.test_invalid_contract_matrix) (case=4) ... FAIL
+test_missing_tools_cannot_leave_completed_run_with_partial_stages (__main__.H06Statuses.test_missing_tools_cannot_leave_completed_run_with_partial_stages) ... FAIL
+test_api_only_alert_survives_real_orchestration (__main__.H07APIFindings.test_api_only_alert_survives_real_orchestration) ... FAIL
+test_interrupt_during_metadata_preserves_partial_profile (__main__.H09Initialisation.test_interrupt_during_metadata_preserves_partial_profile) ... FAIL
+test_no_current_runner_import_claim (__main__.H11Documentation.test_no_current_runner_import_claim) ... FAIL
+test_candidate_label_in_reproduced_findings (__main__.H03Verifier.test_candidate_label_in_reproduced_findings) ... FAIL
+test_closed_observation_filtered (__main__.H03Verifier.test_closed_observation_filtered) ... FAIL
+test_closed_observation_missing (__main__.H03Verifier.test_closed_observation_missing) ... FAIL
+test_failed_excluded_execution (__main__.H03Verifier.test_failed_excluded_execution) ... FAIL
+test_failed_task_with_completed_stage (__main__.H03Verifier.test_failed_task_with_completed_stage) ... FAIL
+test_https_proofs_missing (__main__.H03Verifier.test_https_proofs_missing) ... FAIL
+test_meaningless_source_lineage (__main__.H03Verifier.test_meaningless_source_lineage) ... FAIL
+test_missing_proof_file (__main__.H03Verifier.test_missing_proof_file) ... ok
+test_positive_control (__main__.H03Verifier.test_positive_control) ... ok
+test_actual_production_branch_in_two_fresh_output_directories (__main__.H01WordPress.test_actual_production_branch_in_two_fresh_output_directories) ... 
+  test_actual_production_branch_in_two_fresh_output_directories (__main__.H01WordPress.test_actual_production_branch_in_two_fresh_output_directories) (fresh_run=0) ... FAIL
+  test_actual_production_branch_in_two_fresh_output_directories (__main__.H01WordPress.test_actual_production_branch_in_two_fresh_output_directories) (fresh_run=1) ... FAIL
+test_missing_browser_is_not_a_negative_pass (__main__.H04NegativeCoverage.test_missing_browser_is_not_a_negative_pass) ... FAIL
+test_real_negative_validators_complete (__main__.H04NegativeCoverage.test_real_negative_validators_complete) ... FAIL
+test_negative_fixture_stops_its_server (__main__.H12Cleanup.test_negative_fixture_stops_its_server) ... FAIL
+test_retained_whole_run_budget (__main__.H08Storage.test_retained_whole_run_budget) ... FAIL
+test_sampled_peak_and_shared_budget (__main__.H08Storage.test_sampled_peak_and_shared_budget) ... skipped 'Unmeasured: supply --trace from measure_storage.py'
+test_small_run_keeps_required_proofs (__main__.H08Storage.test_small_run_keeps_required_proofs) ... ok
+test_effective_configuration_complete (__main__.H10Metadata.test_effective_configuration_complete) ... FAIL
+test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) ... 
+  test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='http') ... FAIL
+  test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='tls') ... FAIL
+  test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='httpx') ... FAIL
+  test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='katana') ... FAIL
+  test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='wpscan') ... FAIL
+  test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='dalfox') ... FAIL
+test_template_and_wordlist_content_identified (__main__.H10Metadata.test_template_and_wordlist_content_identified) ... FAIL
+
+======================================================================
+ERROR: test_invalid_contract_matrix (__main__.H05Schemas.test_invalid_contract_matrix) (case=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 315, in test_invalid_contract_matrix
+    self.parse(data, exit_code=1 if number == 1 else 0)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 299, in parse
+    STAGED.parse_result_artifact(result, "dalfox", artifact, Path(directory), "json")
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/staged_workflow.py", line 98, in parse_result_artifact
+    rows = normalise_dalfox(result, rows)
+  File "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/staged_workflow.py", line 80, in normalise_dalfox
+    declared = sum(int(report["meta"].get("findings_count") or 0) for report in reports)
+  File "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/staged_workflow.py", line 80, in <genexpr>
+    declared = sum(int(report["meta"].get("findings_count") or 0) for report in reports)
+                   ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: int() argument must be a string, a bytes-like object or a real number, not 'dict'
+
+======================================================================
+FAIL: test_both_pipes_closed (__main__.H02Deadlines.test_both_pipes_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 173, in test_both_pipes_closed
+    self.check_deadline("os.close(1); os.close(2)")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 169, in check_deadline
+    self.assertEqual(result["status"], "timed_out", str(result))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'completed' != 'timed_out'
+- completed
++ timed_out
+ : {'id': 'deadline', 'tool': 'acceptance-python', 'command': ['/usr/bin/python3', '-B', '-c', 'import os,time; os.close(1); os.close(2); time.sleep(0.8)'], 'trigger': 'Owned, bounded process fixture', 'timeout': 0.1, 'started_at': '2026-10-31T06:47:26.713631+00:00', 'exit_code': 0, 'stdout': 'raw/deadline.stdout', 'stderr': 'raw/deadline.stderr', 'status': 'completed', 'finished_at': '2026-10-31T06:47:27.522668+00:00', 'duration_seconds': 0.809, 'captured_bytes': {'stdout': 0, 'stderr': 0}}
+
+======================================================================
+FAIL: test_invalid_contract_matrix (__main__.H05Schemas.test_invalid_contract_matrix) (case=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 315, in test_invalid_contract_matrix
+    self.parse(data, exit_code=1 if number == 1 else 0)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 301, in parse
+    self.assertEqual(rejected, not valid, str(result))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False != True : {'status': 'completed', 'exit_code': 1, 'parse_status': 'completed'}
+
+======================================================================
+FAIL: test_invalid_contract_matrix (__main__.H05Schemas.test_invalid_contract_matrix) (case=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 315, in test_invalid_contract_matrix
+    self.parse(data, exit_code=1 if number == 1 else 0)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 301, in parse
+    self.assertEqual(rejected, not valid, str(result))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False != True : {'status': 'completed', 'exit_code': 0, 'parse_status': 'completed'}
+
+======================================================================
+FAIL: test_invalid_contract_matrix (__main__.H05Schemas.test_invalid_contract_matrix) (case=4)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 315, in test_invalid_contract_matrix
+    self.parse(data, exit_code=1 if number == 1 else 0)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 301, in parse
+    self.assertEqual(rejected, not valid, str(result))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False != True : {'status': 'completed', 'exit_code': 0, 'parse_status': 'completed'}
+
+======================================================================
+FAIL: test_missing_tools_cannot_leave_completed_run_with_partial_stages (__main__.H06Statuses.test_missing_tools_cannot_leave_completed_run_with_partial_stages)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 329, in test_missing_tools_cannot_leave_completed_run_with_partial_stages
+    self.assertFalse(partial and profile["run"]["status"] == "completed")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_api_only_alert_survives_real_orchestration (__main__.H07APIFindings.test_api_only_alert_survives_real_orchestration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 372, in test_api_only_alert_survives_real_orchestration
+    self.assertTrue(any(f.get("title") == "acceptance-api-only" and f.get("source") == "zap-api-18080" for f in findings), str(findings))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : [{'source': 'zap-18080', 'title': 'acceptance-web-only', 'plugin_id': 'acceptance', 'url': 'http://127.0.0.2:18080/items', 'status': 'candidate'}]
+
+======================================================================
+FAIL: test_interrupt_during_metadata_preserves_partial_profile (__main__.H09Initialisation.test_interrupt_during_metadata_preserves_partial_profile)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 427, in test_interrupt_during_metadata_preserves_partial_profile
+    code = CORE.build(args)
+  File "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/ctf_profiler.py", line 741, in build
+    profile = initial_profile(args, tools)
+  File "/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/ctf_profiler.py", line 710, in initial_profile
+    "tool_versions": tool_identity(tools, query_versions=not (args.offline or args.dry_run)),
+                     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1241, in _execute_mock_call
+    raise effect
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 429, in test_interrupt_during_metadata_preserves_partial_profile
+    self.fail("Metadata interruption escaped instead of preserving a partial profile")
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Metadata interruption escaped instead of preserving a partial profile
+
+======================================================================
+FAIL: test_no_current_runner_import_claim (__main__.H11Documentation.test_no_current_runner_import_claim)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 464, in test_no_current_runner_import_claim
+    self.assertNotRegex(text, r"performs discovery, all follow-ups, validation, and verified Metasploit import")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex matched: 'performs discovery, all follow-ups, validation, and verified Metasploit import' matches 'performs discovery, all follow-ups, validation, and verified Metasploit import' in '# CTF Profiler v0.3 A conditional profiler for **one assigned CTF target IP**. It collects exposed service evidence, writes a JSON device profile, and generates a portable Metasploit resource script. It supplies no target credentials and installs nothing on the target. ## Run Requires Linux, Python 3.10+, and Nmap. curl enables HTTP collection. Optional tools are used when installed and applicable; the script never installs tools. No Python packages are required. From this directory: ```bash python3 ctf_profiler.py --check-tools ``` For an actual assigned IP, replace `YOUR_CTF_IP` below. The output directory must be new; existing directories are never overwritten. ```bash sudo -v python3 ctf_profiler.py YOUR_CTF_IP --sudo --out results/first-run ``` `sudo -v` authorises local sudo; `--sudo` applies noninteractive sudo only to Nmap. Without sudo, TCP connect scanning still works and automatic OS detection is omitted. Use `--os-detection off` to omit it explicitly. The default discovery scans the top 1,000 TCP ports. Choose your coverage: ```bash python3 ctf_profiler.py YOUR_CTF_IP --sudo --ports all --out results/all-tcp python3 ctf_profiler.py YOUR_CTF_IP --ports 22,80,443,8000-8100 --out results/selected-tcp ``` For reverse DNS, supply the CTF\'s resolver IP explicitly: ```bash python3 ctf_profiler.py YOUR_CTF_IP --dns-server YOUR_CTF_DNS_IP --out results/with-dns ``` There are no implicit DNS queries by the generated commands. Resolver contact is an explicit exception to the single target IP, limited to a PTR query for that target. Discovered hostnames and redirect locations do not become scan targets. Proxy and tool authentication/option environment variables are not inherited. curl configuration files and HTTP redirects are disabled. ## Conditional checks Version 0.3.0 applies [device-classification rules](CLASSIFICATION.md) to the combined evidence. The profile includes ranked types, heuristic confidence, supporting evidence, and contradictions; appliance identity and enabled NGFW features remain distinct. A [single-authentication lab runner](CLASSIFICATION.md#one-authentication-for-the-complete-local-workflow) performs discovery, all follow-ups, validation, and verified Metasploit import. | Evidence from discovery | Follow-up | | --- | --- | | HTTP service, including nonstandard ports | curl GET: headers, title, generator tags, response prefix | | TLS with unidentified application | Bounded curl HTTPS check; WhatWeb requires confirmed HTTP | | HTTP response confirmed by curl | WhatWeb level 1, JSON, redirects disabled | | Direct TLS service | testssl.sh protocol, server-default and cipher-category checks; JSON | | SSH service | ssh-keyscan public host keys and SHA-256 fingerprints | | SMB on port 139 or 445 | enum4linux-ng OS/share checks with default empty credentials | | Explicit DNS resolver | dig PTR query | ## Staged workflow `--stages 1-5` extends the conditional follow-ups into five recorded stages: | Stage | Tools and behaviour | | --- | --- | | Discovery | Nmap, or validated `--from-nmap` XML | | Identification | curl, WhatWeb, httpx, fingerprintx for unidentified ports | | Enumeration | Katana, ffuf, testssl.sh, enum4linux-ng, ssh-keyscan, dig | | Assessment | Nuclei, ZAP web scan, ZAP API scan when a same-target OpenAPI file exists, conditional WPScan | | Validation | sqlmap, Dalfox, independent Git/SQL HTTP checks, headless-browser XSS proof | Every stage has a separate record. A tool process that exits successfully but whose output cannot be parsed makes that stage and the run `partial`; it is not reported as completed. Scanner alerts remain `assessment_findings` candidates until an independent validation step reproduces them. Run the complete owned-lab workflow (one sudo authentication, Metasploit excluded): ```bash bash lab/run_workflow.sh --staged --restart-lab ``` If the owned lab and a complete Nmap XML already exist, a normal-user staged run can use them without another privileged scan: ```bash PATH="$PWD/.tools/bin:$PATH" python3 ctf_profiler.py 127.0.0.2 \\ --from-nmap validation/staged-lab/20261031T055530Z-163656/discovery/nmap.xml \\ --ports 53,445,12222,18080,18443,18444 --dns-server 127.0.0.2 \\ --tool-timeout 45 --tls-timeout 240 --stages 1-5 --no-metasploit \\ --skip metasploit_check --out validation/my-staged-run ``` `lab/verify_staged_profile.py RUN_DIR` checks the saved profile against the separate [ground truth](lab/ground-truth.json), parses URL scope instead of substring matching, resolves every evidence path, and re-derives Git, SQL and browser proof content. It does not run Metasploit. Two focused owned fixtures cover branches outside the main lab: ```bash python3 lab/verify_wordpress_fixture.py --lab-profile RUN_DIR/profile python3 -m unittest tests.test_negative_fixtures -v ``` The WordPress fixture is static, local, and requires no API token. The negative fixture exposes a corrected non-repository Git path, parameterised item lookup, and HTML-escaped greeting; none may be reproduced as a finding. Reserved classification cases live in `tests/fixtures/classification-heldout.json` and are read only by the evaluator. Service names and TLS detection drive the plan. A port number alone does not establish the protocol. Nmap service classifications can still be wrong; follow-up failures and available evidence are retained. Optional executables: `whatweb`, `testssl.sh` (or `testssl`), `enum4linux-ng` (or `enum4linux-ng.py`), `ssh-keyscan`, and `dig`. Some have their own runtime dependencies. Older incompatible versions are reported as failed checks, rather than silently treated as successful. Anonymous SMB sessions may be denied. Those restrictions are recorded explicitly. There is no password guessing, supplied account/token/cookie, target agent, or remote software installation in this version. ## Outputs Each run produces: ```text device-profile.json metasploit-import.rc raw/ nmap.xml ...per-check stdout, stderr, headers and tool JSON... ``` The profile includes: - Target and scan coverage, OS candidates, ports, service products and versions. - Conditional task plan, commands, timings, outcomes and parser errors. - HTTP clues, SSH keys, configured PTR results and optional tool JSON. - Raw artifact paths, byte counts and SHA-256 hashes. - Separate unassessed vendor, model, firmware and device-role hypotheses. Product banners and OS candidates are observations, not confirmed hardware identity. NGFW capability and active features remain unknown, and no vulnerabilities are automatically validated. Checks run sequentially with per-process deadlines. The default limit is 32 open TCP services for follow-ups; all discovered services remain in the profile and omitted follow-ups are listed. HTTP bodies are capped at 256 KiB by default. Truncated responses and interrupted/failed runs are labelled partial. Common controls: ```bash python3 ctf_profiler.py YOUR_CTF_IP --skip smb --skip tls --out results/reduced python3 ctf_profiler.py YOUR_CTF_IP --tool-timeout 15 --tls-timeout 90 --max-services 16 --out results/bounded python3 ctf_profiler.py YOUR_CTF_IP --dry-run --out results/planned ``` `--dry-run` writes the discovery plan without sending traffic. Supplying `--from-nmap` with `--dry-run` also reveals the conditional follow-up plan. `--verify-tls` makes curl require certificate validation; the default permits self-signed CTF HTTPS certificates and records that verification was disabled. Exit codes: **0** completed/planned (possibly with skipped or missing optional tools); **1** invalid input/setup; **2** partial results, timeout, failed parsing, truncation, restricted SMB checks, or interrupted run. Inspect individual tasks to assess coverage; a successful process exit does not prove complete visibility. ## Existing scans and offline use Use a complete, single-target Nmap XML file: ```bash python3 ctf_profiler.py YOUR_CTF_IP --from-nmap previous.xml --out results/followups ``` This **does run conditional network checks**. Add `--offline` for parsing and artifact generation without running any tools: ```bash python3 ctf_profiler.py 192.0.2.10 \\ --from-nmap tests/fixtures/single-target.xml \\ --offline --label "Synthetic example; not a real device" \\ --out results/offline-example ``` The included fixture and checked-in sample outputs are **synthetic**. They demonstrate structure and import generation, not observations of a real CTF device. The source scan\'s authentication history cannot be verified when XML is supplied; the generated follow-up commands still supply no credentials. Multi-host XML, mismatched target IPs, and incomplete scans are rejected before creating output. Hostname, CIDR, multicast, unspecified, and zoned IPv6 target arguments are not accepted. ## Metasploit import Run on your machine with a configured, connected Metasploit database: ```bash msfconsole -q -r /absolute/path/to/metasploit-import.rc ``` Or, from an existing console: ```text db_status resource /absolute/path/to/metasploit-import.rc hosts services notes -t ctf.device_profile ``` The script creates/selects the run\'s workspace, imports the validated Nmap XML, and attaches the JSON as a structured host note. It contains only database import operations and does not launch scans or modules. Its data is Base64 encoded to keep target-controlled text out of executable Ruby. The resource is self-contained and portable. Re-import replaces the profile note of the same host/type in that workspace. Use `--workspace NAME` for a different workspace. If discovery failed or a dry run has no XML, the resource attaches the labelled profile only. ## Coverage and limitations The staged workflow covers the tools listed above. The original profiler remains available when `--stages` is omitted. ZAP, ffuf, httpx, fingerprintx, Katana, Nuclei, WPScan, sqlmap, Dalfox and the browser proof are implemented adapters. Not implemented: general UDP coverage beyond an explicitly requested port, STARTTLS negotiation, named virtual-host/SNI discovery, WAF detection, ARP, packet capture, caching/resume, and parallel follow-ups. Direct-IP web requests can miss named virtual hosts. No exact device identity, calibrated probability, or exploit applicability is inferred automatically. Classification confidence values are heuristic rule strengths, not measured probabilities. Metasploit import generation remains available outside staged evaluation. The staged runner passes `--no-metasploit`; Metasploit and Legion integration are outside this workflow\'s current evaluation scope. ## Validation ```bash python3 -m unittest discover -s tests -v ``` Tests cover target validation, XML scope, nonstandard-port conditions, skipped tools, output limits, timeouts, interruption, offline mode, encoded imports, anonymous-access restrictions, parser failures, fingerprintx/Dalfox contracts, and empty-versus-failed artifacts. Simulated executables exercise every adapter. Owned loopback fixtures verify redirect handling, the actual Nmap/curl pipeline, corrected negative cases for all three weakness types, and reserved classification inputs. None contacts another machine. Optional scanner integrations have adapter tests with simulated outputs. The installed tools also have a complete live local-lab test described below. ## Live local target The [local lab](lab/README.md) runs HTTP, HTTPS, SSH, guest SMB, and DNS on 127.0.0.2. It contains small flag challenges and needs no target credentials. Services are installed locally to create the owned target; the profiler uses only network requests when inspecting it. On 31 October 2026, privileged Nmap discovered five open TCP ports and one closed control port. The staged runner\'s current evidence is under `validation/deepseek-evaluation/`; the older partial smoke runs are preserved unchanged. All eight applicable follow-ups completed using curl, WhatWeb, testssl.sh, ssh-keyscan, enum4linux-ng, and dig. The live run exposed an unidentified-TLS planning gap, now covered by a regression test. Nmap\'s original service labels remain unchanged in the evidence. The resulting profile was imported twice into Metasploit workspace `ctf-profiler-live-lab`: one host, five open services, and one complete profile note, with no duplicate records or invented vulnerabilities. The closed port is also preserved as closed in the Metasploit service table. - [Live JSON profile](validation/live-lab/profile/device-profile.json) - [Portable Metasploit resource](validation/live-lab/profile/metasploit-import.rc) - [Profile checks](validation/live-lab/profile-verification.json) - [Metasploit import checks](validation/live-lab/metasploit-import-verification.json) - [Console transcript](validation/live-lab/metasploit-import-test.log) This is a protocol-profiling lab rather than an independent vulnerable VM. OS fingerprints describe the laptop stack. SMB\'s reported OS/version and supported dialects are server responses, not verified device facts; unsupported RPC calls and tool warnings remain in the raw observations. The separate [ground truth](lab/ground-truth.json) is used for validation, never profiling. On 31 October 2026, the generated import was verified in the installed Metasploit Framework 6.5.9 using workspace `ctf-profiler-synthetic-test`. Importing the synthetic profile twice produced exactly one host, four services, and one profile note. The complete JSON was preserved and no vulnerability records were created. See [the verification report](validation/metasploit-import-verification.json) and [console transcript](validation/metasploit-import-test.log). ## Installed tools on this computer - Metasploit Framework 6.5.9 and testssl.sh 3.2.2 are managed through APT. - WhatWeb 0.6.4 is the official upstream release in `/home/joshua/.local/share/ctf-profiler/WhatWeb`, exposed through `/home/joshua/.local/bin/whatweb`. It takes precedence over Ubuntu\'s packaged 0.6.3 launcher, which failed with a missing relative library path. - enum4linux-ng 1.3.10 is in `/home/joshua/.local/share/ctf-profiler/enum4linux-ng`, exposed through `/home/joshua/.local/bin/enum4linux-ng`. Its Python and Samba dependencies are installed through Ubuntu packages. - Metasploit\'s user database is configured in `~/.msf4` and listens on `127.0.0.1:5433`. Launch `msfconsole` as your normal user; its wrapper starts the local database when needed. [The installation manifest](setup/installed-tools.json) records package versions, official upstream URLs and the installed source commits. The upstream source checkouts are separate from APT updates. Implementation references: - [Nmap XML](https://nmap.org/book/man-output.html) - [WhatWeb](https://github.com/urbanadventurer/WhatWeb) - [testssl.sh options](https://github.com/testssl/testssl.sh/blob/3.2/doc/testssl.1.md) - [enum4linux-ng](https://github.com/cddmp/enum4linux-ng) - [Metasploit resource scripts](https://docs.rapid7.com/metasploit/resource-scripts/) - [Metasploit database notes](https://github.com/rapid7/metasploit-framework/blob/master/lib/msf/core/db_manager/note.rb)'
+
+======================================================================
+FAIL: test_candidate_label_in_reproduced_findings (__main__.H03Verifier.test_candidate_label_in_reproduced_findings)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 229, in test_candidate_label_in_reproduced_findings
+    self.reject(lambda p: p["validated_vulnerabilities"][0].__setitem__("status", "candidate"))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 192, in reject
+    self.assertNotEqual(code, 0, "Mutated invalid input was accepted")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : Mutated invalid input was accepted
+
+======================================================================
+FAIL: test_closed_observation_filtered (__main__.H03Verifier.test_closed_observation_filtered)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 203, in test_closed_observation_filtered
+    self.reject(mutate)
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 192, in reject
+    self.assertNotEqual(code, 0, "Mutated invalid input was accepted")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : Mutated invalid input was accepted
+
+======================================================================
+FAIL: test_closed_observation_missing (__main__.H03Verifier.test_closed_observation_missing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 196, in test_closed_observation_missing
+    self.reject(lambda p: p["nmap"].__setitem__("services", [s for s in p["nmap"]["services"] if s["port"] != 18444]))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 192, in reject
+    self.assertNotEqual(code, 0, "Mutated invalid input was accepted")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : Mutated invalid input was accepted
+
+======================================================================
+FAIL: test_failed_excluded_execution (__main__.H03Verifier.test_failed_excluded_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 213, in test_failed_excluded_execution
+    self.reject(mutate)  # Data mutation only: Metasploit is never invoked.
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 192, in reject
+    self.assertNotEqual(code, 0, "Mutated invalid input was accepted")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : Mutated invalid input was accepted
+
+======================================================================
+FAIL: test_failed_task_with_completed_stage (__main__.H03Verifier.test_failed_task_with_completed_stage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 219, in test_failed_task_with_completed_stage
+    self.reject(mutate)
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 192, in reject
+    self.assertNotEqual(code, 0, "Mutated invalid input was accepted")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : Mutated invalid input was accepted
+
+======================================================================
+FAIL: test_https_proofs_missing (__main__.H03Verifier.test_https_proofs_missing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 206, in test_https_proofs_missing
+    self.reject(lambda p: p.__setitem__("validated_vulnerabilities", [f for f in p["validated_vulnerabilities"] if f["url"].startswith("http:")]))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 192, in reject
+    self.assertNotEqual(code, 0, "Mutated invalid input was accepted")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : Mutated invalid input was accepted
+
+======================================================================
+FAIL: test_meaningless_source_lineage (__main__.H03Verifier.test_meaningless_source_lineage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 226, in test_meaningless_source_lineage
+    self.reject(mutate)
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 192, in reject
+    self.assertNotEqual(code, 0, "Mutated invalid input was accepted")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : Mutated invalid input was accepted
+
+======================================================================
+FAIL: test_actual_production_branch_in_two_fresh_output_directories (__main__.H01WordPress.test_actual_production_branch_in_two_fresh_output_directories) (fresh_run=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 143, in test_actual_production_branch_in_two_fresh_output_directories
+    self.assertEqual(task["status"], "completed", str(task))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'failed' != 'completed'
+- failed
++ completed
+ : {'id': 'wpscan-45809', 'tool': 'wpscan', 'command': ['/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/.tools/bin/wpscan', '--url', 'http://127.0.0.1:45809/', '--no-update', '--format', 'json', '--output', '/tmp/acceptance-wordpress-c0wpyfoy/run-0/raw/wpscan-45809.json', '--detection-mode', 'passive', '--plugins-detection', 'passive', '--disable-tls-checks', '--max-threads', '2', '--proxy', 'http://127.0.0.1:46577'], 'trigger': 'WordPress product markers were observed', 'timeout': 30, 'stage': 4, 'port': 45809, 'success_exit_codes': [0, 5], 'isolated_tool_state': True, 'watch': ['/tmp/acceptance-wordpress-c0wpyfoy/run-0/raw/wpscan-45809.json'], 'result_artifact': 'raw/wpscan-45809.json', 'format': 'json', 'started_at': '2026-10-31T06:47:34.981610+00:00', 'exit_code': 4, 'stdout': 'raw/wpscan-45809.stdout', 'stderr': 'raw/wpscan-45809.stderr', 'status': 'failed', 'finished_at': '2026-10-31T06:47:35.388637+00:00', 'duration_seconds': 0.407, 'captured_bytes': {'stdout': 0, 'stderr': 0}}
+
+======================================================================
+FAIL: test_actual_production_branch_in_two_fresh_output_directories (__main__.H01WordPress.test_actual_production_branch_in_two_fresh_output_directories) (fresh_run=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 143, in test_actual_production_branch_in_two_fresh_output_directories
+    self.assertEqual(task["status"], "completed", str(task))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'failed' != 'completed'
+- failed
++ completed
+ : {'id': 'wpscan-45809', 'tool': 'wpscan', 'command': ['/home/joshua/Documents/ChatGPT/Hackathons/ctf-profiler/.tools/bin/wpscan', '--url', 'http://127.0.0.1:45809/', '--no-update', '--format', 'json', '--output', '/tmp/acceptance-wordpress-c0wpyfoy/run-1/raw/wpscan-45809.json', '--detection-mode', 'passive', '--plugins-detection', 'passive', '--disable-tls-checks', '--max-threads', '2', '--proxy', 'http://127.0.0.1:42625'], 'trigger': 'WordPress product markers were observed', 'timeout': 30, 'stage': 4, 'port': 45809, 'success_exit_codes': [0, 5], 'isolated_tool_state': True, 'watch': ['/tmp/acceptance-wordpress-c0wpyfoy/run-1/raw/wpscan-45809.json'], 'result_artifact': 'raw/wpscan-45809.json', 'format': 'json', 'started_at': '2026-10-31T06:47:38.084003+00:00', 'exit_code': 4, 'stdout': 'raw/wpscan-45809.stdout', 'stderr': 'raw/wpscan-45809.stderr', 'status': 'failed', 'finished_at': '2026-10-31T06:47:38.482237+00:00', 'duration_seconds': 0.398, 'captured_bytes': {'stdout': 0, 'stderr': 0}}
+
+======================================================================
+FAIL: test_missing_browser_is_not_a_negative_pass (__main__.H04NegativeCoverage.test_missing_browser_is_not_a_negative_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 283, in test_missing_browser_is_not_a_negative_pass
+    self.assertTrue(not result.wasSuccessful() or bool(result.skipped),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    "A missing browser was reported as a successfully tested negative")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : A missing browser was reported as a successfully tested negative
+
+======================================================================
+FAIL: test_real_negative_validators_complete (__main__.H04NegativeCoverage.test_real_negative_validators_complete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 276, in test_real_negative_validators_complete
+    self.assertTrue(all(t["status"] == "completed" for t in observed), str(observed))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : [{'id': 'verify-git-negative', 'tool': 'http', 'command': ['/usr/bin/curl', '--disable', '--silent', '--show-error', '--proxy', 'http://127.0.0.1:44631', '--noproxy', '', '--proto', '=http,https', '--insecure', '--connect-timeout', '5', '--max-time', '10', '--dump-header', '/tmp/negative-fixtures-oebjjs4t/raw/git.headers', '--url', 'http://127.0.0.1:35933/.git/config'], 'trigger': 'negative Git fixture', 'timeout': 20, 'stage': 5, 'port': 35933, 'stdout_limit': 262144, 'started_at': '2026-10-31T06:47:42.394084+00:00', 'exit_code': 0, 'stdout': 'raw/verify-git-negative.stdout', 'stderr': 'raw/verify-git-negative.stderr', 'status': 'completed', 'finished_at': '2026-10-31T06:47:42.400728+00:00', 'duration_seconds': 0.007, 'captured_bytes': {'stdout': 24, 'stderr': 0}}, {'id': 'verify-git-35933', 'tool': 'http', 'command': ['/usr/bin/curl', '--disable', '--silent', '--show-error', '--proxy', 'http://127.0.0.1:44631', '--noproxy', '', '--proto', '=http,https', '--insecure', '--connect-timeout', '5', '--max-time', '10', '--dump-header', '/tmp/negative-fixtures-oebjjs4t/raw/verify-git-35933.headers', '--url', 'http://127.0.0.1:35933.git/config'], 'trigger': 'Retrieve bounded evidence from the same target', 'timeout': 20, 'stage': 5, 'port': 35933, 'stdout_limit': 262144, 'started_at': '2026-10-31T06:47:42.400824+00:00', 'exit_code': 3, 'stdout': 'raw/verify-git-35933.stdout', 'stderr': 'raw/verify-git-35933.stderr', 'status': 'failed', 'finished_at': '2026-10-31T06:47:42.405152+00:00', 'duration_seconds': 0.004, 'captured_bytes': {'stdout': 0, 'stderr': 81}}]
+
+======================================================================
+FAIL: test_negative_fixture_stops_its_server (__main__.H12Cleanup.test_negative_fixture_stops_its_server)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 470, in test_negative_fixture_stops_its_server
+    self.assertFalse(alive, "Negative fixture leaves a serve_forever daemon running")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : Negative fixture leaves a serve_forever daemon running
+
+======================================================================
+FAIL: test_retained_whole_run_budget (__main__.H08Storage.test_retained_whole_run_budget)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 380, in test_retained_whole_run_budget
+    self.assertLessEqual(measured["logical_bytes"], 16 * 1024 * 1024, str(measured))
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 751037028 not less than or equal to 16777216 : {'logical_bytes': 751037028, 'allocated_bytes': 753659904, 'files': 2081, 'symlinks': []}
+
+======================================================================
+FAIL: test_effective_configuration_complete (__main__.H10Metadata.test_effective_configuration_complete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 441, in test_effective_configuration_complete
+    self.assertTrue(required.issubset(configuration), str(sorted(required - configuration.keys())))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : ['assessment_timeout', 'effective_privileged_discovery', 'max_endpoints', 'max_validation_urls', 'max_web_origins', 'skip', 'stages', 'udp_ports', 'validation_timeout', 'verify_tls']
+
+======================================================================
+FAIL: test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='http')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 448, in test_real_versions_for_twelve_known_tools
+    self.assertRegex(versions[name].get("version") or "", r"\b\d+\.\d+", "Record a version, not ASCII art or wrapper identity")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\b\\d+\\.\\d+' not found in '' : Record a version, not ASCII art or wrapper identity
+
+======================================================================
+FAIL: test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='tls')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 448, in test_real_versions_for_twelve_known_tools
+    self.assertRegex(versions[name].get("version") or "", r"\b\d+\.\d+", "Record a version, not ASCII art or wrapper identity")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\b\\d+\\.\\d+' not found in '\x1b[1m' : Record a version, not ASCII art or wrapper identity
+
+======================================================================
+FAIL: test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='httpx')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 448, in test_real_versions_for_twelve_known_tools
+    self.assertRegex(versions[name].get("version") or "", r"\b\d+\.\d+", "Record a version, not ASCII art or wrapper identity")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\b\\d+\\.\\d+' not found in '__    __  __       _  __' : Record a version, not ASCII art or wrapper identity
+
+======================================================================
+FAIL: test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='katana')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 448, in test_real_versions_for_twelve_known_tools
+    self.assertRegex(versions[name].get("version") or "", r"\b\d+\.\d+", "Record a version, not ASCII art or wrapper identity")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\b\\d+\\.\\d+' not found in '__        __                ' : Record a version, not ASCII art or wrapper identity
+
+======================================================================
+FAIL: test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='wpscan')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 448, in test_real_versions_for_twelve_known_tools
+    self.assertRegex(versions[name].get("version") or "", r"\b\d+\.\d+", "Record a version, not ASCII art or wrapper identity")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\b\\d+\\.\\d+' not found in '_______________________________________________________________' : Record a version, not ASCII art or wrapper identity
+
+======================================================================
+FAIL: test_real_versions_for_twelve_known_tools (__main__.H10Metadata.test_real_versions_for_twelve_known_tools) (tool='dalfox')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 448, in test_real_versions_for_twelve_known_tools
+    self.assertRegex(versions[name].get("version") or "", r"\b\d+\.\d+", "Record a version, not ASCII art or wrapper identity")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\b\\d+\\.\\d+' not found in '' : Record a version, not ASCII art or wrapper identity
+
+======================================================================
+FAIL: test_template_and_wordlist_content_identified (__main__.H10Metadata.test_template_and_wordlist_content_identified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/joshua/Documents/ChatGPT/Hackathons/scanning-acceptance-v2/acceptance.py", line 456, in test_template_and_wordlist_content_identified
+    self.assertIn(name, identities)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: 'templates/assessment/git-config.yaml' not found in {}
+
+----------------------------------------------------------------------
+Ran 28 tests in 23.417s
+
+FAILED (failures=29, errors=1, skipped=1)
+{
+  "total_points": 20.1111,
+  "areas": {
+    "H01": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 10,
+      "points": 0.0,
+      "complete": false
+    },
+    "H02": {
+      "passed": 2,
+      "checks": 3,
+      "weight": 10,
+      "points": 6.6667,
+      "complete": false
+    },
+    "H03": {
+      "passed": 2,
+      "checks": 9,
+      "weight": 20,
+      "points": 4.4444,
+      "complete": false
+    },
+    "H04": {
+      "passed": 0,
+      "checks": 2,
+      "weight": 10,
+      "points": 0.0,
+      "complete": false
+    },
+    "H05": {
+      "passed": 1,
+      "checks": 2,
+      "weight": 10,
+      "points": 5.0,
+      "complete": false
+    },
+    "H06": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 8,
+      "points": 0.0,
+      "complete": false
+    },
+    "H07": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 6,
+      "points": 0.0,
+      "complete": false
+    },
+    "H08": {
+      "passed": 1,
+      "checks": 3,
+      "weight": 12,
+      "points": 4.0,
+      "complete": false
+    },
+    "H09": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 5,
+      "points": 0.0,
+      "complete": false
+    },
+    "H10": {
+      "passed": 0,
+      "checks": 3,
+      "weight": 5,
+      "points": 0.0,
+      "complete": false
+    },
+    "H11": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 2,
+      "points": 0.0,
+      "complete": false
+    },
+    "H12": {
+      "passed": 0,
+      "checks": 1,
+      "weight": 2,
+      "points": 0.0,
+      "complete": false
+    }
+  }
+}

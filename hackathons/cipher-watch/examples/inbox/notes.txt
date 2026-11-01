@@ -1,0 +1,2 @@
+Synthetic example for local validation.
+message = "aGVsbG8gdGhlcmUgZ2VuZXJhbA=="

@@ -1,0 +1,17 @@
+[Unit]
+Description=Shared Ciphey and password-recovery readers for Hackathon projects
+
+[Service]
+Type=simple
+WorkingDirectory=/home/joshua/Documents/ChatGPT/Hackathons/shared-reader
+ExecStart=/home/joshua/Documents/ChatGPT/Hackathons/shared-reader/run.sh watch --root /home/joshua/Documents/FlagHop --projects-catalog /home/joshua/Projects/legion/.state/config/project-hub.json --benchmark-profile /home/joshua/Documents/ChatGPT/Hackathons/hash-watch/validation/laptop/benchmark.json
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+KillMode=control-group
+Nice=10
+UMask=0077
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target

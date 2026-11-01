@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "scan_id": "3d1fd41215e74694b61e41f9ff9e092d",
+  "created_at": "2026-10-30T20:39:45.634949+00:00",
+  "source": "locked.zip",
+  "source_sha256": "1da0e29caec83e99b9981a607fe363c8c4e7321a4cb1218df1af05c28af77d19",
+  "source_size": 246,
+  "config": "16199ae9aa9366a8d050b2f55734ed92b7b5b4efcdd3f00712eb943d3db793b6",
+  "tool_sha256": {
+    "john": "059ade5c34432ec8aebde4e6dc4477eabd9e7ff0b9890497685a842334822b25",
+    "hashcat": "e9fe2167fd1814341cf7c6c1c559768c372363438124ed668d16f6952e4359bb",
+    "hashcat_core": "dbccb98217c95a79c0b648f452ad1778317777fe069eb2a20d66c0f0b8751a14",
+    "hashcat_modules": "e780d05f44f7e43b4a3ee60284cf1b15f9a0c665a0da963a2a341909ee6ced8d",
+    "pocl": "790cb654b158eaf794da1b441ef7be2f04c5ff95447e0957d80d733fb59b47b7",
+    "rusticl": "6669c5324719506923601fa66c0b5396e37b22589a4b055ace18bd8b2951f773"
+  },
+  "status": "complete",
+  "warnings": [],
+  "candidates": [
+    {
+      "value": "$pkzip$1*2*2*0*2e*22*b59b9f1f*0*4b*0*2e*2443*efa42854e5ba7c709bb5cb197038d79b8fc5bfac8d40ecf1aa5367d0c10b396a3c3ed665de04726487a47d1573ff*$/pkzip$",
+      "identity_value": "1da0e29caec83e99b9981a607fe363c8c4e7321a4cb1218df1af05c28af77d19:zip:0",
+      "extractor_record": "source.bin/zip-demo-note.txt:$pkzip$1*2*2*0*2e*22*b59b9f1f*0*4b*0*2e*2443*efa42854e5ba7c709bb5cb197038d79b8fc5bfac8d40ecf1aa5367d0c10b396a3c3ed665de04726487a47d1573ff*$/pkzip$:zip-demo-note.txt:source.bin::/home/joshua/Documents/ChatGPT/Hackathons/hash-watch/examples/results/scans/3d1fd41215e74694b61e41f9ff9e092d/source.bin",
+      "verifier_source": "/home/joshua/Documents/ChatGPT/Hackathons/hash-watch/examples/results/scans/3d1fd41215e74694b61e41f9ff9e092d/source.bin",
+      "verifier_source_sha256": "1da0e29caec83e99b9981a607fe363c8c4e7321a4cb1218df1af05c28af77d19",
+      "format": "pkzip",
+      "format_basis": "format-specific extractor zip2john",
+      "location": {
+        "extractor": "zip2john"
+      },
+      "identifications": [],
+      "target_id": "8dae50375431eb3f54edbb11e000167a0bde553cdf0edd844e9e4bedcdc4faa3"
+    }
+  ],
+  "host_ip": null,
+  "source_snapshot": "source.bin",
+  "extractor": {
+    "status": "complete",
+    "returncode": 0,
+    "helper": "zip2john",
+    "found": 1,
+    "diagnostics": "raw/extractor.stderr.txt"
+  }
+}

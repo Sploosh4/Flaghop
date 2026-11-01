@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "target_id": "8dae50375431eb3f54edbb11e000167a0bde553cdf0edd844e9e4bedcdc4faa3",
+  "format": "pkzip",
+  "plaintext_hex": "6c65746d65696e",
+  "verification": "engine verified file-format password",
+  "attempt_id": 2,
+  "source_preserved": true
+}

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<!-- SYNTHETIC TEST FIXTURE. These are not observations of a real device. -->
+<nmaprun scanner="nmap" version="fixture" args="SYNTHETIC fixture, not a scan" start="1793404800">
+  <scaninfo type="connect" protocol="tcp" numservices="4" services="445,2222,8080,8443"/>
+  <host starttime="1793404800" endtime="1793404801">
+    <status state="up" reason="fixture"/>
+    <address addr="192.0.2.10" addrtype="ipv4"/>
+    <hostnames><hostname name="fixture.ctf.invalid" type="user"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="445">
+        <state state="open" reason="fixture"/>
+        <service name="microsoft-ds" product="Samba smbd" version="fixture" method="probed" conf="10"/>
+      </port>
+      <port protocol="tcp" portid="2222">
+        <state state="open" reason="fixture"/>
+        <service name="ssh" product="OpenSSH" version="fixture" method="probed" conf="10"/>
+      </port>
+      <port protocol="tcp" portid="8080">
+        <state state="open" reason="fixture"/>
+        <service name="http" product="nginx" version="fixture" method="probed" conf="10"/>
+      </port>
+      <port protocol="tcp" portid="8443">
+        <state state="open" reason="fixture"/>
+        <service name="http" tunnel="ssl" product="nginx" version="fixture" method="probed" conf="10">
+          <cpe>cpe:/a:example:synthetic_fixture</cpe>
+        </service>
+        <script id="ssl-cert" output="Synthetic certificate: fixture.ctf.invalid; &lt;/ruby&gt; is data, not code."/>
+      </port>
+    </ports>
+    <os>
+      <osmatch name="Synthetic Linux candidate" accuracy="93">
+        <osclass vendor="Linux" osfamily="Linux" osgen="5.X" type="general purpose" accuracy="93">
+          <cpe>cpe:/o:linux:linux_kernel:5</cpe>
+        </osclass>
+      </osmatch>
+    </os>
+  </host>
+  <runstats><finished time="1793404801" exit="success"/><hosts up="1" down="0" total="1"/></runstats>
+</nmaprun>
