@@ -42,8 +42,12 @@ The current application remains unclassified and existing functionality remains
 available. The loader is not yet integrated into an installation workflow.
 
 `GET /api/workspace/capabilities` is a read-only snapshot for the active project.
-It relates existing settings actions and pipettes to their integration IDs and
-identifies unclassified taxonomy. It reports declared tool prerequisites without
+It relates existing settings actions and pipettes to their integration IDs through
+the same validated metadata consumed by the catalogue. Pipette projections use
+`pipette:`-prefixed inspection IDs to remain distinct from scheduler action IDs;
+their original tool IDs are retained and execution identifiers are unchanged.
+Integration IDs are existing tool IDs, not proof of a shared physical executable.
+The endpoint identifies unclassified taxonomy. It reports declared tool prerequisites without
 probing installation; unverified availability is unknown. Existing artifact types
 are legacy inferred hints, not guarantees of output. The endpoint does not run a
 command, connect, install, or accept a project identifier. The catalogue's

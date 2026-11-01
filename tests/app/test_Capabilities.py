@@ -48,6 +48,21 @@ class CapabilityTests(unittest.TestCase):
         original = self.validate(self.payload)["change_report"][0]["snapshot"]
         with patch("app.capabilities.manifests._APPROVED_BASELINE", (original,)):
             self.assertEqual(self.validate(self.payload)["change_report"][0]["status"], "approved")
+            self.assertEqual(len(self.validate(self.payload)["active_categories"]), 1)
+            altered_registry = ActionRegistry(
+                [
+                    ActionSpec(
+                        action_id="first-action",
+                        tool_id="example-tool",
+                        label="first",
+                        description="first",
+                        command_template="changed",
+                    ),
+                    self.registry.get("second-action"),
+                ]
+            )
+            changed_report = validate_manifests([CapabilityManifest.model_validate(self.payload)], altered_registry)
+            self.assertEqual(changed_report["active_categories"], [])
             changed = copy.deepcopy(self.payload)
             changed["modules"][0]["action_ids"] = []
             self.assertEqual(self.validate(changed)["change_report"][0]["status"], "draft")
@@ -55,6 +70,7 @@ class CapabilityTests(unittest.TestCase):
             changed["categories"][0]["definition"] += " expanded"
             self.assertEqual(self.validate(changed)["change_report"][0]["status"], "draft")
         changed = copy.deepcopy(self.payload)
+        self.assertEqual(self.validate(changed)["active_categories"], [])
         changed["categories"][0]["approved"] = True
         with self.assertRaises(ValueError):
             self.validate(changed)
@@ -65,6 +81,7 @@ class CapabilityTests(unittest.TestCase):
             (lambda p: p["modules"][0]["integration_ids"].append("missing"), "missing"),
             (lambda p: p["modules"][0].update(depends_on=["second"]), "cyclic"),
             (lambda p: p.update(version=2), "version"),
+            (lambda p: p["categories"][0].update(definition="   "), "definition"),
         ]:
             payload = copy.deepcopy(self.payload)
             change(payload)
@@ -103,6 +120,25 @@ class CapabilityApiTests(unittest.TestCase):
             self.assertEqual(data["categories"], [])
             self.assertTrue(data["actions"])
             self.assertTrue(data["modules"])
+            actions = {a["action_id"]: a for a in data["actions"]}
+            for module in data["modules"]:
+                for action_id in module["action_ids"]:
+                    self.assertIn(action_id, actions)
+            integrations = {i["id"]: i for i in data["integrations"]}
+            for action in actions.values():
+                self.assertIn(action["action_id"], integrations[action["integration_id"]]["action_ids"])
+            self.assertTrue(any(a["source"] == "pipette" for a in actions.values()))
             self.assertIsNone(data["missing_prerequisites"])
         finally:
             case.tearDown()
+
+
+class LegacyCompatibilityTests(unittest.TestCase):
+    def test_blank_and_unsupported_rows_are_ignored_by_real_catalogue(self):
+        from tests.app.test_WebRuntimeDomainModules import _ToolRuntime
+        from app.web.runtime_tool_catalog import workspace_tools_rows
+
+        runtime = _ToolRuntime()
+        before = workspace_tools_rows(runtime)
+        runtime.settings.portActions.extend([["bad", "", "no-op", ""], ["bad", "unsupported-xyz", "no-op", ""]])
+        self.assertEqual(before, workspace_tools_rows(runtime))

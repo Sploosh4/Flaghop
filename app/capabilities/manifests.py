@@ -34,7 +34,7 @@ def load_manifests(root, registry):
     return validate_manifests(manifests, registry)
 
 
-def validate_manifests(manifests, registry):
+def validate_manifests(manifests, registry, pipettes=()):
     groups = {"integrations": {}, "modules": {}, "categories": {}}
     for manifest in manifests:
         for kind, entries in groups.items():
@@ -44,6 +44,11 @@ def validate_manifests(manifests, registry):
                 entries[item.id] = item
     integrations, modules, categories = (groups[k] for k in ("integrations", "modules", "categories"))
     actions = {a.action_id: a for a in registry.all()}
+    for pipette in pipettes:
+        key = "pipette:" + pipette.tool_id
+        if key in actions:
+            raise ValueError(f"duplicate action id: {key}")
+        actions[key] = pipette
     for module in modules.values():
         for kind, refs, known in (
             ("integration", module.integration_ids, integrations),
@@ -99,7 +104,16 @@ def validate_manifests(manifests, registry):
             collect(module_id)
         from dataclasses import asdict
 
-        snapshot = {"category": category.model_dump(), "actions": {k: asdict(actions[k]) for k in sorted(resolved)}}
+        snapshot = {
+            "category": category.model_dump(),
+            "modules": {k: modules[k].model_dump() for k in sorted(reachable)},
+            "actions": {k: asdict(actions[k]) for k in sorted(resolved)},
+        }
         active = snapshot in _APPROVED_BASELINE
         report.append({"id": category.id, "status": "approved" if active else "draft", "snapshot": snapshot})
-    return {"integrations": integrations, "modules": modules, "categories": categories, "change_report": report}
+    return {
+        "integrations": integrations,
+        "modules": modules,
+        "active_categories": [r["snapshot"]["category"] for r in report if r["status"] == "approved"],
+        "change_report": report,
+    }
